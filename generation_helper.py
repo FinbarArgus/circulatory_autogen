@@ -1,0 +1,362 @@
+import numpy as np
+import os
+import re
+from sys import exit
+
+def write_mapping(wf, inp_name, out_name, inp_vars_list, out_vars_list):
+    wf.writelines(['<connection>\n',
+    f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n'])
+    for inp_var, out_var in zip(inp_vars_list, out_vars_list):
+        if inp_var and out_var:
+            wf.write(f'   <map_variables variable_1="{inp_var}" variable_2="{out_var}"/>\n')
+    wf.write('</connection>\n')
+
+def write_imports(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        if vessel_vec["vessel_type"] in ['heart', 'pulmonary']:
+            continue
+        write_import(wf, vessel_vec)
+
+def write_import(wf, vessel_vec):
+    if vessel_vec['vessel_type'] == 'terminal':
+        module_type = f'{vessel_vec["BC_type"]}_T_type'
+    elif vessel_vec['vessel_type'] == 'split_junction':
+        module_type = f'{vessel_vec["BC_type"]}_split_type'
+    elif vessel_vec['vessel_type'] == 'merge_junction':
+        module_type = f'{vessel_vec["BC_type"]}_merge_type'
+    elif vessel_vec['vessel_type'] == 'venous':
+        module_type = f'{vessel_vec["BC_type"]}_simple_type'
+    else:
+        module_type = f'{vessel_vec["BC_type"]}_type'
+
+    if vessel_vec["name"] == 'heart':
+        str_addon = ''
+    else:
+        str_addon = '_module'
+
+    wf.writelines(['<import xlink:href="BG_Modules.cellml">\n',
+    f'    <component component_ref="{module_type}" name="{vessel_vec[0]+str_addon}"/>\n',
+    '</import>\n'])
+
+def write_access_variables(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        if vessel_vec["vessel_type"] in ['heart', 'pulmonary']:
+            continue
+        wf.writelines([f'<component name="{vessel_vec["name"]}">\n',
+        '   <variable name="u" public_interface="in" units="J_per_m3"/>\n',
+        '   <variable name="v" public_interface="in" units="m3_per_s"/>\n'])
+        if vessel_vec['vessel_type']=='terminal':
+            wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
+        wf.write('</component>\n')
+
+def write_section_break(wf, text):
+    wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
+            text + '&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->\n')
+
+def write_vessel_mappings(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        # input and output vessels
+        main_vessel = vessel_vec["name"]
+        main_vessel_BC_type = vessel_vec["BC_type"]
+        main_vessel_type = vessel_vec["vessel_type"]
+        out_vessel = vessel_vec["out_vessel_1"]
+        out_vessel_vec = vessel_array[np.where(vessel_array["name"] == out_vessel)][0]
+        out_vessel_BC_type = out_vessel_vec["BC_type"]
+        out_vessel_type = out_vessel_vec["vessel_type"]
+
+        # check that input and output vessels are defined as connection variables
+        # for that vessel and they have corresponding BCs
+        check_input_output_vessels(vessel_array, main_vessel, out_vessel,
+                                   main_vessel_BC_type, out_vessel_BC_type,
+                                   main_vessel_type, out_vessel_type)
+
+        # determine BC variables from vessel_type and BC_type
+        if main_vessel_type == 'heart':
+            v_1 = 'v_lv'
+            p_1 = 'u_root'
+        elif main_vessel_type == 'last_venous':
+            v_1 = 'v'
+            p_1 = 'u_out'
+        elif main_vessel_type == 'terminal':
+            # flow output is to the terminal_venous_connection, not
+            # to the venous module
+            v_1 = ''
+            p_1 = 'u_out'
+        elif main_vessel_type == 'split_junction':
+            if main_vessel_BC_type.endswith('v'):
+                v_1 = 'v_out_1'
+                p_1 = 'u'
+            elif main_vessel_BC_type == 'vp':
+                v_1 = 'v_out_1'
+                p_1 = 'u'
+            elif main_vessel_BC_type == 'pp':
+                print('Currently we have not implemented junctions'
+                      'with output pressure boundary conditions, '
+                      f'change {main_vessel}')
+                exit()
+        elif main_vessel_type == 'merge_junction':
+            if main_vessel_BC_type == 'vv':
+                v_1 = 'v_out_1'
+                p_1 = 'u_d'
+            else:
+                print('Merge boundary condiditons only have vv type BC, '
+                      f'change "{main_vessel}"')
+                exit()
+        else:
+            if main_vessel_BC_type.endswith('v'):
+                v_1 = 'v_out'
+                p_1 = 'u'
+            elif main_vessel_BC_type == 'vp':
+                v_1 = 'v'
+                p_1 = 'u_out'
+            elif main_vessel_BC_type == 'pp':
+                v_1 = 'v_d'
+                p_1 = 'u_out'
+
+        if out_vessel_type == 'heart':
+            if main_vessel == 'venous_ivc':
+                v_2 = 'v_ivc'
+            elif main_vessel == 'venous_svc':
+                v_2 = 'v_svc'
+            else:
+                print('venous input to heart can only be venous_ivc or venous_svc')
+            p_2 = 'u_ra'
+        elif out_vessel_type == 'merge_junction':
+            if out_vessel_vec["inp_vessel_1"] == main_vessel:
+                v_2 = 'v_in_1'
+            elif out_vessel_vec["inp_vessel_2"] == main_vessel:
+                v_2 = 'v_in_2'
+            else:
+                print('error, exiting')
+                exit()
+        elif main_vessel_type == 'terminal':
+            # For terminal output we link to a terminal_venous connection
+            # to sum up the output terminal flows
+            if out_vessel_BC_type == 'vp':
+                v_2 = ''
+                p_2 = f'u'
+            else:
+                print('venous section connected to terminal only works'
+                      'for vp BC currently')
+                exit()
+        else:
+            if out_vessel_BC_type == 'vp':
+                v_2 = 'v_in'
+                p_2 = 'u'
+            elif out_vessel_BC_type == 'vv':
+                v_2 = 'v_in'
+                p_2 = 'u_C'
+            elif out_vessel_BC_type.startswith('p'):
+                v_2 = 'v'
+                p_2 = 'u_in'
+
+        # TODO make heart and pulmonary BG modules so everything can be a module
+        if main_vessel in ['heart', 'pulmonary']:
+            main_vessel_module = main_vessel
+        else:
+            main_vessel_module = main_vessel + '_module'
+        if out_vessel in ['heart', 'pulmonary']:
+            out_vessel_module = out_vessel
+        else:
+            out_vessel_module = out_vessel + '_module'
+
+        write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+
+        if vessel_vec["vessel_type"].endswith('junction'):
+            if vessel_vec["vessel_type"] == 'split_junction':
+                out_vessel = vessel_vec["out_vessel_2"]
+                if out_vessel in ['heart', 'pulmonary']:
+                    out_vessel_module = out_vessel
+                else:
+                    out_vessel_module = out_vessel + '_module'
+                if vessel_vec["BC_type"].endswith('v'):
+                    v_1 = 'v_out_2'
+                else:
+                    pass
+
+            out_vessel_vec = vessel_array[np.where(vessel_array["name"] == out_vessel)][0]
+            out_vessel_BC_type = out_vessel_vec["BC_type"]
+            out_vessel_type = out_vessel_vec["vessel_type"]
+            check_input_output_vessels(vessel_array, main_vessel, out_vessel,
+                                       main_vessel_BC_type, out_vessel_BC_type,
+                                       main_vessel_type, out_vessel_type)
+            write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+
+def write_comp_to_module_mappings(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        # input and output vessels
+        vessel_name = vessel_vec["name"]
+        if vessel_name in ['heart', 'pulmonary']:
+            # TODO make the heart and pulmonary sections modules instead
+            # of prewritten comp environments in the base cellml code.
+            continue
+        if vessel_vec["vessel_type"] == 'terminal':
+            inp_vars = ['u', 'v', 'R_T']
+            out_vars = ['u', 'v_T', 'R_T']
+        else:
+            inp_vars = ['u', 'v']
+            out_vars = ['u', 'v']
+        write_mapping(wf, vessel_name, vessel_name+'_module', inp_vars, out_vars)
+
+def write_parameter_mappings(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        # input and output vessels
+        vessel_name = vessel_vec["name"]
+        if vessel_name in ['heart', 'pulmonary']:
+            continue
+
+        if vessel_vec["vessel_type"] == 'terminal':
+            vessel_name_minus_T = re.sub('_T$', '', vessel_name)
+            systemic_vars = [f'R_T_{vessel_name_minus_T}',
+                             f'C_T_{vessel_name_minus_T}',
+                             f'alpha_{vessel_name_minus_T}',
+                             f'v_nom_{vessel_name_minus_T}',
+                             'gain_int']
+            module_vars = ['R_T',
+                           'C_T',
+                           'alpha',
+                           'v_nominal',
+                           'gain_int']
+
+        elif vessel_vec["vessel_type"]=='venous':
+            systemic_vars = [f'R_{vessel_name}',
+                             f'C_{vessel_name}',
+                             f'I_{vessel_name}']
+            module_vars = ['R',
+                           'C',
+                           'I']
+        else:
+            systemic_vars = [f'l_{vessel_name}',
+                             f'E_{vessel_name}',
+                             f'r_{vessel_name}',
+                             f'theta_{vessel_name}',
+                             'beta_g']
+            module_vars = ['l',
+                           'E',
+                           'r',
+                           'theta',
+                           'beta_g']
+
+        module_addon = '_module'
+        write_mapping(wf, 'parameters_systemic', vessel_name+module_addon,
+                      systemic_vars, module_vars)
+
+def write_time_mappings(wf, vessel_array):
+    for vessel_vec in vessel_array:
+        # input and output vessels
+        vessel_name = vessel_vec["name"]
+        if vessel_name in ['heart', 'pulmonary']:
+            continue
+
+        module_addon = '_module'
+        write_mapping(wf, 'environment', vessel_name+module_addon,
+                      ['time'], ['t'])
+
+def write_terminal_venous_connection_comp(wf, vessel_array):
+    first_venous_names = [] # stores name of venous compartments that take flow from terminals
+    for vessel_vec in vessel_array:
+        # first map variables between connection and the venous sections
+        if vessel_vec["vessel_type"] == 'terminal':
+            vessel_name = vessel_vec["name"]
+            out_vessel_name = vessel_vec["out_vessel_1"]
+            v_1 = 'v_T'
+            v_2 = f'v_{vessel_name}'
+
+            write_mapping(wf, vessel_name+'_module','terminal_venous_connection',
+                          [v_1], [v_2])
+
+        if vessel_vec["vessel_type"] == 'venous' and not vessel_vec['inp_vessel_1']:
+            vessel_name = vessel_vec["name"]
+            first_venous_names.append(vessel_name)
+            vessel_BC_type = vessel_vec["BC_type"]
+            v_1 = f'v_{vessel_name}'
+            if vessel_BC_type == 'vp':
+                v_2 = 'v_in'
+            else:
+                print(f'first venous vessel BC type of {vessel_BC_type} has not'
+                      f'been implemented')
+
+            write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
+                          [v_1], [v_2])
+
+    # loop through vessels to get the terminals to add up for each first venous section
+    terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
+    for vessel_vec in vessel_array:
+        if vessel_vec['vessel_type'] == 'terminal':
+            vessel_name = vessel_vec["name"]
+            for idx, venous_name in enumerate(first_venous_names):
+                if vessel_vec['out_vessel_1'] == venous_name:
+                    terminal_names_for_first_venous[idx].append(vessel_name)
+
+    # create computation environment for connection and write the
+    # variable definition and calculation of flow to each first venous module.
+    wf.write(f'<component name="terminal_venous_connection">\n')
+    variables = []
+    units = []
+    in_outs = []
+    for idx, venous_name in enumerate(first_venous_names):
+        for terminal_name in terminal_names_for_first_venous[idx]:
+            variables.append(f'v_{terminal_name}')
+            units.append('m3_per_s')
+            in_outs.append('in')
+
+        variables.append(f'v_{venous_name}')
+        units.append('m3_per_s')
+        in_outs.append('out')
+
+    write_variable_declarations(wf, variables, units, in_outs)
+    for idx, venous_name in enumerate(first_venous_names):
+        rhs_variables = []
+        lhs_variable = f'v_{venous_name}'
+        for terminal_name in terminal_names_for_first_venous[idx]:
+            rhs_variables.append(f'v_{terminal_name}')
+
+        write_variable_sum(wf, lhs_variable, rhs_variables)
+    wf.write('</component>')
+
+def write_variable_declarations(wf, variables, units, in_outs):
+    for variable, unit, in_out in zip(variables, units, in_outs):
+        wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>')
+
+def write_variable_sum(wf, lhs_variable, rhs_variables):
+    wf.writelines('<math xmlns="http://www.w3.org/1998/Math/MathML">\n'
+                  '   <apply>\n'
+                  '       <eq/>\n'
+                  f'       <ci>{lhs_variable}</ci>\n')
+    if len(rhs_variables) > 1:
+        wf.write('       <apply>\n')
+        wf.write('           <plus/>\n')
+        for variable in rhs_variables:
+            wf.write(f'            <ci>{variable}</ci>\n')
+        wf.write('       </apply>\n')
+    else:
+        wf.write(f'            <ci>{rhs_variables[0]}</ci>\n')
+
+    wf.write('   </apply>\n')
+    wf.write('</math>')
+
+
+def check_input_output_vessels(vessel_array, main_vessel, out_vessel,
+                               main_vessel_BC_type, out_vessel_BC_type,
+                               main_vessel_type, out_vessel_type):
+    if not out_vessel:
+        print(f'connection vessels incorrectly defined for {main_vessel}')
+        exit()
+    if main_vessel_type == 'terminal':
+        pass
+    elif main_vessel not in vessel_array[np.where(vessel_array["name"]==out_vessel
+                                                )][["inp_vessel_1", "inp_vessel_2"]][0]:
+        print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '
+              f'check that they have eachother as output/input')
+        exit()
+
+    if main_vessel_BC_type.endswith('v'):
+        if not out_vessel_BC_type.startswith('p'):
+            print(f'"{main_vessel}" output BC is v, the input BC of "{out_vessel}"',
+                  ' should be p')
+    if main_vessel_BC_type.endswith('p'):
+        if not out_vessel_BC_type.startswith('v'):
+            print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
+                  ' should be v')
+
+
