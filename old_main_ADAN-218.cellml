@@ -498,11 +498,6 @@
             <!-- Conservation Laws-->
             <apply>
                 <eq/>
-                <ci>v_blah</ci>
-                <ci>v_bleh</ci>
-            </apply>
-            <apply>
-                <eq/>
                 <ci>v_chest</ci>
                 <apply>
                     <plus/>
@@ -2473,7 +2468,7 @@
         <component component_ref="pv_split_type" name="anterior_cerebral_L38_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="anterior_cerebral_L42_module"/>
+        <component component_ref="vv_2in2out_type" name="anterior_cerebral_L42_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
         <component component_ref="pv_split_type" name="anterior_cerebral_R234_module"/>
@@ -2488,7 +2483,7 @@
         <component component_ref="pp_type" name="anterior_communicating_C44_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="basilar_C4_module"/>
+        <component component_ref="vv_2in2out_type" name="basilar_C4_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
         <component component_ref="pv_split_type" name="callosomarginal_L172_module"/>
@@ -2527,7 +2522,7 @@
         <component component_ref="pp_type" name="medial_occipital_dorsal_branch_to_corpus_callosum_R224_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="medial_occipital_L188_module"/>
+        <component component_ref="vv_2in2out_type" name="medial_occipital_L188_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
         <component component_ref="pv_split_type" name="medial_occipital_L192_module"/>
@@ -2542,7 +2537,7 @@
         <component component_ref="pp_type" name="medial_occipital_R222_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="medial_occipital_R256_module"/>
+        <component component_ref="vv_2in2out_type" name="medial_occipital_R256_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
         <component component_ref="pv_split_type" name="medial_occipital_R260_module"/>
@@ -2653,10 +2648,10 @@
         <component component_ref="pv_split_type" name="pericallosal_R232_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="posterior_cerebral_postcommunicating_part_L12_module"/>
+        <component component_ref="vv_2in2out_type" name="posterior_cerebral_postcommunicating_part_L12_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
-        <component component_ref="vv_merge_type" name="posterior_cerebral_postcommunicating_part_R208_module"/>
+        <component component_ref="vv_2in2out_type" name="posterior_cerebral_postcommunicating_part_R208_module"/>
     </import>
     <import xlink:href="BG_Modules.cellml">
         <component component_ref="pp_type" name="posterior_cerebral_precommunicating_part_L6_module"/>

@@ -24,6 +24,8 @@ def write_import(wf, vessel_vec):
         module_type = f'{vessel_vec["BC_type"]}_split_type'
     elif vessel_vec['vessel_type'] == 'merge_junction':
         module_type = f'{vessel_vec["BC_type"]}_merge_type'
+    elif vessel_vec['vessel_type'] == '2in2out_junction':
+        module_type = f'{vessel_vec["BC_type"]}_2in2out_type'
     elif vessel_vec['vessel_type'] == 'venous':
         module_type = f'{vessel_vec["BC_type"]}_simple_type'
     else:
@@ -60,6 +62,9 @@ def write_vessel_mappings(wf, vessel_array):
         main_vessel_BC_type = vessel_vec["BC_type"]
         main_vessel_type = vessel_vec["vessel_type"]
         out_vessel = vessel_vec["out_vessel_1"]
+        if out_vessel not in vessel_array["name"]:
+            print(f'the output vessel of {out_vessel} is not defined')
+            exit()
         out_vessel_vec = vessel_array[np.where(vessel_array["name"] == out_vessel)][0]
         out_vessel_BC_type = out_vessel_vec["BC_type"]
         out_vessel_type = out_vessel_vec["vessel_type"]
@@ -94,13 +99,23 @@ def write_vessel_mappings(wf, vessel_array):
                       'with output pressure boundary conditions, '
                       f'change {main_vessel}')
                 exit()
-        elif main_vessel_type == 'merge_junction':
+        elif main_vessel_type == '2in2out_junction':
             if main_vessel_BC_type == 'vv':
                 v_1 = 'v_out_1'
                 p_1 = 'u_d'
             else:
-                print('Merge boundary condiditons only have vv type BC, '
-                      f'change "{main_vessel}"')
+                print('2in2out vessels only have vv type BC, '
+                      f'change "{main_vessel}" or create new BC module '
+                      f'in BG_Modules.cellml')
+                exit()
+        elif main_vessel_type == 'merge_junction':
+            if main_vessel_BC_type == 'vp':
+                v_1 = 'v'
+                p_1 = 'u_out'
+            else:
+                print('Merge boundary condiditons only have vp type BC, '
+                      f'change "{main_vessel}" or create new BC module in '
+                      f'BG_Modules.cellml')
                 exit()
         else:
             if main_vessel_BC_type.endswith('v'):
@@ -121,7 +136,7 @@ def write_vessel_mappings(wf, vessel_array):
             else:
                 print('venous input to heart can only be venous_ivc or venous_svc')
             p_2 = 'u_ra'
-        elif out_vessel_type == 'merge_junction':
+        elif out_vessel_type in ['merge_junction', '2in2out_junction']:
             if out_vessel_vec["inp_vessel_1"] == main_vessel:
                 v_2 = 'v_in_1'
             elif out_vessel_vec["inp_vessel_2"] == main_vessel:
@@ -129,6 +144,7 @@ def write_vessel_mappings(wf, vessel_array):
             else:
                 print('error, exiting')
                 exit()
+            p_2 = 'u'
         elif main_vessel_type == 'terminal':
             # For terminal output we link to a terminal_venous connection
             # to sum up the output terminal flows
@@ -163,7 +179,7 @@ def write_vessel_mappings(wf, vessel_array):
         write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
 
         if vessel_vec["vessel_type"].endswith('junction'):
-            if vessel_vec["vessel_type"] == 'split_junction':
+            if vessel_vec["vessel_type"] in ['split_junction', '2in2out_junction']:
                 out_vessel = vessel_vec["out_vessel_2"]
                 if out_vessel in ['heart', 'pulmonary']:
                     out_vessel_module = out_vessel
@@ -173,7 +189,9 @@ def write_vessel_mappings(wf, vessel_array):
                     v_1 = 'v_out_2'
                 else:
                     pass
-
+            if out_vessel not in vessel_array["name"]:
+                print(f'the output vessel of {out_vessel} is not defined')
+                exit()
             out_vessel_vec = vessel_array[np.where(vessel_array["name"] == out_vessel)][0]
             out_vessel_BC_type = out_vessel_vec["BC_type"]
             out_vessel_type = out_vessel_vec["vessel_type"]
@@ -358,5 +376,4 @@ def check_input_output_vessels(vessel_array, main_vessel, out_vessel,
         if not out_vessel_BC_type.startswith('v'):
             print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                   ' should be v')
-
 

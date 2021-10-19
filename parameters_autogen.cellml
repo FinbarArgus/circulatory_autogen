@@ -52,6 +52,15 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="1.0" name="alpha_head_R" public_interface="out" units="dimensionless"/>
         <variable initial_value="1.0" name="alpha_arm_L" public_interface="out" units="dimensionless"/>
         <variable initial_value="1.0" name="alpha_arm_R" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_posterior_cerebral_L" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_posterior_cerebral_R" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_external_carotid_L" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_external_carotid_R" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_middle_cerebral_L" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_middle_cerebral_R" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_anterior_cerebral_L" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_anterior_cerebral_R" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="alpha_splanchnic_C" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.1125281e-6" name="C_venous_ub" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.0375094e-6" name="C_venous_svc" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.5626407e-6" name="C_venous_lb" public_interface="out" units="m6_per_J"/>
@@ -77,12 +86,39 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="400e-12" name="C_T_leg_L" public_interface="out" units="m6_per_J"/>
         <variable initial_value="400e-12" name="C_T_leg_R" public_interface="out" units="m6_per_J"/>
         <!-- The below head and arm values are guessed atm-->
+        <variable initial_value="0.2e+9" name="R_T_splanchnic_C" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="4.46e-6" name="v_nom_splanchnic_C" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="400e-12" name="C_T_splanchnic_C" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.2e+9" name="R_T_head_L" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="0.2e+9" name="R_T_head_R" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="4.46e-6" name="v_nom_head_L" public_interface="out" units="m3_per_s"/>
         <variable initial_value="4.46e-6" name="v_nom_head_R" public_interface="out" units="m3_per_s"/>
         <variable initial_value="400e-12" name="C_T_head_L" public_interface="out" units="m6_per_J"/>
         <variable initial_value="400e-12" name="C_T_head_R" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.0e+9" name="R_T_posterior_cerebral_L" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.0e+9" name="R_T_posterior_cerebral_R" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.5e-6" name="v_nom_posterior_cerebral_L" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="1.5e-6" name="v_nom_posterior_cerebral_R" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="400e-12" name="C_T_posterior_cerebral_L" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="400e-12" name="C_T_posterior_cerebral_R" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.0e+9" name="R_T_external_carotid_L" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.0e+9" name="R_T_external_carotid_R" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.5e-6" name="v_nom_external_carotid_L" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="1.5e-6" name="v_nom_external_carotid_R" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="400e-12" name="C_T_external_carotid_L" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="400e-12" name="C_T_external_carotid_R" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.0e+9" name="R_T_middle_cerebral_L" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.0e+9" name="R_T_middle_cerebral_R" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.5e-6" name="v_nom_middle_cerebral_L" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="1.5e-6" name="v_nom_middle_cerebral_R" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="400e-12" name="C_T_middle_cerebral_L" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="400e-12" name="C_T_middle_cerebral_R" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.0e+9" name="R_T_anterior_cerebral_L" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.0e+9" name="R_T_anterior_cerebral_R" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="1.5e-6" name="v_nom_anterior_cerebral_L" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="1.5e-6" name="v_nom_anterior_cerebral_R" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="400e-12" name="C_T_anterior_cerebral_L" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="400e-12" name="C_T_anterior_cerebral_R" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.0e+9" name="R_T_arm_L" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="1.0e+9" name="R_T_arm_R" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="1.5e-6" name="v_nom_arm_L" public_interface="out" units="m3_per_s"/>
@@ -184,7 +220,7 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="2.53763e-03" name="r_internal_carotid_R8_A" public_interface="out" units="metre"/>
         <variable initial_value="2.04793e-03" name="r_internal_carotid_R8_B" public_interface="out" units="metre"/>
         <variable initial_value="1.56726e-03" name="r_internal_carotid_R8_C" public_interface="out" units="metre"/>
-        <variable initial_value="2.26547e-03" name="r_external_carotid_T2_R26" public_interface="out" units="metre"/>
+        <variable initial_value="2.26547e-03" name="r_external_carotid_R26" public_interface="out" units="metre"/>
         <variable initial_value="4.36635e-03" name="r_common_carotid_L48_A" public_interface="out" units="metre"/>
         <variable initial_value="4.12756e-03" name="r_common_carotid_L48_B" public_interface="out" units="metre"/>
         <variable initial_value="3.92047e-03" name="r_common_carotid_L48_C" public_interface="out" units="metre"/>
@@ -192,17 +228,17 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="2.53763e-03" name="r_internal_carotid_L50_A" public_interface="out" units="metre"/>
         <variable initial_value="2.04793e-03" name="r_internal_carotid_L50_B" public_interface="out" units="metre"/>
         <variable initial_value="1.56726e-03" name="r_internal_carotid_L50_C" public_interface="out" units="metre"/>
-        <variable initial_value="2.26547e-03" name="r_external_carotid_T2_L62" public_interface="out" units="metre"/>
+        <variable initial_value="2.26547e-03" name="r_external_carotid_L62" public_interface="out" units="metre"/>
         <variable initial_value="0.133527e-2" name="r_vertebral_L2" public_interface="out" units="metre"/>
         <variable initial_value="0.133527e-2" name="r_vertebral_R272" public_interface="out" units="metre"/>
         <!-- Cerebral-->
         <variable initial_value="0.172394e-2" name="r_basilar_C4" public_interface="out" units="metre"/>
-        <variable initial_value="0.0816459e-2" name="r_posterior_cerebral_precommunicating_part_L6" public_interface="out" units="metre"/>
-        <variable initial_value="0.0816459e-2" name="r_posterior_cerebral_precommunicating_part_R204" public_interface="out" units="metre"/>
+        <variable initial_value="0.0816459e-2" name="r_posterior_cerebral_pre_L6" public_interface="out" units="metre"/>
+        <variable initial_value="0.0816459e-2" name="r_posterior_cerebral_pre_R204" public_interface="out" units="metre"/>
         <variable initial_value="0.0494463e-2" name="r_posterior_communicating_L8" public_interface="out" units="metre"/>
         <variable initial_value="0.0494463e-2" name="r_posterior_communicating_R206" public_interface="out" units="metre"/>
-        <variable initial_value="0.0869072e-2" name="r_posterior_cerebral_postcommunicating_part_L12" public_interface="out" units="metre"/>
-        <variable initial_value="0.0869072e-2" name="r_posterior_cerebral_postcommunicating_part_R208" public_interface="out" units="metre"/>
+        <variable initial_value="0.0869072e-2" name="r_posterior_cerebral_post_L12" public_interface="out" units="metre"/>
+        <variable initial_value="0.0869072e-2" name="r_posterior_cerebral_post_R208" public_interface="out" units="metre"/>
         <variable initial_value="0.064999e-2" name="r_occipital_lateral_L14" public_interface="out" units="metre"/>
         <variable initial_value="0.0649994e-2" name="r_occipital_lateral_R210" public_interface="out" units="metre"/>
         <variable initial_value="0.06e-2" name="r_lateral_occipital_anterior_temporal_branch_T46_L16" public_interface="out" units="metre"/>
@@ -426,7 +462,7 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="45.036e-03" name="l_internal_carotid_R8_A" public_interface="out" units="metre"/>
         <variable initial_value="45.036e-03" name="l_internal_carotid_R8_B" public_interface="out" units="metre"/>
         <variable initial_value="45.036e-03" name="l_internal_carotid_R8_C" public_interface="out" units="metre"/>
-        <variable initial_value="61.0125e-03" name="l_external_carotid_T2_R26" public_interface="out" units="metre"/>
+        <variable initial_value="61.0125e-03" name="l_external_carotid_R26" public_interface="out" units="metre"/>
         <variable initial_value="30.339e-03" name="l_common_carotid_L48_A" public_interface="out" units="metre"/>
         <variable initial_value="30.339e-03" name="l_common_carotid_L48_B" public_interface="out" units="metre"/>
         <variable initial_value="30.339e-03" name="l_common_carotid_L48_C" public_interface="out" units="metre"/>
@@ -434,17 +470,17 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="45.036e-03" name="l_internal_carotid_L50_A" public_interface="out" units="metre"/>
         <variable initial_value="45.036e-03" name="l_internal_carotid_L50_B" public_interface="out" units="metre"/>
         <variable initial_value="45.036e-03" name="l_internal_carotid_L50_C" public_interface="out" units="metre"/>
-        <variable initial_value="61.0127e-03" name="l_external_carotid_T2_L62" public_interface="out" units="metre"/>
+        <variable initial_value="61.0127e-03" name="l_external_carotid_L62" public_interface="out" units="metre"/>
         <variable initial_value="20.9765e-2" name="l_vertebral_L2" public_interface="out" units="metre"/>
         <variable initial_value="21.0146e-2" name="l_vertebral_R272" public_interface="out" units="metre"/>
         <!-- Cerebral-->
         <variable initial_value="2.26443e-2" name="l_basilar_C4" public_interface="out" units="metre"/>
-        <variable initial_value="0.697753e-2" name="l_posterior_cerebral_precommunicating_part_L6" public_interface="out" units="metre"/>
-        <variable initial_value="0.77827e-2" name="l_posterior_cerebral_precommunicating_part_R204" public_interface="out" units="metre"/>
+        <variable initial_value="0.697753e-2" name="l_posterior_cerebral_pre_L6" public_interface="out" units="metre"/>
+        <variable initial_value="0.77827e-2" name="l_posterior_cerebral_pre_R204" public_interface="out" units="metre"/>
         <variable initial_value="1.65974e-2" name="l_posterior_communicating_L8" public_interface="out" units="metre"/>
         <variable initial_value="1.6597e-2" name="l_posterior_communicating_R206" public_interface="out" units="metre"/>
-        <variable initial_value="1.28091e-2" name="l_posterior_cerebral_postcommunicating_part_L12" public_interface="out" units="metre"/>
-        <variable initial_value="1.28083e-2" name="l_posterior_cerebral_postcommunicating_part_R208" public_interface="out" units="metre"/>
+        <variable initial_value="1.28091e-2" name="l_posterior_cerebral_post_L12" public_interface="out" units="metre"/>
+        <variable initial_value="1.28083e-2" name="l_posterior_cerebral_post_R208" public_interface="out" units="metre"/>
         <variable initial_value="0.472985e-2" name="l_occipital_lateral_L14" public_interface="out" units="metre"/>
         <variable initial_value="0.472973e-2" name="l_occipital_lateral_R210" public_interface="out" units="metre"/>
         <variable initial_value="2.61986e-2" name="l_lateral_occipital_anterior_temporal_branch_T111_R212" public_interface="out" units="metre"/>
@@ -682,7 +718,7 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0" name="theta_internal_carotid_R8_A" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_internal_carotid_R8_B" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_internal_carotid_R8_C" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0" name="theta_external_carotid_T2_R26" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0" name="theta_external_carotid_R26" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_common_carotid_L48_A" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_common_carotid_L48_B" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_common_carotid_L48_C" public_interface="out" units="dimensionless"/>
@@ -690,17 +726,17 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0" name="theta_internal_carotid_L50_A" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_internal_carotid_L50_B" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_internal_carotid_L50_C" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0" name="theta_external_carotid_T2_L62" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0" name="theta_external_carotid_L62" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_vertebral_L2" public_interface="out" units="dimensionless"/>
         <variable initial_value="0" name="theta_vertebral_R272" public_interface="out" units="dimensionless"/>
         <!-- Cerebral-->
         <variable initial_value="90" name="theta_basilar_C4" public_interface="out" units="dimensionless"/>
-        <variable initial_value="90" name="theta_posterior_cerebral_precommunicating_part_L6" public_interface="out" units="dimensionless"/>
-        <variable initial_value="90" name="theta_posterior_cerebral_precommunicating_part_R204" public_interface="out" units="dimensionless"/>
+        <variable initial_value="90" name="theta_posterior_cerebral_pre_L6" public_interface="out" units="dimensionless"/>
+        <variable initial_value="90" name="theta_posterior_cerebral_pre_R204" public_interface="out" units="dimensionless"/>
         <variable initial_value="90" name="theta_posterior_communicating_L8" public_interface="out" units="dimensionless"/>
         <variable initial_value="90" name="theta_posterior_communicating_R206" public_interface="out" units="dimensionless"/>
-        <variable initial_value="90" name="theta_posterior_cerebral_postcommunicating_part_L12" public_interface="out" units="dimensionless"/>
-        <variable initial_value="90" name="theta_posterior_cerebral_postcommunicating_part_R208" public_interface="out" units="dimensionless"/>
+        <variable initial_value="90" name="theta_posterior_cerebral_post_L12" public_interface="out" units="dimensionless"/>
+        <variable initial_value="90" name="theta_posterior_cerebral_post_R208" public_interface="out" units="dimensionless"/>
         <variable initial_value="90" name="theta_occipital_lateral_L14" public_interface="out" units="dimensionless"/>
         <variable initial_value="90" name="theta_occipital_lateral_R210" public_interface="out" units="dimensionless"/>
         <variable initial_value="90" name="theta_lateral_occipital_anterior_temporal_branch_T111_R212" public_interface="out" units="dimensionless"/>
@@ -938,7 +974,7 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0.8e+6" name="E_internal_carotid_R8_A" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.8e+6" name="E_internal_carotid_R8_B" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_internal_carotid_R8_C" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.8e+6" name="E_external_carotid_T2_R26" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.8e+6" name="E_external_carotid_R26" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.4e+6" name="E_common_carotid_L48_A" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.4e+6" name="E_common_carotid_L48_B" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.4e+6" name="E_common_carotid_L48_C" public_interface="out" units="J_per_m3"/>
@@ -946,17 +982,17 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0.8e+6" name="E_internal_carotid_L50_A" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.8e+6" name="E_internal_carotid_L50_B" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_internal_carotid_L50_C" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.8e+6" name="E_external_carotid_T2_L62" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.8e+6" name="E_external_carotid_L62" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.8e+6" name="E_vertebral_L2" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.8e+6" name="E_vertebral_R272" public_interface="out" units="J_per_m3"/>
         <!-- Cerebral-->
         <variable initial_value="1.6e+6" name="E_basilar_C4" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="1.6e+6" name="E_posterior_cerebral_precommunicating_part_L6" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="1.6e+6" name="E_posterior_cerebral_precommunicating_part_R204" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="1.6e+6" name="E_posterior_cerebral_pre_L6" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="1.6e+6" name="E_posterior_cerebral_pre_R204" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_posterior_communicating_L8" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_posterior_communicating_R206" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="1.6e+6" name="E_posterior_cerebral_postcommunicating_part_L12" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="1.6e+6" name="E_posterior_cerebral_postcommunicating_part_R208" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="1.6e+6" name="E_posterior_cerebral_post_L12" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="1.6e+6" name="E_posterior_cerebral_post_R208" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_occipital_lateral_L14" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_occipital_lateral_R210" public_interface="out" units="J_per_m3"/>
         <variable initial_value="1.6e+6" name="E_lateral_occipital_anterior_temporal_branch_T111_R212" public_interface="out" units="J_per_m3"/>
@@ -1116,8 +1152,8 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="4.34948e+9" name="R_T_posterior_interosseous_T3_L88" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="1.08553e+9" name="R_T_ulnar_T2_L90" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="1.02715e+9" name="R_T_radial_T1_L92" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.851183e+9" name="R_T_external_carotid_T2_R26" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.854183e+9" name="R_T_external_carotid_T2_L62" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="0.851183e+9" name="R_T_external_carotid_R26" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="0.854183e+9" name="R_T_external_carotid_L62" public_interface="out" units="Js_per_m6"/>
         <!-- Cerebral-->
         <variable initial_value="6.17214e+9" name="R_T_lateral_occipital_anterior_temporal_branch_T46_L16" public_interface="out" units="Js_per_m6"/>
         <variable initial_value="60.7317e+9" name="R_T_lateral_occipital_intermediate_temporal_branch_T47_L20" public_interface="out" units="Js_per_m6"/>
@@ -1209,8 +1245,8 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0.11748724e-6" name="v_nom_posterior_interosseous_T3_L88" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.70682651e-6" name="v_nom_ulnar_T2_L90" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.74103557e-6" name="v_nom_radial_T1_L92" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2.74259877e-6" name="v_nom_external_carotid_T2_R26" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2.77364146e-6" name="v_nom_external_carotid_T2_L62" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2.74259877e-6" name="v_nom_external_carotid_R26" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2.77364146e-6" name="v_nom_external_carotid_L62" public_interface="out" units="m3_per_s"/>
         <!-- Cerebral-->
         <variable initial_value="0.41950634e-6" name="v_nom_lateral_occipital_anterior_temporal_branch_T46_L16" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.04435919e-6" name="v_nom_lateral_occipital_intermediate_temporal_branch_T47_L20" public_interface="out" units="m3_per_s"/>
@@ -1302,8 +1338,8 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="11.804e-12" name="C_T_posterior_interosseous_T3_L88" public_interface="out" units="m6_per_J"/>
         <variable initial_value="47.295e-12" name="C_T_ulnar_T2_L90" public_interface="out" units="m6_per_J"/>
         <variable initial_value="49.983e-12" name="C_T_radial_T1_L92" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="60.317e-12" name="C_T_external_carotid_T2_R26" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="60.105e-12" name="C_T_external_carotid_T2_L62" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="60.317e-12" name="C_T_external_carotid_R26" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="60.105e-12" name="C_T_external_carotid_L62" public_interface="out" units="m6_per_J"/>
         <variable initial_value="60.317e-12" name="C_T_internal_carotid_R8_C" public_interface="out" units="m6_per_J"/>
         <variable initial_value="60.105e-12" name="C_T_internal_carotid_L50_C" public_interface="out" units="m6_per_J"/>
         <variable initial_value="60.317e-12" name="C_T_vertebral_R272" public_interface="out" units="m6_per_J"/>
@@ -1477,7 +1513,7 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0.8e+6" name="C_internal_carotid_R8_A" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.8e+6" name="C_internal_carotid_R8_B" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_internal_carotid_R8_C" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="0.8e+6" name="C_external_carotid_T2_R26" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="0.8e+6" name="C_external_carotid_R26" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.4e+6" name="C_common_carotid_L48_A" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.4e+6" name="C_common_carotid_L48_B" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.4e+6" name="C_common_carotid_L48_C" public_interface="out" units="m6_per_J"/>
@@ -1485,17 +1521,17 @@ obtained from the ivc, svc constants from previous versions.-->
         <variable initial_value="0.8e+6" name="C_internal_carotid_L50_A" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.8e+6" name="C_internal_carotid_L50_B" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_internal_carotid_L50_C" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="0.8e+6" name="C_external_carotid_T2_L62" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="0.8e+6" name="C_external_carotid_L62" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.8e+6" name="C_vertebral_L2" public_interface="out" units="m6_per_J"/>
         <variable initial_value="0.8e+6" name="C_vertebral_R272" public_interface="out" units="m6_per_J"/>
         <!-- Cerebral-->
         <variable initial_value="1.6e+6" name="C_basilar_C4" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="1.6e+6" name="C_posterior_cerebral_precommunicating_part_L6" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="1.6e+6" name="C_posterior_cerebral_precommunicating_part_R204" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.6e+6" name="C_posterior_cerebral_pre_L6" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.6e+6" name="C_posterior_cerebral_pre_R204" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_posterior_communicating_L8" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_posterior_communicating_R206" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="1.6e+6" name="C_posterior_cerebral_postcommunicating_part_L12" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="1.6e+6" name="C_posterior_cerebral_postcommunicating_part_R208" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.6e+6" name="C_posterior_cerebral_post_L12" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1.6e+6" name="C_posterior_cerebral_post_R208" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_occipital_lateral_L14" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_occipital_lateral_R210" public_interface="out" units="m6_per_J"/>
         <variable initial_value="1.6e+6" name="C_lateral_occipital_anterior_temporal_branch_T111_R212" public_interface="out" units="m6_per_J"/>
