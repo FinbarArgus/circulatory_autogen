@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from generation_helper import *
 
-def generate_model_cellml_from_array(vessel_array, case_name, parameter_df=None):
+def generate_model_cellml_from_array(vessel_array, case_name, parameters_array=None):
     """
     vessel_array: input is a numpy array with information of each circulatory vessel
     make sure the first entry is the output to the left ventricle
@@ -20,8 +20,6 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameter_df=None)
      in the Systemic component then using the summed flow as the input
 
     TODO automate choices of BC_type
-
-    TODO change to using panda df instead of numpy structured array for vessel_array
     """
 
     base_script_path = 'base_script.cellml'
@@ -80,7 +78,7 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameter_df=None)
             # map constants to different modules
             print('writing mappings between constant parameters')
             write_section_break(wf, 'parameters mapping to modules')
-            write_parameter_mappings(wf, vessel_array, parameter_df)
+            write_parameter_mappings(wf, vessel_array, parameters_array=parameters_array)
 
             # map environment time to module times
             print('writing writing time mappings between environment and modules')
@@ -92,12 +90,42 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameter_df=None)
 
             print(f'Finished autogeneration of {new_file}')
 
-def generate_parameters_cellml_from_df(paramaters_df, case_name=None):
+def generate_parameters_cellml_from_array(parameters_array, case_name=None):
     """
     Takes in a data frame of the parameters and generates the parameter_cellml file
+    TODO make this function case_name specific
     """
-    pass
+    print("Starting autogeneration of parameter cellml file")
+    param_file = 'parameters_autogen.cellml'
 
+    with open(param_file, 'w') as wf:
+
+        wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
+        wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
+                 '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
+
+        heart_params_array = parameters_array[np.where(parameters_array["comp_env"]=='heart')]
+        pulmonary_params_array = parameters_array[np.where(parameters_array["comp_env"]=='pulmonary')]
+        systemic_params_array = parameters_array[np.where(parameters_array["comp_env"]=='systemic')]
+
+        wf.write('<component name="parameters_pulmonary">\n')
+        write_constant_declarations(wf, pulmonary_params_array["variable_name"],
+                                    pulmonary_params_array["units"],
+                                    pulmonary_params_array["value"])
+        wf.write('</component>\n')
+        wf.write('<component name="parameters_heart">\n')
+        write_constant_declarations(wf, heart_params_array["variable_name"],
+                                    heart_params_array["units"],
+                                    heart_params_array["value"])
+        wf.write('</component>\n')
+        wf.write('<component name="parameters_systemic">\n')
+        write_constant_declarations(wf, systemic_params_array["variable_name"],
+                                    systemic_params_array["units"],
+                                    systemic_params_array["value"])
+        wf.write('</component>\n')
+        wf.write('</model>\n')
+
+        print(f'Finished autogeneration of {param_file}')
 
 if __name__ == '__main__':
     case_name = 'test'
@@ -105,6 +133,7 @@ if __name__ == '__main__':
     vessel_array_csv_path = 'simple_vessel_array.csv'
     parameters_csv_path = 'parameters_autogen.csv'
     parameters_df = get_parameters_df_from_csv(parameters_csv_path)
+    parameters_array = get_parameters_array_from_df(parameters_df)
 
     if get_vessel_array_from_csv:
         case_name += '_simple'
@@ -278,6 +307,7 @@ if __name__ == '__main__':
         dtype=[('name', 'U64'), ('BC_type', 'U64'), ('vessel_type', 'U64'), ('inp_vessel_1', 'U64'),
                ('inp_vessel_2', 'U64'), ('out_vessel_1', 'U64'), ('out_vessel_2', 'U64')])
 
-    generate_model_cellml_from_array(vessel_array, case_name, parameters_df)
-    # generate_parameters_cellml_from_df(parameters_df)
+    generate_model_cellml_from_array(vessel_array, case_name, parameters_array=parameters_array)
+    generate_parameters_cellml_from_array(parameters_array)
+
 

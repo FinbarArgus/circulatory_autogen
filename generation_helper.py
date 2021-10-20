@@ -217,7 +217,7 @@ def write_comp_to_module_mappings(wf, vessel_array):
             out_vars = ['u', 'v']
         write_mapping(wf, vessel_name, vessel_name+'_module', inp_vars, out_vars)
 
-def write_parameter_mappings(wf, vessel_array, parameter_df=None):
+def write_parameter_mappings(wf, vessel_array, parameters_array=None):
     for vessel_vec in vessel_array:
         # input and output vessels
         vessel_name = vessel_vec["name"]
@@ -257,9 +257,9 @@ def write_parameter_mappings(wf, vessel_array, parameter_df=None):
                            'beta_g']
 
         # check that the variables are in the paramter array
-        if parameter_df:
+        if parameters_array is not None:
             for variable_name in systemic_vars:
-                if variable_name not in parameter_df["variable_name"]:
+                if variable_name not in parameters_array["variable_name"]:
                     print(f'variable {variable_name} is not in the parameter '
                           f'dataframe/csv file')
                     exit()
@@ -344,6 +344,11 @@ def write_variable_declarations(wf, variables, units, in_outs):
     for variable, unit, in_out in zip(variables, units, in_outs):
         wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>')
 
+def write_constant_declarations(wf, variable_names, units, values):
+    for variable, unit, value in zip(variable_names, units, values):
+        wf.write(f'<variable initial_value="{value}" name="{variable}" '
+                 f'public_interface="out" units="{unit}"/>\n')
+
 def write_variable_sum(wf, lhs_variable, rhs_variables):
     wf.writelines('<math xmlns="http://www.w3.org/1998/Math/MathML">\n'
                   '   <apply>\n'
@@ -399,6 +404,8 @@ def get_parameters_df_from_csv(parameters_csv_path):
     for column_name in parameters_df.columns:
         parameters_df[column_name] = parameters_df[column_name].str.strip()
 
+    return parameters_df
+
 def get_np_array_from_vessel_csv(vessel_array_csv_path):
     vessel_df = pd.read_csv(vessel_array_csv_path, header=None)
     for column_name in vessel_df.columns:
@@ -410,4 +417,12 @@ def get_np_array_from_vessel_csv(vessel_array_csv_path):
     vessel_array = np.array(list(zip(*vessel_array.T)), dtype=dtype)
 
     return vessel_array
+
+def get_parameters_array_from_df(parameters_df):
+    param_array = parameters_df.to_numpy()
+    dtype = [(parameters_df.columns[II], 'U64') for II in range(len(parameters_df.columns))]
+    param_array = np.array(list(zip(*param_array.T)), dtype=dtype)
+
+    return param_array
+
 
