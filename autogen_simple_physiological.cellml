@@ -35,6 +35,7 @@
         <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
         <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
         <!-- State Variables-->
+        <!--TODO where does this initial pressure come from? find this out! FA-->
         <variable initial_value="4000.0" name="u_par" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="u_pvn" public_interface="out" units="J_per_m3"/>
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
@@ -873,6 +874,39 @@
     <component component_ref="pv_type" name="aortic_arch_C94_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C96_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C100_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C104_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C108_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C112_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_split_type" name="abdominal_aorta_C114_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pp_type" name="celiac_trunk_C116_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="vp_T_type" name="splanchnic_C_T_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C164_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C176_module"/>
+</import>
+<import xlink:href="BG_Modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C188_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
@@ -1017,7 +1051,66 @@
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
 <connection>
-   <map_components component_1="aortic_arch_C94_module" component_2="abdominal_aorta_C188_module"/>
+   <map_components component_1="aortic_arch_C94_module" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C96_module" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C100_module" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C104_module" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C108_module" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C112_module" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114_module" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114_module" component_2="celiac_trunk_C116_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="celiac_trunk_C116_module" component_2="splanchnic_C_T_module"/>
+   <map_variables variable_1="v_d" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="splanchnic_C_T_module" component_2="venous_lb_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C136_module" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C164_module" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C176_module" component_2="abdominal_aorta_C188_module"/>
    <map_variables variable_1="v_out" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
@@ -1112,6 +1205,10 @@
    <map_variables variable_1="v_T" variable_2="v_arm_R_T"/>
 </connection>
 <connection>
+   <map_components component_1="splanchnic_C_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_splanchnic_C_T"/>
+</connection>
+<connection>
    <map_components component_1="leg_L_T_module" component_2="terminal_venous_connection"/>
    <map_variables variable_1="v_T" variable_2="v_leg_L_T"/>
 </connection>
@@ -1128,12 +1225,13 @@
    <map_variables variable_1="v_venous_ub" variable_2="v_in"/>
 </connection>
 <component name="terminal_venous_connection">
-<variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_lb" public_interface="out" units="m3_per_s"/><variable name="v_head_L_T" public_interface="in" units="m3_per_s"/><variable name="v_head_R_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_ub" public_interface="out" units="m3_per_s"/><math xmlns="http://www.w3.org/1998/Math/MathML">
+<variable name="v_splanchnic_C_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_lb" public_interface="out" units="m3_per_s"/><variable name="v_head_L_T" public_interface="in" units="m3_per_s"/><variable name="v_head_R_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_ub" public_interface="out" units="m3_per_s"/><math xmlns="http://www.w3.org/1998/Math/MathML">
    <apply>
        <eq/>
        <ci>v_venous_lb</ci>
        <apply>
            <plus/>
+            <ci>v_splanchnic_C_T</ci>
             <ci>v_leg_L_T</ci>
             <ci>v_leg_R_T</ci>
        </apply>
@@ -1220,6 +1318,51 @@
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
 </component>
 <component name="aortic_arch_C94">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="thoracic_aorta_C96">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="thoracic_aorta_C100">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="thoracic_aorta_C104">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="thoracic_aorta_C108">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="thoracic_aorta_C112">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="abdominal_aorta_C114">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="celiac_trunk_C116">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="splanchnic_C_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+</component>
+<component name="abdominal_aorta_C136">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="abdominal_aorta_C164">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="abdominal_aorta_C176">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
 </component>
@@ -1368,6 +1511,62 @@
 </connection>
 <connection>
    <map_components component_1="aortic_arch_C94" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C96" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C100" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C104" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C108" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C112" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="celiac_trunk_C116" component_2="celiac_trunk_C116_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="splanchnic_C_T" component_2="splanchnic_C_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C136" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C164" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C176" component_2="abdominal_aorta_C176_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
 </connection>
@@ -1581,6 +1780,94 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
+   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="l_thoracic_aorta_C96" variable_2="l"/>
+   <map_variables variable_1="E_thoracic_aorta_C96" variable_2="E"/>
+   <map_variables variable_1="r_thoracic_aorta_C96" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C96" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="l_thoracic_aorta_C100" variable_2="l"/>
+   <map_variables variable_1="E_thoracic_aorta_C100" variable_2="E"/>
+   <map_variables variable_1="r_thoracic_aorta_C100" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C100" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="l_thoracic_aorta_C104" variable_2="l"/>
+   <map_variables variable_1="E_thoracic_aorta_C104" variable_2="E"/>
+   <map_variables variable_1="r_thoracic_aorta_C104" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C104" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="l_thoracic_aorta_C108" variable_2="l"/>
+   <map_variables variable_1="E_thoracic_aorta_C108" variable_2="E"/>
+   <map_variables variable_1="r_thoracic_aorta_C108" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C108" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="l_thoracic_aorta_C112" variable_2="l"/>
+   <map_variables variable_1="E_thoracic_aorta_C112" variable_2="E"/>
+   <map_variables variable_1="r_thoracic_aorta_C112" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C112" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="l_abdominal_aorta_C114" variable_2="l"/>
+   <map_variables variable_1="E_abdominal_aorta_C114" variable_2="E"/>
+   <map_variables variable_1="r_abdominal_aorta_C114" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C114" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="celiac_trunk_C116_module"/>
+   <map_variables variable_1="l_celiac_trunk_C116" variable_2="l"/>
+   <map_variables variable_1="E_celiac_trunk_C116" variable_2="E"/>
+   <map_variables variable_1="r_celiac_trunk_C116" variable_2="r"/>
+   <map_variables variable_1="theta_celiac_trunk_C116" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="splanchnic_C_T_module"/>
+   <map_variables variable_1="R_T_splanchnic_C" variable_2="R_T"/>
+   <map_variables variable_1="C_T_splanchnic_C" variable_2="C_T"/>
+   <map_variables variable_1="alpha_splanchnic_C" variable_2="alpha"/>
+   <map_variables variable_1="v_nom_splanchnic_C" variable_2="v_nominal"/>
+   <map_variables variable_1="gain_int" variable_2="gain_int"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="l_abdominal_aorta_C136" variable_2="l"/>
+   <map_variables variable_1="E_abdominal_aorta_C136" variable_2="E"/>
+   <map_variables variable_1="r_abdominal_aorta_C136" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C136" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="l_abdominal_aorta_C164" variable_2="l"/>
+   <map_variables variable_1="E_abdominal_aorta_C164" variable_2="E"/>
+   <map_variables variable_1="r_abdominal_aorta_C164" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C164" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="l_abdominal_aorta_C176" variable_2="l"/>
+   <map_variables variable_1="E_abdominal_aorta_C176" variable_2="E"/>
+   <map_variables variable_1="r_abdominal_aorta_C176" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C176" variable_2="theta"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
    <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C188_module"/>
    <map_variables variable_1="l_abdominal_aorta_C188" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C188" variable_2="E"/>
@@ -1751,6 +2038,50 @@
 </connection>
 <connection>
    <map_components component_1="environment" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="celiac_trunk_C116_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="splanchnic_C_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C176_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>

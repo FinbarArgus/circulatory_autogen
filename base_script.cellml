@@ -35,6 +35,7 @@
         <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
         <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
         <!-- State Variables-->
+        <!--TODO where does this initial pressure come from? find this out! FA-->
         <variable initial_value="4000.0" name="u_par" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="u_pvn" public_interface="out" units="J_per_m3"/>
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
