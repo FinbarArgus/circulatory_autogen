@@ -2,6 +2,7 @@ import numpy as np
 import os
 import re
 from sys import exit
+import pandas as pd
 
 def write_mapping(wf, inp_name, out_name, inp_vars_list, out_vars_list):
     wf.writelines(['<connection>\n',
@@ -216,7 +217,7 @@ def write_comp_to_module_mappings(wf, vessel_array):
             out_vars = ['u', 'v']
         write_mapping(wf, vessel_name, vessel_name+'_module', inp_vars, out_vars)
 
-def write_parameter_mappings(wf, vessel_array):
+def write_parameter_mappings(wf, vessel_array, parameter_df=None):
     for vessel_vec in vessel_array:
         # input and output vessels
         vessel_name = vessel_vec["name"]
@@ -255,6 +256,13 @@ def write_parameter_mappings(wf, vessel_array):
                            'theta',
                            'beta_g']
 
+        # check that the variables are in the paramter array
+        if parameter_df:
+            for variable_name in systemic_vars:
+                if variable_name not in parameter_df["variable_name"]:
+                    print(f'variable {variable_name} is not in the parameter '
+                          f'dataframe/csv file')
+                    exit()
         module_addon = '_module'
         write_mapping(wf, 'parameters_systemic', vessel_name+module_addon,
                       systemic_vars, module_vars)
@@ -376,4 +384,30 @@ def check_input_output_vessels(vessel_array, main_vessel, out_vessel,
         if not out_vessel_BC_type.startswith('v'):
             print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                   ' should be v')
+def check_BC_types_and_vessel_types(vessel_array, possible_BC_types, possible_vessel_types):
+    for vessel_vec in vessel_array:
+        if vessel_vec['BC_type'] not in possible_BC_types:
+            print(f'BC_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
+        if vessel_vec['vessel_type'] not in possible_vessel_types:
+            print(f'vessel_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
+
+def get_parameters_df_from_csv(parameters_csv_path):
+    """
+    Takes in a data frame of the parameters and
+    """
+    parameters_df = pd.read_csv(parameters_csv_path, dtype=str)
+    for column_name in parameters_df.columns:
+        parameters_df[column_name] = parameters_df[column_name].str.strip()
+
+def get_np_array_from_vessel_csv(vessel_array_csv_path):
+    vessel_df = pd.read_csv(vessel_array_csv_path, header=None)
+    for column_name in vessel_df.columns:
+        vessel_df[column_name] = vessel_df[column_name].str.strip()
+
+    vessel_array = vessel_df.to_numpy()
+    dtype = [('name', 'U64'), ('BC_type', 'U64'), ('vessel_type', 'U64'), ('inp_vessel_1', 'U64'),
+             ('inp_vessel_2', 'U64'), ('out_vessel_1', 'U64'), ('out_vessel_2', 'U64')]
+    vessel_array = np.array(list(zip(*vessel_array.T)), dtype=dtype)
+
+    return vessel_array
 
