@@ -128,7 +128,7 @@ def generate_parameters_cellml_from_array(parameters_array, case_name=None):
         print(f'Finished autogeneration of {param_file}')
 
 if __name__ == '__main__':
-    # case_name = 'physiological' # includes circle of willis, and splanchnic terminal
+    # case_name = 'physiological' # includes circle of willis, and trunk terminal
     case_name = 'simple_physiological' # same as physiological but cut off at common carotid,
                                        # doesnt include COW or vertebral arteries.
     # case_name = 'test' # non physiological. A simple example for testing

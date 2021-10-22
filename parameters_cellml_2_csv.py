@@ -3,7 +3,7 @@ import re
 from sys import exit
 
 param_cellml_file = 'parameters_autogen.cellml'
-param_csv_file = 'parameters_autogen.csv'
+param_csv_file = 'parameters_autogen_new.csv'
 
 data = {'variable_name':[], 'units':[], 'comp_env':[], 'value':[]}
 section = ''
