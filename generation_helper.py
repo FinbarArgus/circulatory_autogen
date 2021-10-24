@@ -50,6 +50,10 @@ def write_access_variables(wf, vessel_array):
         '   <variable name="v" public_interface="in" units="m3_per_s"/>\n'])
         if vessel_vec['vessel_type']=='terminal':
             wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
+            wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
+        if vessel_vec['vessel_type']=='venous':
+            wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
+            wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
         wf.write('</component>\n')
 
 def write_section_break(wf, text):
@@ -210,8 +214,11 @@ def write_comp_to_module_mappings(wf, vessel_array):
             # of prewritten comp environments in the base cellml code.
             continue
         if vessel_vec["vessel_type"] == 'terminal':
-            inp_vars = ['u', 'v', 'R_T']
-            out_vars = ['u', 'v_T', 'R_T']
+            inp_vars = ['u', 'v', 'R_T', 'C_T']
+            out_vars = ['u', 'v_T', 'R_T', 'C_T']
+        elif vessel_vec["vessel_type"] == 'venous':
+            inp_vars = ['u', 'v', 'C', 'R']
+            out_vars = ['u', 'v', 'C', 'R']
         else:
             inp_vars = ['u', 'v']
             out_vars = ['u', 'v']
@@ -412,8 +419,7 @@ def get_np_array_from_vessel_csv(vessel_array_csv_path):
         vessel_df[column_name] = vessel_df[column_name].str.strip()
 
     vessel_array = vessel_df.to_numpy()
-    dtype = [('name', 'U64'), ('BC_type', 'U64'), ('vessel_type', 'U64'), ('inp_vessel_1', 'U64'),
-             ('inp_vessel_2', 'U64'), ('out_vessel_1', 'U64'), ('out_vessel_2', 'U64')]
+    dtype = get_dtype_vessel_array()
     vessel_array = np.array(list(zip(*vessel_array.T)), dtype=dtype)
 
     return vessel_array
@@ -425,4 +431,7 @@ def get_parameters_array_from_df(parameters_df):
 
     return param_array
 
-
+def get_dtype_vessel_array():
+    dtype = [('name', 'U64'), ('BC_type', 'U64'), ('vessel_type', 'U64'), ('inp_vessel_1', 'U64'),
+    ('inp_vessel_2', 'U64'), ('out_vessel_1', 'U64'), ('out_vessel_2', 'U64')]
+    return dtype

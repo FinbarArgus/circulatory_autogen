@@ -895,7 +895,7 @@
     <component component_ref="pp_type" name="celiac_trunk_C116_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="splanchnic_C_T_module"/>
+    <component component_ref="vp_T_type" name="trunk_C_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
@@ -1091,12 +1091,12 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="celiac_trunk_C116_module" component_2="splanchnic_C_T_module"/>
+   <map_components component_1="celiac_trunk_C116_module" component_2="trunk_C_T_module"/>
    <map_variables variable_1="v_d" variable_2="v_in"/>
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
 <connection>
-   <map_components component_1="splanchnic_C_T_module" component_2="venous_lb_module"/>
+   <map_components component_1="trunk_C_T_module" component_2="venous_lb_module"/>
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
 <connection>
@@ -1205,8 +1205,8 @@
    <map_variables variable_1="v_T" variable_2="v_arm_R_T"/>
 </connection>
 <connection>
-   <map_components component_1="splanchnic_C_T_module" component_2="terminal_venous_connection"/>
-   <map_variables variable_1="v_T" variable_2="v_splanchnic_C_T"/>
+   <map_components component_1="trunk_C_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_trunk_C_T"/>
 </connection>
 <connection>
    <map_components component_1="leg_L_T_module" component_2="terminal_venous_connection"/>
@@ -1225,13 +1225,13 @@
    <map_variables variable_1="v_venous_ub" variable_2="v_in"/>
 </connection>
 <component name="terminal_venous_connection">
-<variable name="v_splanchnic_C_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_lb" public_interface="out" units="m3_per_s"/><variable name="v_head_L_T" public_interface="in" units="m3_per_s"/><variable name="v_head_R_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_ub" public_interface="out" units="m3_per_s"/><math xmlns="http://www.w3.org/1998/Math/MathML">
+<variable name="v_trunk_C_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_lb" public_interface="out" units="m3_per_s"/><variable name="v_head_L_T" public_interface="in" units="m3_per_s"/><variable name="v_head_R_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_ub" public_interface="out" units="m3_per_s"/><math xmlns="http://www.w3.org/1998/Math/MathML">
    <apply>
        <eq/>
        <ci>v_venous_lb</ci>
        <apply>
            <plus/>
-            <ci>v_splanchnic_C_T</ci>
+            <ci>v_trunk_C_T</ci>
             <ci>v_leg_L_T</ci>
             <ci>v_leg_R_T</ci>
        </apply>
@@ -1301,21 +1301,25 @@
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="head_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="arm_L_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="arm_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="aortic_arch_C94">
    <variable name="u" public_interface="in" units="J_per_m3"/>
@@ -1349,10 +1353,11 @@
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
 </component>
-<component name="splanchnic_C_T">
+<component name="trunk_C_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="abdominal_aorta_C136">
    <variable name="u" public_interface="in" units="J_per_m3"/>
@@ -1402,27 +1407,37 @@
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="leg_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="venous_lb">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="venous_ub">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="venous_ivc">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
 <component name="venous_svc">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -1490,24 +1505,28 @@
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="head_R_T" component_2="head_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="arm_L_T" component_2="arm_L_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="arm_R_T" component_2="arm_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="aortic_arch_C94" component_2="aortic_arch_C94_module"/>
@@ -1550,10 +1569,11 @@
    <map_variables variable_1="v" variable_2="v"/>
 </connection>
 <connection>
-   <map_components component_1="splanchnic_C_T" component_2="splanchnic_C_T_module"/>
+   <map_components component_1="trunk_C_T" component_2="trunk_C_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="abdominal_aorta_C136" component_2="abdominal_aorta_C136_module"/>
@@ -1615,32 +1635,42 @@
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="leg_R_T" component_2="leg_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
 </connection>
 <connection>
    <map_components component_1="venous_lb" component_2="venous_lb_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
 </connection>
 <connection>
    <map_components component_1="venous_ub" component_2="venous_ub_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
 </connection>
 <connection>
    <map_components component_1="venous_ivc" component_2="venous_ivc_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
 </connection>
 <connection>
    <map_components component_1="venous_svc" component_2="venous_svc_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -1836,11 +1866,11 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="splanchnic_C_T_module"/>
-   <map_variables variable_1="R_T_splanchnic_C" variable_2="R_T"/>
-   <map_variables variable_1="C_T_splanchnic_C" variable_2="C_T"/>
-   <map_variables variable_1="alpha_splanchnic_C" variable_2="alpha"/>
-   <map_variables variable_1="v_nom_splanchnic_C" variable_2="v_nominal"/>
+   <map_components component_1="parameters_systemic" component_2="trunk_C_T_module"/>
+   <map_variables variable_1="R_T_trunk_C" variable_2="R_T"/>
+   <map_variables variable_1="C_T_trunk_C" variable_2="C_T"/>
+   <map_variables variable_1="alpha_trunk_C" variable_2="alpha"/>
+   <map_variables variable_1="v_nom_trunk_C" variable_2="v_nominal"/>
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
@@ -2069,7 +2099,7 @@
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="splanchnic_C_T_module"/>
+   <map_components component_1="environment" component_2="trunk_C_T_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
