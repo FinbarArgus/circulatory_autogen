@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from generation_helper import *
 
-def generate_model_cellml_from_array(vessel_array, case_name, parameters_array=None):
+def generate_model_cellml_from_array(vessel_array, case_name, params_array=None):
     """
     vessel_array: input is a numpy array with information of each circulatory vessel
     make sure the first entry is the output to the left ventricle
@@ -45,7 +45,7 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameters_array=N
 
             # Now map between Systemic component and terminal components
             # TODO This doesn't need to be done anymore because we will have
-            #  venous sections and alpha params will be in parameters file
+            #  venous sections and alpha params will be in params file
             #   make sure I do mapping between terminals and venous section
             #    after arterial mapping
 
@@ -76,9 +76,9 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameters_array=N
             write_comp_to_module_mappings(wf, vessel_array)
 
             # map constants to different modules
-            print('writing mappings between constant parameters')
+            print('writing mappings between constant params')
             write_section_break(wf, 'parameters mapping to modules')
-            write_parameter_mappings(wf, vessel_array, parameters_array=parameters_array)
+            write_param_mappings(wf, vessel_array, params_array=params_array)
 
             # map environment time to module times
             print('writing writing time mappings between environment and modules')
@@ -90,9 +90,11 @@ def generate_model_cellml_from_array(vessel_array, case_name, parameters_array=N
 
             print(f'Finished autogeneration of {new_file}')
 
-def generate_parameters_cellml_from_array(parameters_array, case_name=None):
+    return new_file
+
+def generate_params_cellml_from_array(params_array, case_name=None):
     """
-    Takes in a data frame of the parameters and generates the parameter_cellml file
+    Takes in a data frame of the params and generates the parameter_cellml file
     TODO make this function case_name specific
     """
     print("Starting autogeneration of parameter cellml file")
@@ -104,9 +106,9 @@ def generate_parameters_cellml_from_array(parameters_array, case_name=None):
         wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
                  '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
 
-        heart_params_array = parameters_array[np.where(parameters_array["comp_env"]=='heart')]
-        pulmonary_params_array = parameters_array[np.where(parameters_array["comp_env"]=='pulmonary')]
-        systemic_params_array = parameters_array[np.where(parameters_array["comp_env"]=='systemic')]
+        heart_params_array = params_array[np.where(params_array["comp_env"]=='heart')]
+        pulmonary_params_array = params_array[np.where(params_array["comp_env"]=='pulmonary')]
+        systemic_params_array = params_array[np.where(params_array["comp_env"]=='systemic')]
 
         wf.write('<component name="parameters_pulmonary">\n')
         write_constant_declarations(wf, pulmonary_params_array["variable_name"],
@@ -135,15 +137,28 @@ if __name__ == '__main__':
     get_vessel_array_from_csv = True
     vessel_array_csv_path = f'{case_name}_vessel_array.csv'
 
-    parameters_csv_path = 'parameters_autogen.csv'
-    parameters_df = get_parameters_df_from_csv(parameters_csv_path)
-    parameters_array = get_parameters_array_from_df(parameters_df)
+    params_input_csv_path = 'parameters_orig.csv'
+    params_output_csv_path = 'parameters_autogen.csv'
+    params_df = get_params_df_from_csv(params_input_csv_path)
+    params_array = get_params_array_from_df(params_df)
 
     vessel_array = get_np_array_from_vessel_csv(vessel_array_csv_path)
 
     # generate the cellml model from the vessel array
-    generate_model_cellml_from_array(vessel_array, case_name, parameters_array=parameters_array)
-    # generate the parameters cellml file
-    generate_parameters_cellml_from_array(parameters_array)
+    new_cellml_file_path = generate_model_cellml_from_array(vessel_array, case_name, params_array=params_array)
+    # TODO THE BELOW ONLY MODIFIES THE CONSTANTS, IT DOES NOT YET MODIFY INITIAL STATES
+    #  SUCH AS THE INITIAL HEART VOLUME
+    param_id = True
+    if param_id:
+        param_id_dir = f'param_id/genetic_algorithm_{case_name}'
+        print('Modifying parameter values from the results of the parameter id stored in '
+              f'{param_id_dir}')
+        modify_consts_from_param_id(param_id_dir, params_array)
+        # TODO the below will be the path to the BG_modules when heart is a module
+        modify_init_states_from_param_id(param_id_dir, new_cellml_file_path)
+        save_params_array_as_csv(params_array, params_output_csv_path)
+
+    # generate the params cellml file
+    generate_params_cellml_from_array(params_array)
 
 

@@ -182,11 +182,6 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <!-- These params are to be optimised.
-        var q_ra: m3 {init: 20.0e-6};
-        var q_rv: m3 {init: 500.0e-6};
-        var q_la: m3 {init: 20.0e-6};
-        var q_lv: m3 {init: 500.0e-6};-->
         <variable initial_value="700.0e-06" name="q_lv" units="m3"/>
         <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
         <variable initial_value="31.270e-6" name="q_la" units="m3"/>
@@ -213,7 +208,6 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- TODO MAKE SURE YOU CHECK THESE FUNCTIONS WITH THE PAPERS, THERE ARE T VARIABLES PUT RANDOMLY IN HERE-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>

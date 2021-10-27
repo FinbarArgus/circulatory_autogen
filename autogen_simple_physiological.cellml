@@ -182,12 +182,7 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <!-- These params are to be optimised.
-        var q_ra: m3 {init: 20.0e-6};
-        var q_rv: m3 {init: 500.0e-6};
-        var q_la: m3 {init: 20.0e-6};
-        var q_lv: m3 {init: 500.0e-6};-->
-        <variable initial_value="700.0e-06" name="q_lv" units="m3"/>
+        <variable initial_value="1.2442e-03" name="q_lv" units="m3"/>
         <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
         <variable initial_value="31.270e-6" name="q_la" units="m3"/>
         <variable initial_value="6.46e-6" name="q_ra" units="m3"/>
@@ -213,7 +208,6 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- TODO MAKE SURE YOU CHECK THESE FUNCTIONS WITH THE PAPERS, THERE ARE T VARIABLES PUT RANDOMLY IN HERE-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
@@ -847,28 +841,28 @@
     <component component_ref="pv_split_type" name="brachiocephalic_trunk_C4_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="common_carotid_L48_A_module"/>
+    <component component_ref="pv_type" name="common_carotid_L48_A_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="common_carotid_R6_A_module"/>
+    <component component_ref="pv_type" name="common_carotid_R6_A_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="subclavian_L66_module"/>
+    <component component_ref="pv_type" name="subclavian_L66_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="subclavian_R28_module"/>
+    <component component_ref="pv_type" name="subclavian_R28_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="head_L_T_module"/>
+    <component component_ref="pp_T_type" name="head_L_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="head_R_T_module"/>
+    <component component_ref="pp_T_type" name="head_R_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="arm_L_T_module"/>
+    <component component_ref="pp_T_type" name="arm_L_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="arm_R_T_module"/>
+    <component component_ref="pp_T_type" name="arm_R_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
     <component component_ref="pv_type" name="aortic_arch_C94_module"/>
@@ -892,10 +886,10 @@
     <component component_ref="pv_split_type" name="abdominal_aorta_C114_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="celiac_trunk_C116_module"/>
+    <component component_ref="pv_type" name="celiac_trunk_C116_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="trunk_C_T_module"/>
+    <component component_ref="pp_T_type" name="trunk_C_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
@@ -925,16 +919,16 @@
     <component component_ref="pv_type" name="external_iliac_R220_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="femoral_L200_module"/>
+    <component component_ref="pv_type" name="femoral_L200_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="pp_type" name="femoral_R222_module"/>
+    <component component_ref="pv_type" name="femoral_R222_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="leg_L_T_module"/>
+    <component component_ref="pp_T_type" name="leg_L_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
-    <component component_ref="vp_T_type" name="leg_R_T_module"/>
+    <component component_ref="pp_T_type" name="leg_R_T_module"/>
 </import>
 <import xlink:href="BG_Modules.cellml">
     <component component_ref="vp_simple_type" name="venous_lb_module"/>
@@ -1016,23 +1010,23 @@
 </connection>
 <connection>
    <map_components component_1="common_carotid_L48_A_module" component_2="head_L_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="common_carotid_R6_A_module" component_2="head_R_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="subclavian_L66_module" component_2="arm_L_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="subclavian_R28_module" component_2="arm_R_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="head_L_T_module" component_2="venous_ub_module"/>
@@ -1092,8 +1086,8 @@
 </connection>
 <connection>
    <map_components component_1="celiac_trunk_C116_module" component_2="trunk_C_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="trunk_C_T_module" component_2="venous_lb_module"/>
@@ -1151,13 +1145,13 @@
 </connection>
 <connection>
    <map_components component_1="femoral_L200_module" component_2="leg_L_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="femoral_R222_module" component_2="leg_R_T_module"/>
-   <map_variables variable_1="v_d" variable_2="v_in"/>
-   <map_variables variable_1="u_out" variable_2="u"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="leg_L_T_module" component_2="venous_lb_module"/>
