@@ -3,6 +3,7 @@ import os
 import re
 from sys import exit
 import pandas as pd
+import csv
 
 def write_mapping(wf, inp_name, out_name, inp_vars_list, out_vars_list):
     wf.writelines(['<connection>\n',
@@ -50,6 +51,10 @@ def write_access_variables(wf, vessel_array):
         '   <variable name="v" public_interface="in" units="m3_per_s"/>\n'])
         if vessel_vec['vessel_type']=='terminal':
             wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
+            wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
+        if vessel_vec['vessel_type']=='venous':
+            wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
+            wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
         wf.write('</component>\n')
 
 def write_section_break(wf, text):
@@ -210,14 +215,17 @@ def write_comp_to_module_mappings(wf, vessel_array):
             # of prewritten comp environments in the base cellml code.
             continue
         if vessel_vec["vessel_type"] == 'terminal':
-            inp_vars = ['u', 'v', 'R_T']
-            out_vars = ['u', 'v_T', 'R_T']
+            inp_vars = ['u', 'v', 'R_T', 'C_T']
+            out_vars = ['u', 'v_T', 'R_T', 'C_T']
+        elif vessel_vec["vessel_type"] == 'venous':
+            inp_vars = ['u', 'v', 'C', 'R']
+            out_vars = ['u', 'v', 'C', 'R']
         else:
             inp_vars = ['u', 'v']
             out_vars = ['u', 'v']
         write_mapping(wf, vessel_name, vessel_name+'_module', inp_vars, out_vars)
 
-def write_parameter_mappings(wf, vessel_array, parameters_array=None):
+def write_param_mappings(wf, vessel_array, params_array=None):
     for vessel_vec in vessel_array:
         # input and output vessels
         vessel_name = vessel_vec["name"]
@@ -257,9 +265,9 @@ def write_parameter_mappings(wf, vessel_array, parameters_array=None):
                            'beta_g']
 
         # check that the variables are in the paramter array
-        if parameters_array is not None:
+        if params_array is not None:
             for variable_name in systemic_vars:
-                if variable_name not in parameters_array["variable_name"]:
+                if variable_name not in params_array["variable_name"]:
                     print(f'variable {variable_name} is not in the parameter '
                           f'dataframe/csv file')
                     exit()
@@ -366,6 +374,81 @@ def write_variable_sum(wf, lhs_variable, rhs_variables):
     wf.write('   </apply>\n')
     wf.write('</math>')
 
+def modify_init_states_from_param_id(param_id_dir, cellml_path):
+
+    param_state_names = []
+
+    #param names that were identified in param_id
+    with open(os.path.join(os.path.join(param_id_dir, 'param_state_names_for_gen.csv')), 'r') as f:
+        rd = csv.reader(f)
+        for row in rd:
+            param_state_names.append(row)
+
+    param_vals = np.load(os.path.join(param_id_dir, 'best_param_vals.npy'))
+
+    state_param_name_and_val = []
+    # this only looks at the first param_vals relating to param_state_names, not to constants
+    for name_or_list, val in zip(param_state_names, param_vals):
+        if name_or_list in param_state_names:
+            if isinstance(name_or_list, list):
+                for name in name_or_list:
+                    state_param_name_and_val.append((name, val))
+            else:
+                state_param_name_and_val.append((name, val))
+
+    with open(cellml_path, 'r') as rf:
+        lines = rf.readlines()
+
+    for idx, line in enumerate(lines):
+        for state_name, val in state_param_name_and_val:
+            if state_name in line and 'initial_value' in line:
+                inp_string =  f'initial_value="{val:.4e}"'
+                new_line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
+                lines[idx] = new_line
+
+    with open(cellml_path, 'w') as wf:
+        wf.writelines(lines)
+
+
+def modify_consts_from_param_id(param_id_dir, params_array):
+
+    param_state_names = []
+    param_const_names = []
+
+    #param names that were identified in param_id
+    with open(os.path.join(os.path.join(param_id_dir, 'param_state_names_for_gen.csv')), 'r') as f:
+        rd = csv.reader(f)
+        for row in rd:
+            param_state_names.append(row)
+    with open(os.path.join(os.path.join(param_id_dir, 'param_const_names_for_gen.csv')), 'r') as f:
+        rd = csv.reader(f)
+        for row in rd:
+            param_const_names.append(row)
+
+    # get date identifier of the parameter id
+    date_id = np.load(os.path.join(os.path.join(param_id_dir, 'date.npy'))).item()
+
+    param_names = param_state_names + param_const_names
+    param_vals = np.load(os.path.join(param_id_dir, 'best_param_vals.npy'))
+
+    # first modify param_const names easily by modifying them in the array
+    for name_or_list, val in zip(param_names, param_vals):
+        if name_or_list in param_state_names:
+            pass
+        else:
+            if isinstance(name_or_list, list):
+                for name in name_or_list:
+                    params_array[np.where(params_array['variable_name'] == name)[0][0]]['value'] = f'{val:.4e}'
+                    params_array[np.where(params_array['variable_name'] == name)[0][0]]['data_reference'] = \
+                        f'{date_id}_identified'
+            else:
+                params_array[np.where(params_array['variable_name'] == name)[0][0]] = val
+
+
+def save_params_array_as_csv(params_array, params_output_csv_path):
+    df = pd.DataFrame(params_array)
+    df.to_csv(params_output_csv_path, index=None, header=True)
+
 
 def check_input_output_vessels(vessel_array, main_vessel, out_vessel,
                                main_vessel_BC_type, out_vessel_BC_type,
@@ -396,15 +479,15 @@ def check_BC_types_and_vessel_types(vessel_array, possible_BC_types, possible_ve
         if vessel_vec['vessel_type'] not in possible_vessel_types:
             print(f'vessel_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
 
-def get_parameters_df_from_csv(parameters_csv_path):
+def get_params_df_from_csv(params_csv_path):
     """
-    Takes in a data frame of the parameters and
+    Takes in a data frame of the params and
     """
-    parameters_df = pd.read_csv(parameters_csv_path, dtype=str)
-    for column_name in parameters_df.columns:
-        parameters_df[column_name] = parameters_df[column_name].str.strip()
+    params_df = pd.read_csv(params_csv_path, dtype=str)
+    for column_name in params_df.columns:
+        params_df[column_name] = params_df[column_name].str.strip()
 
-    return parameters_df
+    return params_df
 
 def get_np_array_from_vessel_csv(vessel_array_csv_path):
     vessel_df = pd.read_csv(vessel_array_csv_path, header=None)
@@ -412,17 +495,19 @@ def get_np_array_from_vessel_csv(vessel_array_csv_path):
         vessel_df[column_name] = vessel_df[column_name].str.strip()
 
     vessel_array = vessel_df.to_numpy()
-    dtype = [('name', 'U64'), ('BC_type', 'U64'), ('vessel_type', 'U64'), ('inp_vessel_1', 'U64'),
-             ('inp_vessel_2', 'U64'), ('out_vessel_1', 'U64'), ('out_vessel_2', 'U64')]
+    dtype = get_dtype_vessel_array()
     vessel_array = np.array(list(zip(*vessel_array.T)), dtype=dtype)
 
     return vessel_array
 
-def get_parameters_array_from_df(parameters_df):
-    param_array = parameters_df.to_numpy()
-    dtype = [(parameters_df.columns[II], 'U64') for II in range(len(parameters_df.columns))]
+def get_params_array_from_df(params_df):
+    param_array = params_df.to_numpy()
+    dtype = [(params_df.columns[II],(np.str_, 64)) for II in range(len(params_df.columns))]
     param_array = np.array(list(zip(*param_array.T)), dtype=dtype)
 
     return param_array
 
-
+def get_dtype_vessel_array():
+    dtype = [('name', (np.str_, 64)), ('BC_type',(np.str_, 64)), ('vessel_type',(np.str_, 64)), ('inp_vessel_1',(np.str_, 64)),
+    ('inp_vessel_2',(np.str_, 64)), ('out_vessel_1',(np.str_, 64)), ('out_vessel_2',(np.str_, 64))]
+    return dtype
