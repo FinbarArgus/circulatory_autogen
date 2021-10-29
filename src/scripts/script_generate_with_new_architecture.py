@@ -17,6 +17,7 @@ if __name__ == '__main__':
         
         code_generator = CVS0DCellMLGenerator(model, sys.argv[3], sys.argv[4])
         code_generator.generate_files()
+        
     except:
         print("Usage: script_generate_with_new_architecture.py vessel_file.csv parameter_file.csv output_path output_files_prefix")
         print("e.g. script_generate_with_new_architecture.py simple_physiological_vessel_array_header.csv parameters_orig.csv /home/gonzalo/ test_CVS")        

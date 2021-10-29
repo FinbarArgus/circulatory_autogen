@@ -20,7 +20,8 @@ class CVS0DCellMLGenerator(object):
         self.model = model
         self.output_path = output_path
         self.filename_prefix = filename_prefix
-        self.base_script = 'generators/resources/base_script.cellml'
+        #    FIXME relative path to the python path should be defined in __init__.py or leave reference in a way that is independent of the PYTHON_PATH
+        self.base_script = '../generators/resources/base_script.cellml'
         
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
