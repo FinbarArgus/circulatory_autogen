@@ -182,7 +182,7 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable initial_value="1.2442e-03" name="q_lv" units="m3"/>
+        <variable initial_value="1.1581e-03" name="q_lv" units="m3"/>
         <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
         <variable initial_value="31.270e-6" name="q_la" units="m3"/>
         <variable initial_value="6.46e-6" name="q_ra" units="m3"/>
