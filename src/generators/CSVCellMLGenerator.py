@@ -7,6 +7,9 @@ Created on 29/10/2021
 import numpy as np
 import re
 import pandas as pd
+import os
+generators_dir_path = os.path.dirname(__file__)
+
 
 class CVS0DCellMLGenerator(object):
     '''
@@ -21,10 +24,9 @@ class CVS0DCellMLGenerator(object):
         self.model = model
         self.output_path = output_path
         self.filename_prefix = filename_prefix
-        #    FIXME relative path to the python path should be defined in __init__.py or leave reference in a way that is independent of the PYTHON_PATH
-        self.base_script = '../generators/resources/base_script.cellml'
-        self.modules_script = '../generators/resources/BG_modules.cellml'
-        self.units_script = '../generators/resources/units.cellml'
+        self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
+        self.modules_script = os.path.join(generators_dir_path, 'resources/BG_modules.cellml')
+        self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
 
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
@@ -48,7 +50,7 @@ class CVS0DCellMLGenerator(object):
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
         with open(self.base_script, 'r') as rf:
-            with open(self.output_path+self.filename_prefix+".cellml", 'w') as wf:
+            with open(os.path.join(self.output_path,f'{self.filename_prefix}.cellml'), 'w') as wf:
                 for line in rf:
                     # TODO when heart and pulmonary are modules the state modification
                     #  will be done in __generate_modules()
@@ -115,7 +117,7 @@ class CVS0DCellMLGenerator(object):
         Takes in a data frame of the params and generates the parameter_cellml file
         """
 
-        with open(self.output_path+self.filename_prefix+"_parameters.cellml", 'w') as wf:
+        with open(os.path.join(self.output_path, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
 
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
@@ -154,14 +156,14 @@ class CVS0DCellMLGenerator(object):
 
     def __generate_parameters_csv(self):
         df = pd.DataFrame(self.model.parameters)
-        df.to_csv(self.output_path + f'{self.filename_prefix}_parameters.csv', index=None, header=True)
+        df.to_csv(os.path.join(self.output_path,f'{self.filename_prefix}_parameters.csv'), index=None, header=True)
     
     def __generate_units_file(self):
         # TODO allow a specific units file to be generated
         #  This function simply copies the units file
         print(f'Generating CellML file {self.filename_prefix}_units.cellml')
         with open(self.units_script, 'r') as rf:
-            with open(self.output_path+f'{self.filename_prefix}_units.cellml', 'w') as wf:
+            with open(os.path.join(self.output_path, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
 
@@ -169,7 +171,7 @@ class CVS0DCellMLGenerator(object):
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(self.modules_script, 'r') as rf:
             # with open(self.output_path+f'{self.filename_prefix}_modules.cellml', 'w') as wf:
-            with open(self.output_path+'BG_modules.cellml', 'w') as wf:
+            with open(os.path.join(self.output_path, 'BG_modules.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
 
