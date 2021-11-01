@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="CardiovascularSystem" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <import xlink:href="Units.cellml">
+    <import xlink:href="simple_physiological_units.cellml">
         <units name="m3" units_ref="m3"/>
         <units name="m3_per_s" units_ref="m3_per_s"/>
         <units name="m_per_s2" units_ref="m_per_s2"/>
@@ -16,7 +16,7 @@
         <units name="UnitValve" units_ref="UnitValve"/>
         <units name="J_per_m9" units_ref="J_per_m9"/>
     </import>
-    <import xlink:href="parameters_autogen.cellml">
+    <import xlink:href="simple_physiological_parameters.cellml">
         <component component_ref="parameters_systemic" name="parameters_systemic"/>
         <component component_ref="parameters_pulmonary" name="parameters_pulmonary"/>
         <component component_ref="parameters_heart" name="parameters_heart"/>
@@ -182,7 +182,7 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable initial_value="1.2442e-03" name="q_lv" units="m3"/>
+        <variable initial_value="1.1581e-03" name="q_lv" units="m3"/>
         <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
         <variable initial_value="31.270e-6" name="q_la" units="m3"/>
         <variable initial_value="6.46e-6" name="q_ra" units="m3"/>
@@ -816,130 +816,130 @@
     </connection>
     <!--#STARTGENBELOW-->
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="vv_type" name="ascending_aorta_A_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_B_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_C_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_D_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C2_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C46_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C64_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="brachiocephalic_trunk_C4_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="common_carotid_L48_A_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="common_carotid_R6_A_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="subclavian_L66_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="subclavian_R28_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="head_L_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="head_R_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="arm_L_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="arm_R_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="aortic_arch_C94_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C96_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C100_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C104_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C108_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C112_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="abdominal_aorta_C114_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="celiac_trunk_C116_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="trunk_C_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C164_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C176_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C188_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_split_type" name="abdominal_aorta_C192_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="common_iliac_L194_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="external_iliac_L198_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="common_iliac_R216_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="external_iliac_R220_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="femoral_L200_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pv_type" name="femoral_R222_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="leg_L_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="pp_T_type" name="leg_R_T_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_lb_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_ub_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_ivc_module"/>
 </import>
-<import xlink:href="BG_Modules.cellml">
+<import xlink:href="BG_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_svc_module"/>
 </import>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
