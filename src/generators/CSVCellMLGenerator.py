@@ -6,6 +6,7 @@ Created on 29/10/2021
 
 import numpy as np
 import re
+import pandas as pd
 
 class CVS0DCellMLGenerator(object):
     '''
@@ -22,7 +23,9 @@ class CVS0DCellMLGenerator(object):
         self.filename_prefix = filename_prefix
         #    FIXME relative path to the python path should be defined in __init__.py or leave reference in a way that is independent of the PYTHON_PATH
         self.base_script = '../generators/resources/base_script.cellml'
-        
+        self.modules_script = '../generators/resources/BG_modules.cellml'
+        self.units_script = '../generators/resources/units.cellml'
+
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
             print("Error: The model should be a CVS0DModel representation")
@@ -32,10 +35,14 @@ class CVS0DCellMLGenerator(object):
         
         #    Code to generate model files
         self.__generate_CellML_file()
+        if self.model.param_id_consts:
+            self.__modify_parameters_array_from_param_id()
+        self.__generate_parameters_csv()
         self.__generate_parameters_file()
+        self.__generate_modules_file()
         self.__generate_units_file()
-        
-        print("Model generation has been successfully.")
+
+        print("Model generation has been successfull.")
         
         
     def __generate_CellML_file(self):
@@ -43,19 +50,25 @@ class CVS0DCellMLGenerator(object):
         with open(self.base_script, 'r') as rf:
             with open(self.output_path+self.filename_prefix+".cellml", 'w') as wf:
                 for line in rf:
+                    # TODO when heart and pulmonary are modules the state modification
+                    #  will be done in __generate_modules()
+                    if self.model.param_id_states:
+                        for state_name, val in self.model.param_id_states:
+                            if state_name in line and 'initial_value' in line:
+                                inp_string = f'initial_value="{val:.4e}"'
+                                line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
+
+                    if 'import xlink:href="units.cellml"' in line:
+                        line = re.sub('units', f'{self.filename_prefix}_units', line)
+                    elif 'import xlink:href="parameters_autogen.cellml"' in line:
+                        line = re.sub('parameters_autogen', f'{self.filename_prefix}_parameters', line)
                     # copy the start of the basescript until line that says #STARTGENBELOW
                     wf.write(line)
                     if '#STARTGENBELOW' in line:
                         break
     
                 ###### now start generating own code ######
-    
-                # Now map between Systemic component and terminal components
-                # TODO This doesn't need to be done anymore because we will have
-                #  venous sections and alpha params will be in params file
-                #   make sure I do mapping between terminals and venous section
-                #    after arterial mapping
-    
+
                 # import vessels
                 print('writing imports')
                 self.__write_section_break(wf, 'imports')
@@ -100,11 +113,10 @@ class CVS0DCellMLGenerator(object):
         print("Generating CellML file {}_parameters.cellml".format(self.filename_prefix))
         """
         Takes in a data frame of the params and generates the parameter_cellml file
-        TODO make this function case_name specific
         """
-    
+
         with open(self.output_path+self.filename_prefix+"_parameters.cellml", 'w') as wf:
-    
+
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
                      '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
@@ -129,11 +141,38 @@ class CVS0DCellMLGenerator(object):
                                         systemic_params_array["value"])
             wf.write('</component>\n')
             wf.write('</model>\n')
+
+    def __modify_parameters_array_from_param_id(self):
+        # first modify param_const names easily by modifying them in the array
+        print('modifying constants to values identified from paramter id')
+        for const_name, val in self.model.param_id_consts:
+            self.model.parameters[np.where(self.model.parameters['variable_name'] ==
+                                           const_name)[0][0]]['value'] = f'{val:.4e}'
+            self.model.parameters[np.where(self.model.parameters['variable_name'] ==
+                                           const_name)[0][0]]['data_reference'] = \
+                f'{self.model.param_id_date}_identified'
+
+    def __generate_parameters_csv(self):
+        df = pd.DataFrame(self.model.parameters)
+        df.to_csv(self.output_path + f'{self.filename_prefix}_parameters.csv', index=None, header=True)
     
     def __generate_units_file(self):
-        print("Generating CellML file {}_units.cellml".format(self.filename_prefix))
-        pass
-    
+        # TODO allow a specific units file to be generated
+        #  This function simply copies the units file
+        print(f'Generating CellML file {self.filename_prefix}_units.cellml')
+        with open(self.units_script, 'r') as rf:
+            with open(self.output_path+f'{self.filename_prefix}_units.cellml', 'w') as wf:
+                for line in rf:
+                    wf.write(line)
+
+    def __generate_modules_file(self):
+        print(f'Generating modules file {self.filename_prefix}_modules.cellml')
+        with open(self.modules_script, 'r') as rf:
+            # with open(self.output_path+f'{self.filename_prefix}_modules.cellml', 'w') as wf:
+            with open(self.output_path+'BG_modules.cellml', 'w') as wf:
+                for line in rf:
+                    wf.write(line)
+
     def __write_section_break(self, wf, text):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
                 text + '&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->\n')
@@ -195,7 +234,7 @@ class CVS0DCellMLGenerator(object):
                 else:
                     print('2in2out vessels only have vv type BC, '
                           f'change "{main_vessel}" or create new BC module '
-                          f'in BG_Modules.cellml')
+                          f'in BG_modules.cellml')
                     exit()
             elif main_vessel_type == 'merge_junction':
                 if main_vessel_BC_type == 'vp':
@@ -204,7 +243,7 @@ class CVS0DCellMLGenerator(object):
                 else:
                     print('Merge boundary condiditons only have vp type BC, '
                           f'change "{main_vessel}" or create new BC module in '
-                          f'BG_Modules.cellml')
+                          f'BG_modules.cellml')
                     exit()
             else:
                 if main_vessel_BC_type.endswith('v'):
@@ -465,7 +504,7 @@ class CVS0DCellMLGenerator(object):
         else:
             str_addon = '_module'
     
-        wf.writelines(['<import xlink:href="BG_Modules.cellml">\n',
+        wf.writelines(['<import xlink:href="BG_modules.cellml">\n',
         f'    <component component_ref="{module_type}" name="{vessel_vec["name"]+str_addon}"/>\n',
         '</import>\n'])
 
