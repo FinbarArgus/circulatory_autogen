@@ -23,6 +23,8 @@ class CVS0DCellMLGenerator(object):
         '''
         self.model = model
         self.output_path = output_path
+        if not os.path.exists(self.output_path):
+            os.mkdir(self.output_path)
         self.filename_prefix = filename_prefix
         self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
         self.modules_script = os.path.join(generators_dir_path, 'resources/BG_modules.cellml')

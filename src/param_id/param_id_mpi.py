@@ -2,8 +2,9 @@ import numpy as np
 import os
 import sys
 from sys import exit
-sys.path.append('../')
-sys.path.append('../utilities/')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
+resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
 import math as math
 import opencor as oc
 import matplotlib
@@ -23,14 +24,15 @@ if __name__ == '__main__':
 
     case_name = 'simple_physiological'
     # case_name = 'physiological'
-    cellml_dir = 'circulatory_autogen'
+    # TODO turn the below into a user defined input
+    generated_models_dir = os.path.join(os.path.dirname(__file__), '../../generated_models')
     do_param_id = False
     mpi_debug = False
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
-    nProcs = comm.Get_size()
-    if nProcs == 1:
+    num_procs = comm.Get_size()
+    if num_procs == 1:
         print('WARNING Running in serial, are you sure you want to be a snail?')
 
     # FOR MPI DEBUG WITH PYCHARM
@@ -49,17 +51,15 @@ if __name__ == '__main__':
     # case_type = 'Nelder_Meade' # not set up for mpi
     case_type = f'genetic_algorithm_{case_name}'
     if rank == 0:
-        param_id_dir = os.path.join(f'cellml_model/{cellml_dir}', 'param_id')
-        if not os.path.exists(param_id_dir):
-            os.mkdir(param_id_dir)
-        outputDir = os.path.join(param_id_dir, f'{case_type}')
-        if not os.path.exists(outputDir):
-            os.mkdir(outputDir)
-        if not os.path.exists('output'):
-            os.mkdir('output')
-        plotDir = os.path.join('output', 'plots_param_id')
-        if not os.path.exists(plotDir):
-            os.mkdir(plotDir)
+        param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
+        if not os.path.exists(param_id_output_dir):
+            os.mkdir(param_id_output_dir)
+        output_dir = os.path.join(param_id_output_dir, f'{case_type}')
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        plot_dir = os.path.join(output_dir, 'plots_param_id')
+        if not os.path.exists(plot_dir):
+            os.mkdir(plot_dir)
     
     comm.Barrier()
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     nSteps = int(sim_time/dt)
 
     # get the name of the vessel prior to the terminal
-    vessel_array = genfromtxt(f'cellml_model/{cellml_dir}/{case_name}_vessel_array.csv',
+    vessel_array = genfromtxt(os.path.join(resources_dir, f'{case_name}_vessel_array.csv'),
                             delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
     vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
                              for II in range(vessel_array.shape[0])])
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         if get_ground_truth:
             # _______ First we access data for mean values
 
-            data_array = genfromtxt(f'cellml_model/{cellml_dir}/parameters_autogen.csv',
+            data_array = genfromtxt(os.path.join(resources_dir, f'parameters_orig.csv'),
                 delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
 
             ground_truth_mean_flows = np.zeros(num_obs_states)
@@ -107,14 +107,14 @@ if __name__ == '__main__':
 
             ground_truth = np.concatenate([ground_truth_mean_flows, ground_truth_mean_pressures])
 
-            np.save(os.path.join(outputDir, 'ground_truth'), ground_truth)
+            np.save(os.path.join(output_dir, 'ground_truth'), ground_truth)
 
         else:
-            ground_truth = np.load(os.path.join(outputDir, 'ground_truth.npy'))
+            ground_truth = np.load(os.path.join(output_dir, 'ground_truth.npy'))
     else:
         ground_truth = np.zeros(num_obs)
         pass
-    if nProcs > 1:
+    if num_procs > 1:
         comm.Bcast(ground_truth, root=0)
     
     # how much to weight the pressure measurement by
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     # ________ Do parameter identification ________
 
     # set up ADAN-218 model
-    sim_helper = SimulationHelper(f'cellml_model/{cellml_dir}/autogen_{case_name}.cellml', dt, sim_time,
+    sim_helper = SimulationHelper(os.path.join(generated_models_dir, f'{case_name}.cellml'), dt, sim_time,
                                   point_interval, maximumNumberofSteps=100000000,
                                   maximumStep=0.1, pre_time=pre_time)
 
@@ -164,21 +164,21 @@ if __name__ == '__main__':
     param_const_names_for_gen += param_terminals_for_gen
 
     if rank == 0:
-        with open(os.path.join(outputDir, 'param_state_names.csv'), 'w') as f:
+        with open(os.path.join(output_dir, 'param_state_names.csv'), 'w') as f:
             wr = csv.writer(f)
             wr.writerows(param_state_names)
-        with open(os.path.join(outputDir, 'param_state_names_for_gen.csv'), 'w') as f:
+        with open(os.path.join(output_dir, 'param_state_names_for_gen.csv'), 'w') as f:
             wr = csv.writer(f)
             wr.writerows(param_state_names_for_gen)
-        with open(os.path.join(outputDir, 'param_const_names.csv'), 'w') as f:
+        with open(os.path.join(output_dir, 'param_const_names.csv'), 'w') as f:
             wr = csv.writer(f)
             wr.writerows(param_const_names)
-        with open(os.path.join(outputDir, 'param_const_names_for_gen.csv'), 'w') as f:
+        with open(os.path.join(output_dir, 'param_const_names_for_gen.csv'), 'w') as f:
             wr = csv.writer(f)
             wr.writerows(param_const_names_for_gen)
 
         # save date as identifier for the param_id
-        np.save(os.path.join(outputDir, 'date'), date.today().strftime("%d_%m_%Y"))
+        np.save(os.path.join(output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
     param_names = param_state_names + param_const_names
 
@@ -245,10 +245,10 @@ if __name__ == '__main__':
                 send_bufr_bools = np.array(simulated_bools)
                 # count number of columns for each proc
                 # count: the size of each sub-task
-                ave, res = divmod(param_vals.shape[1], nProcs)
-                pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(nProcs)])
+                ave, res = divmod(param_vals.shape[1], num_procs)
+                pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
             else:
-                pop_per_proc = np.empty(nProcs, dtype=int)
+                pop_per_proc = np.empty(num_procs, dtype=int)
                 send_bufr = None
                 send_bufr_bools = None
                 send_bufr_cost = None
@@ -304,11 +304,11 @@ if __name__ == '__main__':
                         break
 
                     simulated_bools[II] = True
-                    if nProcs == 1:
+                    if num_procs == 1:
                         if II%5 == 0 and II > nSurvivors:
                             print(' this generation is {:.0f}% done'.format(100.0*(II+1)/pop_per_proc[0]))
                     else:
-                      if rank == nProcs-1:
+                      if rank == num_procs-1:
                             #if II%4 == 0 and II != 0:
                             print(' this generation is {:.0f}% done'.format(100.0*(II+1)/pop_per_proc[0]))
 
@@ -334,8 +334,8 @@ if __name__ == '__main__':
                 param_vals_norm = param_norm_obj.normalise(param_vals)
                 print('worst survivor params normed : {}'.format(param_vals_norm[:, nSurvivors-1]))
                 print('best params normed : {}'.format(param_vals_norm[:, 0]))
-                np.save(os.path.join(outputDir, 'best_cost'), cost[0])
-                np.save(os.path.join(outputDir, 'best_param_vals'), param_vals[:, 0])
+                np.save(os.path.join(output_dir, 'best_cost'), cost[0])
+                np.save(os.path.join(output_dir, 'best_param_vals'), param_vals[:, 0])
 
                 # At this stage all of the population has been simulated
                 simulated_bools = [True]*nPop
@@ -382,8 +382,8 @@ if __name__ == '__main__':
             best_cost = cost[0]
             best_param_vals = param_vals[:, 0]
         else:
-            best_cost = np.load(os.path.join(outputDir, 'best_cost.npy'))
-            best_param_vals = np.load(os.path.join(outputDir, 'best_param_vals.npy'))
+            best_cost = np.load(os.path.join(output_dir, 'best_cost.npy'))
+            best_param_vals = np.load(os.path.join(output_dir, 'best_param_vals.npy'))
 
         # print init params and final params
         print('init params     : {}'.format(param_init))
@@ -469,8 +469,8 @@ if __name__ == '__main__':
         fig.align_ylabels(axs[:, 1])
         axs[0, 0].legend(loc='lower right', fontsize=9)
         plt.tight_layout()
-        plt.savefig(os.path.join(plotDir, 'reconstruct_{}.eps'.format(case_type)))
-        plt.savefig(os.path.join(plotDir, 'reconstruct_{}.pdf'.format(case_type)))
+        plt.savefig(os.path.join(plot_dir, 'reconstruct_{}.eps'.format(case_type)))
+        plt.savefig(os.path.join(plot_dir, 'reconstruct_{}.pdf'.format(case_type)))
 
         fig, axs = plt.subplots(2, 2)
 
@@ -514,8 +514,8 @@ if __name__ == '__main__':
         fig.align_ylabels(axs[:, 1])
         axs[0, 0].legend(loc='upper right', fontsize=9)
         plt.tight_layout()
-        plt.savefig(os.path.join(plotDir, 'reconstruct_{}_2.eps'.format(case_type)))
-        plt.savefig(os.path.join(plotDir, 'reconstruct_{}_2.pdf'.format(case_type)))
+        plt.savefig(os.path.join(plot_dir, 'reconstruct_{}_2.eps'.format(case_type)))
+        plt.savefig(os.path.join(plot_dir, 'reconstruct_{}_2.pdf'.format(case_type)))
 
 
 
