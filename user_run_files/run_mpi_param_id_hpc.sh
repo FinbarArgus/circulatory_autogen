@@ -1,2 +1,4 @@
-mpiexec -n $1 /people/farg967/.local/share/OpenCOR-2021-07-04-Linux/pythonshell ../src/param_id/param_id_mpi.py > ../param_id_output/log.txt
+# $1 is the number of processors
+# $2 is the max number of generations
+mpiexec -n $1 /people/farg967/.local/share/OpenCOR-2021-07-04-Linux/pythonshell ../src/scripts/param_id_run_script.py genetic_algorithm simple_physiological $2 > ../param_id_output/log.txt
 
