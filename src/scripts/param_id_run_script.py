@@ -26,6 +26,7 @@ if __name__ == '__main__':
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
+        print(f'starting script for rank = {rank}')
 
         # FOR MPI DEBUG WITH PYCHARM
         # You have to change the configurations to "python debug server/mpi" and

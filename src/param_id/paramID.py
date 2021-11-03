@@ -68,7 +68,7 @@ class CVS0DParamID():
 
         # define allowed param ranges # FIXME take these values as inputs from script
         self.param_mins = np.array([400e-6, 1e-9] + [5e6]*self.num_resistance_params)
-        self.param_maxs = np.array([2400e-6, 1e-6] + [1e10]*self.num_resistance_params)
+        self.param_maxs = np.array([2400e-6, 1e-6] + [4e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -339,7 +339,7 @@ class OpencorParamID():
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
 
-        print('starting rank = {} process'.format(rank))
+        print('starting param id run for rank = {} process'.format(rank))
 
         # ________ Do parameter identification ________
 
