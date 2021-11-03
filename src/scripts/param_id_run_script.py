@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         max_generations = int(sys.argv[3])
         param_id.set_genetic_algorithm_parameters(max_generations)
-        # param_id.run()
+        param_id.run()
 
         if rank == 0:
             param_id.simulate_with_best_param_vals()
