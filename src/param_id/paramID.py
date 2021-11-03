@@ -94,123 +94,81 @@ class CVS0DParamID():
             print('running simulate_with_best_param_vals ')
             self.simulate_with_best_param_vals()
 
-        # TODO make these inputs to this function
-        obs_state_names_plot = ['aortic_arch_C46/v',
-                                'common_carotid_L48_A/v',
-                                'femoral_L200/v',
-                                'subclavian_R28/v']
-
-        obs_alg_names_plot = ['aortic_arch_C46/u',
-                              'common_carotid_L48_A/u']
-
-        #TODO plotting here
+        print('plotting best observables')
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
 
-        num_obs_states_plot = len(obs_state_names_plot)
-        num_obs_algs_plot = len(obs_alg_names_plot)
-
-        AA_v_idx = 0
-        LCC_v_idx = 1
-        FEM_v_idx = 2
-        RSC_v_idx = 3
-        AA_u_idx = num_obs_states_plot
-        LCC_u_idx = num_obs_states_plot + 1
-
-        LCC_v_idx_gt = np.where(np.array(self.obs_state_names) == obs_state_names_plot[LCC_v_idx])[0][0]
-        FEM_v_idx_gt = np.where(np.array(self.obs_state_names) == obs_state_names_plot[FEM_v_idx])[0][0]
-        RSC_v_idx_gt = np.where(np.array(self.obs_state_names) == obs_state_names_plot[RSC_v_idx])[0][0]
-
-        best_fit_obs = self.param_id.sim_helper.get_results(obs_state_names_plot, obs_alg_names_plot)
+        best_fit_obs = self.param_id.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
         best_fit_obs_means = np.mean(best_fit_obs, axis=1)
 
         # _________ Plot best comparison _____________
-        fig, axs = plt.subplots(2, 2)
+        subplot_width = 2
+        fig, axs = plt.subplots(subplot_width, subplot_width)
 
+        obs_names = self.obs_state_names + self.obs_alg_names
+        col_idx = 0
+        row_idx = 0
+        plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
         means_plot_gt = np.tile(self.ground_truth.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
         means_plot_bf = np.tile(best_fit_obs_means.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
-        axs[0, 0].plot(tSim, Pa_to_kPa*means_plot_gt[-1, :], 'k', label='ground truth mean')
-        axs[0, 0].plot(tSim, Pa_to_kPa*means_plot_bf[AA_u_idx, :], 'b', label='best fit mean')
-        axs[0, 0].plot(tSim, Pa_to_kPa*best_fit_obs[AA_u_idx, :], 'r', label='best fit waveform')
-        axs[0, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 0].set_ylabel('AA Pressure [$kPa$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, self.param_id.sim_time)
-        axs[0, 0].set_ylim(0.0, 20.0)
-        axs[0, 0].set_yticks(np.arange(0, 21, 10))
+        for II in range(self.num_obs):
 
-        axs[0, 1].plot(tSim, Pa_to_kPa*best_fit_obs[LCC_u_idx, :], 'r')
-        axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('LCC Pressure [$kPa$]', fontsize=14)
-        axs[0, 1].set_xlim(0.0, self.param_id.sim_time)
-        axs[0, 1].set_ylim(0.0, 20.0)
-        axs[0, 1].set_yticks(np.arange(0, 21, 10))
+            words = obs_names[II].replace('_', ' ').upper().split()
+            obs_name_for_plot = "".join([word[0] for word in words])
+            if II < self.num_obs_states:
+                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*means_plot_gt[II, :], 'k', label='gt mean')
+                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*means_plot_bf[II, :], 'b', label='bf mean')
+                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[II, :], 'r', label='bf')
+                axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/2$]', fontsize=14)
+            else:
+                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*means_plot_gt[II, :], 'k', label='gt mean')
+                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*means_plot_bf[II, :], 'b', label='bf mean')
+                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[II, :], 'r', label='bf')
+                axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
 
-        axs[1, 0].plot(tSim, m3_to_cm3*best_fit_obs[AA_v_idx, :], 'r')
-        axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('AA Flow [$cm^3/s$]', fontsize=14)
-        axs[1, 0].set_xlim(0.0, self.param_id.sim_time)
-        axs[1, 0].set_ylim(-50.0, 400)
-        axs[1, 0].set_yticks(np.arange(0, 401, 100))
+            axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
+            axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
+            # axs[col_idx, row_idx].set_ylim(0.0, 20.0)
+            # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
 
-        axs[1, 1].plot(tSim, m3_to_cm3*best_fit_obs[LCC_v_idx, :], 'r')
-        axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 1].set_ylabel('LCC Flow [$cm^3/s$]', fontsize=14)
-        axs[1, 1].set_xlim(0.0, self.param_id.sim_time)
-        # axs[1, 1].set_ylim(0.0, 15)
-        # axs[1, 1].set_yticks(np.arange(0, 15.1, 5))
+            plot_saved = False
+            col_idx = col_idx + 1
+            if col_idx%subplot_width == 0:
+                col_idx = 0
+                row_idx += 1
+                if row_idx%subplot_width == 0:
+                    for JJ in range(subplot_width):
+                        fig.align_ylabels(axs[:, JJ])
+                    axs[0, 0].legend(loc='lower right', fontsize=6)
+                    plt.tight_layout()
+                    plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.param_id_method}_'
+                                             f'{self.file_name_prefix}_{plot_idx}.eps'))
+                    plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.param_id_method}_'
+                                             f'{self.file_name_prefix}_{plot_idx}.pdf'))
+                    plot_saved = True
+                    col_idx = 0
+                    row_idx = 0
+                    plot_idx += 1
+                    # create new plot
+                    if II != self.num_obs - 1:
+                        fig, axs = plt.subplots(subplot_width, subplot_width)
+                        plot_saved = False
 
-        fig.align_ylabels(axs[:, 0])
-        fig.align_ylabels(axs[:, 1])
-        axs[0, 0].legend(loc='lower right', fontsize=9)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.plot_dir, f'reconstruct_{self.param_id_method}_{self.file_name_prefix}.eps'))
-        plt.savefig(os.path.join(self.plot_dir, f'reconstruct_{self.param_id_method}_{self.file_name_prefix}.pdf'))
-
-        fig, axs = plt.subplots(2, 2)
-
-        axs[0, 0].plot(tSim, m3_to_cm3*means_plot_gt[LCC_v_idx_gt, :], 'k', label='ground truth mean')
-        axs[0, 0].plot(tSim, m3_to_cm3*means_plot_bf[LCC_v_idx, :], 'b', label='best fit mean')
-        axs[0, 0].plot(tSim, m3_to_cm3*best_fit_obs[LCC_v_idx, :], 'r', label='best fit waveform')
-        axs[0, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 0].set_ylabel('LCC Flow [$cm^3/s$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, self.param_id.sim_time)
-        # axs[0, 0].set_ylim(0.0, 15.1)
-        # axs[0, 0].set_yticks(np.arange(0, 15.1, 5))
-        #
-        axs[1, 0].plot(tSim, m3_to_cm3*means_plot_gt[FEM_v_idx_gt, :], 'k', label='ground truth mean')
-        axs[1, 0].plot(tSim, m3_to_cm3*means_plot_bf[FEM_v_idx, :], 'b', label='best fit mean')
-        axs[1, 0].plot(tSim, m3_to_cm3*best_fit_obs[FEM_v_idx, :], 'r', label='best fit waveform')
-        axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('Left Femoral Flow [$cm^3/s$]', fontsize=14)
-        axs[1, 0].set_xlim(0.0, self.param_id.sim_time)
-        # axs[1, 0].set_ylim(0.0, 15.1)
-        # axs[1, 0].set_yticks(np.arange(0, 15.1, 5))
-        #
-        axs[0, 1].plot(tSim, m3_to_cm3*means_plot_gt[RSC_v_idx_gt, :], 'k', label='ground truth mean')
-        axs[0, 1].plot(tSim, m3_to_cm3*means_plot_bf[RSC_v_idx, :], 'b', label='best fit mean')
-        axs[0, 1].plot(tSim, m3_to_cm3*best_fit_obs[RSC_v_idx, :], 'r', label='best fit waveform')
-        axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('RSC Flow [$cm^3/s$]', fontsize=14)
-        axs[0, 1].set_xlim(0.0, self.param_id.sim_time)
-        # axs[0, 1].set_ylim(0.0, 4.01)
-        # axs[0, 1].set_yticks(np.arange(0, 4.1, 1))
-        #
-        # axs[1, 1].plot(tSim, m3_to_cm3*means_plot_gt[LMCA_v_idx_gt, :], 'k', label='ground truth mean')
-        # axs[1, 1].plot(tSim, m3_to_cm3*means_plot_bf[LMCA_v_idx, :], 'b', label='best fit mean')
-        # axs[1, 1].plot(tSim, m3_to_cm3*best_fit_obs[LMCA_v_idx, :], 'r', label='best fit waveform')
-        # axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        # axs[1, 1].set_ylabel('LMCA Flow [$cm^3/s$]', fontsize=14)
-        # axs[1, 1].set_xlim(0.0, sim_time)
-        # axs[1, 1].set_ylim(0.0, 0.401)
-        # axs[1, 1].set_yticks(np.arange(0, 0.41, 0.1))
-
-        fig.align_ylabels(axs[:, 0])
-        fig.align_ylabels(axs[:, 1])
-        axs[0, 0].legend(loc='upper right', fontsize=9)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.plot_dir, f'reconstruct_{self.param_id_method}_{self.file_name_prefix}_2.eps'))
-        plt.savefig(os.path.join(self.plot_dir, f'reconstruct_{self.param_id_method}_{self.file_name_prefix}_2.pdf'))
+        # save final plot if it is not a full set of subplots
+        if not plot_saved:
+            for JJ in range(subplot_width):
+                fig.align_ylabels(axs[:, JJ])
+            axs[0, 0].legend(loc='lower right', fontsize=6)
+            plt.tight_layout()
+            plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_{plot_idx}.eps'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_{plot_idx}.pdf'))
 
     def set_genetic_algorithm_parameters(self, max_generations):
         self.param_id.set_genetic_algorithm_parameters(max_generations)
@@ -229,8 +187,10 @@ class CVS0DParamID():
         num_terminals = len(terminal_names)
         terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
         self.obs_nom_names = [f'v_nom_{a}' for a in terminal_names]
-        self.obs_state_names = [vessel_array[np.where(vessel_array[:, 0] == terminal_names[II] + '_T'), 3][0][0] + '/v'
-                           for II in range(len(terminal_names))]
+        # The below commented out command gets the vessels one segment prior to the terminal
+        # self.obs_state_names = [vessel_array[np.where(vessel_array[:, 0] == terminal_names[II] + '_T'), 3][0][0] + '/v'
+        #                    for II in range(len(terminal_names))]
+        self.obs_state_names = [terminal_names[II] + '_T/v' for II in range(len(terminal_names))]
         # TODO get data for flows through time inorder to identify terminal compliances
         self.obs_alg_names = ['aortic_arch_C46/u']
         venous_names = vessel_array[np.where(vessel_array[:, 2] == 'venous'), 0].flatten()
