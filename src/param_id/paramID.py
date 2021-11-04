@@ -67,8 +67,8 @@ class CVS0DParamID():
         self.ground_truth = self.__get_ground_truth_values()
 
         # define allowed param ranges # FIXME take these values as inputs from script
-        self.param_mins = np.array([400e-6, 1e-9] + [5e6]*self.num_resistance_params)
-        self.param_maxs = np.array([2400e-6, 1e-6] + [4e10]*self.num_resistance_params)
+        self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
+        self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -316,7 +316,7 @@ class OpencorParamID():
         self.dt = 0.01  # TODO this could be optimised
         self.point_interval = self.dt
         self.sim_time = 2.0
-        self.pre_time = 12.0
+        self.pre_time = 15.0
         self.nSteps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
 
