@@ -339,7 +339,7 @@ class OpencorParamID():
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
 
-        print('starting rank = {} process'.format(rank))
+        print('starting param id run for rank = {} process'.format(rank))
 
         # ________ Do parameter identification ________
 

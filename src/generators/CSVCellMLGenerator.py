@@ -244,8 +244,11 @@ class CVS0DCellMLGenerator(object):
                 if main_vessel_BC_type == 'vp':
                     v_1 = 'v'
                     p_1 = 'u_out'
+                elif main_vessel_BC_type == 'vv':
+                    v_1 = 'v_out'
+                    p_1 = 'u_d'
                 else:
-                    print('Merge boundary condiditons only have vp type BC, '
+                    print('Merge boundary condiditons only have vp or vv type BC, '
                           f'change "{main_vessel}" or create new BC module in '
                           f'BG_modules.cellml')
                     exit()
@@ -530,10 +533,12 @@ class CVS0DCellMLGenerator(object):
             if not out_vessel_BC_type.startswith('p'):
                 print(f'"{main_vessel}" output BC is v, the input BC of "{out_vessel}"',
                       ' should be p')
+                exit()
         if main_vessel_BC_type.endswith('p'):
             if not out_vessel_BC_type.startswith('v'):
                 print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                       ' should be v')
+                exit()
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
         wf.writelines(['<connection>\n',
