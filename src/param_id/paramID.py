@@ -567,6 +567,7 @@ class OpencorParamID():
         pred_obs_mean = np.mean(pred_obs, axis=1)
         cost_check = np.sum(np.power(self.weight_vec*(pred_obs_mean -
                                                       self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+        print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 
     def set_genetic_algorithm_parameters(self, max_generations):
