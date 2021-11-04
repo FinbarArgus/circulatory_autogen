@@ -35,9 +35,11 @@
         <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
         <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
         <!-- State Variables-->
-        <!--TODO where does this initial pressure come from? find this out! FA-->
-        <variable initial_value="4000.0" name="u_par" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_pvn" public_interface="out" units="J_per_m3"/>
+        <!-- -->
+        <variable name="u_par" public_interface="out" units="J_per_m3"/>
+        <variable name="u_pvn" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="300e-6" name="q_par" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="300e-6" name="q_pvn" public_interface="out" units="J_per_m3"/>
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
@@ -51,16 +53,12 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_par</ci>
+                    <ci>q_par</ci>
                 </apply>
                 <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_rv</ci>
-                        <ci>v_par</ci>
-                    </apply>
-                    <ci>C_par</ci>
+                    <minus/>
+                    <ci>v_rv</ci>
+                    <ci>v_par</ci>
                 </apply>
             </apply>
             <apply>
@@ -70,16 +68,30 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_pvn</ci>
+                    <ci>q_pvn</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v_par</ci>
+                    <ci>v_pvn</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_par</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_par</ci>
-                        <ci>v_pvn</ci>
-                    </apply>
-                    <ci>C_pvn</ci>
+                    <ci>q_par</ci>
+                    <ci>C_par</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_pvn</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_pvn</ci>
+                    <ci>C_par</ci>
                 </apply>
             </apply>
             <apply>
@@ -183,9 +195,9 @@
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
         <variable initial_value="700.0e-06" name="q_lv" units="m3"/>
-        <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
-        <variable initial_value="31.270e-6" name="q_la" units="m3"/>
-        <variable initial_value="6.46e-6" name="q_ra" units="m3"/>
+        <variable initial_value="200.0e-6" name="q_rv" units="m3"/>
+        <variable initial_value="200.0e-6" name="q_la" units="m3"/>
+        <variable initial_value="200.0e-6" name="q_ra" units="m3"/>
         <!-- Elastance Functions-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
