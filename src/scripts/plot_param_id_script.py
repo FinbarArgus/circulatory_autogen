@@ -37,4 +37,4 @@ if __name__ == '__main__':
         print(traceback.format_exc())
         print("Usage: file_name_prefix")
         print("e.g. simple_physiological")
-        exit
+        exit()
