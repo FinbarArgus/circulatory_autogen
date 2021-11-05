@@ -1,28 +1,72 @@
 '''
 Created on 01/11/2021
-
+@summary: Defines check routines for a lumped parameter model.
 @author: Finbar Argus, Gonzalo D. Maso Talou
 '''
 
-class LumpedChecks():
+from abc import ABC, abstractmethod
+
+class AbstractLumpedCheck(ABC):
     '''
-    Class for checking lumped parameter models
+    Abstract class of a check condition
+    '''
+    
+    @abstractmethod
+    def execute(self,model_0D):
+        '''
+        Runs the check activities
+        :param model_0D: model to be checked.
+        '''
+
+
+class LumpedCompositeCheck(AbstractLumpedCheck):
+    '''
+    Class that performs multiple checks on a lumped parameter model
     '''
 
-    def __init__(self):
+    def __init__(self, check_list=[]):
         """
-        constructor
+        Constructor
+        
+        :param check_list: initial checking list.
         """
-        self.checks_list = []
-        self.checks_list.append(self.__check_BC_types_and_vessel_types)
+        self.checks_list = check_list
 
-    def check_all(self, model_0D):
-        for check in self.checks_list:
-            check(model_0D)
+    def add_check(self,check):
+        '''
+        Adds an additional check to the checking list.
+        :param check: check to be added.
+        '''
+        self.checks_list.append(check)
+        
+    def execute(self, model_0D):
+        '''
+        Executes all the checks in the checking list.
+        :param model_0D:
+        '''
+        for current_check in self.checks_list:
+            current_check.execute(model_0D)
 
-    def __check_BC_types_and_vessel_types(self, model_0D):
+
+class LumpedBCVesselCheck(AbstractLumpedCheck):
+    '''
+    Checks if the boundary conditions and vessel types are correct.
+    '''
+
+    def execute(self, model_0D):
+        '''
+        Executes all check activities.
+        :param model_0D: model to be checked.
+        '''
         for vessel_vec in model_0D.vessels:
             if vessel_vec['BC_type'] not in model_0D.possible_BC_types:
                 print(f'BC_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
             if vessel_vec['vessel_type'] not in model_0D.possible_vessel_types:
                 print(f'vessel_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
+
+
+#    Example of usage
+#    Contructs a multiple check with only a LumpedBCVesselCheck 
+#model_checks = LumpedCompositeCheck(check_list=[LumpedBCVesselCheck()])
+#    Executes all checks in the model named model_0D
+#model_checks.execute(model_0D)

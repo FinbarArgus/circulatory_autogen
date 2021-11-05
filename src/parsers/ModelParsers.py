@@ -6,7 +6,7 @@ Created on 29/10/2021
 
 from parsers.PrimitiveParsers import CSVFileParser
 from models.LumpedModels import CVS0DModel
-from checks.LumpedModelChecks import LumpedChecks
+from checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck
 
 
 class CSV0DModelParser(object):
@@ -36,8 +36,8 @@ class CSV0DModelParser(object):
                               param_id_states=param_id_states,
                               param_id_consts=param_id_consts,
                               param_id_date=param_id_date)
-        checker = LumpedChecks()
-        checker.check_all(model_0D)
+        checker = LumpedCompositeCheck(check_list=[LumpedBCVesselCheck()])
+        checker.execute(model_0D)
 
         return model_0D
 
