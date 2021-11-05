@@ -570,6 +570,9 @@ class OpencorParamID():
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 
+        # TODO remove the below print
+        print(f'final pressure mean = {pred_obs_mean[-1]}')
+
     def set_genetic_algorithm_parameters(self, max_generations):
         if not self.param_id_method == 'genetic_algorithm':
             print('param_id is not set up as a genetic algorithm')

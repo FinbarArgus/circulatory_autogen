@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix)
 
-        print(obj_to_string(param_id))
+        # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         param_id.close_simulation()
