@@ -5,7 +5,7 @@ import numpy as np
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
                  sim_time, point_interval, maximumNumberofSteps=100000,
-                 maximumStep=0.1, pre_time=0.0):
+                 maximumStep=0.001, pre_time=0.0):
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt  # time step
         self.stop_time = pre_time + sim_time  # full time of simulation

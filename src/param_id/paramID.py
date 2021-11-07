@@ -316,7 +316,7 @@ class OpencorParamID():
         self.dt = 0.01  # TODO this could be optimised
         self.point_interval = self.dt
         self.sim_time = 2.0
-        self.pre_time = 15.0
+        self.pre_time = 20.0
         self.nSteps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
 
@@ -331,7 +331,7 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.1, pre_time=self.pre_time)
+                                maximumStep=0.0001, pre_time=self.pre_time)
 
     def run(self):
 
