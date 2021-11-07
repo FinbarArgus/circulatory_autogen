@@ -1,7 +1,7 @@
 '''
 Created on 29/10/2021
 
-@author: Gonzalo D. Maso Talou
+@author: Gonzalo D. Maso Talou, Finbar J. Argus
 '''
 
 import sys
@@ -10,7 +10,7 @@ root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
 
 resources_dir_path = os.path.join(root_dir_path, 'resources')
-param_id_dir_path = os.path.join(root_dir_path, 'src/param_id')
+param_id_dir_path = os.path.join(root_dir_path, 'param_id_output')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CSVCellMLGenerator import CVS0DCellMLGenerator

@@ -23,6 +23,8 @@ class CVS0DCellMLGenerator(object):
         '''
         self.model = model
         self.output_path = output_path
+        if not os.path.exists(self.output_path):
+            os.mkdir(self.output_path)
         self.filename_prefix = filename_prefix
         self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
         self.modules_script = os.path.join(generators_dir_path, 'resources/BG_modules.cellml')
@@ -146,7 +148,7 @@ class CVS0DCellMLGenerator(object):
 
     def __modify_parameters_array_from_param_id(self):
         # first modify param_const names easily by modifying them in the array
-        print('modifying constants to values identified from paramter id')
+        print('modifying constants to values identified from parameter id')
         for const_name, val in self.model.param_id_consts:
             self.model.parameters[np.where(self.model.parameters['variable_name'] ==
                                            const_name)[0][0]]['value'] = f'{val:.4e}'
@@ -242,8 +244,11 @@ class CVS0DCellMLGenerator(object):
                 if main_vessel_BC_type == 'vp':
                     v_1 = 'v'
                     p_1 = 'u_out'
+                elif main_vessel_BC_type == 'vv':
+                    v_1 = 'v_out'
+                    p_1 = 'u_d'
                 else:
-                    print('Merge boundary condiditons only have vp type BC, '
+                    print('Merge boundary condiditons only have vp or vv type BC, '
                           f'change "{main_vessel}" or create new BC module in '
                           f'BG_modules.cellml')
                     exit()
@@ -390,7 +395,7 @@ class CVS0DCellMLGenerator(object):
                 rhs_variables.append(f'v_{terminal_name}')
     
             self.__write_variable_sum(wf, lhs_variable, rhs_variables)
-        wf.write('</component>')
+        wf.write('</component>\n')
 
     def __write_access_variables(self, wf, vessel_array):
         for vessel_vec in vessel_array:
@@ -465,7 +470,7 @@ class CVS0DCellMLGenerator(object):
                                'theta',
                                'beta_g']
     
-            # check that the variables are in the paramter array
+            # check that the variables are in the parameter array
             if params_array is not None:
                 for variable_name in systemic_vars:
                     if variable_name not in params_array["variable_name"]:
@@ -528,10 +533,12 @@ class CVS0DCellMLGenerator(object):
             if not out_vessel_BC_type.startswith('p'):
                 print(f'"{main_vessel}" output BC is v, the input BC of "{out_vessel}"',
                       ' should be p')
+                exit()
         if main_vessel_BC_type.endswith('p'):
             if not out_vessel_BC_type.startswith('v'):
                 print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                       ' should be v')
+                exit()
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
         wf.writelines(['<connection>\n',
@@ -543,7 +550,7 @@ class CVS0DCellMLGenerator(object):
 
     def __write_variable_declarations(self, wf, variables, units, in_outs):
         for variable, unit, in_out in zip(variables, units, in_outs):
-            wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>')
+            wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>\n')
     
     def __write_constant_declarations(self, wf, variable_names, units, values):
         for variable, unit, value in zip(variable_names, units, values):
@@ -565,4 +572,4 @@ class CVS0DCellMLGenerator(object):
             wf.write(f'            <ci>{rhs_variables[0]}</ci>\n')
     
         wf.write('   </apply>\n')
-        wf.write('</math>')
+        wf.write('</math>\n')
