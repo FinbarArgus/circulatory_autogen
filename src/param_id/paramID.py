@@ -110,8 +110,8 @@ class CVS0DParamID():
         row_idx = 0
         plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        means_plot_gt = np.tile(self.ground_truth.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
-        means_plot_bf = np.tile(best_fit_obs_means.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
+        means_plot_gt = np.tile(self.ground_truth.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
+        means_plot_bf = np.tile(best_fit_obs_means.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
         for II in range(self.num_obs):
 
             words = obs_names[II].replace('_', ' ').upper().split()
