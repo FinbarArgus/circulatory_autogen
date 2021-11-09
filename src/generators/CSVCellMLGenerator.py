@@ -8,6 +8,7 @@ import numpy as np
 import re
 import pandas as pd
 import os
+from sys import exit
 generators_dir_path = os.path.dirname(__file__)
 
 
@@ -26,6 +27,7 @@ class CVS0DCellMLGenerator(object):
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
         self.filename_prefix = filename_prefix
+        self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
         self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
         self.modules_script = os.path.join(generators_dir_path, 'resources/BG_modules.cellml')
         self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
@@ -128,7 +130,8 @@ class CVS0DCellMLGenerator(object):
             heart_params_array = self.model.parameters[np.where(self.model.parameters["comp_env"]=='heart')]
             pulmonary_params_array = self.model.parameters[np.where(self.model.parameters["comp_env"]=='pulmonary')]
             systemic_params_array = self.model.parameters[np.where(self.model.parameters["comp_env"]=='systemic')]
-    
+
+
             wf.write('<component name="parameters_pulmonary">\n')
             self.__write_constant_declarations(wf, pulmonary_params_array["variable_name"],
                                         pulmonary_params_array["units"],
@@ -157,8 +160,19 @@ class CVS0DCellMLGenerator(object):
                 f'{self.model.param_id_date}_identified'
 
     def __generate_parameters_csv(self):
+
+        # check if all the required parameters have been defined, if not we make an "unfinished"
+        # csv file which makes it easy for the user to include the required parameters
+        if self.model.all_parameters_defined:
+            file_to_create = os.path.join(self.output_path, f'{self.filename_prefix}_parameters.csv')
+        else:
+            file_to_create = os.path.join(self.user_resources_path,
+                                          f'{self.filename_prefix}_parameters_unfinished.csv')
+            print(f'creating a file {file_to_create}, which has EMPTY tags where parameters'
+                  f'need to be included. The user should include these parameters then remove '
+                  f'the "_unfinished" ending of the file name, then rerun the model generation.')
         df = pd.DataFrame(self.model.parameters)
-        df.to_csv(os.path.join(self.output_path,f'{self.filename_prefix}_parameters.csv'), index=None, header=True)
+        df.to_csv(file_to_create, index=None, header=True)
     
     def __generate_units_file(self):
         # TODO allow a specific units file to be generated
