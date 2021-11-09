@@ -67,8 +67,10 @@ class CVS0DParamID():
         self.ground_truth = self.__get_ground_truth_values()
 
         # define allowed param ranges # FIXME take these values as inputs from script
-        self.param_mins = np.array([200e-6, 1e-9] + [1e6]*self.num_resistance_params)
-        self.param_maxs = np.array([1600e-6, 1e-6] + [4e10]*self.num_resistance_params)
+        # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
+        self.param_mins = np.array([100e-6] + [1e6]*self.num_resistance_params)
+        # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
+        self.param_maxs = np.array([1200e-6] + [4e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -110,8 +112,8 @@ class CVS0DParamID():
         row_idx = 0
         plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        means_plot_gt = np.tile(self.ground_truth.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
-        means_plot_bf = np.tile(best_fit_obs_means.reshape(-1,1), (1,self.param_id.sim_helper.nSteps))
+        means_plot_gt = np.tile(self.ground_truth.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
+        means_plot_bf = np.tile(best_fit_obs_means.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
         for II in range(self.num_obs):
 
             words = obs_names[II].replace('_', ' ').upper().split()
@@ -208,12 +210,10 @@ class CVS0DParamID():
         self.param_state_names = [['heart/q_lv']]
         # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
         param_state_names_for_gen = [['q_lv']]
-        # param_const_names = [['venous_ub/C', 'venous_lb/C',
-        #                       'venous_svc/C', 'venous_ivc/C']]
-        self.param_const_names = [[name + '/C' for name in venous_names]]
-        # param_const_names_for_gen = [['C_venous_ub', 'C_venous_lb',
-        #                               'C_venous_svc', 'C_venous_ivc']]
-        param_const_names_for_gen = [['C_' + name for name in venous_names]]
+        # self.param_const_names = [[name + '/C' for name in venous_names]]
+        self.param_const_names = []
+        # param_const_names_for_gen = [['C_' + name for name in venous_names]]
+        param_const_names_for_gen = []
         param_terminals = []
         param_terminals_for_gen = []
         same_group = False

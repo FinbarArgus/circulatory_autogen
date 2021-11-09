@@ -13,3 +13,19 @@ out_vessel_2        (name of second output vessel if split or 2in2out junction, 
 
 The aim is to combine the autogeneration of a circulatory system structure graph from an image with this code to
 completely automate the creation of circulatory system models from images.
+
+## requirements  
+
+If the model being generated is a cellml model, OpenCOR must be downloaded 
+and installed from https://opencor.ws/downloads/index.html  
+
+To install required python packages for this opencors version of python
+you must do the following...  
+
+/path/to/opencor/dir/python/bin/python -m pip install packagename
+
+### Required packages for parameter identification
+mpi4py
+
+### Required packages for autogeneration
+pandas
