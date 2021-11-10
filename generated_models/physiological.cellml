@@ -41,8 +41,8 @@
         <!-- TODO the below parameters should be set in an init_states parameter file
  The values are chosen arbitrarily to give the pulmonary system an initial stressed volume.
  Identification of the initial stressed volume is done by identifying initial q_lv-->
-        <variable initial_value="300e-6" name="q_par" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="300e-6" name="q_pvn" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_par" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_pvn" public_interface="out" units="J_per_m3"/>
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
@@ -199,10 +199,10 @@
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="700.0e-6" name="q_lv" units="m3"/>
-        <variable initial_value="200.0e-6" name="q_rv" units="m3"/>
-        <variable initial_value="200.0e-6" name="q_la" units="m3"/>
-        <variable initial_value="200.0e-6" name="q_ra" units="m3"/>
+        <variable initial_value="7.6190e-04" name="q_lv" units="m3"/>
+        <variable initial_value="10.0e-6" name="q_rv" units="m3"/>
+        <variable initial_value="4.0e-6" name="q_la" units="m3"/>
+        <variable initial_value="4.0e-6" name="q_ra" units="m3"/>
         <!-- Elastance Functions-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
