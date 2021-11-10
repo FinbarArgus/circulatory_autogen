@@ -7,6 +7,11 @@ defined_by_user:          This is a parameter that the user defines, if not defi
                           is the assumption, e.g the period T is assumed to be 1.0 s if it is not 
                           redefined by the user.
 
+small_chosen              This parameter is set as an arbitrarily small value. e.g in some vessels
+                          a very small inertia is chosen, which assumes the flow is almost instantly accelerated
+                          by the pressures on it. The inertia is left in to ensure the system can
+                          be written as an ODE rather than a DAE.
+
 ANS_control_parameter:    This parameter is modified by the ANS control system, leave it as 1.0 and the 
                           changing of it needs to be done in the Python code. If there is no ANS control 
                           implemented this stays as 1.0 and ANS control doesn't occur.
