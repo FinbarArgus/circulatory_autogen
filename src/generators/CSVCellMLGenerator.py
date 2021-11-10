@@ -48,8 +48,28 @@ class CVS0DCellMLGenerator(object):
         self.__generate_modules_file()
         self.__generate_units_file()
 
-        print("Model generation has been successfull.")
-        
+        # TODO check that model generation is succesful, possibly by calling to opencor
+        print('Model generation complete.')
+        print('Testing to see if model opens in OpenCOR')
+        opencor_available = True
+        try:
+            import opencor as oc
+        except:
+            opencor_available = False
+            pass
+        if opencor_available:
+            try:
+                sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
+                print('Model generation has been successfull.')
+            except:
+                print('The OpenCOR model is not yet working, this is could be due to multiple reasons.\n'
+                      'It is expected if all of the parameters in'
+                      'the model have not been given values.')
+        else:
+            print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
+                  'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
+
+
         
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
@@ -187,7 +207,7 @@ class CVS0DCellMLGenerator(object):
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(self.modules_script, 'r') as rf:
             # with open(self.output_path+f'{self.filename_prefix}_modules.cellml', 'w') as wf:
-            with open(os.path.join(self.output_path, 'BG_modules.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
 
@@ -200,7 +220,12 @@ class CVS0DCellMLGenerator(object):
             if vessel_vec["vessel_type"] in ['heart', 'pulmonary']:
                 continue
             self.__write_import(wf, vessel_vec)
-            
+        # add a zero mapping to heart ivc or svd flow input if only one input is specified
+        if not vessel_array[np.where(vessel_array["name"] == 'heart')][0]["inp_vessel_2"]:
+            wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
+                           f'    <component component_ref="zero_flow" name="zero_flow_module"/>\n',
+                           '</import>\n'])
+
     def __write_vessel_mappings(self, wf, vessel_array):
         for vessel_vec in vessel_array:
             # input and output vessels
@@ -284,6 +309,7 @@ class CVS0DCellMLGenerator(object):
                     v_2 = 'v_svc'
                 else:
                     print('venous input to heart can only be venous_ivc or venous_svc')
+                    exit()
                 p_2 = 'u_ra'
             elif out_vessel_type in ['merge_junction', '2in2out_junction']:
                 if out_vessel_vec["inp_vessel_1"] == main_vessel:
@@ -348,6 +374,17 @@ class CVS0DCellMLGenerator(object):
                                            main_vessel_BC_type, out_vessel_BC_type,
                                            main_vessel_type, out_vessel_type)
                 self.__write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+        # check if heart has a second input vessel
+        # if it doesn't add a zero flow mapping to that input
+        if not vessel_array[np.where(vessel_array["name"] == 'heart')][0]["inp_vessel_2"]:
+            if vessel_array[np.where(vessel_array["name"] == 'heart')][0]["inp_vessel_1"] == 'venous_ivc':
+                self.__write_mapping(wf, 'zero_flow_module', 'heart', ['v_zero'], ['v_svc'])
+            elif vessel_array[np.where(vessel_array["name"] == 'heart')][0]["inp_vessel_1"] == 'venous_svc':
+                self.__write_mapping(wf, 'zero_flow_module', 'heart', ['v_zero'], ['v_ivc'])
+            else:
+                print('for now, the final venous compartment must be named venous_ivc or venous_svc')
+                exit()
+
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_array):
         first_venous_names = [] # stores name of venous compartments that take flow from terminals
@@ -472,6 +509,13 @@ class CVS0DCellMLGenerator(object):
                 module_vars = ['R',
                                'C',
                                'I']
+            elif vessel_vec["vessel_type"] == 'arterial_simple':
+                systemic_vars = [f'R_{vessel_name}',
+                                 f'C_{vessel_name}',
+                                 f'I_{vessel_name}']
+                module_vars = ['R',
+                               'C',
+                               'I']
             else:
                 systemic_vars = [f'l_{vessel_name}',
                                  f'E_{vessel_name}',
@@ -517,6 +561,8 @@ class CVS0DCellMLGenerator(object):
             module_type = f'{vessel_vec["BC_type"]}_2in2out_type'
         elif vessel_vec['vessel_type'] == 'venous':
             module_type = f'{vessel_vec["BC_type"]}_simple_type'
+        elif vessel_vec['vessel_type'] == 'arterial_simple':
+            module_type = f'{vessel_vec["BC_type"]}_simple_type'
         else:
             module_type = f'{vessel_vec["BC_type"]}_type'
     
@@ -525,7 +571,7 @@ class CVS0DCellMLGenerator(object):
         else:
             str_addon = '_module'
     
-        wf.writelines(['<import xlink:href="BG_modules.cellml">\n',
+        wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
         f'    <component component_ref="{module_type}" name="{vessel_vec["name"]+str_addon}"/>\n',
         '</import>\n'])
 

@@ -2669,4 +2669,14 @@
             </apply>
         </math>
     </component>
+    <component name="zero_type_flow">
+        <variable name="v_zero" public_interface="out" units="m3_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>v_zero</ci>
+                <cn cellml:units="m3_per_s">0</cn>
+            </apply>
+        </math>
+    </component>
 </model>
