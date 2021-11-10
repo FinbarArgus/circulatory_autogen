@@ -55,77 +55,84 @@ class CSV0DModelParser(object):
         required_params = []
         num_params = 0
         # Add pulmonary parameters # TODO put this into the for loop when pulmonary vessels are modules
-        required_params.append('C_par')
-        required_params.append('C_pvn')
-        required_params.append('R_par')
-        required_params.append('R_pvn')
-        required_params.append('I_par')
-        required_params.append('I_pvn')
+        # TODO include units and model_environment in the appended item so they can be included
+        required_params.append(['C_par', 'm6_per_J', 'pulmonary'])
+        required_params.append(['C_pvn', 'm6_per_J', 'pulmonary'])
+        required_params.append(['R_par', 'Js_per_m6', 'pulmonary'])
+        required_params.append(['R_pvn', 'Js_per_m6', 'pulmonary'])
+        required_params.append(['I_par', 'Js2_per_m6', 'pulmonary'])
+        required_params.append(['I_pvn', 'Js2_per_m6', 'pulmonary'])
         num_params += 6
         for vessel in vessels_array:
             vessel_name = vessel["name"]
             if vessel_name.startswith('heart'):
-                required_params.append('T')
-                required_params.append('t_ac')
-                required_params.append('t_ar')
-                required_params.append('T_ac')
-                required_params.append('T_ar')
-                required_params.append('T_vc')
-                required_params.append('T_vr')
-                required_params.append('CQ_trv')
-                required_params.append('CQ_puv')
-                required_params.append('CQ_miv')
-                required_params.append('CQ_aov')
-                required_params.append('E_ra_A')
-                required_params.append('E_ra_B')
-                required_params.append('E_rv_A')
-                required_params.append('E_rv_B')
-                required_params.append('E_la_A')
-                required_params.append('E_la_B')
-                required_params.append('E_lv_A')
-                required_params.append('E_lv_B')
-                required_params.append('q_ra_0')
-                required_params.append('q_rv_0')
-                required_params.append('q_la_0')
-                required_params.append('q_lv_0')
+                required_params.append(['T', 'second', 'heart'])
+                required_params.append(['t_ac', 'dimensionless', 'heart'])
+                required_params.append(['t_ar', 'dimensionless', 'heart'])
+                required_params.append(['T_ac', 'dimensionless', 'heart'])
+                required_params.append(['T_ar', 'dimensionless', 'heart'])
+                required_params.append(['T_vc', 'dimensionless', 'heart'])
+                required_params.append(['T_vr', 'dimensionless', 'heart'])
+                required_params.append(['CQ_trv', 'UnitValve', 'heart'])
+                required_params.append(['CQ_puv', 'UnitValve', 'heart'])
+                required_params.append(['CQ_miv', 'UnitValve', 'heart'])
+                required_params.append(['CQ_aov', 'UnitValve', 'heart'])
+                required_params.append(['E_ra_A', 'J_per_m6', 'heart'])
+                required_params.append(['E_ra_B', 'J_per_m6', 'heart'])
+                required_params.append(['E_rv_A', 'J_per_m6', 'heart'])
+                required_params.append(['E_rv_B', 'J_per_m6', 'heart'])
+                required_params.append(['E_la_A', 'J_per_m6', 'heart'])
+                required_params.append(['E_la_B', 'J_per_m6', 'heart'])
+                required_params.append(['E_lv_A', 'J_per_m6', 'heart'])
+                required_params.append(['E_lv_B', 'J_per_m6', 'heart'])
+                required_params.append(['q_ra_0', 'm3', 'heart'])
+                required_params.append(['q_rv_0', 'm3', 'heart'])
+                required_params.append(['q_la_0', 'm3', 'heart'])
+                required_params.append(['q_lv_0', 'm3', 'heart'])
                 num_params += 23
             elif vessel["vessel_type"] in ['arterial', 'split_junction', 'merge_junction', '2in2out_junction']:
-                required_params.append(f'r_{vessel_name}')
-                required_params.append(f'l_{vessel_name}')
-                required_params.append(f'theta_{vessel_name}')
-                required_params.append(f'E_{vessel_name}')
+                required_params.append([f'r_{vessel_name}', 'metre', 'systemic'])
+                required_params.append([f'l_{vessel_name}', 'metre', 'systemic'])
+                required_params.append([f'theta_{vessel_name}', 'dimensionless', 'systemic'])
+                required_params.append([f'E_{vessel_name}', 'J_per_m3', 'systemic'])
                 num_params += 4
             elif vessel["vessel_type"] in ['terminal']:
                 vessel_name_minus_T = re.sub('_T$', '', vessel_name)
-                required_params.append(f'R_T_{vessel_name_minus_T}')
-                required_params.append(f'C_T_{vessel_name_minus_T}')
-                required_params.append(f'alpha_{vessel_name_minus_T}')
-                required_params.append(f'v_nom_{vessel_name_minus_T}')
+                required_params.append([f'R_T_{vessel_name_minus_T}', 'Js_per_m6', 'systemic'])
+                required_params.append([f'C_T_{vessel_name_minus_T}', 'm6_per_J', 'systemic'])
+                required_params.append([f'alpha_{vessel_name_minus_T}', 'dimensionless', 'systemic'])
+                required_params.append([f'v_nom_{vessel_name_minus_T}', 'm3_per_s', 'systemic'])
                 num_params += 4
             elif vessel["vessel_type"] in ['venous']:
-                required_params.append(f'C_{vessel_name}')
-                required_params.append(f'R_{vessel_name}')
-                required_params.append(f'I_{vessel_name}')
+                required_params.append([f'R_{vessel_name}', 'Js_per_m6', 'systemic'])
+                required_params.append([f'C_{vessel_name}', 'm6_per_J', 'systemic'])
+                required_params.append([f'I_{vessel_name}', 'Js2_per_m6', 'systemic'])
                 num_params += 3
             else:
                 print(f'unknown required parameters for vessel_type {vessel["vessel_type"]}, exiting')
         # append global parameters
-        required_params.append(f'beta_g')
-        required_params.append(f'gain_int')
+        required_params.append([f'beta_g', 'dimensionless', 'systemic'])
+        required_params.append([f'gain_int', 'dimensionless', 'systemic'])
         num_params += 2
 
         required_params = np.array(required_params)
 
         all_parameters_defined = True
-        parameters_array = np.empty([num_params,],
+        parameters_array = np.empty([num_params, ],
                                     dtype=parameters_array_orig.dtype)
 
-        for idx, param in enumerate(required_params):
+        for idx, param_tuple in enumerate(required_params):
             try:
-                parameters_array[idx] = parameters_array_orig[np.where(parameters_array_orig["variable_name"] == param)]
+                parameters_array[idx] = parameters_array_orig[np.where(parameters_array_orig["variable_name"] ==
+                                                                       param_tuple[0])]
             except:
                 # the other entries apart from name in this row are left empty
-                parameters_array[idx][0] = param
+                parameters_array[idx][0] = param_tuple[0]
+                parameters_array[idx][1] = param_tuple[1]
+                parameters_array[idx][2] = param_tuple[2]
+                parameters_array[idx][3] = 'EMPTY'
+                parameters_array[idx][4] = 'EMPTY'
+
                 all_parameters_defined = False
 
 

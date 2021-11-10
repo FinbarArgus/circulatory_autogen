@@ -168,9 +168,9 @@ class CVS0DCellMLGenerator(object):
         else:
             file_to_create = os.path.join(self.user_resources_path,
                                           f'{self.filename_prefix}_parameters_unfinished.csv')
-            print(f'creating a file {file_to_create}, which has EMPTY tags where parameters'
-                  f'need to be included. The user should include these parameters then remove '
-                  f'the "_unfinished" ending of the file name, then rerun the model generation.')
+            print(f'\n WARNING \nRequired parameters are missing. \nCreating a file {file_to_create}, which has EMPTY tags where parameters\n'
+                  f'need to be included. The user should include these parameters then remove \n'
+                  f'the "_unfinished" ending of the file name, then rerun the model generation.\n')
         df = pd.DataFrame(self.model.parameters)
         df.to_csv(file_to_create, index=None, header=True)
     
