@@ -89,6 +89,18 @@ class CVS0DParamID():
         self.param_id.simulate_once()
         self.best_output_calculated = True
 
+    def update_param_range(self, params_to_update_list_of_lists, mins, maxs):
+        # TODO make the user input a parameters_range.csv file to define the mins and maxs
+        for params_to_update_list, min, max in zip(params_to_update_list_of_lists, mins, maxs):
+            for JJ, param_name_list in enumerate(self.param_state_names):
+                if param_name_list == params_to_update_list:
+                    self.param_mins[JJ] = min
+                    self.param_maxs[JJ] = max
+            for JJ, param_name_list in enumerate(self.param_const_names):
+                if param_name_list == params_to_update_list:
+                    self.param_mins[len(self.param_state_names) + JJ] = min
+                    self.param_maxs[len(self.param_state_names) + JJ] = max
+
     def plot_outputs(self):
         if not self.best_output_calculated:
             print('simulate_with_best_param_vals must be done first '
