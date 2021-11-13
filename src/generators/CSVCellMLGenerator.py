@@ -70,7 +70,6 @@ class CVS0DCellMLGenerator(object):
                   'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
 
 
-        
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
         with open(self.base_script, 'r') as rf:

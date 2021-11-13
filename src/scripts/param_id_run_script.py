@@ -46,6 +46,7 @@ if __name__ == '__main__':
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix)
 
         max_generations = int(sys.argv[3])
+        param_id.update_param_range([['trunk_C_T/R_T']], [1e4], [1e8])
         param_id.set_genetic_algorithm_parameters(max_generations)
         param_id.run()
 
