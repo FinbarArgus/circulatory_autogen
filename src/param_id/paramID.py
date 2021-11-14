@@ -343,7 +343,7 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.0001, pre_time=self.pre_time)
+                                maximumStep=0.0004, pre_time=self.pre_time)
 
     def run(self):
 
