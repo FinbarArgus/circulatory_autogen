@@ -281,7 +281,7 @@ class CVS0DParamID():
             for idx, name in enumerate(self.obs_nom_names):
                 ground_truth_mean_flows[idx] = data_array[:, 3][np.where(data_array[:, 0] == name)][0].astype(float)
 
-            ground_truth_mean_pressures = np.array([13300])
+            ground_truth_mean_pressures = np.array([12000])
 
             ground_truth = np.concatenate([ground_truth_mean_flows, ground_truth_mean_pressures])
 
