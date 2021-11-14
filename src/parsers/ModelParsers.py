@@ -130,8 +130,8 @@ class CSV0DModelParser(object):
                 parameters_array[idx][0] = param_tuple[0]
                 parameters_array[idx][1] = param_tuple[1]
                 parameters_array[idx][2] = param_tuple[2]
-                parameters_array[idx][3] = 'EMPTY'
-                parameters_array[idx][4] = 'EMPTY'
+                parameters_array[idx][3] = 'EMPTY_MUST_BE_FILLED'
+                parameters_array[idx][4] = 'EMPTY_MUST_BE_FILLED'
 
                 all_parameters_defined = False
 

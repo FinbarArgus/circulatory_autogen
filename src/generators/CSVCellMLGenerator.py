@@ -58,13 +58,17 @@ class CVS0DCellMLGenerator(object):
             opencor_available = False
             pass
         if opencor_available:
-            try:
-                sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
+            sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
+            if sim.valid():
                 print('Model generation has been successfull.')
-            except:
-                print('The OpenCOR model is not yet working, this is could be due to multiple reasons.\n'
-                      'It is expected if all of the parameters in'
-                      'the model have not been given values.')
+            else:
+                if self.model.all_parameters_defined:
+                    print('The OpenCOR model is not yet working, The reason for this is unknown.\n')
+                else:
+                    print('The OpenCOR model is not yet working because all parameters have not been given values, \n'
+                          f'Enter the values in '
+                          f'{os.path.join(self.user_resources_path, f"{self.filename_prefix}_parameters_unfinished.csv")}')
+
         else:
             print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
                   'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
@@ -187,9 +191,11 @@ class CVS0DCellMLGenerator(object):
         else:
             file_to_create = os.path.join(self.user_resources_path,
                                           f'{self.filename_prefix}_parameters_unfinished.csv')
-            print(f'\n WARNING \nRequired parameters are missing. \nCreating a file {file_to_create}, which has EMPTY tags where parameters\n'
+            print(f'\n WARNING \nRequired parameters are missing. \nCreating a file {file_to_create},\n'
+                  f'which has EMPTY_MUST_BE_FILLED tags where parameters\n'
                   f'need to be included. The user should include these parameters then remove \n'
-                  f'the "_unfinished" ending of the file name, then rerun the model generation.\n')
+                  f'the "_unfinished" ending of the file name, then rerun the model generation \n'
+                  f'with the new parameters file as input.\n')
         df = pd.DataFrame(self.model.parameters)
         df.to_csv(file_to_create, index=None, header=True)
     

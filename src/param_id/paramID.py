@@ -264,8 +264,6 @@ class CVS0DParamID():
                 wr = csv.writer(f)
                 wr.writerows(param_const_names_for_gen)
 
-            # save date as identifier for the param_id
-            np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         return
 
@@ -343,13 +341,16 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.0001, pre_time=self.pre_time)
+                                maximumStep=0.0004, pre_time=self.pre_time)
 
     def run(self):
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
+
+        # save date as identifier for the param_id
+        np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         print('starting param id run for rank = {} process'.format(rank))
 
