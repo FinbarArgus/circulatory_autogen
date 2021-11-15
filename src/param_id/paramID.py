@@ -349,8 +349,9 @@ class OpencorParamID():
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
 
-        # save date as identifier for the param_id
-        np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
+        if rank == 0:
+          # save date as identifier for the param_id
+          np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         print('starting param id run for rank = {} process'.format(rank))
 
