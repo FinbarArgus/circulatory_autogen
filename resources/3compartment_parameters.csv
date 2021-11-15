@@ -31,8 +31,8 @@ q_lv_0,m3,heart,5.0e-6,to_find_reference
 R_aortic_root,Js_per_m6,systemic,1.0e+07,to_be_identified
 C_aortic_root,m6_per_J,systemic,100e-12,to_be_identified
 I_aortic_root,Js2_per_m6,systemic,1e+6,to_be_identified
-R_T_systemic,Js_per_m6,systemic,1.0e+10,to_be_identifiedEMPTY
-C_T_systemic,m6_per_J,systemic,1e-9,to_be_identifiedEMPTY
+R_T_systemic,Js_per_m6,systemic,1.0e+10,to_be_identified
+C_T_systemic,m6_per_J,systemic,1e-9,to_be_identified
 alpha_systemic,dimensionless,systemic,0.0,not_used
 v_nom_systemic,m3_per_s,systemic,0.0,not_used
 R_venous_svc,Js_per_m6,systemic,0.1e-6,small_chosen
