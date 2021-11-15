@@ -68,9 +68,9 @@ class CVS0DParamID():
 
         # define allowed param ranges # FIXME take these values as inputs from script
         # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
-        self.param_mins = np.array([100e-6] + [1e6]*self.num_resistance_params)
+        self.param_mins = np.array([700e-6] + [5e5]*self.num_resistance_params)
         # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
-        self.param_maxs = np.array([1200e-6] + [4e10]*self.num_resistance_params)
+        self.param_maxs = np.array([2600e-6] + [5e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -88,6 +88,18 @@ class CVS0DParamID():
     def simulate_with_best_param_vals(self):
         self.param_id.simulate_once()
         self.best_output_calculated = True
+
+    def update_param_range(self, params_to_update_list_of_lists, mins, maxs):
+        # TODO make the user input a parameters_range.csv file to define the mins and maxs
+        for params_to_update_list, min, max in zip(params_to_update_list_of_lists, mins, maxs):
+            for JJ, param_name_list in enumerate(self.param_state_names):
+                if param_name_list == params_to_update_list:
+                    self.param_mins[JJ] = min
+                    self.param_maxs[JJ] = max
+            for JJ, param_name_list in enumerate(self.param_const_names):
+                if param_name_list == params_to_update_list:
+                    self.param_mins[len(self.param_state_names) + JJ] = min
+                    self.param_maxs[len(self.param_state_names) + JJ] = max
 
     def plot_outputs(self):
         if not self.best_output_calculated:
@@ -252,8 +264,6 @@ class CVS0DParamID():
                 wr = csv.writer(f)
                 wr.writerows(param_const_names_for_gen)
 
-            # save date as identifier for the param_id
-            np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         return
 
@@ -269,7 +279,7 @@ class CVS0DParamID():
             for idx, name in enumerate(self.obs_nom_names):
                 ground_truth_mean_flows[idx] = data_array[:, 3][np.where(data_array[:, 0] == name)][0].astype(float)
 
-            ground_truth_mean_pressures = np.array([13300])
+            ground_truth_mean_pressures = np.array([12000])
 
             ground_truth = np.concatenate([ground_truth_mean_flows, ground_truth_mean_pressures])
 
@@ -331,13 +341,17 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.0001, pre_time=self.pre_time)
+                                maximumStep=0.0004, pre_time=self.pre_time)
 
     def run(self):
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
+
+        if rank == 0:
+          # save date as identifier for the param_id
+          np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         print('starting param id run for rank = {} process'.format(rank))
 

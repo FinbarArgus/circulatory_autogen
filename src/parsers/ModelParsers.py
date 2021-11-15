@@ -103,7 +103,7 @@ class CSV0DModelParser(object):
                 required_params.append([f'alpha_{vessel_name_minus_T}', 'dimensionless', 'systemic'])
                 required_params.append([f'v_nom_{vessel_name_minus_T}', 'm3_per_s', 'systemic'])
                 num_params += 4
-            elif vessel["vessel_type"] in ['venous']:
+            elif vessel["vessel_type"] in ['venous', 'arterial_simple']:
                 required_params.append([f'R_{vessel_name}', 'Js_per_m6', 'systemic'])
                 required_params.append([f'C_{vessel_name}', 'm6_per_J', 'systemic'])
                 required_params.append([f'I_{vessel_name}', 'Js2_per_m6', 'systemic'])
@@ -130,8 +130,8 @@ class CSV0DModelParser(object):
                 parameters_array[idx][0] = param_tuple[0]
                 parameters_array[idx][1] = param_tuple[1]
                 parameters_array[idx][2] = param_tuple[2]
-                parameters_array[idx][3] = 'EMPTY'
-                parameters_array[idx][4] = 'EMPTY'
+                parameters_array[idx][3] = 'EMPTY_MUST_BE_FILLED'
+                parameters_array[idx][4] = 'EMPTY_MUST_BE_FILLED'
 
                 all_parameters_defined = False
 

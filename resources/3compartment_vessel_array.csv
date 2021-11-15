@@ -1,0 +1,5 @@
+name,BC_type,vessel_type,inp_vessel_1,inp_vessel_2,out_vessel_1,out_vessel_2
+heart,                   vp, heart,              venous_svc,           ,aortic_root,    
+aortic_root,             vv, arterial_simple,    heart,                ,systemic_T,       
+systemic_T,              pp, terminal,           aortic_root,          ,venous_svc,            
+venous_svc,              vp, venous,             ,                     ,heart,                

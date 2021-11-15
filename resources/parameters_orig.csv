@@ -65,7 +65,7 @@ C_T_leg_L,m6_per_J,systemic,400e-12,to_be_identified
 C_T_leg_R,m6_per_J,systemic,400e-12,to_be_identified
 R_T_trunk_C,Js_per_m6,systemic,0.2e+9,to_be_identified
 v_nom_trunk_C,m3_per_s,systemic,37.28e-6,ADAN
-C_T_trunk_C,m6_per_J,systemic,400e-12,to_be_identified
+C_T_trunk_C,m6_per_J,systemic,4e-9,to_be_identified
 R_T_head_L,Js_per_m6,systemic,0.2e+9,to_be_identified
 R_T_head_R,Js_per_m6,systemic,0.2e+9,to_be_identified
 v_nom_head_L,m3_per_s,systemic,7.34e-6,ADAN
