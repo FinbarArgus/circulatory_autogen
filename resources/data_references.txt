@@ -23,8 +23,31 @@ to_be_identified:         This parameter is not physiological! It must be identi
                           Each date will be a reference to a specific data source which will
                           be detailed in a separate file. TODO
 
-ADAN                      obtained from the ADAN model see paper {TODO}. This value has either been
+ADAN-86                   obtained from the ADAN-86 model see paper {TODO}. This value has either been
                           obtained directly from the ADAN model, or in the case of nominal terminal flows,
                           the flows of non-modelled terminals in the area have been summed to get the value
                           for this terminal. e.g v_nom_leg_L is the sum of v_nom 
+
+ADAN-218                  obtained from the ADAN-218 model see paper {TODO}. This value has either been
+                          obtained directly from the ADAN model, or in the case of nominal terminal flows,
+                          the flows of non-modelled terminals in the area have been summed to get the value
+                          for this terminal. e.g v_nom_leg_L is the sum of v_nom 
+
+Pablo_2013_Table_8        "Table 5 - Blanco, P. J., & Feijóo, R. A. (2013). A
+                          dimensionally-heterogeneous closed-loop model for the cardiovascular system and
+                          its applications. Medical Engineering & Physics, 35(5), 652-667."
+
+Pablo_2013_Table_8        "Table 8 - Blanco, P. J., & Feijóo, R. A. (2013). A
+                          dimensionally-heterogeneous closed-loop model for the cardiovascular system and
+                          its applications. Medical Engineering & Physics, 35(5), 652-667."
+
+Liang_2009_Table_2        "Table 2 - Liang, F., Takagi, S., Himeno, R., & Liu,
+                          H. (2009). Multi-scale modeling of the human cardiovascular system with
+                          applications to aortic valvular and arterial stenoses. Medical & biological
+                          engineering & computing, 47(7), 743-755."
+
+Korakianitis_2006_Table_1 "Table 1 - Korakianitis, T., & Shi, Y. (2006). A
+                          concentrated parameter model for the human cardiovascular system including
+                          heart valve dynamics and atrioventricular interaction. Medical engineering &
+                          physics, 28(7), 613-628."
 
