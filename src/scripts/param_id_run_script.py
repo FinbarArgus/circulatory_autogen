@@ -77,5 +77,5 @@ if __name__ == '__main__':
         print(traceback.format_exc())
         print("Usage: parameter_id_method file_name_prefix num_calls_to_function")
         print("e.g. genetic_algorithm simple_physiological 10")
-        comm.abort()
+        comm.Abort()
         exit
