@@ -413,26 +413,41 @@ class OpencorParamID():
                 progress_bar = ProgressBar(self.n_calls, n_jobs=num_procs)
                 call_num = 0
                 iter_num = 0
+                cost = np.zeros(num_procs)
                 while call_num < self.n_calls:
-                    cost = np.zeros(num_procs)
                     if rank == 0:
-                        points = opt.ask(n_points=num_procs)
-                        points_np = np.array(points)
+                        if self.DEBUG:
+                            zero_time = time.time()
+                        if num_procs > 1:
+                            points = [opt.ask() for II in range(num_procs)]
+                            # TODO figure out why the below call slows down so much as the number of calls increases
+                            #  and whether it can give improvements
+                            # points = opt.ask(n_points=num_procs)
+                            points_np = np.array(points)
+                        else:
+                            points = opt.ask()
+                        if self.DEBUG:
+                            ask_time = time.time() - zero_time
+                            print(f'Time to calculate new param values = {ask_time}')
                     else:
                         points_np = np.zeros((num_procs, self.num_params))
 
-                    # broadcast points so every processor has all of the points. TODO This could be optimized for memory
-                    comm.Bcast(points_np, root=0)
-                    cost_proc = self.get_cost(points_np[rank, :])
-                    # print(f'cost for rank = {rank} is {cost_proc}')
+                    if num_procs > 1:
+                        # broadcast points so every processor has all of the points. TODO This could be optimized for memory
+                        comm.Bcast(points_np, root=0)
+                        cost_proc = self.get_cost(points_np[rank, :])
+                        # print(f'cost for rank = {rank} is {cost_proc}')
 
-                    recv_buf_cost = np.zeros(num_procs)
-                    send_buf_cost = cost_proc
-                    # gather results from simulation
-                    comm.Gatherv(send_buf_cost, [recv_buf_cost, 1,
-                                                  None, MPI.DOUBLE], root=0)
-                    cost_np = recv_buf_cost
-                    cost = cost_np.tolist()
+                        recv_buf_cost = np.zeros(num_procs)
+                        send_buf_cost = cost_proc
+                        # gather results from simulation
+                        comm.Gatherv(send_buf_cost, [recv_buf_cost, 1,
+                                                      None, MPI.DOUBLE], root=0)
+                        cost_np = recv_buf_cost
+                        cost = cost_np.tolist()
+                    else:
+                        cost = self.get_cost(points)
+
 
                     if rank == 0:
                         if self.DEBUG:
@@ -440,7 +455,7 @@ class OpencorParamID():
                         opt.tell(points, cost)
                         if self.DEBUG:
                             tell_time = time.time() - zero_time
-                            print(f'Time to calculate new param values = {tell_time}')
+                            print(f'Time to set the calculated cost and param values = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
