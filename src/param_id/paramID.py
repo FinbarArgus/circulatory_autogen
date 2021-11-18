@@ -556,7 +556,7 @@ class OpencorParamID():
                                 np.power(self.weight_vec*(pred_obs_mean -
                                                           self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
                             # reset params
-                            self.sim_helper.reset()
+                            self.sim_helper.reset_and_clear()
 
                         else:
                             # simulation failed, choose a new random point
@@ -670,7 +670,7 @@ class OpencorParamID():
             cost = np.sum(np.power(self.weight_vec*(pred_obs_mean -
                                           self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
             # reset params
-            self.sim_helper.reset()
+            self.sim_helper.reset_and_clear()
 
         else:
             # simulation set cost to large,
