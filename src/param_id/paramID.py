@@ -419,7 +419,10 @@ class OpencorParamID():
                         if self.DEBUG:
                             zero_time = time.time()
                         if num_procs > 1:
-                            points = opt.ask(n_points=num_procs)
+                            points = [opt.ask() for II in range(num_procs)]
+                            # TODO figure out why the below call slows down so much as the number of calls increases
+                            #  and whether it can give improvements
+                            # points = opt.ask(n_points=num_procs)
                             points_np = np.array(points)
                         else:
                             points = opt.ask()
