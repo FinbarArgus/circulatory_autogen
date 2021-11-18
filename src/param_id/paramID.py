@@ -416,7 +416,12 @@ class OpencorParamID():
                 while call_num < self.n_calls:
                     cost = np.zeros(num_procs)
                     if rank == 0:
+                        if self.DEBUG:
+                            zero_time = time.time()
                         points = opt.ask(n_points=num_procs)
+                        if self.DEBUG:
+                            ask_time = time.time() - zero_time
+                            print(f'Time to calculate new param values = {ask_time}')
                         points_np = np.array(points)
                     else:
                         points_np = np.zeros((num_procs, self.num_params))
@@ -440,7 +445,7 @@ class OpencorParamID():
                         opt.tell(points, cost)
                         if self.DEBUG:
                             tell_time = time.time() - zero_time
-                            print(f'Time to calculate new param values = {tell_time}')
+                            print(f'Time to set the calculated cost and param values = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
