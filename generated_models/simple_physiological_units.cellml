@@ -125,6 +125,11 @@
     </units>
     <!--//////////////////////
  inductance-->
+    <units name="Js2_per_C2">
+        <unit exponent="2" units="second"/>
+        <unit exponent="1" units="joule"/>
+        <unit exponent="-2" units="coulomb"/>
+    </units>
     <units name="Js2_per_mol2">
         <unit units="joule"/>
         <unit exponent="2" units="second"/>
@@ -137,6 +142,11 @@
         <unit exponent="-2" units="mole"/>
     </units>
     <!-- resistance-->
+    <units name="Js_per_C2">
+        <unit exponent="1" units="joule"/>
+        <unit exponent="1" units="second"/>
+        <unit exponent="-2" units="coulomb"/>
+    </units>
     <units name="J_per_mol2">
         <unit units="joule"/>
         <unit exponent="-2" units="mole"/>

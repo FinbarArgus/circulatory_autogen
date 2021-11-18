@@ -1,1 +1,1 @@
-/opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/script_generate_with_new_architecture.py physiological_vessel_array.csv parameters_orig.csv ../generated_models/ physiological genetic_algorithm_physiological
+/opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/script_generate_with_new_architecture.py simple_physiological_vessel_array.csv parameters_orig.csv ../generated_models/ simple_physiological bayesian_simple_physiological 

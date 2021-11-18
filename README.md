@@ -29,3 +29,11 @@ mpi4py
 
 ### Required packages for autogeneration
 pandas
+
+IMPORTANT If installing on CENTOS, if you get an SSL error you must do the following before the pip install
+
+export LD_LIBRARY_PATH=[OpenCOR]/lib
+
+so that libcrypto.so.1.1 could be
+found. I don't understand why this :is necessary, but it is
+
