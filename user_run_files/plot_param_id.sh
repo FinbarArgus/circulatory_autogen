@@ -1,5 +1,4 @@
-# $1 is the number of processors
-# $2 is the max number of generations
+# user inputs are defined in user_inputs.sh
+source user_inputs.sh
+${opencor_pythonshell_path} ../src/scripts/plot_param_id_script.py ${param_id_method} ${file_prefix}
 
-# /opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/plot_param_id_script.py genetic_algorithm physiological
-/opt/OpenCOR-2021-10-05-Linux/pythonshell ../src/scripts/plot_param_id_script.py genetic_algorithm physiological

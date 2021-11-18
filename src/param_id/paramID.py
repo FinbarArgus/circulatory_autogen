@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
 resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
 import math as math
 import opencor as oc
+import time
 import matplotlib
 import matplotlib.pyplot as plt
 import paperPlotSetup
@@ -19,12 +20,15 @@ import re
 from numpy import genfromtxt
 import csv
 from datetime import date
+from skopt import gp_minimize, Optimizer
+import resource
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix):
+    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix, sim_time=2.0, pre_time=20.0,
+                 DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.param_id_model_type = param_id_model_type
@@ -49,6 +53,8 @@ class CVS0DParamID():
                 os.mkdir(self.plot_dir)
 
         self.comm.Barrier()
+
+        self.DEBUG = DEBUG
 
         # param names
         self.obs_state_names = None
@@ -76,11 +82,13 @@ class CVS0DParamID():
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                            self.obs_state_names, self.obs_alg_names, self.weight_vec,
                                            self.param_state_names, self.param_const_names, self.ground_truth,
-                                           self.param_mins, self.param_maxs)
+                                           self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
+                                           DEBUG=self.DEBUG)
         if self.rank == 0:
             self.param_id.set_output_dir(self.output_dir)
 
         self.best_output_calculated = False
+
 
     def run(self):
         self.param_id.run()
@@ -184,8 +192,12 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_{plot_idx}.pdf'))
 
-    def set_genetic_algorithm_parameters(self, max_generations):
-        self.param_id.set_genetic_algorithm_parameters(max_generations)
+    def set_genetic_algorithm_parameters(self, n_calls):
+        self.param_id.set_genetic_algorithm_parameters(n_calls)
+
+    def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
+        self.param_id.set_bayesian_parameters(n_calls, n_initial_points, acq_func, random_state,
+                                              acq_func_kwargs=acq_func_kwargs)
 
     def close_simulation(self):
         self.param_id.close_simulation()
@@ -264,7 +276,6 @@ class CVS0DParamID():
                 wr = csv.writer(f)
                 wr.writerows(param_const_names_for_gen)
 
-
         return
 
     def __get_ground_truth_values(self):
@@ -302,7 +313,8 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_state_names, obs_alg_names, weight_vec,
                  param_state_names, param_const_names, ground_truth,
-                 param_mins, param_maxs):
+                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0,
+                 DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -325,18 +337,24 @@ class OpencorParamID():
         # set up opencor simulation
         self.dt = 0.01  # TODO this could be optimised
         self.point_interval = self.dt
-        self.sim_time = 2.0
-        self.pre_time = 20.0
+        self.sim_time = sim_time
+        self.pre_time = pre_time
         self.nSteps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
 
         # initialise
         self.param_init = None
         self.best_param_vals = None
-        self.best_cost = None
+        self.best_cost = 999999
 
         # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
-        self.max_generations = 180
+        self.n_calls = 100
+        self.acq_func = 'EI'  # the acquisition function
+        self.n_initial_points = 5
+        self.acq_func_kwargs = {}
+        self.random_state = 1234 # random seed
+
+        self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
@@ -364,15 +382,109 @@ class OpencorParamID():
         param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         cost_convergence = 0.0001
-        if self.param_id_method == 'genetic_algorithm':
+        if self.param_id_method == 'bayesian':
+            if rank == 0:
+                print('Running bayesian optimisation')
+            param_ranges = [a for a in zip(self.param_mins, self.param_maxs)]
+            updated_version = True # TODO remove this and remove the gp_minimize version
+            if not updated_version:
+                res = gp_minimize(self.get_cost,  # the function to minimize
+                                  param_ranges,  # the bounds on each dimension of x
+                                  acq_func=self.acq_func,  # the acquisition function
+                                  n_calls=self.n_calls,  # the number of evaluations of f
+                                  n_initial_points=self.n_initial_points,  # the number of random initialization points
+                                  random_state=self.random_state, # random seed
+                                  **self.acq_func_kwargs,
+                                  callback=[ProgressBar(self.n_calls)])
+                              # noise=0.1**2,  # the noise level (optional)
+            else:
+                # using Optimizer is more flexible and may be needed to implement a parallel usage
+                # gp_minimizer is a higher level call that uses Optimizer
+                if rank == 0:
+                    opt = Optimizer(param_ranges,  # the bounds on each dimension of x
+                                    base_estimator='GP', # gaussian process
+                                    acq_func=self.acq_func,  # the acquisition function
+                                    n_initial_points=self.n_initial_points,  # the number of random initialization points
+                                    random_state=self.random_state, # random seed
+                                    acq_func_kwargs=self.acq_func_kwargs,
+                                    n_jobs=num_procs)
+
+
+                progress_bar = ProgressBar(self.n_calls, n_jobs=num_procs)
+                call_num = 0
+                iter_num = 0
+                while call_num < self.n_calls:
+                    cost = np.zeros(num_procs)
+                    if rank == 0:
+                        points = opt.ask(n_points=num_procs)
+                        points_np = np.array(points)
+                    else:
+                        points_np = np.zeros((num_procs, self.num_params))
+
+                    # broadcast points so every processor has all of the points. TODO This could be optimized for memory
+                    comm.Bcast(points_np, root=0)
+                    cost_proc = self.get_cost(points_np[rank, :])
+                    # print(f'cost for rank = {rank} is {cost_proc}')
+
+                    recv_buf_cost = np.zeros(num_procs)
+                    send_buf_cost = cost_proc
+                    # gather results from simulation
+                    comm.Gatherv(send_buf_cost, [recv_buf_cost, 1,
+                                                  None, MPI.DOUBLE], root=0)
+                    cost_np = recv_buf_cost
+                    cost = cost_np.tolist()
+
+                    if rank == 0:
+                        if self.DEBUG:
+                            zero_time = time.time()
+                        opt.tell(points, cost)
+                        if self.DEBUG:
+                            tell_time = time.time() - zero_time
+                            print(f'Time to calculate new param values = {tell_time}')
+                        res = opt.get_result()
+                        progress_bar.call(res)
+
+                        if res.fun < self.best_cost and iter_num > 20:
+                            # save if cost improves and its not right at the start
+                            self.best_cost = res.fun
+                            self.best_param_vals = res.x
+                            print('parameters improved! SAVING COST AND PARAM VALUES')
+                            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+
+                    call_num += num_procs
+                    iter_num += 1
+
+                    # Check resource usage
+                    if self.DEBUG:
+                        mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                        print(f'rank={rank} memory={mem}')
+
+                    # TODO save results here every few iterations
+
+
+            if rank == 0:
+                print(res)
+                self.best_cost = res.fun
+                self.best_param_vals = res.x
+                np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+
+        elif self.param_id_method == 'genetic_algorithm':
             num_elite = 3
             num_survivors = 12
             num_mutations_per_survivor = 12
             num_cross_breed = 30
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
+            if self.n_calls < num_pop:
+                print(f'Number of calls (n_calls={self.n_calls}) must be greater than the '
+                      f'gen alg population (num_pop={num_pop}), exiting')
+                exit()
+            self.max_generations = math.floor(self.n_calls/num_pop)
             if rank == 0:
-                print('Running genetic algorithm with a population size of {}'.format(num_pop))
+                print(f'Running genetic algorithm with a population size of {num_pop},\n'
+                      f'and a maximum number of generations of {self.max_generations}')
             simulated_bools = [False]*num_pop
             mutation_weight = 0.01
             gen_count = 0
@@ -408,18 +520,18 @@ class OpencorParamID():
                             elif param_vals[II, JJ] > self.param_maxs[II]:
                                 param_vals[II, JJ] = self.param_maxs[II]
 
-                    send_bufr = param_vals.T.copy()
-                    send_bufr_cost = cost
-                    send_bufr_bools = np.array(simulated_bools)
+                    send_buf = param_vals.T.copy()
+                    send_buf_cost = cost
+                    send_buf_bools = np.array(simulated_bools)
                     # count number of columns for each proc
                     # count: the size of each sub-task
                     ave, res = divmod(param_vals.shape[1], num_procs)
                     pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
                 else:
                     pop_per_proc = np.empty(num_procs, dtype=int)
-                    send_bufr = None
-                    send_bufr_bools = None
-                    send_bufr_cost = None
+                    send_buf = None
+                    send_buf_bools = None
+                    send_buf_cost = None
 
                 comm.Bcast(pop_per_proc, root=0)
                 # initialise receive buffer for each proc
@@ -427,13 +539,13 @@ class OpencorParamID():
                 recv_buf_bools = np.empty(pop_per_proc[rank], dtype=bool)
                 recv_buf_cost = np.zeros(pop_per_proc[rank])
                 # scatter arrays to each proc
-                comm.Scatterv([send_bufr, pop_per_proc*self.num_params, None, MPI.DOUBLE],
+                comm.Scatterv([send_buf, pop_per_proc*self.num_params, None, MPI.DOUBLE],
                               recv_buf, root=0)
                 param_vals_proc = recv_buf.T.copy()
-                comm.Scatterv([send_bufr_bools, pop_per_proc, None, MPI.BOOL],
+                comm.Scatterv([send_buf_bools, pop_per_proc, None, MPI.BOOL],
                               recv_buf_bools, root=0)
                 bools_proc = recv_buf_bools
-                comm.Scatterv([send_bufr_cost, pop_per_proc, None, MPI.DOUBLE],
+                comm.Scatterv([send_buf_cost, pop_per_proc, None, MPI.DOUBLE],
                               recv_buf_cost, root=0)
                 cost_proc = recv_buf_cost
 
@@ -463,7 +575,7 @@ class OpencorParamID():
                                 np.power(self.weight_vec*(pred_obs_mean -
                                                           self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
                             # reset params
-                            self.sim_helper.reset()
+                            self.sim_helper.reset_and_clear()
 
                         else:
                             # simulation failed, choose a new random point
@@ -485,12 +597,12 @@ class OpencorParamID():
 
                 recv_buf = np.zeros((num_pop, self.num_params))
                 recv_buf_cost = np.zeros(num_pop)
-                send_bufr = param_vals_proc.T.copy()
-                send_bufr_cost = cost_proc
+                send_buf = param_vals_proc.T.copy()
+                send_buf_cost = cost_proc
                 # gather results from simulation
-                comm.Gatherv(send_bufr, [recv_buf, pop_per_proc*self.num_params,
+                comm.Gatherv(send_buf, [recv_buf, pop_per_proc*self.num_params,
                                          None, MPI.DOUBLE], root=0)
-                comm.Gatherv(send_bufr_cost, [recv_buf_cost, pop_per_proc,
+                comm.Gatherv(send_buf_cost, [recv_buf_cost, pop_per_proc,
                                               None, MPI.DOUBLE], root=0)
 
                 if rank == 0:
@@ -544,13 +656,15 @@ class OpencorParamID():
                     # non zero ranks don't do any of the ordering or mutations
                     pass
 
+            if rank == 0:
+                self.best_cost = cost[0]
+                self.best_param_vals = param_vals[:, 0]
+
         else:
             print(f'param_id_method {self.param_id_method} hasn\'t been implemented')
             exit()
 
         if rank == 0:
-            self.best_cost = cost[0]
-            self.best_param_vals = param_vals[:, 0]
             print('')
             print('parameter identification is complete')
             # print init params and final params
@@ -560,14 +674,42 @@ class OpencorParamID():
 
         return
 
+    def get_cost(self, param_vals):
+
+        # set params for this case
+        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names,
+                                       param_vals)
+
+        success = self.sim_helper.run()
+        if success:
+            pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
+            pred_obs_mean = np.mean(pred_obs, axis=1)
+            # calculate error between the observables of this set of parameters
+            # and the ground truth
+            cost = np.sum(np.power(self.weight_vec*(pred_obs_mean -
+                                          self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+            # reset params
+            self.sim_helper.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed with params...')
+            print(param_vals)
+            cost = 9999
+
+        return cost
+
     def simulate_once(self):
 
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
-        if not self.best_cost:
+        if not self.best_param_vals:
             self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+        else:
+            # The sim object has already been opened so the best cost doesn't need to be opened
+            pass
 
         # ___________ Run model with new parameters ________________
 
@@ -587,13 +729,23 @@ class OpencorParamID():
         # TODO remove the below print
         print(f'final pressure mean = {pred_obs_mean[-1]}')
 
-    def set_genetic_algorithm_parameters(self, max_generations):
+    def set_genetic_algorithm_parameters(self, n_calls):
         if not self.param_id_method == 'genetic_algorithm':
             print('param_id is not set up as a genetic algorithm')
             exit()
-        self.max_generations = max_generations
+        self.n_calls= n_calls
         # TODO add more of the gen alg constants here so they can be changed by user.
 
+    def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
+        if not self.param_id_method == 'bayesian':
+            print('param_id is not set up as a bayesian optimization process')
+            exit()
+        self.n_calls = n_calls
+        self.n_initial_points = n_initial_points
+        self.acq_func = acq_func  # the acquisition function
+        self.random_state = random_state  # random seed
+        self.acq_func_kwargs = acq_func_kwargs
+        # TODO add more of the gen alg constants here so they can be changed by user.
 
     def close_simulation(self):
         self.sim_helper.close_simulation()
@@ -602,5 +754,35 @@ class OpencorParamID():
         self.output_dir = output_dir
 
 
+class ProgressBar(object):
+    """
+    Alternatively: Could call ProgBarLogger like in keras
+    """
 
+    def __init__(self, n_calls, n_jobs=1, file=sys.stderr):
+        self.n_calls = n_calls
+        self.n_jobs = n_jobs
+        self.iter_no = 0
+        self.file = file
+        self._start_time = time.time()
+
+    def _to_precision(self, x, precision=5):
+        return ("{0:.%ie} seconds"%(precision - 1)).format(x)
+
+    def progress(self, iter_no, curr_min):
+        bar_len = 60
+        filled_len = int(round(bar_len*iter_no/float(self.n_calls)))
+
+        percents = round(100.0*iter_no/float(self.n_calls), 1)
+        bar = '='*filled_len + '-'*(bar_len - filled_len)
+        print(f'[{bar}] {percents}% | Elapsed Time: {time.time() - self._start_time} | Current Minimum: {curr_min}')
+
+    def __call__(self, res):
+        curr_y = res.func_vals[-1]
+        curr_min = res.fun
+        self.iter_no += self.n_jobs
+        self.progress(self.iter_no, curr_min)
+
+    def call(self, res):
+        self.__call__(res)
 

@@ -39,7 +39,7 @@ class SimulationHelper():
 
         return True
 
-    def reset(self):
+    def reset_and_clear(self):
         self.simulation.reset()
         self.simulation.clear_results()
 

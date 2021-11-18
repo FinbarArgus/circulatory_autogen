@@ -22,9 +22,8 @@ thoracic_aorta_C100,     pv, arterial,           thoracic_aorta_C96,   ,thoracic
 thoracic_aorta_C104,     pv, arterial,           thoracic_aorta_C100,  ,thoracic_aorta_C108,  
 thoracic_aorta_C108,     pv, arterial,           thoracic_aorta_C104,  ,thoracic_aorta_C112,  
 thoracic_aorta_C112,     pv, arterial,           thoracic_aorta_C108,  ,abdominal_aorta_C114, 
-abdominal_aorta_C114,    pv, split_junction,     thoracic_aorta_C112,  ,abdominal_aorta_C136, celiac_trunk_C116
-celiac_trunk_C116,       pv, arterial,           abdominal_aorta_C114, ,trunk_C_T,       
-trunk_C_T,               pp, terminal,           celiac_trunk_C116,    ,venous_lb,            
+abdominal_aorta_C114,    pv, split_junction,     thoracic_aorta_C112,  ,abdominal_aorta_C136, trunk_C_T
+trunk_C_T,               pp, terminal,           abdominal_aorta_C114, ,venous_lb,            
 abdominal_aorta_C136,    pv, arterial,           abdominal_aorta_C114, ,abdominal_aorta_C164, 
 abdominal_aorta_C164,    pv, arterial,           abdominal_aorta_C136, ,abdominal_aorta_C176, 
 abdominal_aorta_C176,    pv, arterial,           abdominal_aorta_C164, ,abdominal_aorta_C188, 

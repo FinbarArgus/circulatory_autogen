@@ -43,11 +43,26 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix)
+        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+                                sim_time=2.0, pre_time=20.0, DEBUG=True)
 
-        max_generations = int(sys.argv[3])
         param_id.update_param_range([['trunk_C_T/R_T']], [1e5], [5e9])
-        param_id.set_genetic_algorithm_parameters(max_generations)
+        num_calls_to_function = int(sys.argv[3])
+        if param_id_method == 'genetic_algorithm':
+            max_generations = int(sys.argv[3])
+            param_id.set_genetic_algorithm_parameters(num_calls_to_function)
+        elif param_id_method == 'bayesian':
+            acq_func = 'gp_hedge'
+            n_initial_points = 5
+            random_seed = 1234
+            acq_func_kwargs = {'xi': 0.01, 'kappa': 0.1} # these parameters favour exploitation if they are low
+                                                             # and exploration if high, see scikit-optimize docs.
+                                                             # xi is used when acq_func is “EI” or “PI”,
+                                                             # kappa is used when acq_func is "LCB"
+                                                             # gp_hedge, chooses the best from "EI", "PI", and "LCB
+                                                             # so it needs both xi and kappa
+            param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
+                                             acq_func_kwargs=acq_func_kwargs)
         param_id.run()
 
         if rank == 0:
@@ -60,6 +75,7 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: parameter_id_method file_name_prefix")
-        print("e.g. genetic_algorithm simple_physiological")
+        print("Usage: parameter_id_method file_name_prefix num_calls_to_function")
+        print("e.g. genetic_algorithm simple_physiological 10")
+        comm.abort()
         exit

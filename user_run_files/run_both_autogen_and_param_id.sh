@@ -1,8 +1,11 @@
-/opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/script_generate_with_new_architecture.py physiological_vessel_array.csv parameters_orig.csv ../generated_models/ physiological
+# user inputs are defined in user_inputs.sh
+source user_inputs.sh
 
-# $1 is the number of processors
-# $2 is the max number of generations
+# run code generations without param id parameters
+${opencor_pythonshell_path} ../src/scripts/script_generate_with_new_architecture.py ${file_prefix}_vessel_array.csv ${input_param_file} ${param_id_output_dir} ${file_prefix}
 
-mpiexec -n $1 /opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/param_id_run_script.py genetic_algorithm physiological $2
+# run parameter identification, don't output to log
+mpiexec -n ${num_procs} ${opencor_pythonshell_path} ../src/scripts/param_id_run_script.py ${param_id_method} ${file_prefix} ${num_calls_to_function}
 
-/opt/OpenCOR-2021-01-13-Linux/pythonshell ../src/scripts/script_generate_with_new_architecture.py physiological_vessel_array.csv parameters_orig.csv ../generated_models/ physiological genetic_algorithm_physiological
+# run code generation with new param_id parameters 
+${opencor_pythonshell_path} ../src/scripts/script_generate_with_new_architecture.py ${file_prefix}_vessel_array.csv ${input_param_file} ${param_id_output_dir} ${file_prefix} ${file_prefix}_${param_id_method}

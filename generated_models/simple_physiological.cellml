@@ -35,9 +35,14 @@
         <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
         <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
         <!-- State Variables-->
-        <!--TODO where does this initial pressure come from? find this out! FA-->
-        <variable initial_value="4000.0" name="u_par" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_pvn" public_interface="out" units="J_per_m3"/>
+        <!-- -->
+        <variable name="u_par" public_interface="out" units="J_per_m3"/>
+        <variable name="u_pvn" public_interface="out" units="J_per_m3"/>
+        <!-- TODO the below parameters should be set in an init_states parameter file
+ The values are chosen arbitrarily to give the pulmonary system an initial stressed volume.
+ Identification of the initial stressed volume is done by identifying initial q_lv-->
+        <variable initial_value="0.0" name="q_par" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_pvn" public_interface="out" units="J_per_m3"/>
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
@@ -51,16 +56,12 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_par</ci>
+                    <ci>q_par</ci>
                 </apply>
                 <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_rv</ci>
-                        <ci>v_par</ci>
-                    </apply>
-                    <ci>C_par</ci>
+                    <minus/>
+                    <ci>v_rv</ci>
+                    <ci>v_par</ci>
                 </apply>
             </apply>
             <apply>
@@ -70,16 +71,30 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_pvn</ci>
+                    <ci>q_pvn</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v_par</ci>
+                    <ci>v_pvn</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_par</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_par</ci>
-                        <ci>v_pvn</ci>
-                    </apply>
-                    <ci>C_pvn</ci>
+                    <ci>q_par</ci>
+                    <ci>C_par</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_pvn</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_pvn</ci>
+                    <ci>C_par</ci>
                 </apply>
             </apply>
             <apply>
@@ -141,6 +156,7 @@
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; heart &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="heart">
         <variable name="t" public_interface="in" units="second"/>
+        <variable initial_value="0.0" name="s" public_interface="out" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mt" units="second"/>
         <variable name="e_a" units="dimensionless"/>
@@ -182,18 +198,36 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable initial_value="5.1690e-04" name="q_lv" units="m3"/>
-        <variable initial_value="500.0e-6" name="q_rv" units="m3"/>
-        <variable initial_value="31.270e-6" name="q_la" units="m3"/>
-        <variable initial_value="6.46e-6" name="q_ra" units="m3"/>
-        <!-- Elastance Functions-->
+        <!-- TODO the below parameters should be set in an init_states parameter file
+ q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
+        <variable initial_value="1.4281e-03" name="q_lv" units="m3"/>
+        <variable initial_value="10.0e-6" name="q_rv" units="m3"/>
+        <variable initial_value="4.0e-6" name="q_la" units="m3"/>
+        <variable initial_value="4.0e-6" name="q_ra" units="m3"/>
+        <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
+        <variable initial_value="1.0" name="modifiable_T" public_interface="out" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>s</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="second">1</cn>
+                    <ci>modifiable_T</ci>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>mt</ci>
                 <apply>
                     <minus/>
-                    <ci>t</ci>
+                    <ci>s</ci>
                     <apply>
                         <times/>
                         <ci>T</ci>
@@ -201,13 +235,14 @@
                             <floor/>
                             <apply>
                                 <divide/>
-                                <ci>t</ci>
+                                <ci>s</ci>
                                 <ci>T</ci>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!-- Elastance Functions-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
@@ -816,130 +851,127 @@
     </connection>
     <!--#STARTGENBELOW-->
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="vv_type" name="ascending_aorta_A_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_B_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_C_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="ascending_aorta_D_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C2_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C46_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="aortic_arch_C64_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="brachiocephalic_trunk_C4_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="common_carotid_L48_A_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="common_carotid_R6_A_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="subclavian_L66_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="subclavian_R28_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="head_L_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="head_R_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="arm_L_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="arm_R_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="aortic_arch_C94_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C96_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C100_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C104_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C108_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="thoracic_aorta_C112_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="abdominal_aorta_C114_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
-    <component component_ref="pv_type" name="celiac_trunk_C116_module"/>
-</import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="trunk_C_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C164_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C176_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="abdominal_aorta_C188_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_split_type" name="abdominal_aorta_C192_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="common_iliac_L194_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="external_iliac_L198_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="common_iliac_R216_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="external_iliac_R220_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="femoral_L200_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pv_type" name="femoral_R222_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="leg_L_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="pp_T_type" name="leg_R_T_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_lb_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_ub_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_ivc_module"/>
 </import>
-<import xlink:href="BG_modules.cellml">
+<import xlink:href="simple_physiological_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_svc_module"/>
 </import>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
@@ -1080,13 +1112,8 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="abdominal_aorta_C114_module" component_2="celiac_trunk_C116_module"/>
+   <map_components component_1="abdominal_aorta_C114_module" component_2="trunk_C_T_module"/>
    <map_variables variable_1="v_out_2" variable_2="v"/>
-   <map_variables variable_1="u" variable_2="u_in"/>
-</connection>
-<connection>
-   <map_components component_1="celiac_trunk_C116_module" component_2="trunk_C_T_module"/>
-   <map_variables variable_1="v_out" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
@@ -1219,7 +1246,16 @@
    <map_variables variable_1="v_venous_ub" variable_2="v_in"/>
 </connection>
 <component name="terminal_venous_connection">
-<variable name="v_trunk_C_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/><variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_lb" public_interface="out" units="m3_per_s"/><variable name="v_head_L_T" public_interface="in" units="m3_per_s"/><variable name="v_head_R_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/><variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/><variable name="v_venous_ub" public_interface="out" units="m3_per_s"/><math xmlns="http://www.w3.org/1998/Math/MathML">
+<variable name="v_trunk_C_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_venous_lb" public_interface="out" units="m3_per_s"/>
+<variable name="v_head_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_head_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_venous_ub" public_interface="out" units="m3_per_s"/>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
    <apply>
        <eq/>
        <ci>v_venous_lb</ci>
@@ -1230,7 +1266,8 @@
             <ci>v_leg_R_T</ci>
        </apply>
    </apply>
-</math><math xmlns="http://www.w3.org/1998/Math/MathML">
+</math>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
    <apply>
        <eq/>
        <ci>v_venous_ub</ci>
@@ -1242,7 +1279,9 @@
             <ci>v_arm_R_T</ci>
        </apply>
    </apply>
-</math></component><!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+</math>
+</component>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="ascending_aorta_A">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
@@ -1340,10 +1379,6 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
 </component>
 <component name="abdominal_aorta_C114">
-   <variable name="u" public_interface="in" units="J_per_m3"/>
-   <variable name="v" public_interface="in" units="m3_per_s"/>
-</component>
-<component name="celiac_trunk_C116">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
 </component>
@@ -1554,11 +1589,6 @@
 </connection>
 <connection>
    <map_components component_1="abdominal_aorta_C114" component_2="abdominal_aorta_C114_module"/>
-   <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v"/>
-</connection>
-<connection>
-   <map_components component_1="celiac_trunk_C116" component_2="celiac_trunk_C116_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
 </connection>
@@ -1852,14 +1882,6 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="celiac_trunk_C116_module"/>
-   <map_variables variable_1="l_celiac_trunk_C116" variable_2="l"/>
-   <map_variables variable_1="E_celiac_trunk_C116" variable_2="E"/>
-   <map_variables variable_1="r_celiac_trunk_C116" variable_2="r"/>
-   <map_variables variable_1="theta_celiac_trunk_C116" variable_2="theta"/>
-   <map_variables variable_1="beta_g" variable_2="beta_g"/>
-</connection>
-<connection>
    <map_components component_1="parameters_systemic" component_2="trunk_C_T_module"/>
    <map_variables variable_1="R_T_trunk_C" variable_2="R_T"/>
    <map_variables variable_1="C_T_trunk_C" variable_2="C_T"/>
@@ -2086,10 +2108,6 @@
 </connection>
 <connection>
    <map_components component_1="environment" component_2="abdominal_aorta_C114_module"/>
-   <map_variables variable_1="time" variable_2="t"/>
-</connection>
-<connection>
-   <map_components component_1="environment" component_2="celiac_trunk_C116_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
