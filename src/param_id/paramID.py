@@ -415,7 +415,7 @@ class OpencorParamID():
                     # broadcast points so every processor has all of the points. TODO This could be optimized for memory
                     comm.Bcast(points_np, root=0)
                     cost_proc = self.get_cost(points_np[rank, :])
-                    print(f'cost for rank = {rank} is {cost_proc}')
+                    # print(f'cost for rank = {rank} is {cost_proc}')
 
                     recv_buf_cost = np.zeros(num_procs)
                     send_buf_cost = cost_proc
