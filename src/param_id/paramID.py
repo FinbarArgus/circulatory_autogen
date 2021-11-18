@@ -21,12 +21,14 @@ from numpy import genfromtxt
 import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
+import resource
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix, sim_time=2.0, pre_time=20.0):
+    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix, sim_time=2.0, pre_time=20.0,
+                 DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.param_id_model_type = param_id_model_type
@@ -51,6 +53,8 @@ class CVS0DParamID():
                 os.mkdir(self.plot_dir)
 
         self.comm.Barrier()
+
+        self.DEBUG = DEBUG
 
         # param names
         self.obs_state_names = None
@@ -78,11 +82,13 @@ class CVS0DParamID():
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                            self.obs_state_names, self.obs_alg_names, self.weight_vec,
                                            self.param_state_names, self.param_const_names, self.ground_truth,
-                                           self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time)
+                                           self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
+                                           DEBUG=self.DEBUG)
         if self.rank == 0:
             self.param_id.set_output_dir(self.output_dir)
 
         self.best_output_calculated = False
+
 
     def run(self):
         self.param_id.run()
@@ -307,7 +313,8 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_state_names, obs_alg_names, weight_vec,
                  param_state_names, param_const_names, ground_truth,
-                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0):
+                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0,
+                 DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -346,6 +353,8 @@ class OpencorParamID():
         self.n_initial_points = 5
         self.acq_func_kwargs = {}
         self.random_state = 1234 # random seed
+
+        self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
@@ -426,7 +435,12 @@ class OpencorParamID():
                     cost = cost_np.tolist()
 
                     if rank == 0:
+                        if self.DEBUG:
+                            zero_time = time.time()
                         opt.tell(points, cost)
+                        if self.DEBUG:
+                            tell_time = time.time() - zero_time
+                            print(f'Time to calculate new param values = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
@@ -440,6 +454,11 @@ class OpencorParamID():
 
                     call_num += num_procs
                     iter_num += 1
+
+                    # Check resource usage
+                    if self.DEBUG:
+                        mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                        print(f'rank={rank} memory={mem}')
 
                     # TODO save results here every few iterations
 

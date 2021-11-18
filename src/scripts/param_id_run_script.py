@@ -44,7 +44,7 @@ if __name__ == '__main__':
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                sim_time=2.0, pre_time=20.0)
+                                sim_time=2.0, pre_time=20.0, DEBUG=True)
 
         param_id.update_param_range([['trunk_C_T/R_T']], [1e5], [5e9])
         num_calls_to_function = int(sys.argv[3])
