@@ -455,7 +455,8 @@ class OpencorParamID():
                         opt.tell(points, cost)
                         if self.DEBUG:
                             tell_time = time.time() - zero_time
-                            print(f'Time to set the calculated cost and param values = {tell_time}')
+                            print(f'Time to set the calculated cost and param values '
+                                  f'and fit the gaussian = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
