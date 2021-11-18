@@ -685,9 +685,12 @@ class OpencorParamID():
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
-        if not self.best_cost:
+        if not self.best_param_vals:
             self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+        else:
+            # The sim object has already been opened so the best cost doesn't need to be opened
+            pass
 
         # ___________ Run model with new parameters ________________
 
