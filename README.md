@@ -26,6 +26,7 @@ you must do the following...
 
 ### Required packages for parameter identification
 mpi4py
+scikit-optimize
 
 ### Required packages for autogeneration
 pandas

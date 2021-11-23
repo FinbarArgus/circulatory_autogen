@@ -20,7 +20,7 @@ class CSVFileParser(object):
         Constructor
         '''
         
-    def get_data_as_dataframe(self, filename, has_header=True):
+    def get_data_as_dataframe_param_id(self, filename, has_header=True):
         '''
         Returns the data in the CSV file as a Pandas dataframe
         :param filename: filename of CSV file
@@ -44,6 +44,22 @@ class CSVFileParser(object):
                 continue
             csv_dataframe[column_name] = csv_dataframe[column_name].str.strip()
     
+        return csv_dataframe
+
+    def get_data_as_dataframe(self, filename, has_header=True):
+        '''
+        Returns the data in the CSV file as a Pandas dataframe
+        :param filename: filename of CSV file
+        :param has_header: If CSV file has a header
+        '''
+        if (has_header):
+            csv_dataframe = pd.read_csv(filename, dtype=str)
+        else:
+            csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
+
+        for column_name in csv_dataframe.columns:
+            csv_dataframe[column_name] = csv_dataframe[column_name].str.strip()
+
         return csv_dataframe
 
     def get_data_as_nparray(self,filename,has_header=True):
