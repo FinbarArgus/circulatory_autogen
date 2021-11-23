@@ -22,12 +22,14 @@ import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
 import resource
+from parsers.PrimitiveParsers import CSVFileParser
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix, sim_time=2.0, pre_time=20.0,
+    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
+                 input_params_path=None, sim_time=2.0, pre_time=20.0,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -67,16 +69,11 @@ class CVS0DParamID():
         self.num_obs_algs = None
         self.num_obs = None
         self.num_resistance_params = None
-        self.__set_and_save_param_names()
+        self.__set_and_save_param_names(input_params_path)
 
         # ground truth values
         self.ground_truth = self.__get_ground_truth_values()
 
-        # define allowed param ranges # FIXME take these values as inputs from script
-        # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
-        self.param_mins = np.array([700e-6] + [5e5]*self.num_resistance_params)
-        # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
-        self.param_maxs = np.array([2600e-6] + [5e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -202,7 +199,7 @@ class CVS0DParamID():
     def close_simulation(self):
         self.param_id.close_simulation()
 
-    def __set_and_save_param_names(self):
+    def __set_and_save_param_names(self, input_param_names=True):
         # get the name of the vessel prior to the terminal
         vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
                                   delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
@@ -231,36 +228,74 @@ class CVS0DParamID():
         self.weight_vec[-1] = float(pressure_weight)
 
         # Each entry in param_const_names is a name or list of names that gets modified by one parameter
-        self.param_state_names = [['heart/q_lv']]
-        # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
-        param_state_names_for_gen = [['q_lv']]
-        # self.param_const_names = [[name + '/C' for name in venous_names]]
-        self.param_const_names = []
-        # param_const_names_for_gen = [['C_' + name for name in venous_names]]
-        param_const_names_for_gen = []
-        param_terminals = []
-        param_terminals_for_gen = []
-        same_group = False
-        # get terminal parameter names
-        for terminal_name in terminal_names:
-            for idx, terminal_group in enumerate(param_terminals):
-                # check if left or right of this terminal is already in param_terminals and add it to the
-                # same group so that they have the same parameter identified
-                if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
-                    param_terminals[idx].append(f'{terminal_name}_T/R_T')
-                    param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
-                    same_group = True
-                    break
-                else:
-                    same_group = False
-            if not same_group:
-                param_terminals.append([f'{terminal_name}_T/R_T'])
-                param_terminals_for_gen.append([f'R_T_{terminal_name}'])
+        if input_param_names:
+            csv_parser = CSVFileParser()
+            input_params = csv_parser.get_data_as_dataframe(input_param_names)
+            self.param_state_names = []
+            self.param_const_names = []
+            param_state_names_for_gen = []
+            param_const_names_for_gen = []
+            for II in range(input_params.shape[0]):
+                if input_params["param_type"][II] == 'state':
+                    self.param_state_names.append([input_params["vessel_name"][II][JJ] + '/' +
+                                                   input_params["param_name"][II]for JJ in
+                                                   range(len(input_params["vessel_name"][II]))])
+                    param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
+                                                      range(len(input_params["vessel_name"][II]))])
+                elif input_params["param_type"][II] == 'const':
+                    self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
+                                                   input_params["param_name"][II]for JJ in
+                                                   range(len(input_params["vessel_name"][II]))])
+                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
+                                                      range(len(input_params["vessel_name"][II]))])
 
-        self.num_resistance_params = len(param_terminals)
-        self.param_const_names += param_terminals
 
-        param_const_names_for_gen += param_terminals_for_gen
+            # set param ranges from file
+            self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[1])])
+            self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[1])])
+
+            # TODO check the parameters are in the opemcor simulation
+
+        else:
+            # chpose parameters automatically.
+            self.param_state_names = [['heart/q_lv']]
+            # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
+            param_state_names_for_gen = [['q_lv']]
+            # self.param_const_names = [[name + '/C' for name in venous_names]]
+            self.param_const_names = []
+            # param_const_names_for_gen = [['C_' + name for name in venous_names]]
+            param_const_names_for_gen = []
+            param_terminals = []
+            param_terminals_for_gen = []
+            same_group = False
+            # get terminal parameter names
+            for terminal_name in terminal_names:
+                for idx, terminal_group in enumerate(param_terminals):
+                    # check if left or right of this terminal is already in param_terminals and add it to the
+                    # same group so that they have the same parameter identified
+                    if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
+                        param_terminals[idx].append(f'{terminal_name}_T/R_T')
+                        param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
+                        same_group = True
+                        break
+                    else:
+                        same_group = False
+                if not same_group:
+                    param_terminals.append([f'{terminal_name}_T/R_T'])
+                    param_terminals_for_gen.append([f'R_T_{terminal_name}'])
+
+            num_resistance_params = len(param_terminals)
+            self.param_const_names += param_terminals
+
+            param_const_names_for_gen += param_terminals_for_gen
+
+            # define allowed param ranges
+            # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
+            self.param_mins = np.array([700e-6] + [5e5]*num_resistance_params)
+            # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
+            self.param_maxs = np.array([2600e-6] + [5e10]*num_resistance_params)
 
         if self.rank == 0:
             with open(os.path.join(self.output_dir, 'param_state_names.csv'), 'w') as f:
@@ -455,7 +490,8 @@ class OpencorParamID():
                         opt.tell(points, cost)
                         if self.DEBUG:
                             tell_time = time.time() - zero_time
-                            print(f'Time to set the calculated cost and param values = {tell_time}')
+                            print(f'Time to set the calculated cost and param values '
+                                  f'and fit the gaussian = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
