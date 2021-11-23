@@ -8,6 +8,9 @@ param_id_method=genetic_algorithm
 num_procs=31
 num_calls_to_function=50000
 param_id_output_dir=../generated_models/ # path is from the user_run_files dir
+input_params_to_id=True # Whether an input file for params to identify is given in resources
+                        # This should be named {file_prefix}_params_to_id.csv
+                        # If false the params to identify will be chosen automatically.
 
 ## paths
 ## the below for my hpc

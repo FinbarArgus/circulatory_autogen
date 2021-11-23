@@ -43,7 +43,7 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = True
+        input_params_to_id = sys.argv[4]
         if input_params_to_id:
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: parameter_id_method file_name_prefix num_calls_to_function")
-        print("e.g. genetic_algorithm simple_physiological 10")
+        print("Usage: parameter_id_method file_name_prefix num_calls_to_function input_params_to_id")
+        print("e.g. genetic_algorithm simple_physiological 10 True")
         comm.Abort()
         exit
