@@ -57,7 +57,7 @@ if __name__ == '__main__':
             max_generations = int(sys.argv[3])
             param_id.set_genetic_algorithm_parameters(num_calls_to_function)
         elif param_id_method == 'bayesian':
-            acq_func = 'gp_hedge'
+            acq_func = 'PI'  # 'gp_hedge'
             n_initial_points = 5
             random_seed = 1234
             acq_func_kwargs = {'xi': 0.01, 'kappa': 0.1} # these parameters favour exploitation if they are low
