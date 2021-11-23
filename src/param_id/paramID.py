@@ -622,9 +622,8 @@ class OpencorParamID():
                             pred_obs_mean = np.mean(pred_obs, axis=1)
                             # calculate error between the observables of this set of parameters
                             # and the ground truth
-                            cost_proc[II] = np.sum(
-                                np.power(self.weight_vec*(pred_obs_mean -
-                                                          self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+                            cost_proc[II] = self.cost_calc(pred_obs_mean)
+
                             # reset params
                             self.sim_helper.reset_and_clear()
 
@@ -737,8 +736,8 @@ class OpencorParamID():
             pred_obs_mean = np.mean(pred_obs, axis=1)
             # calculate error between the observables of this set of parameters
             # and the ground truth
-            cost = np.sum(np.power(self.weight_vec*(pred_obs_mean -
-                                          self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+            cost = self.cost_calc(pred_obs_mean)
+
             # reset params
             self.sim_helper.reset_and_clear()
 
@@ -749,6 +748,10 @@ class OpencorParamID():
             cost = 9999
 
         return cost
+
+    def cost_calc(self, prediction):
+        return np.sum(np.power(self.weight_vec*(prediction -
+                                         self.ground_truth)/np.minimum(prediction, self.ground_truth), 2))/(self.num_obs)
 
     def simulate_once(self):
 
@@ -772,8 +775,7 @@ class OpencorParamID():
         #check cost
         pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
         pred_obs_mean = np.mean(pred_obs, axis=1)
-        cost_check = np.sum(np.power(self.weight_vec*(pred_obs_mean -
-                                                      self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+        cost_check = self.cost_calc(pred_obs_mean)
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 
