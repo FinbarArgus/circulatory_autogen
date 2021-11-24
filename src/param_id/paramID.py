@@ -402,12 +402,13 @@ class OpencorParamID():
 
     def run(self):
 
-        if self.num_procs == 1:
-            print('WARNING Running in serial, are you sure you want to be a snail?')
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
+        
+        if num_procs == 1:
+            print('WARNING Running in serial, are you sure you want to be a snail?')
 
         if rank == 0:
           # save date as identifier for the param_id
