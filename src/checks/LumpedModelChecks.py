@@ -64,6 +64,21 @@ class LumpedBCVesselCheck(AbstractLumpedCheck):
             if vessel_vec['vessel_type'] not in model_0D.possible_vessel_types:
                 print(f'vessel_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
 
+class LumpedIDParamsCheck(AbstractLumpedCheck):
+    '''
+    Checks if the boundary conditions and vessel types are correct.
+    '''
+
+    def execute(self, model_0D):
+        '''
+        Executes all check activities.
+        :param model_0D: model to be checked.
+        '''
+        for const_name, _ in model_0D.param_id_consts:
+            if not const_name in model_0D.parameters['variable_name']:
+                print(f'ERROR parameter id constant of {const_name} is not defined in the parameters file')
+                exit()
+
 
 #    Example of usage
 #    Contructs a multiple check with only a LumpedBCVesselCheck 
