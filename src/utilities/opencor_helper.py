@@ -68,16 +68,40 @@ class SimulationHelper():
             if isinstance(param_name_or_list, list):
                 param_init.append([])
                 for param_name in param_name_or_list:
-                    param_init[JJ].append(self.data.states()[param_name])
+                    if self.data.states()[param_name] is not None:
+                        param_init[JJ].append(self.data.states()[param_name])
+                    else:
+                        print(f'parameter name of {param_name} does not exist in the simulation object states. '
+                              f'The states are:')
+                        print([name for name in self.data.states()])
+                        exit()
             else:
-                param_init.append(self.data.states()[param_name])
+                if self.data.states()[param_name]:
+                    param_init.append(self.data.states()[param_name])
+                else:
+                    print(f'parameter name of {param_name} does not exist in the simulation object states. '
+                          f'The states are:')
+                    print([name for name in self.data.states()])
+                    exit()
         for JJ, param_name_or_list in enumerate(const_names):
             if isinstance(param_name_or_list, list):
                 param_init.append([])
                 for param_name in param_name_or_list:
-                    param_init[len(init_state_names) + JJ].append(self.data.constants()[param_name])
+                    if self.data.constants()[param_name] is not None:
+                        param_init[len(init_state_names) + JJ].append(self.data.constants()[param_name])
+                    else:
+                        print(f'parameter name of {param_name} does not exist in the simulation object constants. '
+                              f'The constants are:')
+                        print([name for name in self.data.constants()])
+                        exit()
             else:
-                param_init.append(self.data.constants()[param_name_or_list])
+                if self.data.constants()[param_name] is not None:
+                    param_init.append(self.data.constants()[param_name_or_list])
+                else:
+                    print(f'parameter name of {param_name} does not exist in the simulation object constants. '
+                          f'The constants are:')
+                    print([name for name in self.data.constants()])
+                    exit()
 
         return param_init
 

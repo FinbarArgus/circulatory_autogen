@@ -418,6 +418,7 @@ class OpencorParamID():
 
         # ________ Do parameter identification ________
 
+        # Don't remove the get_init_param_vals, this also checks the parameters names are correct.
         self.param_init = self.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
 
         # C_T min and max was 1e-9 and 1e-5 before
