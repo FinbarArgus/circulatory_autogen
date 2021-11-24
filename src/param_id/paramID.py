@@ -39,8 +39,6 @@ class CVS0DParamID():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
-        if self.num_procs == 1:
-            print('WARNING Running in serial, are you sure you want to be a snail?')
 
         case_type = f'{param_id_method}_{file_name_prefix}'
         if self.rank == 0:
@@ -240,9 +238,15 @@ class CVS0DParamID():
                     self.param_state_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                    input_params["param_name"][II]for JJ in
                                                    range(len(input_params["vessel_name"][II]))])
-                    param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                      range(len(input_params["vessel_name"][II]))])
+                    # TODO the below if is temporary until the heart and pulmonary are modules
+                    if input_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        param_state_names_for_gen.append([input_params["param_name"][II]])
+                    else:
+                        param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
+                                                          range(len(input_params["vessel_name"][II]))])
+
+
                 elif input_params["param_type"][II] == 'const':
                     self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                    input_params["param_name"][II]for JJ in
@@ -398,6 +402,9 @@ class OpencorParamID():
 
     def run(self):
 
+        if self.num_procs == 1:
+            print('WARNING Running in serial, are you sure you want to be a snail?')
+
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
@@ -454,10 +461,11 @@ class OpencorParamID():
                         if self.DEBUG:
                             zero_time = time.time()
                         if num_procs > 1:
-                            points = [opt.ask() for II in range(num_procs)]
+                            # points = [opt.ask() for II in range(num_procs)]
                             # TODO figure out why the below call slows down so much as the number of calls increases
                             #  and whether it can give improvements
-                            # points = opt.ask(n_points=num_procs)
+                            points = opt.ask(n_points=num_procs)
+                            print(points)
                             points_np = np.array(points)
                         else:
                             points = opt.ask()

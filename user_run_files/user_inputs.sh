@@ -4,7 +4,7 @@ input_param_file=parameters_orig.csv # this must be stored in resources
 
 ## parameter identification inputs
 ## param_id_method can be any of [genetic_algorithm, bayesian]
-param_id_method=bayesian
+param_id_method=genetic_algorithm
 num_procs=3
 num_calls_to_function=500
 param_id_output_dir=../generated_models/ # path is from the user_run_files dir

@@ -60,7 +60,7 @@ class CVS0DCellMLGenerator(object):
         if opencor_available:
             sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
             if sim.valid():
-                print('Model generation has been successfull.')
+                print('Model generation has been successful.')
             else:
                 if self.model.all_parameters_defined:
                     print('The OpenCOR model is not yet working, The reason for this is unknown.\n')
