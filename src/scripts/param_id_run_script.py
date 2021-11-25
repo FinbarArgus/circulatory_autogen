@@ -38,21 +38,32 @@ if __name__ == '__main__':
             port_mapping = [36939, 44271, 33017, 46467]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
+        if len(sys.argv) != 6:
+            print(f'incorrect number of inputs to param_id_run_script.py')
+            exit()
+
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
+        input_params_to_id = sys.argv[4]
+        if input_params_to_id:
+            input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        else:
+            input_params_path = False
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[5])
+
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
                                 sim_time=2.0, pre_time=20.0, DEBUG=True)
 
-        param_id.update_param_range([['trunk_C_T/R_T']], [1e5], [5e9])
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':
             max_generations = int(sys.argv[3])
             param_id.set_genetic_algorithm_parameters(num_calls_to_function)
         elif param_id_method == 'bayesian':
-            acq_func = 'gp_hedge'
+            acq_func = 'PI'  # 'gp_hedge'
             n_initial_points = 5
             random_seed = 1234
             acq_func_kwargs = {'xi': 0.01, 'kappa': 0.1} # these parameters favour exploitation if they are low
@@ -75,7 +86,7 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: parameter_id_method file_name_prefix num_calls_to_function")
-        print("e.g. genetic_algorithm simple_physiological 10")
+        print("Usage: parameter_id_method file_name_prefix num_calls_to_function input_params_to_id")
+        print("e.g. genetic_algorithm simple_physiological 10 True")
         comm.Abort()
         exit

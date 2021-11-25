@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 import csv
+import re
 
 class CSVFileParser(object):
     '''
@@ -19,7 +20,7 @@ class CSVFileParser(object):
         Constructor
         '''
         
-    def get_data_as_dataframe(self,filename,has_header=True):
+    def get_data_as_dataframe_param_id(self, filename, has_header=True):
         '''
         Returns the data in the CSV file as a Pandas dataframe
         :param filename: filename of CSV file
@@ -29,10 +30,36 @@ class CSVFileParser(object):
             csv_dataframe = pd.read_csv(filename, dtype=str)
         else:
             csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
-            
+
+        csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
+        for II in range(csv_dataframe.shape[0]):
+            entry = csv_dataframe["vessel_name"][II]
+            sub_entries = entry.split()
+            new_entry = [sub_entry.strip() for sub_entry in sub_entries]
+
+            csv_dataframe["vessel_name"][II] = new_entry
+
         for column_name in csv_dataframe.columns:
+            if column_name == 'vessel_name':
+                continue
             csv_dataframe[column_name] = csv_dataframe[column_name].str.strip()
     
+        return csv_dataframe
+
+    def get_data_as_dataframe(self, filename, has_header=True):
+        '''
+        Returns the data in the CSV file as a Pandas dataframe
+        :param filename: filename of CSV file
+        :param has_header: If CSV file has a header
+        '''
+        if (has_header):
+            csv_dataframe = pd.read_csv(filename, dtype=str)
+        else:
+            csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
+
+        for column_name in csv_dataframe.columns:
+            csv_dataframe[column_name] = csv_dataframe[column_name].str.strip()
+
         return csv_dataframe
 
     def get_data_as_nparray(self,filename,has_header=True):

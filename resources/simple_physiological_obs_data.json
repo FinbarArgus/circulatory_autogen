@@ -1,0 +1,59 @@
+{"data_item": [
+    { "variable": "leg_L_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 7.327e-6
+    },
+    { "variable": "leg_R_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 7.291e-6
+    },
+    { "variable": "arm_L_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 1.565e-6
+    },
+    { "variable": "arm_R_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 1.548e-6
+    },
+    { "variable": "head_L_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 7.34e-6
+    },
+    { "variable": "head_R_T/v",
+      "data_type": "constant",
+      "state_or_alg": "state",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 7.31e-6
+    },
+    { "variable": "trunk_C_T/v",
+      "state_or_alg": "state",
+      "data_type": "constant",
+      "weight": 1.0,
+      "obs_type": "mean",
+      "value": 37.28e-6
+    },
+    { "variable": "aortic_arch_C46/u",
+      "data_type": "constant",
+      "state_or_alg": "alg",
+      "weight": 5.0,
+      "obs_type": "mean",
+      "value": 12000
+    }
+  ]
+}

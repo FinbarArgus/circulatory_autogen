@@ -22,12 +22,16 @@ import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
 import resource
+from parsers.PrimitiveParsers import CSVFileParser
+import pandas as pd
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix, sim_time=2.0, pre_time=20.0,
+    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
+                 input_params_path=None,  param_id_obs_path=None,
+                 sim_time=2.0, pre_time=20.0,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -37,8 +41,6 @@ class CVS0DParamID():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
-        if self.num_procs == 1:
-            print('WARNING Running in serial, are you sure you want to be a snail?')
 
         case_type = f'{param_id_method}_{file_name_prefix}'
         if self.rank == 0:
@@ -59,7 +61,6 @@ class CVS0DParamID():
         # param names
         self.obs_state_names = None
         self.obs_alg_names = None
-        self.obs_nom_names = None
         self.weight_vec = None
         self.param_state_names = None
         self.param_const_names = None
@@ -67,16 +68,15 @@ class CVS0DParamID():
         self.num_obs_algs = None
         self.num_obs = None
         self.num_resistance_params = None
-        self.__set_and_save_param_names()
+        self.gt_df = None
+        if param_id_obs_path:
+            self.__set_obs_names_and_df(param_id_obs_path)
+        if input_params_path:
+            self.__set_and_save_param_names(input_params_path=input_params_path)
 
         # ground truth values
         self.ground_truth = self.__get_ground_truth_values()
 
-        # define allowed param ranges # FIXME take these values as inputs from script
-        # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
-        self.param_mins = np.array([700e-6] + [5e5]*self.num_resistance_params)
-        # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
-        self.param_maxs = np.array([2600e-6] + [5e10]*self.num_resistance_params)
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -202,65 +202,111 @@ class CVS0DParamID():
     def close_simulation(self):
         self.param_id.close_simulation()
 
-    def __set_and_save_param_names(self):
-        # get the name of the vessel prior to the terminal
-        vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
-                                  delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
-        vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
-                                 for II in range(vessel_array.shape[0])])
+    def __set_obs_names_and_df(self, param_id_obs_path):
+        self.gt_df = pd.read_json(param_id_obs_path)
 
-        terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
-        num_terminals = len(terminal_names)
-        terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
-        self.obs_nom_names = [f'v_nom_{a}' for a in terminal_names]
-        # The below commented out command gets the vessels one segment prior to the terminal
-        # self.obs_state_names = [vessel_array[np.where(vessel_array[:, 0] == terminal_names[II] + '_T'), 3][0][0] + '/v'
-        #                    for II in range(len(terminal_names))]
-        self.obs_state_names = [terminal_names[II] + '_T/v' for II in range(len(terminal_names))]
-        # TODO get data for flows through time inorder to identify terminal compliances
-        self.obs_alg_names = ['aortic_arch_C46/u']
-        venous_names = vessel_array[np.where(vessel_array[:, 2] == 'venous'), 0].flatten()
+        self.obs_state_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+        self.obs_alg_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
         self.num_obs = self.num_obs_states + self.num_obs_algs
 
         # how much to weight the pressure measurement by
-        pressure_weight = len(self.obs_state_names)
-        self.weight_vec = np.ones(self.num_obs)
-        self.weight_vec[-1] = float(pressure_weight)
+        state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                             if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+        alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        self.weight_vec = np.array(np.concatenate([state_weight_list, alg_weight_list]))
+
+        return
+
+    def __set_and_save_param_names(self, input_params_path=None):
 
         # Each entry in param_const_names is a name or list of names that gets modified by one parameter
-        self.param_state_names = [['heart/q_lv']]
-        # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
-        param_state_names_for_gen = [['q_lv']]
-        # self.param_const_names = [[name + '/C' for name in venous_names]]
-        self.param_const_names = []
-        # param_const_names_for_gen = [['C_' + name for name in venous_names]]
-        param_const_names_for_gen = []
-        param_terminals = []
-        param_terminals_for_gen = []
-        same_group = False
-        # get terminal parameter names
-        for terminal_name in terminal_names:
-            for idx, terminal_group in enumerate(param_terminals):
-                # check if left or right of this terminal is already in param_terminals and add it to the
-                # same group so that they have the same parameter identified
-                if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
-                    param_terminals[idx].append(f'{terminal_name}_T/R_T')
-                    param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
-                    same_group = True
-                    break
-                else:
-                    same_group = False
-            if not same_group:
-                param_terminals.append([f'{terminal_name}_T/R_T'])
-                param_terminals_for_gen.append([f'R_T_{terminal_name}'])
+        if input_params_path:
+            csv_parser = CSVFileParser()
+            input_params = csv_parser.get_data_as_dataframe_param_id(input_params_path)
+            self.param_state_names = []
+            self.param_const_names = []
+            param_state_names_for_gen = []
+            param_const_names_for_gen = []
+            for II in range(input_params.shape[0]):
+                if input_params["param_type"][II] == 'state':
+                    self.param_state_names.append([input_params["vessel_name"][II][JJ] + '/' +
+                                                   input_params["param_name"][II]for JJ in
+                                                   range(len(input_params["vessel_name"][II]))])
+                    # TODO the below if is temporary until the heart and pulmonary are modules
+                    if input_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        param_state_names_for_gen.append([input_params["param_name"][II]])
+                    else:
+                        param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
+                                                          range(len(input_params["vessel_name"][II]))])
 
-        self.num_resistance_params = len(param_terminals)
-        self.param_const_names += param_terminals
 
-        param_const_names_for_gen += param_terminals_for_gen
+                elif input_params["param_type"][II] == 'const':
+                    self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
+                                                   input_params["param_name"][II]for JJ in
+                                                   range(len(input_params["vessel_name"][II]))])
+                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
+                                                      range(len(input_params["vessel_name"][II]))])
+
+            # set param ranges from file
+            self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[1])])
+            self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[1])])
+
+        else:
+            # load the vessel array to get the terminals
+            vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
+                                      delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
+            vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
+                                     for II in range(vessel_array.shape[0])])
+
+            terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
+            num_terminals = len(terminal_names)
+            terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
+
+            # chpose parameters automatically.
+            self.param_state_names = [['heart/q_lv']]
+            # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
+            param_state_names_for_gen = [['q_lv']]
+            # self.param_const_names = [[name + '/C' for name in venous_names]]
+            self.param_const_names = []
+            # param_const_names_for_gen = [['C_' + name for name in venous_names]]
+            param_const_names_for_gen = []
+            param_terminals = []
+            param_terminals_for_gen = []
+            same_group = False
+            # get terminal parameter names
+            for terminal_name in terminal_names:
+                for idx, terminal_group in enumerate(param_terminals):
+                    # check if left or right of this terminal is already in param_terminals and add it to the
+                    # same group so that they have the same parameter identified
+                    if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
+                        param_terminals[idx].append(f'{terminal_name}_T/R_T')
+                        param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
+                        same_group = True
+                        break
+                    else:
+                        same_group = False
+                if not same_group:
+                    param_terminals.append([f'{terminal_name}_T/R_T'])
+                    param_terminals_for_gen.append([f'R_T_{terminal_name}'])
+
+            num_resistance_params = len(param_terminals)
+            self.param_const_names += param_terminals
+
+            param_const_names_for_gen += param_terminals_for_gen
+
+            # define allowed param ranges
+            # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
+            self.param_mins = np.array([700e-6] + [5e5]*num_resistance_params)
+            # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
+            self.param_maxs = np.array([2600e-6] + [5e10]*num_resistance_params)
 
         if self.rank == 0:
             with open(os.path.join(self.output_dir, 'param_state_names.csv'), 'w') as f:
@@ -283,16 +329,14 @@ class CVS0DParamID():
         if self.rank == 0:
             # _______ First we access data for mean values
 
-            data_array = genfromtxt(os.path.join(resources_dir, f'parameters_orig.csv'),
-                                    delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
+            ground_truth_mean_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
+                                        and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+            ground_truth_mean_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
+                                        and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
-            ground_truth_mean_flows = np.zeros(self.num_obs_states)
-            for idx, name in enumerate(self.obs_nom_names):
-                ground_truth_mean_flows[idx] = data_array[:, 3][np.where(data_array[:, 0] == name)][0].astype(float)
-
-            ground_truth_mean_pressures = np.array([12000])
-
-            ground_truth = np.concatenate([ground_truth_mean_flows, ground_truth_mean_pressures])
+            ground_truth = np.concatenate([ground_truth_mean_states, ground_truth_mean_algs])
 
             np.save(os.path.join(self.output_dir, 'ground_truth'), ground_truth)
 
@@ -363,9 +407,13 @@ class OpencorParamID():
 
     def run(self):
 
+
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
+        
+        if num_procs == 1:
+            print('WARNING Running in serial, are you sure you want to be a snail?')
 
         if rank == 0:
           # save date as identifier for the param_id
@@ -375,6 +423,7 @@ class OpencorParamID():
 
         # ________ Do parameter identification ________
 
+        # Don't remove the get_init_param_vals, this also checks the parameters names are correct.
         self.param_init = self.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
 
         # C_T min and max was 1e-9 and 1e-5 before
@@ -419,10 +468,11 @@ class OpencorParamID():
                         if self.DEBUG:
                             zero_time = time.time()
                         if num_procs > 1:
-                            points = [opt.ask() for II in range(num_procs)]
+                            # points = [opt.ask() for II in range(num_procs)]
                             # TODO figure out why the below call slows down so much as the number of calls increases
                             #  and whether it can give improvements
-                            # points = opt.ask(n_points=num_procs)
+                            points = opt.ask(n_points=num_procs)
+                            print(points)
                             points_np = np.array(points)
                         else:
                             points = opt.ask()
@@ -455,7 +505,8 @@ class OpencorParamID():
                         opt.tell(points, cost)
                         if self.DEBUG:
                             tell_time = time.time() - zero_time
-                            print(f'Time to set the calculated cost and param values = {tell_time}')
+                            print(f'Time to set the calculated cost and param values '
+                                  f'and fit the gaussian = {tell_time}')
                         res = opt.get_result()
                         progress_bar.call(res)
 
@@ -586,9 +637,8 @@ class OpencorParamID():
                             pred_obs_mean = np.mean(pred_obs, axis=1)
                             # calculate error between the observables of this set of parameters
                             # and the ground truth
-                            cost_proc[II] = np.sum(
-                                np.power(self.weight_vec*(pred_obs_mean -
-                                                          self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+                            cost_proc[II] = self.cost_calc(pred_obs_mean)
+
                             # reset params
                             self.sim_helper.reset_and_clear()
 
@@ -701,8 +751,8 @@ class OpencorParamID():
             pred_obs_mean = np.mean(pred_obs, axis=1)
             # calculate error between the observables of this set of parameters
             # and the ground truth
-            cost = np.sum(np.power(self.weight_vec*(pred_obs_mean -
-                                          self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+            cost = self.cost_calc(pred_obs_mean)
+
             # reset params
             self.sim_helper.reset_and_clear()
 
@@ -713,6 +763,10 @@ class OpencorParamID():
             cost = 9999
 
         return cost
+
+    def cost_calc(self, prediction):
+        return np.sum(np.power(self.weight_vec*(prediction -
+                                         self.ground_truth)/np.minimum(prediction, self.ground_truth), 2))/(self.num_obs)
 
     def simulate_once(self):
 
@@ -736,8 +790,7 @@ class OpencorParamID():
         #check cost
         pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
         pred_obs_mean = np.mean(pred_obs, axis=1)
-        cost_check = np.sum(np.power(self.weight_vec*(pred_obs_mean -
-                                                      self.ground_truth)/self.ground_truth, 2))/(self.num_obs)
+        cost_check = self.cost_calc(pred_obs_mean)
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 

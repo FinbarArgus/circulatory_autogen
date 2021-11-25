@@ -1,5 +1,4 @@
-venous_lb/C,venous_ub/C,venous_ivc/C,venous_svc/C
-head_L_T/R_T,head_R_T/R_T
-arm_L_T/R_T,arm_R_T/R_T
-trunk_C_T/R_T
 leg_L_T/R_T,leg_R_T/R_T
+arm_L_T/R_T,arm_R_T/R_T
+head_L_T/R_T,head_R_T/R_T
+trunk_C_T/R_T

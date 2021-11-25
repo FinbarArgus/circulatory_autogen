@@ -60,7 +60,7 @@ class CVS0DCellMLGenerator(object):
         if opencor_available:
             sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
             if sim.valid():
-                print('Model generation has been successfull.')
+                print('Model generation has been successful.')
             else:
                 if self.model.all_parameters_defined:
                     print('The OpenCOR model is not yet working, The reason for this is unknown.\n')
@@ -76,16 +76,19 @@ class CVS0DCellMLGenerator(object):
 
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
+        if self.model.param_id_states:
+            state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         with open(self.base_script, 'r') as rf:
             with open(os.path.join(self.output_path,f'{self.filename_prefix}.cellml'), 'w') as wf:
                 for line in rf:
                     # TODO when heart and pulmonary are modules the state modification
                     #  will be done in __generate_modules()
                     if self.model.param_id_states:
-                        for state_name, val in self.model.param_id_states:
+                        for idx, (state_name, val) in enumerate(self.model.param_id_states):
                             if state_name in line and 'initial_value' in line:
                                 inp_string = f'initial_value="{val:.4e}"'
                                 line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
+                                state_modified[idx] = True
 
                     if 'import xlink:href="units.cellml"' in line:
                         line = re.sub('units', f'{self.filename_prefix}_units', line)
@@ -95,6 +98,15 @@ class CVS0DCellMLGenerator(object):
                     wf.write(line)
                     if '#STARTGENBELOW' in line:
                         break
+
+                # check if each state was modified
+                if self.model.param_id_states:
+                    if any(state_modified) == False:
+                        false_states = [self.model.param_id_states[JJ][0] for JJ in range(len(state_modified)) if state_modified[JJ] == False]
+                        print(f'The parameter id states {false_states} \n'
+                              f'were not found in the cellml script, check the parameter id state names and the '
+                              f'base_script.cellml file')
+                        exit()
     
                 ###### now start generating own code ######
 
