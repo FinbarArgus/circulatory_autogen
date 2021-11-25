@@ -215,9 +215,9 @@ class CVS0DParamID():
         self.num_obs = self.num_obs_states + self.num_obs_algs
 
         # how much to weight the pressure measurement by
-        state_weight_list = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+        state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
                              if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        alg_weight_list =  [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+        alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
                            if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
         self.weight_vec = np.array(np.concatenate([state_weight_list, alg_weight_list]))
 
