@@ -20,7 +20,7 @@ input_params_to_id=True # Whether an input file for params to identify is given 
 
 ## paths
 ## the below for my hpc
-# opencor_pythonshell_path=/people/farg967/.local/share/OpenCOR-2021-07-04-Linux/pythonshell
+# opencor_pythonshell_path=/hpc/farg967/OpenCOR-2021-07-04-Linux/pythonshell
 ## the below for my local
 opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
