@@ -13,7 +13,7 @@ resources_dir_path = os.path.join(root_dir_path, 'resources')
 param_id_dir_path = os.path.join(root_dir_path, 'param_id_output')
 
 from parsers.ModelParsers import CSV0DModelParser
-from generators.CSVCellMLGenerator import CVS0DCellMLGenerator
+from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 import traceback
 
 if __name__ == '__main__':

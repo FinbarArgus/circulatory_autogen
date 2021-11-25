@@ -38,6 +38,10 @@ if __name__ == '__main__':
             port_mapping = [36939, 44271, 33017, 46467]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
+        if len(sys.argv) != 6:
+            print(f'incorrect number of inputs to param_id_run_script.py')
+            exit()
+
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
@@ -48,9 +52,11 @@ if __name__ == '__main__':
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
             input_params_path = False
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[5])
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                input_params_path=input_params_path, sim_time=2.0, pre_time=20.0, DEBUG=True)
+                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
+                                sim_time=2.0, pre_time=20.0, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':

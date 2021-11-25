@@ -23,13 +23,15 @@ from datetime import date
 from skopt import gp_minimize, Optimizer
 import resource
 from parsers.PrimitiveParsers import CSVFileParser
+import pandas as pd
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
-                 input_params_path=None, sim_time=2.0, pre_time=20.0,
+                 input_params_path=None,  param_id_obs_path=None,
+                 sim_time=2.0, pre_time=20.0,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -59,7 +61,6 @@ class CVS0DParamID():
         # param names
         self.obs_state_names = None
         self.obs_alg_names = None
-        self.obs_nom_names = None
         self.weight_vec = None
         self.param_state_names = None
         self.param_const_names = None
@@ -67,7 +68,11 @@ class CVS0DParamID():
         self.num_obs_algs = None
         self.num_obs = None
         self.num_resistance_params = None
-        self.__set_and_save_param_names(input_params_path)
+        self.gt_df = None
+        if param_id_obs_path:
+            self.__set_obs_names_and_df(param_id_obs_path)
+        if input_params_path:
+            self.__set_and_save_param_names(input_params_path=input_params_path)
 
         # ground truth values
         self.ground_truth = self.__get_ground_truth_values()
@@ -197,38 +202,33 @@ class CVS0DParamID():
     def close_simulation(self):
         self.param_id.close_simulation()
 
-    def __set_and_save_param_names(self, input_param_names=True):
-        # get the name of the vessel prior to the terminal
-        vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
-                                  delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
-        vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
-                                 for II in range(vessel_array.shape[0])])
+    def __set_obs_names_and_df(self, param_id_obs_path):
+        self.gt_df = pd.read_json(param_id_obs_path)
 
-        terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
-        num_terminals = len(terminal_names)
-        terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
-        self.obs_nom_names = [f'v_nom_{a}' for a in terminal_names]
-        # The below commented out command gets the vessels one segment prior to the terminal
-        # self.obs_state_names = [vessel_array[np.where(vessel_array[:, 0] == terminal_names[II] + '_T'), 3][0][0] + '/v'
-        #                    for II in range(len(terminal_names))]
-        self.obs_state_names = [terminal_names[II] + '_T/v' for II in range(len(terminal_names))]
-        # TODO get data for flows through time inorder to identify terminal compliances
-        self.obs_alg_names = ['aortic_arch_C46/u']
-        venous_names = vessel_array[np.where(vessel_array[:, 2] == 'venous'), 0].flatten()
+        self.obs_state_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+        self.obs_alg_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
         self.num_obs = self.num_obs_states + self.num_obs_algs
 
         # how much to weight the pressure measurement by
-        pressure_weight = len(self.obs_state_names)
-        self.weight_vec = np.ones(self.num_obs)
-        self.weight_vec[-1] = float(pressure_weight)
+        state_weight_list = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                             if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+        alg_weight_list =  [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        self.weight_vec = np.array(np.concatenate([state_weight_list, alg_weight_list]))
+
+        return
+
+    def __set_and_save_param_names(self, input_params_path=None):
 
         # Each entry in param_const_names is a name or list of names that gets modified by one parameter
-        if input_param_names:
+        if input_params_path:
             csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_param_id(input_param_names)
+            input_params = csv_parser.get_data_as_dataframe_param_id(input_params_path)
             self.param_state_names = []
             self.param_const_names = []
             param_state_names_for_gen = []
@@ -255,14 +255,21 @@ class CVS0DParamID():
                                                       re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
                                                       range(len(input_params["vessel_name"][II]))])
 
-
             # set param ranges from file
             self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[1])])
             self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[1])])
 
-            # TODO check the parameters are in the opemcor simulation
-
         else:
+            # load the vessel array to get the terminals
+            vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
+                                      delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
+            vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
+                                     for II in range(vessel_array.shape[0])])
+
+            terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
+            num_terminals = len(terminal_names)
+            terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
+
             # chpose parameters automatically.
             self.param_state_names = [['heart/q_lv']]
             # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
@@ -322,16 +329,14 @@ class CVS0DParamID():
         if self.rank == 0:
             # _______ First we access data for mean values
 
-            data_array = genfromtxt(os.path.join(resources_dir, f'parameters_orig.csv'),
-                                    delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
+            ground_truth_mean_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
+                                        and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+            ground_truth_mean_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
+                                        and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
-            ground_truth_mean_flows = np.zeros(self.num_obs_states)
-            for idx, name in enumerate(self.obs_nom_names):
-                ground_truth_mean_flows[idx] = data_array[:, 3][np.where(data_array[:, 0] == name)][0].astype(float)
-
-            ground_truth_mean_pressures = np.array([12000])
-
-            ground_truth = np.concatenate([ground_truth_mean_flows, ground_truth_mean_pressures])
+            ground_truth = np.concatenate([ground_truth_mean_states, ground_truth_mean_algs])
 
             np.save(os.path.join(self.output_dir, 'ground_truth'), ground_truth)
 

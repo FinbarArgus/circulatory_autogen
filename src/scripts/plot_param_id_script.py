@@ -23,6 +23,9 @@ if __name__ == '__main__':
 
     try:
 
+        if len(sys.argv) != 5:
+            print(f'incorrect number of inputs to param_id_run_script.py')
+            exit()
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
@@ -33,9 +36,10 @@ if __name__ == '__main__':
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
             input_params_path = False
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                input_params_path=input_params_path)
+                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
