@@ -48,6 +48,6 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: param_id_method file_name_prefix input_params_to_id")
-        print("e.g. bayesian simple_physiological True")
+        print("Usage: param_id_method file_name_prefix input_params_to_id, param_id_obs_file")
+        print("e.g. bayesian simple_physiological True simple_physiological_obs_data.json")
         exit()

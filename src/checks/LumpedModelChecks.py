@@ -61,8 +61,10 @@ class LumpedBCVesselCheck(AbstractLumpedCheck):
         for vessel_vec in model_0D.vessels:
             if vessel_vec['BC_type'] not in model_0D.possible_BC_types:
                 print(f'BC_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
+                exit()
             if vessel_vec['vessel_type'] not in model_0D.possible_vessel_types:
-                print(f'vessel_type of {vessel_vec["BC_type"]} is not allowed for vessel {vessel_vec["name"]}')
+                print(f'vessel_type of {vessel_vec["vessel_type"]} is not allowed for vessel {vessel_vec["name"]}')
+                exit()
 
 class LumpedIDParamsCheck(AbstractLumpedCheck):
     '''

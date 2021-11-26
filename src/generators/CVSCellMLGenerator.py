@@ -475,6 +475,9 @@ class CVS0DCellMLGenerator(object):
             if vessel_vec['vessel_type']=='terminal':
                 wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
+            if vessel_vec['vessel_type']=='arterial_simple':
+                wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
+                wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
             if vessel_vec['vessel_type']=='venous':
                 wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
@@ -492,6 +495,9 @@ class CVS0DCellMLGenerator(object):
                 inp_vars = ['u', 'v', 'R_T', 'C_T']
                 out_vars = ['u', 'v_T', 'R_T', 'C_T']
             elif vessel_vec["vessel_type"] == 'venous':
+                inp_vars = ['u', 'v', 'C', 'R']
+                out_vars = ['u', 'v', 'C', 'R']
+            elif vessel_vec["vessel_type"] == 'arterial_simple':
                 inp_vars = ['u', 'v', 'C', 'R']
                 out_vars = ['u', 'v', 'C', 'R']
             else:

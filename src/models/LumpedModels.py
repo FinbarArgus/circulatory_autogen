@@ -23,7 +23,7 @@ class CVS0DModel(object):
         self.param_id_date = param_id_date
 
         # possible vessel and BC attributes of the model
-        self.possible_vessel_types = ['heart', 'arterial', 'split_junction', 'merge_junction',
+        self.possible_vessel_types = ['heart', 'arterial', 'arterial_simple', 'split_junction', 'merge_junction',
                                       '2in2out_junction', 'terminal', 'venous']
         self.possible_BC_types = ['pp', 'vv', 'pv', 'vp']
 

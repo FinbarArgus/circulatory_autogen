@@ -9,9 +9,12 @@ class SimulationHelper():
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt  # time step
         self.stop_time = pre_time + sim_time  # full time of simulation
-        self.preSteps = int(pre_time/dt)  # number of steps to do before storing data (used to reach steady state)
-        self.nSteps = int(sim_time/dt)  # number of steps for storing data
+        self.pre_steps = int(pre_time/dt)  # number of steps to do before storing data (used to reach steady state)
+        self.n_steps = int(sim_time/dt)  # number of steps for storing data
         self.simulation = oc.open_simulation(cellml_path)
+        if not self.simulation.valid():
+            print(f'simulation object opened from {cellml_path} is not valid, exiting')
+            exit()
         self.data = self.simulation.data()
         self.data.set_ode_solver_property('MaximumNumberOfSteps', maximumNumberofSteps)
         self.data.set_ode_solver_property('MaximumStep', maximumStep)
@@ -19,7 +22,7 @@ class SimulationHelper():
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.data.set_point_interval(dt)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.nSteps) # time values for stored part of simulation
+        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps) # time values for stored part of simulation
 
     def run(self):
         try:
@@ -50,15 +53,15 @@ class SimulationHelper():
         obs_state_names: list of strings, stores the names of state variables you wish to access
         obs_alg_names: list of strings, stores the names of algebraic variables you wish to access
         outputs:
-        results: numpy array of size (nStates + nAlgs, nSteps). This will store state variables in the
+        results: numpy array of size (nStates + nAlgs, n_steps). This will store state variables in the
         top rows, then algebraic variables
         """
         nObs = len(obs_state_names) + len(obs_alg_names)
-        results = np.zeros((nObs, self.nSteps))
+        results = np.zeros((nObs, self.n_steps))
         for JJ, obsName in enumerate(obs_state_names):
-            results[JJ, :] = self.simulation.results().states()[obsName].values()[-self.nSteps:]
+            results[JJ, :] = self.simulation.results().states()[obsName].values()[-self.n_steps:]
         for JJ, obsName in enumerate(obs_alg_names):
-            results[len(obs_state_names) + JJ, :] = self.simulation.results().algebraic()[obsName].values()[-self.nSteps:]
+            results[len(obs_state_names) + JJ, :] = self.simulation.results().algebraic()[obsName].values()[-self.n_steps:]
 
         return results
 
@@ -124,11 +127,11 @@ class SimulationHelper():
     def update_times(self, dt, start_time, sim_time, pre_time):
         self.dt = dt
         self.stop_time= pre_time + sim_time # full time of simulation
-        self.preSteps = int(pre_time/self.dt)  # number of steps to do before storing data (used to reach steady state)
-        self.nSteps = int(sim_time/self.dt)  # number of steps for storing data
+        self.pre_steps = int(pre_time/self.dt)  # number of steps to do before storing data (used to reach steady state)
+        self.n_steps = int(sim_time/self.dt)  # number of steps for storing data
         self.data.set_starting_point(start_time)
         self.data.set_ending_point(start_time + self.stop_time)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.nSteps)  # time values for stored part of simulation
+        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps)  # time values for stored part of simulation
 
     def close_simulation(self):
         oc.close_simulation(self.simulation)
