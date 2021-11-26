@@ -23,16 +23,16 @@
     { "variable": "aortic_root/u",
       "data_type": "constant",
       "state_or_alg": "alg",
-      "weight": 1.0,
+      "weight": 5.0,
       "obs_type": "max",
       "value": 16000
     },
     { "variable": "aortic_root/u",
       "data_type": "constant",
       "state_or_alg": "alg",
-      "weight": 1.0,
+      "weight": 5.0,
       "obs_type": "min",
-      "value": 8000
+      "value": 10500
     }
   ]
 }
