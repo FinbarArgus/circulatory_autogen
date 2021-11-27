@@ -31,7 +31,7 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None,  param_id_obs_path=None,
-                 sim_time=2.0, pre_time=20.0,
+                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -90,7 +90,7 @@ class CVS0DParamID():
                                            self.param_state_names, self.param_const_names, self.ground_truth_consts,
                                            self.ground_truth_series,
                                            self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
-                                           dt=self.dt, DEBUG=self.DEBUG)
+                                           dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.param_id.set_output_dir(self.output_dir)
 
@@ -408,7 +408,7 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_state_names, obs_alg_names, obs_types, obs_state_or_alg, weight_vec,
                  param_state_names, param_const_names, ground_truth_consts, ground_truth_series,
-                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01,
+                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
                  DEBUG=False):
 
         self.model_path = model_path
@@ -434,6 +434,7 @@ class OpencorParamID():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
+        self.maximumStep=maximumStep
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
@@ -457,7 +458,7 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.0004, pre_time=self.pre_time)
+                                maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
 
@@ -628,6 +629,8 @@ class OpencorParamID():
                     mutation_weight = 0.002
                 elif gen_count > 120:
                     mutation_weight = 0.001
+                elif gen_count > 140:
+                    mutation_weight = 0.0003
 
                 gen_count += 1
                 if rank == 0:
@@ -754,8 +757,15 @@ class OpencorParamID():
                     for survivor_idx in range(num_survivors):
                         for JJ in range(num_mutations_per_survivor):
                             simulated_bools[param_idx] = False
-                            param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
-                                                            mutation_weight*np.random.randn(self.num_params)
+                            fifty_fifty = np.random.rand()
+                            if fifty_fifty < 0.5:
+                              ## This accounts for smaller changes when the value is smaller
+                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx]* \
+                                                              (1.0 + mutation_weight*np.random.randn(self.num_params))
+                            else:
+                              ## This doesn't account for smaller changes when the value is smaller
+                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
+                                                              mutation_weight*np.random.randn(self.num_params) 
                             param_idx += 1
 
                     # now do cross breeding
@@ -764,9 +774,19 @@ class OpencorParamID():
                         if couple[0] == couple[1]:
                             couple[1] += 1  # this allows crossbreeding out of the survivors but that's ok
                         simulated_bools[param_idx] = False
-                        param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                         param_vals_norm[:, couple[1]])/2 + \
-                                                        mutation_weight*np.random.randn(self.num_params)
+
+                        fifty_fifty = np.random.rand()
+                        if fifty_fifty < 0.5:
+                          ## This accounts for smaller changes when the value is smaller
+                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                           param_vals_norm[:, couple[1]])/2* \
+                                                          (1 + mutation_weight*np.random.randn(self.num_params))
+                        else:
+                          ## This doesn't account for smaller changes when the value is smaller,
+                          ## which is needed to make sure values dont get stuck when they are small
+                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                           param_vals_norm[:, couple[1]])/2 + \
+                                                          mutation_weight*np.random.randn(self.num_params)
                         param_idx += 1
 
                     param_vals = param_norm_obj.unnormalise(param_vals_norm)

@@ -39,7 +39,8 @@ if __name__ == '__main__':
         param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path)
+                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path, 
+                                sim_time=2.0, pre_time=20.0, maximumStep=0.0004)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
