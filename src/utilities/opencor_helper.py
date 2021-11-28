@@ -22,7 +22,7 @@ class SimulationHelper():
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.data.set_point_interval(dt)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps) # time values for stored part of simulation
+        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1) # time values for stored part of simulation
 
     def run(self):
         try:
@@ -57,11 +57,11 @@ class SimulationHelper():
         top rows, then algebraic variables
         """
         nObs = len(obs_state_names) + len(obs_alg_names)
-        results = np.zeros((nObs, self.n_steps))
+        results = np.zeros((nObs, self.n_steps + 1))
         for JJ, obsName in enumerate(obs_state_names):
-            results[JJ, :] = self.simulation.results().states()[obsName].values()[-self.n_steps:]
+            results[JJ, :] = self.simulation.results().states()[obsName].values()[-self.n_steps-1:]
         for JJ, obsName in enumerate(obs_alg_names):
-            results[len(obs_state_names) + JJ, :] = self.simulation.results().algebraic()[obsName].values()[-self.n_steps:]
+            results[len(obs_state_names) + JJ, :] = self.simulation.results().algebraic()[obsName].values()[-self.n_steps-1:]
 
         return results
 
@@ -131,7 +131,7 @@ class SimulationHelper():
         self.n_steps = int(sim_time/self.dt)  # number of steps for storing data
         self.data.set_starting_point(start_time)
         self.data.set_ending_point(start_time + self.stop_time)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps)  # time values for stored part of simulation
+        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
 
     def close_simulation(self):
         oc.close_simulation(self.simulation)

@@ -66,7 +66,8 @@ class CVS0DParamID():
         self.obs_alg_names = None
         self.obs_types = None
         self.obs_state_or_alg= None
-        self.weight_vec = None
+        self.weight_const_vec = None
+        self.weight_series_vec = None
         self.param_state_names = None
         self.param_const_names = None
         self.num_obs_states = None
@@ -86,7 +87,7 @@ class CVS0DParamID():
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                            self.obs_state_names, self.obs_alg_names, self.obs_types,
-                                           self.obs_state_or_alg, self.weight_vec,
+                                           self.obs_state_or_alg, self.weight_const_vec, self.weight_series_vec,
                                            self.param_state_names, self.param_const_names, self.ground_truth_consts,
                                            self.ground_truth_series,
                                            self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
@@ -141,8 +142,10 @@ class CVS0DParamID():
         row_idx = 0
         plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        consts_plot_gt = np.tile(self.ground_truth_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps))
-        consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps))
+        consts_plot_gt = np.tile(self.ground_truth_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
+        consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
+
+        series_plot_gt = np.array(self.ground_truth_series)
 
         for unique_obs_count in range(len(obs_names_unique)):
             this_obs_waveform_plotted = False
@@ -156,42 +159,38 @@ class CVS0DParamID():
                     if self.obs_state_or_alg[II] == 'state':
                         if not this_obs_waveform_plotted:
                             axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/2$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[II, :], 'k', label='bf')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[consts_idx, :], 'k', label='bf')
                             this_obs_waveform_plotted = True
 
                         if self.obs_types[II] == 'mean':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[II, :], 'b--', label='gt mean')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[II, :], 'b', label='bf mean')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
                         elif self.obs_types[II] == 'max':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[II, :], 'r--', label='gt max')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[II, :], 'r', label='bf max')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'r', label='bf max')
                         elif self.obs_types[II] == 'min':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[II, :], 'g--', label='gt min')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[II, :], 'g', label='bf min')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'g', label='bf min')
                         elif self.obs_types[II] == 'series':
-                            pass
-                            # TODO
-                            # axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[II, :], 'k--', label='gt')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[series_idx, :], 'k--', label='gt')
 
                     else:
                         if not this_obs_waveform_plotted:
                             axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[II, :], 'k', label='bf')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[consts_idx, :], 'k', label='bf')
                             this_obs_waveform_plotted = True
 
                         if self.obs_types[II] == 'mean':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[II, :], 'b--', label='gt mean')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[II, :], 'b', label='bf mean')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
                         elif self.obs_types[II] == 'max':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[II, :], 'r--', label='gt max')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[II, :], 'r', label='bf max')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'r', label='bf max')
                         elif self.obs_types[II] == 'min':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[II, :], 'g--', label='gt min')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[II, :], 'g', label='bf min')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'g', label='bf min')
                         elif self.obs_types[II] == 'series':
-                            pass
-                            # TODO
-                            # axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[II, :], 'k--', label='gt')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*series_plot_gt[series_idx, :], 'k--', label='gt')
 
                     if self.gt_df["data_item"][II]["data_type"] == "constant":
                         consts_idx += 1
@@ -276,12 +275,23 @@ class CVS0DParamID():
         self.obs_types = obs_state_types + obs_alg_types
         self.obs_state_or_alg = obs_state_state_or_alg + obs_alg_state_or_alg
 
-        # how much to weight the pressure measurement by
-        state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                             if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
-        self.weight_vec = np.array(np.concatenate([state_weight_list, alg_weight_list]))
+        # how much to weight the different observable errors by
+        const_state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                             if self.gt_df["data_item"][II]["state_or_alg"] == "state" and
+                                self.gt_df["data_item"][II]["data_type"] == "constant"]
+        const_alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg" and
+                              self.gt_df["data_item"][II]["data_type"] == "constant"]
+
+        self.weight_const_vec = np.array(np.concatenate([const_state_weight_list, const_alg_weight_list]))
+
+        series_state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df["data_item"][II]["state_or_alg"] == "state" and
+                                   self.gt_df["data_item"][II]["data_type"] == "series"]
+        series_alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
+                                  if self.gt_df["data_item"][II]["state_or_alg"] == "alg" and
+                                  self.gt_df["data_item"][II]["data_type"] == "series"]
+        self.weight_series_vec = np.array(np.concatenate([series_state_weight_list, series_alg_weight_list]))
 
         return
 
@@ -422,7 +432,7 @@ class OpencorParamID():
     Class for doing parameter identification on opencor models
     """
     def __init__(self, model_path, param_id_method,
-                 obs_state_names, obs_alg_names, obs_types, obs_state_or_alg, weight_vec,
+                 obs_state_names, obs_alg_names, obs_types, obs_state_or_alg, weight_const_vec, weight_series_vec,
                  param_state_names, param_const_names, ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
                  DEBUG=False):
@@ -435,7 +445,8 @@ class OpencorParamID():
         self.obs_alg_names = obs_alg_names
         self.obs_types = obs_types
         self.obs_state_or_alg = obs_state_or_alg
-        self.weight_vec = weight_vec
+        self.weight_const_vec = weight_const_vec
+        self.weight_series_vec = weight_series_vec
         self.param_state_names = param_state_names
         self.param_const_names = param_const_names
         self.num_obs_states = len(self.obs_state_names)
@@ -887,20 +898,20 @@ class OpencorParamID():
         return cost
 
     def cost_calc(self, prediction_consts, prediction_series=None):
-        cost = np.sum(np.power(self.weight_vec*(prediction_consts -
+        cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
                                self.ground_truth_consts)/np.minimum(prediction_consts,
                                                                     self.ground_truth_consts), 2))/(self.num_obs)
-        if prediction_series:
+        # if prediction_series:
             # TODO Have not included cost from series error yet
             # cost +=
-            pass
+            # pass
 
         return cost
 
     def get_pred_obs_vec_and_array(self, pred_obs):
 
         pred_obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))
-        pred_obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps))
+        pred_obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
         const_count = 0
         series_count = 0
         for JJ in range(len(pred_obs)):
