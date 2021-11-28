@@ -168,6 +168,11 @@ class CVS0DParamID():
                         elif self.obs_types[II] == 'min':
                             axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[II, :], 'g--', label='gt min')
                             axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[II, :], 'g', label='bf min')
+                        elif self.obs_types[II] == 'series':
+                            pass
+                            # TODO
+                            # axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[II, :], 'k--', label='gt')
+
                     else:
                         if not this_obs_waveform_plotted:
                             axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
@@ -183,6 +188,10 @@ class CVS0DParamID():
                         elif self.obs_types[II] == 'min':
                             axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[II, :], 'g--', label='gt min')
                             axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[II, :], 'g', label='bf min')
+                        elif self.obs_types[II] == 'series':
+                            pass
+                            # TODO
+                            # axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[II, :], 'k--', label='gt')
 
                     if self.gt_df["data_item"][II]["data_type"] == "constant":
                         consts_idx += 1
