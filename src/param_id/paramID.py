@@ -401,10 +401,10 @@ class CVS0DParamID():
 
         ground_truth_consts = np.concatenate([ground_truth_const_states, ground_truth_const_algs])
 
-        ground_truth_series_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+        ground_truth_series_states = [self.gt_df["data_item"][II]["series"] for II in range(self.gt_df.shape[0])
                                      if self.gt_df["data_item"][II]["data_type"] == "series"
                                      and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        ground_truth_series_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+        ground_truth_series_algs = [self.gt_df["data_item"][II]["series"] for II in range(self.gt_df.shape[0])
                                    if self.gt_df["data_item"][II]["data_type"] == "series"
                                    and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
