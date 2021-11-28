@@ -400,8 +400,15 @@ class CVS0DParamID():
                                     and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
 
         ground_truth_consts = np.concatenate([ground_truth_const_states, ground_truth_const_algs])
-        ground_truth_series = []
-        # ground_truth_series = np.concatenate([ground_truth_mean_states, ground_truth_mean_algs])
+
+        ground_truth_series_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                     if self.gt_df["data_item"][II]["data_type"] == "series"
+                                     and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
+        ground_truth_series_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df["data_item"][II]["data_type"] == "series"
+                                   and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+
+        ground_truth_series = np.concatenate([ground_truth_series_states, ground_truth_series_algs])
 
         if self.rank == 0:
             np.save(os.path.join(self.output_dir, 'ground_truth_consts'), ground_truth_consts)
@@ -884,7 +891,7 @@ class OpencorParamID():
                                self.ground_truth_consts)/np.minimum(prediction_consts,
                                                                     self.ground_truth_consts), 2))/(self.num_obs)
         if prediction_series:
-            # TODO
+            # TODO Have not included cost from series error yet
             # cost +=
             pass
 
@@ -907,7 +914,6 @@ class OpencorParamID():
                 pred_obs_consts_vec[const_count] = np.min(pred_obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'series':
-                # TODO
                 pred_obs_series_array[series_count, :] = pred_obs[JJ, :]
                 series_count += 1
                 pass
