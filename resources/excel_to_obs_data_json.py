@@ -27,9 +27,12 @@ for file_idx, excel_path in enumerate(excel_paths):
             column_name = column_info[0]
             obs_types = column_info[1]
             series = df[column_name]
+            t_resampled = np.linspace(0, 2*T, 2*nSteps + 1)
+            series_resampled = sig.resample(series, nSteps + 1)
+            series_rs_2period = np.concatenate([series_resampled, series_resampled[1:]])
 
             if 'mean' in obs_types:
-                mean_val = np.mean(series)
+                mean_val = np.mean(series_resampled)
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
@@ -38,7 +41,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'value': mean_val*conversion}
                 entry_dict["data_item"].append(entry)
             if 'min' in obs_types:
-                min_val = np.min(series)
+                min_val = np.min(series_resampled)
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
@@ -47,7 +50,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'value': min_val*conversion}
                 entry_dict["data_item"].append(entry)
             if 'max' in obs_types:
-                max_val = np.max(series)
+                max_val = np.max(series_resampled)
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
@@ -56,9 +59,6 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'value': max_val*conversion}
                 entry_dict["data_item"].append(entry)
             if 'series' in obs_types:
-                t_resampled = np.linspace(0, 2*T, 2*nSteps + 1)
-                series_resampled = sig.resample(series, nSteps + 1)
-                series_rs_2period = np.concatenate([series_resampled, series_resampled[1:]])
                 entry = {'variable': variable_name,
                          'data_type': 'series',
                          'state_or_alg': state_or_alg,
@@ -67,8 +67,6 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'series': series_rs_2period*conversion,
                          't': t_resampled}
                 entry_dict["data_item"].append(entry)
-                # TODO
-                pass
 
 # Now create json file from entry_dict
 json_df = pd.DataFrame(entry_dict)
