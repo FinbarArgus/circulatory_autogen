@@ -650,16 +650,16 @@ class OpencorParamID():
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
                 # TODO make these modifiable to the user
-                if gen_count > 20:
+                if gen_count > 40:
                     mutation_weight = 0.01
-                elif gen_count > 40:
-                    mutation_weight = 0.005
                 elif gen_count > 80:
+                    mutation_weight = 0.005
+                else:
                     mutation_weight = 0.002
-                elif gen_count > 120:
-                    mutation_weight = 0.001
-                elif gen_count > 140:
-                    mutation_weight = 0.0003
+                # elif gen_count > 200:
+                #     mutation_weight = 0.001
+                # elif gen_count > 280:
+                #     mutation_weight = 0.0003
 
                 gen_count += 1
                 if rank == 0:
