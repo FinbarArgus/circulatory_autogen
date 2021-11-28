@@ -147,19 +147,25 @@ class CVS0DParamID():
 
         series_plot_gt = np.array(self.ground_truth_series)
 
+
         for unique_obs_count in range(len(obs_names_unique)):
             this_obs_waveform_plotted = False
             words = obs_names_unique[unique_obs_count].replace('_', ' ').upper().split()
             obs_name_for_plot = "".join([word[0] for word in words])
-            consts_idx = 0
-            series_idx = 0
+            consts_idx = -1
+            series_idx = -1
             for II in range(self.num_obs):
+                # TODO the below counting is hacky, store the constant and series data in one list of arrays
+                if self.gt_df["data_item"][II]["data_type"] == "constant":
+                    consts_idx += 1
+                elif self.gt_df["data_item"][II]["data_type"] == "series":
+                    series_idx += 1
                 # TODO generalise this for not just flows and pressures
                 if obs_names[II] == obs_names_unique[unique_obs_count]:
                     if self.obs_state_or_alg[II] == 'state':
                         if not this_obs_waveform_plotted:
                             axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/2$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[consts_idx, :], 'k', label='bf')
+                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[II, :], 'k', label='bf')
                             this_obs_waveform_plotted = True
 
                         if self.obs_types[II] == 'mean':
@@ -177,7 +183,7 @@ class CVS0DParamID():
                     else:
                         if not this_obs_waveform_plotted:
                             axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[consts_idx, :], 'k', label='bf')
+                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[II, :], 'k', label='bf')
                             this_obs_waveform_plotted = True
 
                         if self.obs_types[II] == 'mean':
@@ -192,10 +198,6 @@ class CVS0DParamID():
                         elif self.obs_types[II] == 'series':
                             axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*series_plot_gt[series_idx, :], 'k--', label='gt')
 
-                    if self.gt_df["data_item"][II]["data_type"] == "constant":
-                        consts_idx += 1
-                    elif self.gt_df["data_item"][II]["data_type"] == "series":
-                        series_idx += 1
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
