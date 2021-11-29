@@ -136,7 +136,10 @@ class CVS0DParamID():
         fig, axs = plt.subplots(subplot_width, subplot_width)
 
         obs_names = self.obs_state_names + self.obs_alg_names
-        obs_names_unique = list(set(obs_names))
+        obs_names_unique = []
+        for obs_name in obs_names:
+            if obs_name not in obs_names_unique:
+                obs_names_unique.append(obs_name)
 
         col_idx = 0
         row_idx = 0
@@ -162,42 +165,34 @@ class CVS0DParamID():
                     series_idx += 1
                 # TODO generalise this for not just flows and pressures
                 if obs_names[II] == obs_names_unique[unique_obs_count]:
-                    if self.obs_state_or_alg[II] == 'state':
-                        if not this_obs_waveform_plotted:
-                            axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/2$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[II, :], 'k', label='bf')
-                            this_obs_waveform_plotted = True
-
-                        if self.obs_types[II] == 'mean':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
-                        elif self.obs_types[II] == 'max':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'r', label='bf max')
-                        elif self.obs_types[II] == 'min':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*consts_plot_bf[consts_idx, :], 'g', label='bf min')
-                        elif self.obs_types[II] == 'series':
-                            axs[row_idx, col_idx].plot(tSim, m3_to_cm3*series_plot_gt[series_idx, :], 'k--', label='gt')
-
+                    if self.gt_df["data_item"][II]["unit"] == 'm3_per_s':
+                        conversion = m3_to_cm3
+                        axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
+                    elif self.gt_df["data_item"][II]["unit"] == 'm3':
+                        conversion = m3_to_cm3
+                        axs[row_idx, col_idx].set_ylabel(f'q_{obs_name_for_plot} [$cm^3$]', fontsize=14)
+                    elif self.gt_df["data_item"][II]["unit"] == 'J_per_m3':
+                        conversion = Pa_to_kPa
+                        axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
                     else:
-                        if not this_obs_waveform_plotted:
-                            axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[II, :], 'k', label='bf')
-                            this_obs_waveform_plotted = True
+                        print(f'variable with unit of {self.gt_df["data_item"][II]["unit"]} is not implemented'
+                              f'for plotting')
+                        exit()
+                    if not this_obs_waveform_plotted:
+                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='bf')
+                        this_obs_waveform_plotted = True
 
-                        if self.obs_types[II] == 'mean':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
-                        elif self.obs_types[II] == 'max':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'r', label='bf max')
-                        elif self.obs_types[II] == 'min':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*consts_plot_bf[consts_idx, :], 'g', label='bf min')
-                        elif self.obs_types[II] == 'series':
-                            axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*series_plot_gt[series_idx, :], 'k--', label='gt')
-
+                    if self.obs_types[II] == 'mean':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
+                    elif self.obs_types[II] == 'max':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'r', label='bf max')
+                    elif self.obs_types[II] == 'min':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='bf min')
+                    elif self.obs_types[II] == 'series':
+                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='gt')
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
@@ -649,13 +644,13 @@ class OpencorParamID():
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
                 # TODO make these modifiable to the user
-                if gen_count > 60:
+                if gen_count > 100:
                     mutation_weight = 0.01
-                elif gen_count > 120:
+                elif gen_count > 160:
                     mutation_weight = 0.005
-                elif gen_count > 200:
+                elif gen_count > 220:
                     mutation_weight = 0.002
-                elif gen_count > 280:
+                elif gen_count > 300:
                     mutation_weight = 0.001
                 else:
                     mutation_weight = 0.02

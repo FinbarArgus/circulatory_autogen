@@ -6,22 +6,30 @@ from scipy import signal as sig
 output_json_file_name = "/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json"
 
 excel_paths = ['/home/finbar/Documents/data/cardiohance_data/CardiacFunction.xlsx']
+column_name = 'Cardiohance_029'
 mmHg_to_Pa = 133.332
 ml_per_s_to_m3_per_s = 1e-6
+ml_to_m3 = 1e-6
 dt = 0.01
 T = 1.0
 nSteps = int(T/dt)
 
 
-variable_info = [[('Pressure_raw', 'aortic_root/u', 'alg', mmHg_to_Pa),
-                  ('FlowRate_raw', 'aortic_root/v', 'state', ml_per_s_to_m3_per_s)]]
+variable_info = [[('Pressure_raw', 'aortic_root/u', 'alg', 'J_per_m3', mmHg_to_Pa),
+                  ('FlowRate_raw', 'aortic_root/v', 'state', 'm3_per_s', ml_per_s_to_m3_per_s),
+                  ('Volume_lv_raw', 'heart/q_lv', 'state', 'm3', ml_to_m3),
+                  ('Volume_rv_raw', 'heart/q_rv', 'state', 'm3', ml_to_m3)]]
+
 # (sheet_name, variable_name, state_or_alg, conversion_rate)
-column_infos = [[[('Cardiohance_029', ['mean', 'min', 'max', 'series'])],
-                 [('Cardiohance_029', ['mean', 'min', 'max', 'series'])]]]
+column_infos = [[[(column_name, ['mean', 'min', 'max', 'series'])],
+                 [(column_name, ['mean', 'min', 'max', 'series'])],
+                 [(column_name, ['mean', 'min', 'max', 'series'])],
+                 [(column_name, ['mean', 'min', 'max', 'series'])]]]
+
 # (column name, list of obs types to input into json)
 entry_dict = {'data_item': []}
 for file_idx, excel_path in enumerate(excel_paths):
-    for sheet_idx, (sheet_name, variable_name, state_or_alg, conversion) in enumerate(variable_info[file_idx]):
+    for sheet_idx, (sheet_name, variable_name, state_or_alg, unit, conversion) in enumerate(variable_info[file_idx]):
         df = pd.read_excel(excel_path, sheet_name=sheet_name)
         for column_info in column_infos[file_idx][sheet_idx]:
             column_name = column_info[0]
@@ -36,6 +44,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
+                         'unit': unit,
                          'weight': 1.0,
                          'obs_type': 'mean',
                          'value': mean_val*conversion}
@@ -45,6 +54,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
+                         'unit': unit,
                          'weight': 1.0,
                          'obs_type': 'min',
                          'value': min_val*conversion}
@@ -54,6 +64,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                 entry = {'variable': variable_name,
                          'data_type': 'constant',
                          'state_or_alg': state_or_alg,
+                         'unit': unit,
                          'weight': 1.0,
                          'obs_type': 'max',
                          'value': max_val*conversion}
@@ -62,6 +73,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                 entry = {'variable': variable_name,
                          'data_type': 'series',
                          'state_or_alg': state_or_alg,
+                         'unit': unit,
                          'weight': 0.0,
                          'obs_type': 'series',
                          'series': series_rs_2period*conversion,

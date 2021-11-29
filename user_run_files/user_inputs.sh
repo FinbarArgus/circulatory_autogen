@@ -9,8 +9,8 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
 ## parameter identification inputs
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
-num_procs=31
-num_calls_to_function=70000
+num_procs=3
+num_calls_to_function=40000
 param_id_output_dir=../generated_models/ # path is from the user_run_files dir
 param_id_obs_file=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_file=3compartment_obs_data.json
