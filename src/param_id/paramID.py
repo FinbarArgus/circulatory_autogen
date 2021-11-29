@@ -165,17 +165,22 @@ class CVS0DParamID():
                     series_idx += 1
                 # TODO generalise this for not just flows and pressures
                 if obs_names[II] == obs_names_unique[unique_obs_count]:
-                    if self.gt_df["data_item"][II]["unit"] == 'm3_per_s':
+                    for JJ in range(self.num_obs):
+                        if obs_names[II] == self.gt_df["data_item"][JJ]['variable']:
+                            df_idx = JJ
+                            break
+
+                    if self.gt_df["data_item"][JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
-                    elif self.gt_df["data_item"][II]["unit"] == 'm3':
+                    elif self.gt_df["data_item"][JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'q_{obs_name_for_plot} [$cm^3$]', fontsize=14)
-                    elif self.gt_df["data_item"][II]["unit"] == 'J_per_m3':
+                    elif self.gt_df["data_item"][JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
                         axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
                     else:
-                        print(f'variable with unit of {self.gt_df["data_item"][II]["unit"]} is not implemented'
+                        print(f'variable with unit of {self.gt_df["data_item"][JJ]["unit"]} is not implemented'
                               f'for plotting')
                         exit()
                     if not this_obs_waveform_plotted:
