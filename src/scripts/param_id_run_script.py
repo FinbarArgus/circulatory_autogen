@@ -52,7 +52,10 @@ if __name__ == '__main__':
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
             input_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[5])
+        param_id_obs_path = sys.argv[5]
+        if not os.path.exists(param_id_obs_path):
+            print(f'param_id_obs_path={param_id_obs_path} does not exist')
+            exit()
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -94,7 +97,9 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: parameter_id_method file_name_prefix num_calls_to_function input_params_to_id")
-        print("e.g. genetic_algorithm simple_physiological 10 True")
+        print("Usage: parameter_id_method file_name_prefix num_calls_to_function "
+              "input_params_to_id path_to_obs_file.json")
+        print("e.g. genetic_algorithm simple_physiological 10 "
+              "True path/to/circulatory_autogen/resources/simple_physiological_obs_data.json")
         comm.Abort()
         exit

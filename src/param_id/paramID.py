@@ -24,6 +24,7 @@ from skopt import gp_minimize, Optimizer
 import resource
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
+import json
 
 class CVS0DParamID():
     """
@@ -253,7 +254,9 @@ class CVS0DParamID():
         self.param_id.close_simulation()
 
     def __set_obs_names_and_df(self, param_id_obs_path):
-        self.gt_df = pd.read_json(param_id_obs_path)
+        with open(param_id_obs_path, encoding='utf-8-sig') as rf:
+            json_obj = json.load(rf)
+        self.gt_df = pd.DataFrame(json_obj)
 
         # TODO get rid of reliance on order being states then algs
         self.obs_state_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
