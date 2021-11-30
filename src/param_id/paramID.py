@@ -226,7 +226,7 @@ class CVS0DParamID():
                     row_idx = 0
                     plot_idx += 1
                     # create new plot
-                    if unique_obs_count != self.num_obs - 1:
+                    if unique_obs_count != len(obs_names_unique) - 1:
                         fig, axs = plt.subplots(subplot_width, subplot_width)
                         plot_saved = False
 
