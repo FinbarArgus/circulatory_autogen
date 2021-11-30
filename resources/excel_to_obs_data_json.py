@@ -27,7 +27,7 @@ column_infos = [[[(column_name, ['mean', 'min', 'max', 'series'])],
                  [(column_name, ['mean', 'min', 'max', 'series'])]]]
 
 # (column name, list of obs types to input into json)
-entry_dict = {'data_item': []}
+entry_list = []
 for file_idx, excel_path in enumerate(excel_paths):
     for sheet_idx, (sheet_name, variable_name, state_or_alg, unit, conversion) in enumerate(variable_info[file_idx]):
         df = pd.read_excel(excel_path, sheet_name=sheet_name)
@@ -48,7 +48,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'weight': 1.0,
                          'obs_type': 'mean',
                          'value': mean_val*conversion}
-                entry_dict["data_item"].append(entry)
+                entry_list.append(entry)
             if 'min' in obs_types:
                 min_val = np.min(series_resampled)
                 entry = {'variable': variable_name,
@@ -81,10 +81,10 @@ for file_idx, excel_path in enumerate(excel_paths):
                 entry_dict["data_item"].append(entry)
 
 # Now create json file from entry_dict
-json_df = pd.DataFrame(entry_dict)
+json_df = pd.DataFrame(entry_dict['data_item'])
 # json_df.to_json(output_json_file_name)
-result = json_df.to_json()
-print(result)
+result = json_df.to_json(orient='records')
 parsed = json.loads(result)
+print(parsed)
 with open(output_json_file_name, 'w') as wf:
     json.dump(parsed, wf, indent=2)

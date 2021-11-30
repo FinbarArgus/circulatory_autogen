@@ -160,28 +160,28 @@ class CVS0DParamID():
             series_idx = -1
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
-                if self.gt_df["data_item"][II]["data_type"] == "constant":
+                if self.gt_df.iloc[II]["data_type"] == "constant":
                     consts_idx += 1
-                elif self.gt_df["data_item"][II]["data_type"] == "series":
+                elif self.gt_df.iloc[II]["data_type"] == "series":
                     series_idx += 1
                 # TODO generalise this for not just flows and pressures
                 if obs_names[II] == obs_names_unique[unique_obs_count]:
                     for JJ in range(self.num_obs):
-                        if obs_names[II] == self.gt_df["data_item"][JJ]['variable']:
-                            df_idx = JJ
+                        if obs_names[II] == self.gt_df.iloc[JJ]['variable'] and \
+                                self.obs_types[II] == self.gt_df.iloc[JJ]['obs_type']:
                             break
 
-                    if self.gt_df["data_item"][JJ]["unit"] == 'm3_per_s':
+                    if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
-                    elif self.gt_df["data_item"][JJ]["unit"] == 'm3':
+                    elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'q_{obs_name_for_plot} [$cm^3$]', fontsize=14)
-                    elif self.gt_df["data_item"][JJ]["unit"] == 'J_per_m3':
+                    elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
                         axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
                     else:
-                        print(f'variable with unit of {self.gt_df["data_item"][JJ]["unit"]} is not implemented'
+                        print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
                               f'for plotting')
                         exit()
                     if not this_obs_waveform_plotted:
@@ -226,7 +226,7 @@ class CVS0DParamID():
                     row_idx = 0
                     plot_idx += 1
                     # create new plot
-                    if II != self.num_obs - 1:
+                    if unique_obs_count != self.num_obs - 1:
                         fig, axs = plt.subplots(subplot_width, subplot_width)
                         plot_saved = False
 
@@ -257,22 +257,24 @@ class CVS0DParamID():
         with open(param_id_obs_path, encoding='utf-8-sig') as rf:
             json_obj = json.load(rf)
         self.gt_df = pd.DataFrame(json_obj)
+        if self.gt_df.columns[0] == 'data_item':
+            self.gt_df = self.gt_df['data_item']
 
         # TODO get rid of reliance on order being states then algs
-        self.obs_state_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
-                                if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        self.obs_alg_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
-                                if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        self.obs_state_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        self.obs_alg_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
-        obs_state_types = [self.gt_df["data_item"][II]["obs_type"] for II in range(self.gt_df.shape[0])
-                                if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        obs_alg_types = [self.gt_df["data_item"][II]["obs_type"] for II in range(self.gt_df.shape[0])
-                              if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        obs_state_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        obs_alg_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])
+                              if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
-        obs_state_state_or_alg = [self.gt_df["data_item"][II]["state_or_alg"] for II in range(self.gt_df.shape[0])
-                           if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        obs_alg_state_or_alg = [self.gt_df["data_item"][II]["state_or_alg"] for II in range(self.gt_df.shape[0])
-                         if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        obs_state_state_or_alg = [self.gt_df.iloc[II]["state_or_alg"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        obs_alg_state_or_alg = [self.gt_df.iloc[II]["state_or_alg"] for II in range(self.gt_df.shape[0])
+                         if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
@@ -281,21 +283,21 @@ class CVS0DParamID():
         self.obs_state_or_alg = obs_state_state_or_alg + obs_alg_state_or_alg
 
         # how much to weight the different observable errors by
-        const_state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                             if self.gt_df["data_item"][II]["state_or_alg"] == "state" and
-                                self.gt_df["data_item"][II]["data_type"] == "constant"]
-        const_alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg" and
-                              self.gt_df["data_item"][II]["data_type"] == "constant"]
+        const_state_weight_list = [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                             if self.gt_df.iloc[II]["state_or_alg"] == "state" and
+                                self.gt_df.iloc[II]["data_type"] == "constant"]
+        const_alg_weight_list =  [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df.iloc[II]["state_or_alg"] == "alg" and
+                              self.gt_df.iloc[II]["data_type"] == "constant"]
 
         self.weight_const_vec = np.array(np.concatenate([const_state_weight_list, const_alg_weight_list]))
 
-        series_state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                                   if self.gt_df["data_item"][II]["state_or_alg"] == "state" and
-                                   self.gt_df["data_item"][II]["data_type"] == "series"]
-        series_alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                                  if self.gt_df["data_item"][II]["state_or_alg"] == "alg" and
-                                  self.gt_df["data_item"][II]["data_type"] == "series"]
+        series_state_weight_list = [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df.iloc[II]["state_or_alg"] == "state" and
+                                   self.gt_df.iloc[II]["data_type"] == "series"]
+        series_alg_weight_list =  [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                  if self.gt_df.iloc[II]["state_or_alg"] == "alg" and
+                                  self.gt_df.iloc[II]["data_type"] == "series"]
         self.weight_series_vec = np.array(np.concatenate([series_state_weight_list, series_alg_weight_list]))
 
         return
@@ -407,21 +409,21 @@ class CVS0DParamID():
 
         # TODO remove the need for the order to be states then algs
 
-        ground_truth_const_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
-                                    if self.gt_df["data_item"][II]["data_type"] == "constant"
-                                    and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        ground_truth_const_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
-                                    if self.gt_df["data_item"][II]["data_type"] == "constant"
-                                    and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        ground_truth_const_states = [self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                    if self.gt_df.iloc[II]["data_type"] == "constant"
+                                    and self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        ground_truth_const_algs = [self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                    if self.gt_df.iloc[II]["data_type"] == "constant"
+                                    and self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
         ground_truth_consts = np.concatenate([ground_truth_const_states, ground_truth_const_algs])
 
-        ground_truth_series_states = [self.gt_df["data_item"][II]["series"] for II in range(self.gt_df.shape[0])
-                                     if self.gt_df["data_item"][II]["data_type"] == "series"
-                                     and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        ground_truth_series_algs = [self.gt_df["data_item"][II]["series"] for II in range(self.gt_df.shape[0])
-                                   if self.gt_df["data_item"][II]["data_type"] == "series"
-                                   and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        ground_truth_series_states = [self.gt_df.iloc[II]["series"] for II in range(self.gt_df.shape[0])
+                                     if self.gt_df.iloc[II]["data_type"] == "series"
+                                     and self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        ground_truth_series_algs = [self.gt_df.iloc[II]["series"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df.iloc[II]["data_type"] == "series"
+                                   and self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
         ground_truth_series = np.concatenate([ground_truth_series_states, ground_truth_series_algs])
 
@@ -799,7 +801,7 @@ class OpencorParamID():
                             else:
                               ## This doesn't account for smaller changes when the value is smaller
                               param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
-                                                              mutation_weight*np.random.randn(self.num_params) 
+                                                              mutation_weight*np.random.randn(self.num_params)
                             param_idx += 1
 
                     # now do cross breeding
