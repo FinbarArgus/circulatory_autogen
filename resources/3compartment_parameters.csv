@@ -33,7 +33,7 @@ C_aortic_root,m6_per_J,systemic,1.0e-8,to_be_identified
 I_aortic_root,Js2_per_m6,systemic,1.0e+4,to_be_identified
 R_T_systemic,Js_per_m6,systemic,4.0e+8,to_be_identified
 C_T_systemic,m6_per_J,systemic,1e-10,small_chosen
-alpha_systemic,dimensionless,systemic,0.0,not_used
+alpha_systemic,dimensionless,systemic,1.0,not_used
 v_nom_systemic,m3_per_s,systemic,0.0,not_used
 R_venous_svc,Js_per_m6,systemic,1.0e7,small_chosen
 C_venous_svc,m6_per_J,systemic,1.0e-9,to_be_identified
