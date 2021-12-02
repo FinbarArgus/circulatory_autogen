@@ -103,7 +103,7 @@ class CVS0DParamID():
         self.param_id.run()
 
     def simulate_with_best_param_vals(self):
-        self.param_id.simulate_once()
+        self.param_id.simulate_with_best_param_vals()
         self.best_output_calculated = True
 
     def update_param_range(self, params_to_update_list_of_lists, mins, maxs):
@@ -939,12 +939,12 @@ class OpencorParamID():
                 pass
         return pred_obs_consts_vec, pred_obs_series_array
 
-    def simulate_once(self):
+    def simulate_with_best_param_vals(self):
 
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
-        if not self.best_param_vals:
+        if self.best_param_vals is None:
             self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
         else:
@@ -965,6 +965,29 @@ class OpencorParamID():
         print(f'final obs values :')
         print(pred_obs_constants_vec)
         # TODO print all const outputs with their variable name
+
+    def simulate_once(self):
+
+        if MPI.COMM_WORLD.Get_rank() != 0:
+            print('simulate once should only be done on one rank')
+            exit()
+        else:
+            # The sim object has already been opened so the best cost doesn't need to be opened
+            pass
+
+        # ___________ Run model with new parameters ________________
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+
+        # run simulation and check cost
+        cost_check, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+        pred_obs_constants_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+
+        print(f'cost should be {self.best_cost}')
+        print('cost check after single simulation is {}'.format(cost_check))
+
+        print(f'final obs values :')
+        print(pred_obs_constants_vec)
 
     def set_genetic_algorithm_parameters(self, n_calls):
         if not self.param_id_method == 'genetic_algorithm':

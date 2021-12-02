@@ -98,10 +98,10 @@ class SimulationHelper():
                         print([name for name in self.data.constants()])
                         exit()
             else:
-                if self.data.constants()[param_name] is not None:
+                if self.data.constants()[param_name_or_list] is not None:
                     param_init.append(self.data.constants()[param_name_or_list])
                 else:
-                    print(f'parameter name of {param_name} does not exist in the simulation object constants. '
+                    print(f'parameter name of {param_name_or_list} does not exist in the simulation object constants. '
                           f'The constants are:')
                     print([name for name in self.data.constants()])
                     exit()
@@ -123,6 +123,30 @@ class SimulationHelper():
                     self.data.constants()[param_name] = param_vals[len(init_state_names) + JJ]
             else:
                 self.data.constants()[param_name_or_list] = param_vals[len(init_state_names) + JJ]
+
+    def modify_params_and_run_and_get_results(self, param_state_names, param_const_names,
+                                             mod_factors, obs_state_names, obs_alg_names, absolute=False):
+
+        if absolute:
+            new_param_vals= mod_factors
+        else:
+            init_param_vals = self.get_init_param_vals(param_state_names, param_const_names)
+            new_param_vals = [a*b for a, b in zip(init_param_vals, mod_factors)]
+
+        self.set_param_vals(param_state_names, param_const_names, new_param_vals)
+
+        success = self.run()
+        if success:
+            pred_obs_new = self.get_results(obs_state_names, obs_alg_names)
+            # reset params
+            self.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed ')
+            exit()
+
+        return pred_obs_new
 
     def update_times(self, dt, start_time, sim_time, pre_time):
         self.dt = dt

@@ -265,7 +265,7 @@ class CVS0DCellMLGenerator(object):
     
             # determine BC variables from vessel_type and BC_type
             if main_vessel_type == 'heart':
-                v_1 = 'v_lv'
+                v_1 = 'v_aov'
                 p_1 = 'u_root'
             elif main_vessel_type == 'last_venous':
                 v_1 = 'v'
