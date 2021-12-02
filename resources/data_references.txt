@@ -55,3 +55,5 @@ Korakianitis_2006_Table_1 "Table 1 - Korakianitis, T., & Shi, Y. (2006). A
                           heart valve dynamics and atrioventricular interaction. Medical engineering &
                           physics, 28(7), 613-628."
 
+Mynard_2012               Mynard et al. "A simple, versatile valve model for use in lumped parameter 
+                          and one-dimensional cardiovascular models"

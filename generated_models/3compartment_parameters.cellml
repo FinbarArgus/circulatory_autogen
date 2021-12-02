@@ -16,10 +16,6 @@
 <variable initial_value="0.17" name="T_ar" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.34" name="T_vc" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.15" name="T_vr" public_interface="out" units="dimensionless"/>
-<variable initial_value="34.6427e-6" name="CQ_trv" public_interface="out" units="UnitValve"/>
-<variable initial_value="30.3124e-6" name="CQ_puv" public_interface="out" units="UnitValve"/>
-<variable initial_value="34.6427e-6" name="CQ_miv" public_interface="out" units="UnitValve"/>
-<variable initial_value="30.3124e-6" name="CQ_aov" public_interface="out" units="UnitValve"/>
 <variable initial_value="7.998e+6" name="E_ra_A" public_interface="out" units="J_per_m6"/>
 <variable initial_value="9.331e+6" name="E_ra_B" public_interface="out" units="J_per_m6"/>
 <variable initial_value="73.315e+6" name="E_rv_A" public_interface="out" units="J_per_m6"/>
@@ -32,6 +28,28 @@
 <variable initial_value="10.0e-6" name="q_rv_0" public_interface="out" units="m3"/>
 <variable initial_value="4.0e-6" name="q_la_0" public_interface="out" units="m3"/>
 <variable initial_value="5.0e-6" name="q_lv_0" public_interface="out" units="m3"/>
+<variable initial_value="0.0008" name="A_nn_trv" public_interface="out" units="m2"/>
+<variable initial_value="0.00071" name="A_nn_puv" public_interface="out" units="m2"/>
+<variable initial_value="0.00077" name="A_nn_miv" public_interface="out" units="m2"/>
+<variable initial_value="0.00068" name="A_nn_aov" public_interface="out" units="m2"/>
+<variable initial_value="0.01" name="l_eff" public_interface="out" units="metre"/>
+<variable initial_value="0.3" name="K_vo_trv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.2" name="K_vo_puv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.3" name="K_vo_miv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.12" name="K_vo_aov" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.4" name="K_vc_trv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.2" name="K_vc_puv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.4" name="K_vc_miv" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0.12" name="K_vc_aov" public_interface="out" units="m3_per_Js"/>
+<variable initial_value="0" name="M_rg_trv" public_interface="out" units="dimensionless"/>
+<variable initial_value="0" name="M_rg_puv" public_interface="out" units="dimensionless"/>
+<variable initial_value="0" name="M_rg_miv" public_interface="out" units="dimensionless"/>
+<variable initial_value="0" name="M_rg_aov" public_interface="out" units="dimensionless"/>
+<variable initial_value="1" name="M_st_trv" public_interface="out" units="dimensionless"/>
+<variable initial_value="1" name="M_st_puv" public_interface="out" units="dimensionless"/>
+<variable initial_value="1" name="M_st_miv" public_interface="out" units="dimensionless"/>
+<variable initial_value="1" name="M_st_aov" public_interface="out" units="dimensionless"/>
+<variable initial_value="1050" name="rho" public_interface="out" units="Js2_per_m5"/>
 </component>
 <component name="parameters_systemic">
 <variable initial_value="6.9105e+05" name="R_aortic_root" public_interface="out" units="Js_per_m6"/>
