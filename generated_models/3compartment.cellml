@@ -196,6 +196,45 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
+        <variable name="L_trv" units="dimensionless"/>
+        <variable name="L_puv" units="dimensionless"/>
+        <variable name="L_miv" units="dimensionless"/>
+        <variable name="L_aov" units="dimensionless"/>
+        <variable name="A_eff_trv" units="m2"/>
+        <variable name="A_eff_puv" units="m2"/>
+        <variable name="A_eff_miv" units="m2"/>
+        <variable name="A_eff_aov" units="m2"/>
+        <variable name="A_nn_trv" public_interface="in" units="m2"/>
+        <variable name="A_nn_puv" public_interface="in" units="m2"/>
+        <variable name="A_nn_miv" public_interface="in" units="m2"/>
+        <variable name="A_nn_aov" public_interface="in" units="m2"/>
+        <variable name="l_eff" public_interface="in" units="metre"/>
+        <variable name="K_vo_trv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vo_puv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vo_miv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vo_aov" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vc_trv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vc_puv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vc_miv" public_interface="in" units="m3_per_Js"/>
+        <variable name="K_vc_aov" public_interface="in" units="m3_per_Js"/>
+        <variable name="M_rg_trv" public_interface="in" units="dimensionless"/>
+        <variable name="M_rg_puv" public_interface="in" units="dimensionless"/>
+        <variable name="M_rg_miv" public_interface="in" units="dimensionless"/>
+        <variable name="M_rg_aov" public_interface="in" units="dimensionless"/>
+        <variable name="M_st_trv" public_interface="in" units="dimensionless"/>
+        <variable name="M_st_puv" public_interface="in" units="dimensionless"/>
+        <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
+        <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="B_trv" units="dimensionless"/>
+        <variable name="B_puv" units="dimensionless"/>
+        <variable name="B_miv" units="dimensionless"/>
+        <variable name="B_aov" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_trv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_puv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_miv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_aov" units="dimensionless"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="6.9934e-04" name="q_lv" units="m3"/>
@@ -512,48 +551,7 @@
                     </piece>
                 </piecewise>
             </apply>
-        </math>
-        <!-- Constitutive Relations-->
-        <variable name="L_trv" units="dimensionless"/>
-        <variable name="L_puv" units="dimensionless"/>
-        <variable name="L_miv" units="dimensionless"/>
-        <variable name="L_aov" units="dimensionless"/>
-        <variable initial_value="0.0008" name="A_nn_trv" units="m2"/>
-        <variable initial_value="0.00071" name="A_nn_puv" units="m2"/>
-        <variable initial_value="0.00077" name="A_nn_miv" units="m2"/>
-        <variable initial_value="0.00068" name="A_nn_aov" units="m2"/>
-        <variable initial_value="0.01" name="l_eff" units="metre"/>
-        <variable name="A_eff_trv" units="m2"/>
-        <variable name="A_eff_puv" units="m2"/>
-        <variable name="A_eff_miv" units="m2"/>
-        <variable name="A_eff_aov" units="m2"/>
-        <variable initial_value="0.3" name="K_vo_trv" units="m3_per_Js"/>
-        <variable initial_value="0.2" name="K_vo_puv" units="m3_per_Js"/>
-        <variable initial_value="0.3" name="K_vo_miv" units="m3_per_Js"/>
-        <variable initial_value="0.12" name="K_vo_aov" units="m3_per_Js"/>
-        <variable initial_value="0.4" name="K_vc_trv" units="m3_per_Js"/>
-        <variable initial_value="0.2" name="K_vc_puv" units="m3_per_Js"/>
-        <variable initial_value="0.4" name="K_vc_miv" units="m3_per_Js"/>
-        <variable initial_value="0.12" name="K_vc_aov" units="m3_per_Js"/>
-        <variable initial_value="0" name="M_rg_trv" units="dimensionless"/>
-        <variable initial_value="0" name="M_rg_puv" units="dimensionless"/>
-        <variable initial_value="0" name="M_rg_miv" units="dimensionless"/>
-        <variable initial_value="0" name="M_rg_aov" units="dimensionless"/>
-        <variable initial_value="1" name="M_st_trv" units="dimensionless"/>
-        <variable initial_value="1" name="M_st_puv" units="dimensionless"/>
-        <variable initial_value="1" name="M_st_miv" units="dimensionless"/>
-        <variable initial_value="1" name="M_st_aov" units="dimensionless"/>
-        <variable name="B_trv" units="dimensionless"/>
-        <variable name="B_puv" units="dimensionless"/>
-        <variable name="B_miv" units="dimensionless"/>
-        <variable name="B_aov" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_trv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_puv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_miv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_aov" units="dimensionless"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <!-- Valve model-->
             <apply>
                 <eq/>
                 <ci>B_trv</ci>
@@ -1138,6 +1136,7 @@
                     <ci>L_aov</ci>
                 </apply>
             </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>u_ra</ci>
@@ -1327,6 +1326,28 @@
         <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
         <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
         <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
+        <map_variables variable_1="A_nn_trv" variable_2="A_nn_trv"/>
+        <map_variables variable_1="A_nn_puv" variable_2="A_nn_puv"/>
+        <map_variables variable_1="A_nn_miv" variable_2="A_nn_miv"/>
+        <map_variables variable_1="A_nn_aov" variable_2="A_nn_aov"/>
+        <map_variables variable_1="l_eff" variable_2="l_eff"/>
+        <map_variables variable_1="K_vo_trv" variable_2="K_vo_trv"/>
+        <map_variables variable_1="K_vo_puv" variable_2="K_vo_puv"/>
+        <map_variables variable_1="K_vo_miv" variable_2="K_vo_miv"/>
+        <map_variables variable_1="K_vo_aov" variable_2="K_vo_aov"/>
+        <map_variables variable_1="K_vc_trv" variable_2="K_vc_trv"/>
+        <map_variables variable_1="K_vc_puv" variable_2="K_vc_puv"/>
+        <map_variables variable_1="K_vc_miv" variable_2="K_vc_miv"/>
+        <map_variables variable_1="K_vc_aov" variable_2="K_vc_aov"/>
+        <map_variables variable_1="M_rg_trv" variable_2="M_rg_trv"/>
+        <map_variables variable_1="M_rg_puv" variable_2="M_rg_puv"/>
+        <map_variables variable_1="M_rg_miv" variable_2="M_rg_miv"/>
+        <map_variables variable_1="M_rg_aov" variable_2="M_rg_aov"/>
+        <map_variables variable_1="M_st_trv" variable_2="M_st_trv"/>
+        <map_variables variable_1="M_st_puv" variable_2="M_st_puv"/>
+        <map_variables variable_1="M_st_miv" variable_2="M_st_miv"/>
+        <map_variables variable_1="M_st_aov" variable_2="M_st_aov"/>
+        <map_variables variable_1="rho" variable_2="rho"/>
     </connection>
     <connection>
         <map_components component_1="environment" component_2="heart"/>
