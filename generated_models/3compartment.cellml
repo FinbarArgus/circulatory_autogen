@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="CardiovascularSystem" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
     <import xlink:href="3compartment_units.cellml">
+        <units name="m2" units_ref="m2"/>
         <units name="m3" units_ref="m3"/>
         <units name="m3_per_s" units_ref="m3_per_s"/>
         <units name="m_per_s2" units_ref="m_per_s2"/>
@@ -15,6 +16,7 @@
         <units name="Js_per_m3" units_ref="Js_per_m3"/>
         <units name="UnitValve" units_ref="UnitValve"/>
         <units name="J_per_m9" units_ref="J_per_m9"/>
+        <units name="m3_per_Js" units_ref="m3_per_Js"/>
     </import>
     <import xlink:href="3compartment_parameters.cellml">
         <component component_ref="parameters_systemic" name="parameters_systemic"/>
@@ -46,7 +48,7 @@
         <variable name="u_la" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
-        <variable name="v_rv" public_interface="in" units="m3_per_s"/>
+        <variable name="v_pul_valve" public_interface="in" units="m3_per_s"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -60,7 +62,7 @@
                 </apply>
                 <apply>
                     <minus/>
-                    <ci>v_rv</ci>
+                    <ci>v_pul_valve</ci>
                     <ci>v_par</ci>
                 </apply>
             </apply>
@@ -156,7 +158,7 @@
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; heart &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="heart">
         <variable name="t" public_interface="in" units="second"/>
-        <variable initial_value="0.0" name="s" public_interface="out" units="second"/>
+        <variable initial_value="0.1" name="s" public_interface="out" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mt" units="second"/>
         <variable name="e_a" units="dimensionless"/>
@@ -168,10 +170,6 @@
         <variable name="T_ar" public_interface="in" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="dimensionless"/>
         <variable name="T_vr" public_interface="in" units="dimensionless"/>
-        <variable name="CQ_trv" public_interface="in" units="UnitValve"/>
-        <variable name="CQ_puv" public_interface="in" units="UnitValve"/>
-        <variable name="CQ_miv" public_interface="in" units="UnitValve"/>
-        <variable name="CQ_aov" public_interface="in" units="UnitValve"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_la_A" public_interface="in" units="J_per_m6"/>
@@ -191,21 +189,21 @@
         <variable name="u_lv" units="J_per_m3"/>
         <variable name="u_root" public_interface="in" units="J_per_m3"/>
         <variable name="u_par" public_interface="in" units="J_per_m3"/>
-        <variable name="v_ra" units="m3_per_s"/>
-        <variable name="v_rv" public_interface="out" units="m3_per_s"/>
-        <variable name="v_la" units="m3_per_s"/>
-        <variable name="v_lv" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="0" name="v_trv" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="0" name="v_puv" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="0" name="v_miv" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="0" name="v_aov" public_interface="out" units="m3_per_s"/>
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="6.9934e-04" name="q_lv" units="m3"/>
-        <variable initial_value="10.0e-6" name="q_rv" units="m3"/>
-        <variable initial_value="4.0e-6" name="q_la" units="m3"/>
-        <variable initial_value="4.0e-6" name="q_ra" units="m3"/>
+        <variable initial_value="1e-05" name="q_rv" units="m3"/>
+        <variable initial_value="4e-06" name="q_la" units="m3"/>
+        <variable initial_value="4e-06" name="q_ra" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
-        <variable initial_value="1.0" name="modifiable_T" public_interface="out" units="second"/>
+        <variable initial_value="1" name="modifiable_T" public_interface="out" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -514,22 +512,339 @@
                     </piece>
                 </piecewise>
             </apply>
-            <!-- Constitutive Relations-->
+        </math>
+        <!-- Constitutive Relations-->
+        <variable name="L_trv" units="dimensionless"/>
+        <variable name="L_puv" units="dimensionless"/>
+        <variable name="L_miv" units="dimensionless"/>
+        <variable name="L_aov" units="dimensionless"/>
+        <variable initial_value="0.0008" name="A_nn_trv" units="m2"/>
+        <variable initial_value="0.00071" name="A_nn_puv" units="m2"/>
+        <variable initial_value="0.00077" name="A_nn_miv" units="m2"/>
+        <variable initial_value="0.00068" name="A_nn_aov" units="m2"/>
+        <variable initial_value="0.01" name="l_eff" units="metre"/>
+        <variable name="A_eff_trv" units="m2"/>
+        <variable name="A_eff_puv" units="m2"/>
+        <variable name="A_eff_miv" units="m2"/>
+        <variable name="A_eff_aov" units="m2"/>
+        <variable initial_value="0.3" name="K_vo_trv" units="m3_per_Js"/>
+        <variable initial_value="0.2" name="K_vo_puv" units="m3_per_Js"/>
+        <variable initial_value="0.3" name="K_vo_miv" units="m3_per_Js"/>
+        <variable initial_value="0.12" name="K_vo_aov" units="m3_per_Js"/>
+        <variable initial_value="0.4" name="K_vc_trv" units="m3_per_Js"/>
+        <variable initial_value="0.2" name="K_vc_puv" units="m3_per_Js"/>
+        <variable initial_value="0.4" name="K_vc_miv" units="m3_per_Js"/>
+        <variable initial_value="0.12" name="K_vc_aov" units="m3_per_Js"/>
+        <variable initial_value="0" name="M_rg_trv" units="dimensionless"/>
+        <variable initial_value="0" name="M_rg_puv" units="dimensionless"/>
+        <variable initial_value="0" name="M_rg_miv" units="dimensionless"/>
+        <variable initial_value="0" name="M_rg_aov" units="dimensionless"/>
+        <variable initial_value="1" name="M_st_trv" units="dimensionless"/>
+        <variable initial_value="1" name="M_st_puv" units="dimensionless"/>
+        <variable initial_value="1" name="M_st_miv" units="dimensionless"/>
+        <variable initial_value="1" name="M_st_aov" units="dimensionless"/>
+        <variable name="B_trv" units="dimensionless"/>
+        <variable name="B_puv" units="dimensionless"/>
+        <variable name="B_miv" units="dimensionless"/>
+        <variable name="B_aov" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_trv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_puv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_miv" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_aov" units="dimensionless"/>
+        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>v_ra</ci>
+                <ci>B_trv</ci>
+                <apply>
+                    <divide/>
+                    <ci>rho</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <power/>
+                                <ci>A_eff_trv</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                        </apply>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_puv</ci>
+                <apply>
+                    <divide/>
+                    <ci>rho</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <power/>
+                                <ci>A_eff_puv</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                        </apply>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_miv</ci>
+                <apply>
+                    <divide/>
+                    <ci>rho</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <power/>
+                                <ci>A_eff_miv</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                        </apply>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_aov</ci>
+                <apply>
+                    <divide/>
+                    <ci>rho</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <power/>
+                                <ci>A_eff_aov</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                        </apply>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>L_trv</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>rho</ci>
+                        <ci>l_eff</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>A_eff_trv</ci>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>L_puv</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>rho</ci>
+                        <ci>l_eff</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>A_eff_puv</ci>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>L_miv</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>rho</ci>
+                        <ci>l_eff</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>A_eff_miv</ci>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>L_aov</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>rho</ci>
+                        <ci>l_eff</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>A_eff_aov</ci>
+                        <ci>eps</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>A_eff_trv</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <times/>
+                                <ci>M_st_trv</ci>
+                                <ci>A_nn_trv</ci>
+                            </apply>
+                            <apply>
+                                <times/>
+                                <ci>M_rg_trv</ci>
+                                <ci>A_nn_trv</ci>
+                            </apply>
+                        </apply>
+                        <ci>zeta_trv</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>M_rg_trv</ci>
+                        <ci>A_nn_trv</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>A_eff_puv</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <times/>
+                                <ci>M_st_puv</ci>
+                                <ci>A_nn_puv</ci>
+                            </apply>
+                            <apply>
+                                <times/>
+                                <ci>M_rg_puv</ci>
+                                <ci>A_nn_puv</ci>
+                            </apply>
+                        </apply>
+                        <ci>zeta_puv</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>M_rg_puv</ci>
+                        <ci>A_nn_puv</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>A_eff_miv</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <times/>
+                                <ci>M_st_miv</ci>
+                                <ci>A_nn_miv</ci>
+                            </apply>
+                            <apply>
+                                <times/>
+                                <ci>M_rg_miv</ci>
+                                <ci>A_nn_miv</ci>
+                            </apply>
+                        </apply>
+                        <ci>zeta_miv</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>M_rg_miv</ci>
+                        <ci>A_nn_miv</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>A_eff_aov</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <times/>
+                                <ci>M_st_aov</ci>
+                                <ci>A_nn_aov</ci>
+                            </apply>
+                            <apply>
+                                <times/>
+                                <ci>M_rg_aov</ci>
+                                <ci>A_nn_aov</ci>
+                            </apply>
+                        </apply>
+                        <ci>zeta_aov</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>M_rg_aov</ci>
+                        <ci>A_nn_aov</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>zeta_trv</ci>
+                </apply>
                 <piecewise>
                     <piece>
                         <apply>
                             <times/>
-                            <ci>CQ_trv</ci>
                             <apply>
-                                <root/>
-                                <apply>
-                                    <minus/>
-                                    <ci>u_ra</ci>
-                                    <ci>u_rv</ci>
-                                </apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>zeta_trv</ci>
+                            </apply>
+                            <ci>K_vo_trv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_ra</ci>
+                                <ci>u_rv</ci>
                             </apply>
                         </apply>
                         <apply>
@@ -538,114 +853,290 @@
                             <ci>u_rv</ci>
                         </apply>
                     </piece>
-                    <piece>
-                        <cn cellml:units="m3_per_s">0</cn>
+                    <otherwise>
                         <apply>
-                            <lt/>
+                            <times/>
+                            <ci>zeta_trv</ci>
+                            <ci>K_vc_trv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_ra</ci>
+                                <ci>u_rv</ci>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>zeta_puv</ci>
+                </apply>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>zeta_puv</ci>
+                            </apply>
+                            <ci>K_vo_puv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_rv</ci>
+                                <ci>u_par</ci>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>u_rv</ci>
+                            <ci>u_par</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <times/>
+                            <ci>zeta_puv</ci>
+                            <ci>K_vc_puv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_rv</ci>
+                                <ci>u_par</ci>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>zeta_miv</ci>
+                </apply>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>zeta_miv</ci>
+                            </apply>
+                            <ci>K_vo_miv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_la</ci>
+                                <ci>u_lv</ci>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>u_la</ci>
+                            <ci>u_lv</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <times/>
+                            <ci>zeta_miv</ci>
+                            <ci>K_vc_miv</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_la</ci>
+                                <ci>u_lv</ci>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>zeta_aov</ci>
+                </apply>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>zeta_aov</ci>
+                            </apply>
+                            <ci>K_vo_aov</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_lv</ci>
+                                <ci>u_root</ci>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>u_lv</ci>
+                            <ci>u_root</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <times/>
+                            <ci>zeta_aov</ci>
+                            <ci>K_vc_aov</ci>
+                            <apply>
+                                <minus/>
+                                <ci>u_lv</ci>
+                                <ci>u_root</ci>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_trv</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <plus/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <ci>B_trv</ci>
+                                </apply>
+                                <ci>v_trv</ci>
+                                <apply>
+                                    <abs/>
+                                    <ci>v_trv</ci>
+                                </apply>
+                            </apply>
                             <ci>u_ra</ci>
-                            <ci>u_rv</ci>
                         </apply>
-                    </piece>
-                </piecewise>
+                        <ci>u_rv</ci>
+                    </apply>
+                    <ci>L_trv</ci>
+                </apply>
             </apply>
             <apply>
                 <eq/>
-                <ci>v_rv</ci>
-                <piecewise>
-                    <piece>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_puv</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
                         <apply>
-                            <times/>
-                            <ci>CQ_puv</ci>
+                            <plus/>
                             <apply>
-                                <root/>
+                                <times/>
                                 <apply>
                                     <minus/>
-                                    <ci>u_rv</ci>
-                                    <ci>u_par</ci>
+                                    <ci>B_puv</ci>
+                                </apply>
+                                <ci>v_puv</ci>
+                                <apply>
+                                    <abs/>
+                                    <ci>v_puv</ci>
                                 </apply>
                             </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
                             <ci>u_rv</ci>
-                            <ci>u_par</ci>
                         </apply>
-                    </piece>
-                    <piece>
-                        <cn cellml:units="m3_per_s">0</cn>
-                        <apply>
-                            <lt/>
-                            <ci>u_rv</ci>
-                            <ci>u_par</ci>
-                        </apply>
-                    </piece>
-                </piecewise>
+                        <ci>u_par</ci>
+                    </apply>
+                    <ci>L_puv</ci>
+                </apply>
             </apply>
             <apply>
                 <eq/>
-                <ci>v_la</ci>
-                <piecewise>
-                    <piece>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_miv</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
                         <apply>
-                            <times/>
-                            <ci>CQ_miv</ci>
+                            <plus/>
                             <apply>
-                                <root/>
+                                <times/>
                                 <apply>
                                     <minus/>
-                                    <ci>u_la</ci>
-                                    <ci>u_lv</ci>
+                                    <ci>B_miv</ci>
+                                </apply>
+                                <ci>v_miv</ci>
+                                <apply>
+                                    <abs/>
+                                    <ci>v_miv</ci>
                                 </apply>
                             </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
                             <ci>u_la</ci>
-                            <ci>u_lv</ci>
                         </apply>
-                    </piece>
-                    <piece>
-                        <cn cellml:units="m3_per_s">0</cn>
-                        <apply>
-                            <lt/>
-                            <ci>u_la</ci>
-                            <ci>u_lv</ci>
-                        </apply>
-                    </piece>
-                </piecewise>
+                        <ci>u_lv</ci>
+                    </apply>
+                    <ci>L_miv</ci>
+                </apply>
             </apply>
             <apply>
                 <eq/>
-                <ci>v_lv</ci>
-                <piecewise>
-                    <piece>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_aov</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
                         <apply>
-                            <times/>
-                            <ci>CQ_aov</ci>
+                            <plus/>
                             <apply>
-                                <root/>
+                                <times/>
                                 <apply>
                                     <minus/>
-                                    <ci>u_lv</ci>
-                                    <ci>u_root</ci>
+                                    <ci>B_aov</ci>
+                                </apply>
+                                <ci>v_aov</ci>
+                                <apply>
+                                    <abs/>
+                                    <ci>v_aov</ci>
                                 </apply>
                             </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
                             <ci>u_lv</ci>
-                            <ci>u_root</ci>
                         </apply>
-                    </piece>
-                    <piece>
-                        <cn cellml:units="m3_per_s">0</cn>
-                        <apply>
-                            <lt/>
-                            <ci>u_lv</ci>
-                            <ci>u_root</ci>
-                        </apply>
-                    </piece>
-                </piecewise>
+                        <ci>u_root</ci>
+                    </apply>
+                    <ci>L_aov</ci>
+                </apply>
             </apply>
             <apply>
                 <eq/>
@@ -748,7 +1239,7 @@
                         <ci>v_svc</ci>
                         <ci>v_ivc</ci>
                     </apply>
-                    <ci>v_ra</ci>
+                    <ci>v_trv</ci>
                 </apply>
             </apply>
             <apply>
@@ -762,8 +1253,8 @@
                 </apply>
                 <apply>
                     <minus/>
-                    <ci>v_ra</ci>
-                    <ci>v_rv</ci>
+                    <ci>v_trv</ci>
+                    <ci>v_puv</ci>
                 </apply>
             </apply>
             <apply>
@@ -778,7 +1269,7 @@
                 <apply>
                     <minus/>
                     <ci>v_pvn</ci>
-                    <ci>v_la</ci>
+                    <ci>v_miv</ci>
                 </apply>
             </apply>
             <apply>
@@ -792,8 +1283,8 @@
                 </apply>
                 <apply>
                     <minus/>
-                    <ci>v_la</ci>
-                    <ci>v_lv</ci>
+                    <ci>v_miv</ci>
+                    <ci>v_aov</ci>
                 </apply>
             </apply>
         </math>
@@ -804,7 +1295,7 @@
         <map_variables variable_1="u_par" variable_2="u_par"/>
         <map_variables variable_1="v_pvn" variable_2="v_pvn"/>
         <map_variables variable_1="u_la" variable_2="u_la"/>
-        <map_variables variable_1="v_rv" variable_2="v_rv"/>
+        <map_variables variable_1="v_puv" variable_2="v_pul_valve"/>
     </connection>
     <connection>
         <map_components component_1="parameters_pulmonary" component_2="pulmonary"/>
@@ -824,10 +1315,6 @@
         <map_variables variable_1="T_ar" variable_2="T_ar"/>
         <map_variables variable_1="T_vc" variable_2="T_vc"/>
         <map_variables variable_1="T_vr" variable_2="T_vr"/>
-        <map_variables variable_1="CQ_trv" variable_2="CQ_trv"/>
-        <map_variables variable_1="CQ_puv" variable_2="CQ_puv"/>
-        <map_variables variable_1="CQ_miv" variable_2="CQ_miv"/>
-        <map_variables variable_1="CQ_aov" variable_2="CQ_aov"/>
         <map_variables variable_1="E_lv_A" variable_2="E_lv_A"/>
         <map_variables variable_1="E_lv_B" variable_2="E_lv_B"/>
         <map_variables variable_1="E_la_A" variable_2="E_la_A"/>
@@ -866,7 +1353,7 @@
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="heart" component_2="aortic_root_module"/>
-   <map_variables variable_1="v_lv" variable_2="v_in"/>
+   <map_variables variable_1="v_aov" variable_2="v_in"/>
    <map_variables variable_1="u_root" variable_2="u_C"/>
 </connection>
 <connection>
