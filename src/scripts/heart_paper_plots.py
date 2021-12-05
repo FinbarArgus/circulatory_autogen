@@ -40,7 +40,7 @@ if __name__ == '__main__':
             exit()
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
-        model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}_new_valve.cellml')
+        model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
         input_params_to_id = sys.argv[3]
@@ -93,9 +93,15 @@ if __name__ == '__main__':
 
         pred_obs_nom = sim_helper.get_results(obs_state_list, obs_alg_list)
 
-        # get results with modified venous compliance
+        # get results with modified venous compliance x5
         mod_factors = [5.0]
         pred_obs_C_venous_increase = sim_helper.modify_params_and_run_and_get_results([], ['venous_svc/C'],
+                                                 mod_factors, obs_state_list, obs_alg_list)
+        # simulate with best param vals again to make sure best params are set after resetting.
+        param_id.simulate_with_best_param_vals()
+        # get results with modified venous compliance x10
+        mod_factors = [10.0]
+        pred_obs_C_venous_increase_10 = sim_helper.modify_params_and_run_and_get_results([], ['venous_svc/C'],
                                                  mod_factors, obs_state_list, obs_alg_list)
 
 
@@ -179,33 +185,38 @@ if __name__ == '__main__':
 
         axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
         axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, 300.0)
-        axs[0, 0].set_ylim(0.0, 30.0)
+        axs[0, 0].set_xlim(0.0, 200.0)
+        axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
-                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nom')
+                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nominal')
         axs[0, 0].plot(m3_to_cm3*pred_obs_C_venous_increase[q_lv_idx, -n_steps:],
-                       Pa_to_kPa*pred_obs_C_venous_increase[u_lv_idx, -n_steps:], 'r--', label='$C_{ven}$ inc')
+                       Pa_to_kPa*pred_obs_C_venous_increase[u_lv_idx, -n_steps:], 'r--', label='$C_{ven}$ x5')
+        axs[0, 0].plot(m3_to_cm3*pred_obs_C_venous_increase_10[q_lv_idx, -n_steps:],
+                       Pa_to_kPa*pred_obs_C_venous_increase_10[u_lv_idx, -n_steps:], 'r', label='$C_{ven}$ x10')
 
         axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
         axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
-        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nom')
-        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase[q_lv_idx, :], 'r--', label='$C_{ven}$ inc')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase[q_lv_idx, :], 'r--', label='$C_{ven}$ x5')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase_10[q_lv_idx, :], 'r', label='$C_{ven}$ x10')
 
         axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
         axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
-        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nom')
-        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_C_venous_increase[u_ar_idx, :], 'r--', label='$C_{ven}$ inc')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_C_venous_increase[u_ar_idx, :], 'r--', label='$C_{ven}$ x5')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_C_venous_increase_10[u_ar_idx, :], 'r', label='$C_{ven}$ x10')
 
         axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
         axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
-        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nom')
-        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase[v_ar_idx, :], 'r--', label='$C_{ven}$ inc')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase[v_ar_idx, :], 'r--', label='$C_{ven}$ x5')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase_10[v_ar_idx, :], 'r', label='$C_{ven}$ x10')
 
         fig.align_ylabels(axs[:, 0])
         fig.align_ylabels(axs[:, 1])
@@ -219,10 +230,10 @@ if __name__ == '__main__':
 
         axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
         axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, 300.0)
+        axs[0, 0].set_xlim(0.0, 200.0)
         axs[0, 0].set_ylim(0.0, 30.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
-                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nom')
+                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nominal')
         axs[0, 0].plot(m3_to_cm3*pred_obs_aov_stenosis_50[q_lv_idx, -n_steps:],
                        Pa_to_kPa*pred_obs_aov_stenosis_50[u_lv_idx, -n_steps:], 'r--', label='50% aov stenosis')
         axs[0, 0].plot(m3_to_cm3*pred_obs_aov_stenosis_85[q_lv_idx, -n_steps:],
@@ -232,7 +243,7 @@ if __name__ == '__main__':
         axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
-        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nom')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_aov_stenosis_50[q_lv_idx, :], 'r--', label='50% aov stenosis')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_aov_stenosis_85[q_lv_idx, :], 'r', label='85% aov stenosis')
 
@@ -240,7 +251,7 @@ if __name__ == '__main__':
         axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
-        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nom')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_aov_stenosis_50[u_ar_idx, :], 'r--', label='50% aov stenosis')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_aov_stenosis_85[u_ar_idx, :], 'r', label='85% aov stenosis')
 
@@ -248,7 +259,7 @@ if __name__ == '__main__':
         axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
-        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nom')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_aov_stenosis_50[v_ar_idx, :], 'r--', label='50% aov stenosis')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_aov_stenosis_85[v_ar_idx, :], 'r', label='85% aov stenosis')
 
@@ -264,10 +275,10 @@ if __name__ == '__main__':
 
         axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
         axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, 300.0)
-        axs[0, 0].set_ylim(0.0, 30.0)
+        axs[0, 0].set_xlim(0.0, 200.0)
+        axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, :],
-                       Pa_to_kPa*pred_obs_nom[u_lv_idx, :], 'b', label='nom')
+                       Pa_to_kPa*pred_obs_nom[u_lv_idx, :], 'b', label='nominal')
         axs[0, 0].plot(m3_to_cm3*pred_obs_miv_stenosis_50[q_lv_idx, -n_steps:],
                        Pa_to_kPa*pred_obs_miv_stenosis_50[u_lv_idx, -n_steps:], 'r--', label='50% miv stenosis')
         axs[0, 0].plot(m3_to_cm3*pred_obs_miv_stenosis_85[q_lv_idx, -n_steps:],
@@ -277,7 +288,7 @@ if __name__ == '__main__':
         axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
-        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nom')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_stenosis_50[q_lv_idx, :], 'r--', label='50% miv stenosis')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_stenosis_85[q_lv_idx, :], 'r', label='85% miv stenosis')
 
@@ -285,7 +296,7 @@ if __name__ == '__main__':
         axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
-        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nom')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_stenosis_50[u_ar_idx, :], 'r--', label='50% miv stenosis')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_stenosis_85[u_ar_idx, :], 'r', label='85% miv stenosis')
 
@@ -293,7 +304,7 @@ if __name__ == '__main__':
         axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
-        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nom')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_miv_stenosis_50[v_ar_idx, :], 'r--', label='50% miv stenosis')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_miv_stenosis_85[v_ar_idx, :], 'r', label='85% miv stenosis')
 
@@ -309,10 +320,10 @@ if __name__ == '__main__':
 
         axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
         axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
-        axs[0, 0].set_xlim(0.0, 300.0)
-        axs[0, 0].set_ylim(0.0, 30.0)
+        axs[0, 0].set_xlim(0.0, 200.0)
+        axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
-                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nom')
+                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='nominal')
         axs[0, 0].plot(m3_to_cm3*pred_obs_miv_regurge_02[q_lv_idx, -n_steps:],
                        Pa_to_kPa*pred_obs_miv_regurge_02[u_lv_idx, -n_steps:], 'r--', label='2% miv regurge')
         axs[0, 0].plot(m3_to_cm3*pred_obs_miv_regurge_05[q_lv_idx, -n_steps:],
@@ -322,7 +333,7 @@ if __name__ == '__main__':
         axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
-        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nom')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_regurge_02[q_lv_idx, :], 'r--', label='2% miv regurge')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_regurge_05[q_lv_idx, :], 'r', label='5% miv regurge')
 
@@ -330,7 +341,7 @@ if __name__ == '__main__':
         axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
-        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nom')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_regurge_02[u_ar_idx, :], 'r--', label='2% miv regurge')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_regurge_05[u_ar_idx, :], 'r', label='5% miv regurge')
 
@@ -338,7 +349,7 @@ if __name__ == '__main__':
         axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
-        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nom')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_miv_regurge_02[v_ar_idx, :], 'r--', label='2% miv regurge')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_miv_regurge_05[v_ar_idx, :], 'r', label='5% miv regurge')
 
