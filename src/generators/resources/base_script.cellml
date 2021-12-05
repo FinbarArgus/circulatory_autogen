@@ -191,10 +191,10 @@
         <variable name="u_lv" units="J_per_m3"/>
         <variable name="u_root" public_interface="in" units="J_per_m3"/>
         <variable name="u_par" public_interface="in" units="J_per_m3"/>
-        <variable name="v_ra" units="m3_per_s"/>
-        <variable name="v_rv" public_interface="out" units="m3_per_s"/>
-        <variable name="v_la" units="m3_per_s"/>
-        <variable name="v_lv" public_interface="out" units="m3_per_s"/>
+        <variable name="v_trv" units="m3_per_s"/>
+        <variable name="v_puv" public_interface="out" units="m3_per_s"/>
+        <variable name="v_miv" units="m3_per_s"/>
+        <variable name="v_aov" public_interface="out" units="m3_per_s"/>
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
@@ -517,7 +517,7 @@
             <!-- Constitutive Relations-->
             <apply>
                 <eq/>
-                <ci>v_ra</ci>
+                <ci>v_trv</ci>
                 <piecewise>
                     <piece>
                         <apply>
@@ -550,7 +550,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>v_rv</ci>
+                <ci>v_puv</ci>
                 <piecewise>
                     <piece>
                         <apply>
@@ -583,7 +583,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>v_la</ci>
+                <ci>v_miv</ci>
                 <piecewise>
                     <piece>
                         <apply>
@@ -616,7 +616,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>v_lv</ci>
+                <ci>v_aov</ci>
                 <piecewise>
                     <piece>
                         <apply>
@@ -748,7 +748,7 @@
                         <ci>v_svc</ci>
                         <ci>v_ivc</ci>
                     </apply>
-                    <ci>v_ra</ci>
+                    <ci>v_trv</ci>
                 </apply>
             </apply>
             <apply>
@@ -762,8 +762,8 @@
                 </apply>
                 <apply>
                     <minus/>
-                    <ci>v_ra</ci>
-                    <ci>v_rv</ci>
+                    <ci>v_trv</ci>
+                    <ci>v_puv</ci>
                 </apply>
             </apply>
             <apply>
@@ -778,7 +778,7 @@
                 <apply>
                     <minus/>
                     <ci>v_pvn</ci>
-                    <ci>v_la</ci>
+                    <ci>v_miv</ci>
                 </apply>
             </apply>
             <apply>
@@ -792,8 +792,8 @@
                 </apply>
                 <apply>
                     <minus/>
-                    <ci>v_la</ci>
-                    <ci>v_lv</ci>
+                    <ci>v_miv</ci>
+                    <ci>v_aov</ci>
                 </apply>
             </apply>
         </math>
@@ -804,7 +804,7 @@
         <map_variables variable_1="u_par" variable_2="u_par"/>
         <map_variables variable_1="v_pvn" variable_2="v_pvn"/>
         <map_variables variable_1="u_la" variable_2="u_la"/>
-        <map_variables variable_1="v_rv" variable_2="v_rv"/>
+        <map_variables variable_1="v_puv" variable_2="v_rv"/>
     </connection>
     <connection>
         <map_components component_1="parameters_pulmonary" component_2="pulmonary"/>

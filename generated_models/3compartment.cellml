@@ -866,7 +866,7 @@
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="heart" component_2="aortic_root_module"/>
-   <map_variables variable_1="v_lv" variable_2="v_in"/>
+   <map_variables variable_1="v_aov" variable_2="v_in"/>
    <map_variables variable_1="u_root" variable_2="u_C"/>
 </connection>
 <connection>
