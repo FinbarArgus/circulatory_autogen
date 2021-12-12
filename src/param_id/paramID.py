@@ -322,17 +322,20 @@ class CVS0DParamID():
                         param_state_names_for_gen.append([input_params["param_name"][II]])
                     else:
                         param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                          range(len(input_params["vessel_name"][II]))])
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
 
                 elif input_params["param_type"][II] == 'const':
                     self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                    input_params["param_name"][II]for JJ in
                                                    range(len(input_params["vessel_name"][II]))])
-                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                      range(len(input_params["vessel_name"][II]))])
+                    if input_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        param_const_names_for_gen.append([input_params["param_name"][II]])
+                    else:
+                        param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
             # set param ranges from file
             self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
