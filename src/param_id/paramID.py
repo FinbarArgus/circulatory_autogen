@@ -32,7 +32,7 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None,  param_id_obs_path=None,
-                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004,
+                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -43,7 +43,7 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
-        self.dt = 0.01
+        self.dt = dt
         self.n_steps = int(sim_time/self.dt)
 
         case_type = f'{param_id_method}_{file_name_prefix}'
@@ -491,7 +491,7 @@ class OpencorParamID():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                self.point_interval, maximumNumberofSteps=100000000,
+                                maximumNumberofSteps=100000000,
                                 maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
