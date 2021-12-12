@@ -1103,9 +1103,9 @@
     <component name="pv_simple_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable name="I" public_interface="out" units="Js2_per_m6"/>
-        <variable name="C" public_interface="out" units="m6_per_J"/>
-        <variable name="R" public_interface="out" units="Js_per_m6"/>
+        <variable name="I" public_interface="in" units="Js2_per_m6"/>
+        <variable name="C" public_interface="in" units="m6_per_J"/>
+        <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -1140,35 +1140,13 @@
                         <minus/>
                         <apply>
                             <minus/>
-                            <apply>
-                                <minus/>
-                                <ci>u_in</ci>
-                                <ci>u</ci>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <ci>R</ci>
-                                <ci>v</ci>
-                            </apply>
+                            <ci>u_in</ci>
+                            <ci>u</ci>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>beta_g</ci>
-                            <ci>rho</ci>
-                            <ci>g</ci>
-                            <ci>l</ci>
-                            <apply>
-                                <cos/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <times/>
-                                        <ci>theta</ci>
-                                        <pi/>
-                                    </apply>
-                                    <cn cellml:units="dimensionless">180</cn>
-                                </apply>
-                            </apply>
+                            <ci>R</ci>
+                            <ci>v</ci>
                         </apply>
                     </apply>
                     <ci>I</ci>
@@ -1253,39 +1231,17 @@
                         <minus/>
                         <apply>
                             <minus/>
-                            <apply>
-                                <minus/>
-                                <ci>u_in</ci>
-                                <ci>u</ci>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <apply>
-                                    <divide/>
-                                    <ci>R</ci>
-                                    <cn cellml:units="dimensionless">2</cn>
-                                </apply>
-                                <ci>v</ci>
-                            </apply>
+                            <ci>u_in</ci>
+                            <ci>u</ci>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>beta_g</ci>
-                            <ci>rho</ci>
-                            <ci>g</ci>
-                            <ci>l</ci>
                             <apply>
-                                <cos/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <times/>
-                                        <ci>theta</ci>
-                                        <pi/>
-                                    </apply>
-                                    <cn cellml:units="dimensionless">180</cn>
-                                </apply>
+                                <divide/>
+                                <ci>R</ci>
+                                <cn cellml:units="dimensionless">2</cn>
                             </apply>
+                            <ci>v</ci>
                         </apply>
                     </apply>
                     <apply>

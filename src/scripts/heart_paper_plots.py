@@ -27,6 +27,7 @@ generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
 from param_id.paramID import CVS0DParamID
 from utilities import obj_to_string
 import traceback
+from opencor_helper import *
 
 if __name__ == '__main__':
 
@@ -35,20 +36,23 @@ if __name__ == '__main__':
         if not os.path.exists(user_plots_path):
             os.mkdir(user_plots_path)
 
-        if len(sys.argv) != 5:
-            print(f'incorrect number of inputs to heart_paper.py')
-            exit()
-        param_id_method = sys.argv[1]
-        file_name_prefix = sys.argv[2]
+        param_id_method = 'genetic_algorithm'
+        file_name_prefix = '3compartment'
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
+        file_name_prefix_phys = 'simple_physiological'
+        model_path_phys = os.path.join(generated_models_dir_path, f'{file_name_prefix_phys}.cellml')
+
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = sys.argv[3]
+        input_params_to_id = True
         if input_params_to_id:
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+            input_params_path_phys = os.path.join(resources_dir_path, f'{file_name_prefix_phys}_params_for_id.csv')
         else:
             input_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
+        param_id_obs_path = '/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json'
+        # TODO do the param id for physiological model
+        # param_id_obs_path_phys = 'home/finbar/Documents/git_projects/circulatory_autogen/physiological_observables.json'
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -57,11 +61,13 @@ if __name__ == '__main__':
         else:
             pre_time = 20.0
         sim_time = 2.0
-
+        dt = 0.01
+        max_step = 0.0004
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=max_step, dt=dt)
+
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
@@ -183,8 +189,8 @@ if __name__ == '__main__':
         # ______ Plot venous compliance increase comparison ______ #
         fig, axs = plt.subplots(2, 2)
 
-        axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
-        axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
+        axs[0, 0].set_xlabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 0].set_ylabel('$P_{lv}$ [$kPa$]', fontsize=14)
         axs[0, 0].set_xlim(0.0, 200.0)
         axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
@@ -195,7 +201,7 @@ if __name__ == '__main__':
                        Pa_to_kPa*pred_obs_C_venous_increase_10[u_lv_idx, -n_steps:], 'r', label='$C_{ven}$ x10')
 
         axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
+        axs[0, 1].set_ylabel('$q_{lv}$ [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
@@ -203,7 +209,7 @@ if __name__ == '__main__':
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_C_venous_increase_10[q_lv_idx, :], 'r', label='$C_{ven}$ x10')
 
         axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
+        axs[1, 0].set_ylabel('$P_{ar}$ [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
@@ -211,7 +217,7 @@ if __name__ == '__main__':
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_C_venous_increase_10[u_ar_idx, :], 'r', label='$C_{ven}$ x10')
 
         axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
+        axs[1, 1].set_ylabel('$v_{ar}$ [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
@@ -228,8 +234,8 @@ if __name__ == '__main__':
         # ______ Plot aortic valve stenosis comparison ______ #
         fig, axs = plt.subplots(2, 2)
 
-        axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
-        axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
+        axs[0, 0].set_xlabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 0].set_ylabel('$P_{lv}$ [$kPa$]', fontsize=14)
         axs[0, 0].set_xlim(0.0, 200.0)
         axs[0, 0].set_ylim(0.0, 30.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
@@ -240,7 +246,7 @@ if __name__ == '__main__':
                        Pa_to_kPa*pred_obs_aov_stenosis_85[u_lv_idx, -n_steps:], 'r', label='85% aov stenosis')
 
         axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
+        axs[0, 1].set_ylabel('$q_{lv}$ [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
@@ -248,7 +254,7 @@ if __name__ == '__main__':
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_aov_stenosis_85[q_lv_idx, :], 'r', label='85% aov stenosis')
 
         axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
+        axs[1, 0].set_ylabel('$P_{ar}$ [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
@@ -256,7 +262,7 @@ if __name__ == '__main__':
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_aov_stenosis_85[u_ar_idx, :], 'r', label='85% aov stenosis')
 
         axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
+        axs[1, 1].set_ylabel('$v_{ar}$ [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
@@ -273,8 +279,8 @@ if __name__ == '__main__':
         # ______ Plot mitral valve stenosis comparison ______ #
         fig, axs = plt.subplots(2, 2)
 
-        axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
-        axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
+        axs[0, 0].set_xlabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 0].set_ylabel('$P_{lv}$ [$kPa$]', fontsize=14)
         axs[0, 0].set_xlim(0.0, 200.0)
         axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, :],
@@ -285,7 +291,7 @@ if __name__ == '__main__':
                        Pa_to_kPa*pred_obs_miv_stenosis_85[u_lv_idx, -n_steps:], 'r', label='85% miv stenosis')
 
         axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
+        axs[0, 1].set_ylabel('$q_{lv}$ [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
@@ -293,7 +299,7 @@ if __name__ == '__main__':
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_stenosis_85[q_lv_idx, :], 'r', label='85% miv stenosis')
 
         axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
+        axs[1, 0].set_ylabel('$P_{ar}$ [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
@@ -301,7 +307,7 @@ if __name__ == '__main__':
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_stenosis_85[u_ar_idx, :], 'r', label='85% miv stenosis')
 
         axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
+        axs[1, 1].set_ylabel('$v_{ar}$ [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
@@ -318,8 +324,8 @@ if __name__ == '__main__':
         # ______ Plot regurgitation comparison ______ #
         fig, axs = plt.subplots(2, 2)
 
-        axs[0, 0].set_xlabel('q_lv [$ml$]', fontsize=14)
-        axs[0, 0].set_ylabel('P_lv [$kPa$]', fontsize=14)
+        axs[0, 0].set_xlabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 0].set_ylabel('$P_{lv}$ [$kPa$]', fontsize=14)
         axs[0, 0].set_xlim(0.0, 200.0)
         axs[0, 0].set_ylim(0.0, 20.0)
         axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
@@ -330,7 +336,7 @@ if __name__ == '__main__':
                        Pa_to_kPa*pred_obs_miv_regurge_05[u_lv_idx, -n_steps:], 'r', label='5% miv regurge')
 
         axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[0, 1].set_ylabel('q_lv [$ml$]', fontsize=14)
+        axs[0, 1].set_ylabel('$q_{lv}$ [$ml$]', fontsize=14)
         axs[0, 1].set_xlim(0.0, sim_time)
         axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='nominal')
@@ -338,7 +344,7 @@ if __name__ == '__main__':
         axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_miv_regurge_05[q_lv_idx, :], 'r', label='5% miv regurge')
 
         axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 0].set_ylabel('P_ar [$kPa$]', fontsize=14)
+        axs[1, 0].set_ylabel('$P_{ar}$ [$kPa$]', fontsize=14)
         axs[1, 0].set_xlim(0.0, sim_time)
         axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='nominal')
@@ -346,7 +352,7 @@ if __name__ == '__main__':
         axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_miv_regurge_05[u_ar_idx, :], 'r', label='5% miv regurge')
 
         axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
-        axs[1, 1].set_ylabel('v_ar [$ml/s$]', fontsize=14)
+        axs[1, 1].set_ylabel('$v_{ar}$ [$ml/s$]', fontsize=14)
         axs[1, 1].set_xlim(0.0, sim_time)
         axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
         axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='nominal')
@@ -361,6 +367,68 @@ if __name__ == '__main__':
         plt.savefig(os.path.join(user_plots_path, 'heart_model_miv_regurgitation.pdf'))
 
         param_id.close_simulation()
+
+        pre_time = 25.0
+        # now do simulation for physiological
+        phys_sim_helper = SimulationHelper(model_path_phys, dt, sim_time, maximumNumberofSteps=100000000,
+                             maximumStep=max_step, pre_time=pre_time)
+
+        # define observables to plot
+        obs_state_list = ['aortic_arch_C46/v', 'heart/q_lv']
+        obs_alg_list = ['aortic_arch_C46/u', 'heart/u_lv']
+        obs_list = obs_state_list + obs_alg_list
+
+        # v_ar_idx_phys = 0
+        # q_lv_idx_phys = 1
+        # u_ar_idx_phys = 2
+        # u_lv_idx_phys = 3
+        success = phys_sim_helper.run()
+        if success:
+            pred_obs_nom_phys = phys_sim_helper.get_results(obs_state_list, obs_alg_list)
+        else:
+            print('phys sim failed')
+            exit()
+
+
+        # plot nominal and physiological results
+        fig, axs = plt.subplots(2, 2)
+
+        axs[0, 0].set_xlabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 0].set_ylabel('$P_{lv}$ [$kPa$]', fontsize=14)
+        axs[0, 0].set_xlim(0.0, 200.0)
+        axs[0, 0].set_ylim(0.0, 20.0)
+        axs[0, 0].plot(m3_to_cm3*pred_obs_nom[q_lv_idx, -n_steps:],
+                       Pa_to_kPa*pred_obs_nom[u_lv_idx, -n_steps:], 'b', label='9 sections')
+        axs[0, 0].plot(m3_to_cm3*pred_obs_nom_phys[q_lv_idx, -n_steps:],
+                       Pa_to_kPa*pred_obs_nom_phys[u_lv_idx, -n_steps:], 'r', label='80 sections')
+
+        axs[0, 1].set_xlabel('Time [$s$]', fontsize=14)
+        axs[0, 1].set_ylabel('$q_{lv}$ [$ml$]', fontsize=14)
+        axs[0, 1].set_xlim(0.0, sim_time)
+        # axs[0, 1].plot(tSim, m3_to_cm3*gt_q_lv, 'k--', label='experimental')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom[q_lv_idx, :], 'b', label='9 sections')
+        axs[0, 1].plot(tSim, m3_to_cm3*pred_obs_nom_phys[q_lv_idx, :], 'r', label='80 sections')
+
+        axs[1, 0].set_xlabel('Time [$s$]', fontsize=14)
+        axs[1, 0].set_ylabel('$P_{ar}$ [$kPa$]', fontsize=14)
+        axs[1, 0].set_xlim(0.0, sim_time)
+        # axs[1, 0].plot(tSim, Pa_to_kPa*gt_u_ar, 'k--', label='experimental')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom[u_ar_idx, :], 'b', label='9 sections')
+        axs[1, 0].plot(tSim, Pa_to_kPa*pred_obs_nom_phys[u_ar_idx, :], 'r', label='80 sections')
+
+        axs[1, 1].set_xlabel('Time [$s$]', fontsize=14)
+        axs[1, 1].set_ylabel('$v_{ar}$ [$ml/s$]', fontsize=14)
+        axs[1, 1].set_xlim(0.0, sim_time)
+        # axs[1, 1].plot(tSim, m3_to_cm3*gt_v_ar, 'k--', label='experimental')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom[v_ar_idx, :], 'b', label='9 sections')
+        axs[1, 1].plot(tSim, m3_to_cm3*pred_obs_nom_phys[v_ar_idx, :], 'r', label='80 sections')
+
+        fig.align_ylabels(axs[:, 0])
+        fig.align_ylabels(axs[:, 1])
+        axs[1, 1].legend(loc='lower right', fontsize=6)
+        plt.tight_layout()
+        plt.savefig(os.path.join(user_plots_path, 'heart_model_3compartment_vs_physiological.eps'))
+        plt.savefig(os.path.join(user_plots_path, 'heart_model_3compartment_vs_physiological.pdf'))
 
     except:
         print(traceback.format_exc())
