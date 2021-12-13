@@ -28,7 +28,7 @@ A_nn_trv,m2,heart,0.0008,Mynard_2012
 A_nn_puv,m2,heart,0.00071,Mynard_2012
 A_nn_miv,m2,heart,0.00077,Mynard_2012
 A_nn_aov,m2,heart,0.00068,Mynard_2012
-l_eff,metre,heart,0.01,Mynard_2012
+l_eff,metre,heart,0.01,to_be_identified
 K_vo_trv,m3_per_Js,heart,0.3,Mynard_2012
 K_vo_puv,m3_per_Js,heart,0.2,Mynard_2012
 K_vo_miv,m3_per_Js,heart,0.3,Mynard_2012
