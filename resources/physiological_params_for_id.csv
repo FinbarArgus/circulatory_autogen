@@ -1,0 +1,10 @@
+vessel_name,                  param_name,       param_type, min,        max
+heart,                        q_lv,             state,      4e-4,       20e-4 
+leg_L_T leg_R_T,              R_T,              const,      6e5,        5e9
+arm_L_T arm_R_T,              R_T,              const,      6e5,        5e10
+anterior_cerebral_L_T anterior_cerebral_R_T,R_T,const,      6e5,        5e10
+external_carotid_L_T external_carotid_R_T,R_T,  const,      6e5,        5e10
+middle_cerebral_L_T middle_cerebral_R_T,R_T,    const,      6e5,        5e10
+posterior_cerebral_L_T posterior_cerebral_R_T,R_T,const,    6e5,        5e10
+trunk_C_T,                    R_T,              const,      6e5,        5e9
+venous_lb venous_ub venous_ivc venous_svc, C,   const,      1e-11,      1e-08
