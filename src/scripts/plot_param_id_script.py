@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path, 
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()

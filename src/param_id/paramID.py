@@ -32,7 +32,7 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None,  param_id_obs_path=None,
-                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004,
+                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -43,7 +43,7 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
-        self.dt = 0.01
+        self.dt = dt
         self.n_steps = int(sim_time/self.dt)
 
         case_type = f'{param_id_method}_{file_name_prefix}'
@@ -322,17 +322,20 @@ class CVS0DParamID():
                         param_state_names_for_gen.append([input_params["param_name"][II]])
                     else:
                         param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                          range(len(input_params["vessel_name"][II]))])
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
 
                 elif input_params["param_type"][II] == 'const':
                     self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                    input_params["param_name"][II]for JJ in
                                                    range(len(input_params["vessel_name"][II]))])
-                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                      range(len(input_params["vessel_name"][II]))])
+                    if input_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        param_const_names_for_gen.append([input_params["param_name"][II]])
+                    else:
+                        param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
             # set param ranges from file
             self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
@@ -491,7 +494,7 @@ class OpencorParamID():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                self.point_interval, maximumNumberofSteps=100000000,
+                                maximumNumberofSteps=100000000,
                                 maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
@@ -655,16 +658,16 @@ class OpencorParamID():
             while cost[0] > cost_convergence and gen_count < self.max_generations:
                 # TODO make these modifiable to the user
                 if gen_count > 100:
-                    mutation_weight = 0.01
+                   mutation_weight = 0.01
                 elif gen_count > 160:
-                    mutation_weight = 0.005
+                   mutation_weight = 0.005
                 elif gen_count > 220:
-                    mutation_weight = 0.002
+                   mutation_weight = 0.002
                 elif gen_count > 300:
-                    mutation_weight = 0.001
+                   mutation_weight = 0.001
                 else:
-                    mutation_weight = 0.02
-                
+                   mutation_weight = 0.02
+
                 # elif gen_count > 280:
                 #     mutation_weight = 0.0003
 

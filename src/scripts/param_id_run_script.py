@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004, DEBUG=True)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':
