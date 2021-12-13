@@ -2,6 +2,7 @@
     { "variable": "leg_L_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 7.327e-6
@@ -9,6 +10,7 @@
     { "variable": "leg_R_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 7.291e-6
@@ -16,6 +18,7 @@
     { "variable": "arm_L_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 1.565e-6
@@ -23,6 +26,7 @@
     { "variable": "arm_R_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 1.548e-6
@@ -30,6 +34,7 @@
     { "variable": "head_L_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 7.34e-6
@@ -37,12 +42,14 @@
     { "variable": "head_R_T/v",
       "data_type": "constant",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "weight": 1.0,
       "obs_type": "mean",
       "value": 7.31e-6
     },
     { "variable": "trunk_C_T/v",
       "state_or_alg": "state",
+      "unit": "m3_per_s",
       "data_type": "constant",
       "weight": 1.0,
       "obs_type": "mean",
@@ -51,6 +58,7 @@
     { "variable": "aortic_arch_C46/u",
       "data_type": "constant",
       "state_or_alg": "alg",
+      "unit": "J_per_m3",
       "weight": 5.0,
       "obs_type": "mean",
       "value": 12000

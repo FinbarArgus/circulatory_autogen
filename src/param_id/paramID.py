@@ -24,6 +24,7 @@ from skopt import gp_minimize, Optimizer
 import resource
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
+import json
 
 class CVS0DParamID():
     """
@@ -31,7 +32,7 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None,  param_id_obs_path=None,
-                 sim_time=2.0, pre_time=20.0,
+                 sim_time=2.0, pre_time=20.0, maximumStep=0.0004, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -41,6 +42,9 @@ class CVS0DParamID():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
+
+        self.dt = dt
+        self.n_steps = int(sim_time/self.dt)
 
         case_type = f'{param_id_method}_{file_name_prefix}'
         if self.rank == 0:
@@ -61,7 +65,10 @@ class CVS0DParamID():
         # param names
         self.obs_state_names = None
         self.obs_alg_names = None
-        self.weight_vec = None
+        self.obs_types = None
+        self.obs_state_or_alg= None
+        self.weight_const_vec = None
+        self.weight_series_vec = None
         self.param_state_names = None
         self.param_const_names = None
         self.num_obs_states = None
@@ -75,15 +82,17 @@ class CVS0DParamID():
             self.__set_and_save_param_names(input_params_path=input_params_path)
 
         # ground truth values
-        self.ground_truth = self.__get_ground_truth_values()
+        self.ground_truth_consts, self.ground_truth_series = self.__get_ground_truth_values()
 
 
         if param_id_model_type == 'CVS0D':
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
-                                           self.obs_state_names, self.obs_alg_names, self.weight_vec,
-                                           self.param_state_names, self.param_const_names, self.ground_truth,
+                                           self.obs_state_names, self.obs_alg_names, self.obs_types,
+                                           self.obs_state_or_alg, self.weight_const_vec, self.weight_series_vec,
+                                           self.param_state_names, self.param_const_names, self.ground_truth_consts,
+                                           self.ground_truth_series,
                                            self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
-                                           DEBUG=self.DEBUG)
+                                           dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.param_id.set_output_dir(self.output_dir)
 
@@ -94,7 +103,7 @@ class CVS0DParamID():
         self.param_id.run()
 
     def simulate_with_best_param_vals(self):
-        self.param_id.simulate_once()
+        self.param_id.simulate_with_best_param_vals()
         self.best_output_calculated = True
 
     def update_param_range(self, params_to_update_list_of_lists, mins, maxs):
@@ -121,33 +130,75 @@ class CVS0DParamID():
         Pa_to_kPa = 1e-3
 
         best_fit_obs = self.param_id.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
-        best_fit_obs_means = np.mean(best_fit_obs, axis=1)
+        best_fit_obs_consts, best_fit_obs_series  = self.param_id.get_pred_obs_vec_and_array(best_fit_obs)
 
         # _________ Plot best comparison _____________
         subplot_width = 2
         fig, axs = plt.subplots(subplot_width, subplot_width)
 
         obs_names = self.obs_state_names + self.obs_alg_names
+        obs_names_unique = []
+        for obs_name in obs_names:
+            if obs_name not in obs_names_unique:
+                obs_names_unique.append(obs_name)
+
         col_idx = 0
         row_idx = 0
         plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        means_plot_gt = np.tile(self.ground_truth.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
-        means_plot_bf = np.tile(best_fit_obs_means.reshape(-1, 1), (1, self.param_id.sim_helper.nSteps))
-        for II in range(self.num_obs):
+        consts_plot_gt = np.tile(self.ground_truth_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
+        consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
 
-            words = obs_names[II].replace('_', ' ').upper().split()
+        series_plot_gt = np.array(self.ground_truth_series)
+
+
+        for unique_obs_count in range(len(obs_names_unique)):
+            this_obs_waveform_plotted = False
+            words = obs_names_unique[unique_obs_count].replace('_', ' ').upper().split()
             obs_name_for_plot = "".join([word[0] for word in words])
-            if II < self.num_obs_states:
-                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*means_plot_gt[II, :], 'k', label='gt mean')
-                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*means_plot_bf[II, :], 'b', label='bf mean')
-                axs[row_idx, col_idx].plot(tSim, m3_to_cm3*best_fit_obs[II, :], 'r', label='bf')
-                axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/2$]', fontsize=14)
-            else:
-                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*means_plot_gt[II, :], 'k', label='gt mean')
-                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*means_plot_bf[II, :], 'b', label='bf mean')
-                axs[row_idx, col_idx].plot(tSim, Pa_to_kPa*best_fit_obs[II, :], 'r', label='bf')
-                axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
+            consts_idx = -1
+            series_idx = -1
+            for II in range(self.num_obs):
+                # TODO the below counting is hacky, store the constant and series data in one list of arrays
+                if self.gt_df.iloc[II]["data_type"] == "constant":
+                    consts_idx += 1
+                elif self.gt_df.iloc[II]["data_type"] == "series":
+                    series_idx += 1
+                # TODO generalise this for not just flows and pressures
+                if obs_names[II] == obs_names_unique[unique_obs_count]:
+                    for JJ in range(self.num_obs):
+                        if obs_names[II] == self.gt_df.iloc[JJ]['variable'] and \
+                                self.obs_types[II] == self.gt_df.iloc[JJ]['obs_type']:
+                            break
+
+                    if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
+                        conversion = m3_to_cm3
+                        axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
+                    elif self.gt_df.iloc[JJ]["unit"] == 'm3':
+                        conversion = m3_to_cm3
+                        axs[row_idx, col_idx].set_ylabel(f'q_{obs_name_for_plot} [$cm^3$]', fontsize=14)
+                    elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
+                        conversion = Pa_to_kPa
+                        axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
+                    else:
+                        print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
+                              f'for plotting')
+                        exit()
+                    if not this_obs_waveform_plotted:
+                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='bf')
+                        this_obs_waveform_plotted = True
+
+                    if self.obs_types[II] == 'mean':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
+                    elif self.obs_types[II] == 'max':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'r', label='bf max')
+                    elif self.obs_types[II] == 'min':
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='bf min')
+                    elif self.obs_types[II] == 'series':
+                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='gt')
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
@@ -175,7 +226,7 @@ class CVS0DParamID():
                     row_idx = 0
                     plot_idx += 1
                     # create new plot
-                    if II != self.num_obs - 1:
+                    if unique_obs_count != len(obs_names_unique) - 1:
                         fig, axs = plt.subplots(subplot_width, subplot_width)
                         plot_saved = False
 
@@ -203,23 +254,51 @@ class CVS0DParamID():
         self.param_id.close_simulation()
 
     def __set_obs_names_and_df(self, param_id_obs_path):
-        self.gt_df = pd.read_json(param_id_obs_path)
+        with open(param_id_obs_path, encoding='utf-8-sig') as rf:
+            json_obj = json.load(rf)
+        self.gt_df = pd.DataFrame(json_obj)
+        if self.gt_df.columns[0] == 'data_item':
+            self.gt_df = self.gt_df['data_item']
 
-        self.obs_state_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
-                                if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        self.obs_alg_names = [self.gt_df["data_item"][II]["variable"] for II in range(self.gt_df.shape[0])
-                                if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
+        # TODO get rid of reliance on order being states then algs
+        self.obs_state_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        self.obs_alg_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
+
+        obs_state_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])
+                                if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        obs_alg_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])
+                              if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
+
+        obs_state_state_or_alg = [self.gt_df.iloc[II]["state_or_alg"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        obs_alg_state_or_alg = [self.gt_df.iloc[II]["state_or_alg"] for II in range(self.gt_df.shape[0])
+                         if self.gt_df.iloc[II]["state_or_alg"] == "alg"]
 
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
         self.num_obs = self.num_obs_states + self.num_obs_algs
+        self.obs_types = obs_state_types + obs_alg_types
+        self.obs_state_or_alg = obs_state_state_or_alg + obs_alg_state_or_alg
 
-        # how much to weight the pressure measurement by
-        state_weight_list = [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                             if self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-        alg_weight_list =  [self.gt_df["data_item"][II]["weight"] for II in range(self.gt_df.shape[0])
-                           if self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
-        self.weight_vec = np.array(np.concatenate([state_weight_list, alg_weight_list]))
+        # how much to weight the different observable errors by
+        const_state_weight_list = [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                             if self.gt_df.iloc[II]["state_or_alg"] == "state" and
+                                self.gt_df.iloc[II]["data_type"] == "constant"]
+        const_alg_weight_list =  [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                           if self.gt_df.iloc[II]["state_or_alg"] == "alg" and
+                              self.gt_df.iloc[II]["data_type"] == "constant"]
+
+        self.weight_const_vec = np.array(np.concatenate([const_state_weight_list, const_alg_weight_list]))
+
+        series_state_weight_list = [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df.iloc[II]["state_or_alg"] == "state" and
+                                   self.gt_df.iloc[II]["data_type"] == "series"]
+        series_alg_weight_list =  [self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                  if self.gt_df.iloc[II]["state_or_alg"] == "alg" and
+                                  self.gt_df.iloc[II]["data_type"] == "series"]
+        self.weight_series_vec = np.array(np.concatenate([series_state_weight_list, series_alg_weight_list]))
 
         return
 
@@ -243,21 +322,24 @@ class CVS0DParamID():
                         param_state_names_for_gen.append([input_params["param_name"][II]])
                     else:
                         param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                          range(len(input_params["vessel_name"][II]))])
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
 
                 elif input_params["param_type"][II] == 'const':
                     self.param_const_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                    input_params["param_name"][II]for JJ in
                                                    range(len(input_params["vessel_name"][II]))])
-                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ]) for JJ in
-                                                      range(len(input_params["vessel_name"][II]))])
+                    if input_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        param_const_names_for_gen.append([input_params["param_name"][II]])
+                    else:
+                        param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(input_params["vessel_name"][II]))])
 
             # set param ranges from file
-            self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[1])])
-            self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[1])])
+            self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
+            self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
 
         else:
             # load the vessel array to get the terminals
@@ -326,28 +408,33 @@ class CVS0DParamID():
 
     def __get_ground_truth_values(self):
 
+        # _______ First we access data for mean values
+
+        # TODO remove the need for the order to be states then algs
+
+        ground_truth_const_states = [self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                    if self.gt_df.iloc[II]["data_type"] == "constant"
+                                    and self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        ground_truth_const_algs = [self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                    if self.gt_df.iloc[II]["data_type"] == "constant"
+                                    and self.gt_df.iloc[II]["state_or_alg"] == "alg"]
+
+        ground_truth_consts = np.concatenate([ground_truth_const_states, ground_truth_const_algs])
+
+        ground_truth_series_states = [self.gt_df.iloc[II]["series"] for II in range(self.gt_df.shape[0])
+                                     if self.gt_df.iloc[II]["data_type"] == "series"
+                                     and self.gt_df.iloc[II]["state_or_alg"] == "state"]
+        ground_truth_series_algs = [self.gt_df.iloc[II]["series"] for II in range(self.gt_df.shape[0])
+                                   if self.gt_df.iloc[II]["data_type"] == "series"
+                                   and self.gt_df.iloc[II]["state_or_alg"] == "alg"]
+
+        ground_truth_series = np.concatenate([ground_truth_series_states, ground_truth_series_algs])
+
         if self.rank == 0:
-            # _______ First we access data for mean values
+            np.save(os.path.join(self.output_dir, 'ground_truth_consts'), ground_truth_consts)
+            # np.save(os.path.join(self.output_dir, 'ground_truth_series'), ground_truth_series)
 
-            ground_truth_mean_states = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
-                                        and self.gt_df["data_item"][II]["state_or_alg"] == "state"]
-            ground_truth_mean_algs = [self.gt_df["data_item"][II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df["data_item"][II]["data_type"] == "constant"
-                                        and self.gt_df["data_item"][II]["state_or_alg"] == "alg"]
-
-            ground_truth = np.concatenate([ground_truth_mean_states, ground_truth_mean_algs])
-
-            np.save(os.path.join(self.output_dir, 'ground_truth'), ground_truth)
-
-        else:
-            ground_truth = np.zeros(self.num_obs)
-            pass
-
-        if self.num_procs > 1:
-            self.comm.Bcast(ground_truth, root=0)
-
-        return ground_truth
+        return ground_truth_consts, ground_truth_series
 
 
 class OpencorParamID():
@@ -355,9 +442,9 @@ class OpencorParamID():
     Class for doing parameter identification on opencor models
     """
     def __init__(self, model_path, param_id_method,
-                 obs_state_names, obs_alg_names, weight_vec,
-                 param_state_names, param_const_names, ground_truth,
-                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0,
+                 obs_state_names, obs_alg_names, obs_types, obs_state_or_alg, weight_const_vec, weight_series_vec,
+                 param_state_names, param_const_names, ground_truth_consts, ground_truth_series,
+                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
                  DEBUG=False):
 
         self.model_path = model_path
@@ -366,24 +453,29 @@ class OpencorParamID():
 
         self.obs_state_names = obs_state_names
         self.obs_alg_names = obs_alg_names
-        self.weight_vec = weight_vec
+        self.obs_types = obs_types
+        self.obs_state_or_alg = obs_state_or_alg
+        self.weight_const_vec = weight_const_vec
+        self.weight_series_vec = weight_series_vec
         self.param_state_names = param_state_names
         self.param_const_names = param_const_names
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
         self.num_obs = self.num_obs_states + self.num_obs_algs
         self.num_params = len(self.param_state_names) + len(self.param_const_names)
-        self.ground_truth = ground_truth
+        self.ground_truth_consts = ground_truth_consts
+        self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
 
 
         # set up opencor simulation
-        self.dt = 0.01  # TODO this could be optimised
+        self.dt = dt  # TODO this could be optimised
+        self.maximumStep=maximumStep
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.nSteps = int(self.sim_time/self.dt)
+        self.n_steps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
 
         # initialise
@@ -402,8 +494,8 @@ class OpencorParamID():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                self.point_interval, maximumNumberofSteps=100000000,
-                                maximumStep=0.0004, pre_time=self.pre_time)
+                                maximumNumberofSteps=100000000,
+                                maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
 
@@ -437,7 +529,7 @@ class OpencorParamID():
             param_ranges = [a for a in zip(self.param_mins, self.param_maxs)]
             updated_version = True # TODO remove this and remove the gp_minimize version
             if not updated_version:
-                res = gp_minimize(self.get_cost,  # the function to minimize
+                res = gp_minimize(self.get_cost_from_params,  # the function to minimize
                                   param_ranges,  # the bounds on each dimension of x
                                   acq_func=self.acq_func,  # the acquisition function
                                   n_calls=self.n_calls,  # the number of evaluations of f
@@ -485,7 +577,7 @@ class OpencorParamID():
                     if num_procs > 1:
                         # broadcast points so every processor has all of the points. TODO This could be optimized for memory
                         comm.Bcast(points_np, root=0)
-                        cost_proc = self.get_cost(points_np[rank, :])
+                        cost_proc = self.get_cost_from_params(points_np[rank, :])
                         # print(f'cost for rank = {rank} is {cost_proc}')
 
                         recv_buf_cost = np.zeros(num_procs)
@@ -496,7 +588,7 @@ class OpencorParamID():
                         cost_np = recv_buf_cost
                         cost = cost_np.tolist()
                     else:
-                        cost = self.get_cost(points)
+                        cost = self.get_cost_from_params(points)
 
 
                     if rank == 0:
@@ -552,7 +644,6 @@ class OpencorParamID():
                 print(f'Running genetic algorithm with a population size of {num_pop},\n'
                       f'and a maximum number of generations of {self.max_generations}')
             simulated_bools = [False]*num_pop
-            mutation_weight = 0.01
             gen_count = 0
 
             if rank == 0:
@@ -566,14 +657,19 @@ class OpencorParamID():
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
                 # TODO make these modifiable to the user
-                if gen_count > 20:
-                    mutation_weight = 0.01
-                elif gen_count > 40:
-                    mutation_weight = 0.005
-                elif gen_count > 80:
-                    mutation_weight = 0.002
-                elif gen_count > 120:
-                    mutation_weight = 0.001
+                if gen_count > 100:
+                   mutation_weight = 0.01
+                elif gen_count > 160:
+                   mutation_weight = 0.005
+                elif gen_count > 220:
+                   mutation_weight = 0.002
+                elif gen_count > 300:
+                   mutation_weight = 0.001
+                else:
+                   mutation_weight = 0.02
+
+                # elif gen_count > 280:
+                #     mutation_weight = 0.0003
 
                 gen_count += 1
                 if rank == 0:
@@ -634,13 +730,13 @@ class OpencorParamID():
                         success = self.sim_helper.run()
                         if success:
                             pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
-                            pred_obs_mean = np.mean(pred_obs, axis=1)
                             # calculate error between the observables of this set of parameters
                             # and the ground truth
-                            cost_proc[II] = self.cost_calc(pred_obs_mean)
+                            cost_proc[II] = self.get_cost_from_obs(pred_obs)
 
                             # reset params
                             self.sim_helper.reset_and_clear()
+                            bools_proc[II] = True # this point has now been simulated
 
                         else:
                             # simulation failed, choose a new random point
@@ -700,8 +796,15 @@ class OpencorParamID():
                     for survivor_idx in range(num_survivors):
                         for JJ in range(num_mutations_per_survivor):
                             simulated_bools[param_idx] = False
-                            param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
-                                                            mutation_weight*np.random.randn(self.num_params)
+                            fifty_fifty = np.random.rand()
+                            if fifty_fifty < 0.5:
+                              ## This accounts for smaller changes when the value is smaller
+                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx]* \
+                                                              (1.0 + mutation_weight*np.random.randn(self.num_params))
+                            else:
+                              ## This doesn't account for smaller changes when the value is smaller
+                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
+                                                              mutation_weight*np.random.randn(self.num_params)
                             param_idx += 1
 
                     # now do cross breeding
@@ -710,9 +813,19 @@ class OpencorParamID():
                         if couple[0] == couple[1]:
                             couple[1] += 1  # this allows crossbreeding out of the survivors but that's ok
                         simulated_bools[param_idx] = False
-                        param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                         param_vals_norm[:, couple[1]])/2 + \
-                                                        mutation_weight*np.random.randn(self.num_params)
+
+                        fifty_fifty = np.random.rand()
+                        if fifty_fifty < 0.5:
+                          ## This accounts for smaller changes when the value is smaller
+                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                           param_vals_norm[:, couple[1]])/2* \
+                                                          (1 + mutation_weight*np.random.randn(self.num_params))
+                        else:
+                          ## This doesn't account for smaller changes when the value is smaller,
+                          ## which is needed to make sure values dont get stuck when they are small
+                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                           param_vals_norm[:, couple[1]])/2 + \
+                                                          mutation_weight*np.random.randn(self.num_params)
                         param_idx += 1
 
                     param_vals = param_norm_obj.unnormalise(param_vals_norm)
@@ -739,7 +852,7 @@ class OpencorParamID():
 
         return
 
-    def get_cost(self, param_vals):
+    def get_cost_from_params(self, param_vals, reset=True):
 
         # set params for this case
         self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names,
@@ -748,13 +861,12 @@ class OpencorParamID():
         success = self.sim_helper.run()
         if success:
             pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
-            pred_obs_mean = np.mean(pred_obs, axis=1)
-            # calculate error between the observables of this set of parameters
-            # and the ground truth
-            cost = self.cost_calc(pred_obs_mean)
+
+            cost = self.get_cost_from_obs(pred_obs)
 
             # reset params
-            self.sim_helper.reset_and_clear()
+            if reset:
+                self.sim_helper.reset_and_clear()
 
         else:
             # simulation set cost to large,
@@ -764,16 +876,78 @@ class OpencorParamID():
 
         return cost
 
-    def cost_calc(self, prediction):
-        return np.sum(np.power(self.weight_vec*(prediction -
-                                         self.ground_truth)/np.minimum(prediction, self.ground_truth), 2))/(self.num_obs)
+    def get_cost_and_obs_from_params(self, param_vals, reset=True):
 
-    def simulate_once(self):
+        # set params for this case
+        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names,
+                                       param_vals)
+
+        success = self.sim_helper.run()
+        if success:
+            pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
+
+            cost = self.get_cost_from_obs(pred_obs)
+
+            # reset params
+            if reset:
+                self.sim_helper.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed with params...')
+            print(param_vals)
+            cost = 9999
+
+        return cost, pred_obs
+
+    def get_cost_from_obs(self, pred_obs):
+
+        pred_obs_consts_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+        # calculate error between the observables of this set of parameters
+        # and the ground truth
+        cost = self.cost_calc(pred_obs_consts_vec, pred_obs_series_array)
+
+        return cost
+
+    def cost_calc(self, prediction_consts, prediction_series=None):
+        cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+                               self.ground_truth_consts)/np.minimum(prediction_consts,
+                                                                    self.ground_truth_consts), 2))/(self.num_obs)
+        # if prediction_series:
+            # TODO Have not included cost from series error yet
+            # cost +=
+            # pass
+
+        return cost
+
+    def get_pred_obs_vec_and_array(self, pred_obs):
+
+        pred_obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))
+        pred_obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
+        const_count = 0
+        series_count = 0
+        for JJ in range(len(pred_obs)):
+            if self.obs_types[JJ] == 'mean':
+                pred_obs_consts_vec[const_count] = np.mean(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'max':
+                pred_obs_consts_vec[const_count] = np.max(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'min':
+                pred_obs_consts_vec[const_count] = np.min(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'series':
+                pred_obs_series_array[series_count, :] = pred_obs[JJ, :]
+                series_count += 1
+                pass
+        return pred_obs_consts_vec, pred_obs_series_array
+
+    def simulate_with_best_param_vals(self):
 
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
-        if not self.best_param_vals:
+        if self.best_param_vals is None:
             self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
         else:
@@ -783,19 +957,40 @@ class OpencorParamID():
         # ___________ Run model with new parameters ________________
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
-        # set params to best fit from param id
-        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names, self.best_param_vals)
-        self.sim_helper.run()
 
-        #check cost
-        pred_obs = self.sim_helper.get_results(self.obs_state_names, self.obs_alg_names)
-        pred_obs_mean = np.mean(pred_obs, axis=1)
-        cost_check = self.cost_calc(pred_obs_mean)
+        # run simulation and check cost
+        cost_check, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+        pred_obs_constants_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 
-        # TODO remove the below print
-        print(f'final pressure mean = {pred_obs_mean[-1]}')
+        print(f'final obs values :')
+        print(pred_obs_constants_vec)
+        # TODO print all const outputs with their variable name
+
+    def simulate_once(self):
+
+        if MPI.COMM_WORLD.Get_rank() != 0:
+            print('simulate once should only be done on one rank')
+            exit()
+        else:
+            # The sim object has already been opened so the best cost doesn't need to be opened
+            pass
+
+        # ___________ Run model with new parameters ________________
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+
+        # run simulation and check cost
+        cost_check, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+        pred_obs_constants_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+
+        print(f'cost should be {self.best_cost}')
+        print('cost check after single simulation is {}'.format(cost_check))
+
+        print(f'final obs values :')
+        print(pred_obs_constants_vec)
 
     def set_genetic_algorithm_parameters(self, n_calls):
         if not self.param_id_method == 'genetic_algorithm':

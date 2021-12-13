@@ -92,6 +92,8 @@
         <unit units="litre"/>
         <unit exponent="-1" units="second"/>
     </units>
+    <!--//////////////////////
+ rate-->
     <!--////////////////////////
  potential (chemical)-->
     <units name="J_per_mol">
@@ -121,6 +123,11 @@
     <units name="J_per_m3_s">
         <unit units="joule"/>
         <unit exponent="-3" units="metre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="m3_per_Js">
+        <unit exponent="-1" units="joule"/>
+        <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="second"/>
     </units>
     <!--//////////////////////

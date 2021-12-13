@@ -52,11 +52,22 @@ if __name__ == '__main__':
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
             input_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[5])
+        param_id_obs_path = sys.argv[5]
+        if not os.path.exists(param_id_obs_path):
+            print(f'param_id_obs_path={param_id_obs_path} does not exist')
+            exit()
+
+        # set the simulation time where the cost is calculated (sim_time) and the amount of 
+        # simulation time it takes to get to an oscilating steady state before that (pre_time)
+        if file_name_prefix == '3compartment':
+          pre_time = 6.0
+        else: 
+          pre_time = 20.0
+        sim_time = 2.0
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
-                                sim_time=2.0, pre_time=20.0, DEBUG=True)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':
@@ -86,7 +97,9 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: parameter_id_method file_name_prefix num_calls_to_function input_params_to_id")
-        print("e.g. genetic_algorithm simple_physiological 10 True")
+        print("Usage: parameter_id_method file_name_prefix num_calls_to_function "
+              "input_params_to_id path_to_obs_file.json")
+        print("e.g. genetic_algorithm simple_physiological 10 "
+              "True path/to/circulatory_autogen/resources/simple_physiological_obs_data.json")
         comm.Abort()
         exit

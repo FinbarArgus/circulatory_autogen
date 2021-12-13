@@ -1,5 +1,4 @@
 variable_name,units,comp_env,value,data_reference
-rho,Js2_per_m5,heart,1050,known
 C_par,m6_per_J,pulmonary,0.0309077e-6,Blanco_2013_Table_8
 C_pvn,m6_per_J,pulmonary,0.60015e-6,Blanco_2013_Table_8
 R_par,Js_per_m6,pulmonary,10.664e+6,Blanco_2013_Table_8
@@ -46,15 +45,16 @@ M_st_trv,dimensionless,heart,1,Mynard_2012
 M_st_puv,dimensionless,heart,1,Mynard_2012
 M_st_miv,dimensionless,heart,1,Mynard_2012
 M_st_aov,dimensionless,heart,1,Mynard_2012
-R_aortic_root,Js_per_m6,systemic,1.0e+6,to_be_identified
-C_aortic_root,m6_per_J,systemic,1.0e-8,to_be_identified
+rho,Js2_per_m5,heart,1050,known
+R_aortic_root,Js_per_m6,systemic,6.2788e+06,02_12_2021_identified
+C_aortic_root,m6_per_J,systemic,1.5954e-08,02_12_2021_identified
 I_aortic_root,Js2_per_m6,systemic,1.0e+4,to_be_identified
-R_T_systemic,Js_per_m6,systemic,4.0e+8,to_be_identified
+R_T_systemic,Js_per_m6,systemic,9.4967e+07,02_12_2021_identified
 C_T_systemic,m6_per_J,systemic,1e-10,small_chosen
 alpha_systemic,dimensionless,systemic,1.0,not_used
 v_nom_systemic,m3_per_s,systemic,0.0,not_used
-R_venous_svc,Js_per_m6,systemic,1.0e7,small_chosen
-C_venous_svc,m6_per_J,systemic,1.0e-9,to_be_identified
+R_venous_svc,Js_per_m6,systemic,3.4428e+06,02_12_2021_identified
+C_venous_svc,m6_per_J,systemic,2.6456e-08,02_12_2021_identified
 I_venous_svc,Js2_per_m6,systemic,1.0e-3,small_chosen
 beta_g,dimensionless,systemic,0.0,defined_by_user
 gain_int,J_per_m9,systemic,0.0,to_be_identified
