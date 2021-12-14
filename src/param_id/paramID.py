@@ -910,9 +910,11 @@ class OpencorParamID():
         return cost
 
     def cost_calc(self, prediction_consts, prediction_series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+        #                        self.ground_truth_consts)/np.minimum(prediction_consts,
+        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
-                               self.ground_truth_consts)/np.minimum(prediction_consts,
-                                                                    self.ground_truth_consts), 2))/(self.num_obs)
+                               self.ground_truth_consts)/self.ground_truth_consts, 2))/(self.num_obs)
         # if prediction_series:
             # TODO Have not included cost from series error yet
             # cost +=
