@@ -858,16 +858,13 @@ class OpencorParamID():
     def run_sensitivity(self):
 
         self.param_init = self.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
-
-        print(self.param_state_names)
-        print(self.param_const_names)
-        print(self.param_init)
- 
+        param_vec = np.array(self.param_init).flatten()
 #        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.param_state_names, self.param_const_names,
 #                                             self.param_init, self.obs_state_names, self.obs_alg_names, absolute=True)
-        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names, self.param_init)
+        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names, param_vec)
                                            
         return
+
     def get_cost_from_params(self, param_vals, reset=True):
 
         # set params for this case

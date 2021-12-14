@@ -1,5 +1,5 @@
 ## general inputs
-# file_prefix=3compartment
+file_prefix=3compartment
 # file_prefix=simple_physiological
 #file_prefix=physiological
 input_param_file=3compartment_parameters.csv # this must be stored in resources.
