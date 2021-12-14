@@ -102,6 +102,9 @@ class CVS0DParamID():
     def run(self):
         self.param_id.run()
 
+    def run_sensitivity(self):
+        self.param_id.run_sensitivity()
+
     def simulate_with_best_param_vals(self):
         self.param_id.simulate_with_best_param_vals()
         self.best_output_calculated = True
@@ -851,7 +854,20 @@ class OpencorParamID():
             print('best cost       : {}'.format(self.best_cost))
 
         return
+        
+    def run_sensitivity(self):
 
+        self.param_init = self.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
+
+        print(self.param_state_names)
+        print(self.param_const_names)
+        print(self.param_init)
+ 
+#        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.param_state_names, self.param_const_names,
+#                                             self.param_init, self.obs_state_names, self.obs_alg_names, absolute=True)
+        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names, self.param_init)
+                                           
+        return
     def get_cost_from_params(self, param_vals, reset=True):
 
         # set params for this case
