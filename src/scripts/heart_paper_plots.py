@@ -39,7 +39,7 @@ if __name__ == '__main__':
         param_id_method = 'genetic_algorithm'
         file_name_prefix = '3compartment'
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
-        file_name_prefix_phys = 'simple_physiological'
+        file_name_prefix_phys = 'physiological'
         model_path_phys = os.path.join(generated_models_dir_path, f'{file_name_prefix_phys}.cellml')
 
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
@@ -62,7 +62,7 @@ if __name__ == '__main__':
             pre_time = 20.0
         sim_time = 2.0
         dt = 0.01
-        max_step = 0.0004
+        max_step = 0.001
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
