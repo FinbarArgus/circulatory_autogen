@@ -1,5 +1,5 @@
 ## general inputs
-file_prefix=3compartment
+# file_prefix=3compartment
 # file_prefix=simple_physiological
 #file_prefix=physiological
 input_param_file=3compartment_parameters.csv # this must be stored in resources.
@@ -16,6 +16,7 @@ param_id_method=genetic_algorithm
 num_procs=1
 num_calls_to_function=500
 param_id_output_dir=../generated_models/ # path is from the user_run_files dir
+# param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 param_id_obs_path=/home/matthew/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables.json

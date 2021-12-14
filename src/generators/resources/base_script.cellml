@@ -230,10 +230,14 @@
         <variable name="B_puv" units="dimensionless"/>
         <variable name="B_miv" units="dimensionless"/>
         <variable name="B_aov" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_trv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_puv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_miv" units="dimensionless"/>
-        <variable initial_value="0" name="zeta_aov" units="dimensionless"/>
+        <variable name="zeta_trv" units="dimensionless"/>
+        <variable name="zeta_puv" units="dimensionless"/>
+        <variable name="zeta_miv" units="dimensionless"/>
+        <variable name="zeta_aov" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_trv_pre" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
+        <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
         <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
@@ -827,7 +831,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>zeta_trv</ci>
+                    <ci>zeta_trv_pre</ci>
                 </apply>
                 <piecewise>
                     <piece>
@@ -836,7 +840,7 @@
                             <apply>
                                 <minus/>
                                 <cn cellml:units="dimensionless">1</cn>
-                                <ci>zeta_trv</ci>
+                                <ci>zeta_trv_pre</ci>
                             </apply>
                             <ci>K_vo_trv</ci>
                             <apply>
@@ -854,7 +858,7 @@
                     <otherwise>
                         <apply>
                             <times/>
-                            <ci>zeta_trv</ci>
+                            <ci>zeta_trv_pre</ci>
                             <ci>K_vc_trv</ci>
                             <apply>
                                 <minus/>
@@ -872,7 +876,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>zeta_puv</ci>
+                    <ci>zeta_puv_pre</ci>
                 </apply>
                 <piecewise>
                     <piece>
@@ -881,7 +885,7 @@
                             <apply>
                                 <minus/>
                                 <cn cellml:units="dimensionless">1</cn>
-                                <ci>zeta_puv</ci>
+                                <ci>zeta_puv_pre</ci>
                             </apply>
                             <ci>K_vo_puv</ci>
                             <apply>
@@ -899,7 +903,7 @@
                     <otherwise>
                         <apply>
                             <times/>
-                            <ci>zeta_puv</ci>
+                            <ci>zeta_puv_pre</ci>
                             <ci>K_vc_puv</ci>
                             <apply>
                                 <minus/>
@@ -917,7 +921,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>zeta_miv</ci>
+                    <ci>zeta_miv_pre</ci>
                 </apply>
                 <piecewise>
                     <piece>
@@ -926,7 +930,7 @@
                             <apply>
                                 <minus/>
                                 <cn cellml:units="dimensionless">1</cn>
-                                <ci>zeta_miv</ci>
+                                <ci>zeta_miv_pre</ci>
                             </apply>
                             <ci>K_vo_miv</ci>
                             <apply>
@@ -944,7 +948,7 @@
                     <otherwise>
                         <apply>
                             <times/>
-                            <ci>zeta_miv</ci>
+                            <ci>zeta_miv_pre</ci>
                             <ci>K_vc_miv</ci>
                             <apply>
                                 <minus/>
@@ -962,7 +966,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>zeta_aov</ci>
+                    <ci>zeta_aov_pre</ci>
                 </apply>
                 <piecewise>
                     <piece>
@@ -971,7 +975,7 @@
                             <apply>
                                 <minus/>
                                 <cn cellml:units="dimensionless">1</cn>
-                                <ci>zeta_aov</ci>
+                                <ci>zeta_aov_pre</ci>
                             </apply>
                             <ci>K_vo_aov</ci>
                             <apply>
@@ -989,7 +993,7 @@
                     <otherwise>
                         <apply>
                             <times/>
-                            <ci>zeta_aov</ci>
+                            <ci>zeta_aov_pre</ci>
                             <ci>K_vc_aov</ci>
                             <apply>
                                 <minus/>
@@ -1000,6 +1004,44 @@
                     </otherwise>
                 </piecewise>
             </apply>
+            <!-- The below ensures zeta can't be negative-->
+            <apply>
+                <eq/>
+                <ci>zeta_trv</ci>
+                <apply>
+                    <max/>
+                    <ci>zeta_trv_pre</ci>
+                    <cn cellml:units="dimensionless">0</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>zeta_puv</ci>
+                <apply>
+                    <max/>
+                    <ci>zeta_puv_pre</ci>
+                    <cn cellml:units="dimensionless">0</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>zeta_miv</ci>
+                <apply>
+                    <max/>
+                    <ci>zeta_miv_pre</ci>
+                    <cn cellml:units="dimensionless">0</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>zeta_aov</ci>
+                <apply>
+                    <max/>
+                    <ci>zeta_aov_pre</ci>
+                    <cn cellml:units="dimensionless">0</cn>
+                </apply>
+            </apply>
+            <!-- calculate the flow through the valves-->
             <apply>
                 <eq/>
                 <apply>

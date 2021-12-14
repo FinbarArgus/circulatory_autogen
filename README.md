@@ -38,3 +38,7 @@ export LD_LIBRARY_PATH=[OpenCOR]/lib
 so that libcrypto.so.1.1 could be
 found. I don't understand why this :is necessary, but it is
 
+IMPORTANT intalling mpi4py may require the following line 
+to install the mpi software on your computer
+
+sudo apt install libopenmpi-dev
