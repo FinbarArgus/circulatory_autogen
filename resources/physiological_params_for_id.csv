@@ -2,7 +2,7 @@ vessel_name,                  param_name,       param_type, min,        max
 heart,                        q_lv,             state,      4e-4,       16e-4 
 heart,                        E_lv_A,           const,      3e8,        5e8
 heart,                        E_lv_B,           const,      5e6,        2e7
-heart,                        E_rv_A,           const,      6e6,        3e7
+heart,                        E_rv_A,           const,      2e7,        5e7
 heart,                        E_rv_B,           const,      3e6,        1e7
 pulmonary,                    R_par,            const,      1e6,        1e8
 leg_L_T leg_R_T,              R_T,              const,      1e7,        4e9
