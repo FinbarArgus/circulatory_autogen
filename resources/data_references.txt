@@ -37,7 +37,7 @@ ADAN-218                  obtained from the ADAN-218 model see paper "An anatomi
                           the flows of non-modelled terminals in the area have been summed to get the value
                           for this terminal. e.g v_nom_leg_L is the sum of all v_nom downstream of the leg.
 
-Pablo_2013_Table_8        "Table 5 - Blanco, P. J., & Feijóo, R. A. (2013). A
+Pablo_2013_Table_5        "Table 5 - Blanco, P. J., & Feijóo, R. A. (2013). A
                           dimensionally-heterogeneous closed-loop model for the cardiovascular system and
                           its applications. Medical Engineering & Physics, 35(5), 652-667."
 
