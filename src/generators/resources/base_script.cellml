@@ -96,7 +96,7 @@
                 <apply>
                     <divide/>
                     <ci>q_pvn</ci>
-                    <ci>C_par</ci>
+                    <ci>C_pvn</ci>
                 </apply>
             </apply>
             <apply>

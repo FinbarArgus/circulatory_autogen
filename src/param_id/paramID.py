@@ -31,7 +31,7 @@ class CVS0DParamID():
     Class for doing parameter identification on a 0D cvs model
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
-                 input_params_path=None,  param_id_obs_path=None,
+                 input_params_path=None,  sensitivity_params_path=None, param_id_obs_path=None,
                  sim_time=2.0, pre_time=20.0, maximumStep=0.0004, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
@@ -71,6 +71,8 @@ class CVS0DParamID():
         self.weight_series_vec = None
         self.param_state_names = None
         self.param_const_names = None
+        self.sensitivity_param_state_names = None
+        self.sensitivity_param_const_names = None
         self.num_obs_states = None
         self.num_obs_algs = None
         self.num_obs = None
@@ -80,6 +82,8 @@ class CVS0DParamID():
             self.__set_obs_names_and_df(param_id_obs_path)
         if input_params_path:
             self.__set_and_save_param_names(input_params_path=input_params_path)
+        if sensitivity_params_path:
+            self.__set_and_save_sensitivity_param_names(sensitivity_params_path=sensitivity_params_path)
 
         # ground truth values
         self.ground_truth_consts, self.ground_truth_series = self.__get_ground_truth_values()
@@ -89,9 +93,11 @@ class CVS0DParamID():
             self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                            self.obs_state_names, self.obs_alg_names, self.obs_types,
                                            self.obs_state_or_alg, self.weight_const_vec, self.weight_series_vec,
-                                           self.param_state_names, self.param_const_names, self.ground_truth_consts,
+                                           self.param_state_names, self.param_const_names,
+                                           self.sensitivity_param_state_names, self.sensitivity_param_const_names, self.ground_truth_consts,
                                            self.ground_truth_series,
-                                           self.param_mins, self.param_maxs, sim_time=sim_time, pre_time=pre_time,
+                                           self.param_mins, self.param_maxs, 
+                                           self.sensitivity_param_mins, self.sensitivity_param_maxs, sim_time=sim_time, pre_time=pre_time,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.param_id.set_output_dir(self.output_dir)
@@ -120,6 +126,17 @@ class CVS0DParamID():
                 if param_name_list == params_to_update_list:
                     self.param_mins[len(self.param_state_names) + JJ] = min
                     self.param_maxs[len(self.param_state_names) + JJ] = max
+    def update_sensitivity_param_range(self, params_to_update_list_of_lists, mins, maxs):
+        # TODO make the user input a parameters_range.csv file to define the mins and maxs
+        for params_to_update_list, min, max in zip(params_to_update_list_of_lists, mins, maxs):
+            for JJ, param_name_list in enumerate(self.sensitivity_param_state_names):
+                if param_name_list == params_to_update_list:
+                    self.sensitivity_param_mins[JJ] = min
+                    self.sensitivity_param_maxs[JJ] = max
+            for JJ, param_name_list in enumerate(self.sensitivity_param_const_names):
+                if param_name_list == params_to_update_list:
+                    self.sensitivity_param_mins[len(self.sensitivity_param_state_names) + JJ] = min
+                    self.sensitivity_param_maxs[len(self.sensitivity_param_state_names) + JJ] = max
 
     def plot_outputs(self):
         if not self.best_output_calculated:
@@ -409,6 +426,109 @@ class CVS0DParamID():
 
         return
 
+    def __set_and_save_sensitivity_param_names(self, sensitivity_params_path=None):
+
+        # Each entry in sensitivity_param_const_names is a name or list of names that gets modified by one parameter
+        if sensitivity_params_path:
+            csv_parser = CSVFileParser()
+            sensitivity_params = csv_parser.get_data_as_dataframe_param_id(sensitivity_params_path)
+            self.sensitivity_param_state_names = []
+            self.sensitivity_param_const_names = []
+            sensitivity_param_state_names_for_gen = []
+            sensitivity_param_const_names_for_gen = []
+            for II in range(sensitivity_params.shape[0]):
+                if sensitivity_params["param_type"][II] == 'state':
+                    self.sensitivity_param_state_names.append([sensitivity_params["vessel_name"][II][JJ] + '/' +
+                                                   sensitivity_params["param_name"][II]for JJ in
+                                                   range(len(sensitivity_params["vessel_name"][II]))])
+                    # TODO the below if is temporary until the heart and pulmonary are modules
+                    if sensitivity_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        sensitivity_param_state_names_for_gen.append([sensitivity_params["param_name"][II]])
+                    else:
+                        sensitivity_param_state_names_for_gen.append([sensitivity_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', sensitivity_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(sensitivity_params["vessel_name"][II]))])
+
+
+                elif sensitivity_params["param_type"][II] == 'const':
+                    self.sensitivity_param_const_names.append([sensitivity_params["vessel_name"][II][JJ] + '/' +
+                                                   sensitivity_params["param_name"][II]for JJ in
+                                                   range(len(sensitivity_params["vessel_name"][II]))])
+                    if sensitivity_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
+                        sensitivity_param_const_names_for_gen.append([sensitivity_params["param_name"][II]])
+                    else:
+                        sensitivity_param_const_names_for_gen.append([sensitivity_params["param_name"][II] + '_' +
+                                                          re.sub('_T$', '', sensitivity_params["vessel_name"][II][JJ])
+                                                          for JJ in range(len(sensitivity_params["vessel_name"][II]))])
+
+            # set param ranges from file
+            self.sensitivity_param_mins = np.array([float(sensitivity_params["min"][JJ]) for JJ in range(sensitivity_params.shape[0])])
+            self.sensitivity_param_maxs = np.array([float(sensitivity_params["max"][JJ]) for JJ in range(sensitivity_params.shape[0])])
+
+        else:
+            # load the vessel array to get the terminals
+            vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
+                                      delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
+            vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
+                                     for II in range(vessel_array.shape[0])])
+
+            terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
+            num_terminals = len(terminal_names)
+            terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
+
+            # chpose parameters automatically.
+            self.sensitivity_param_state_names = [['heart/q_lv']]
+            # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
+            sensitivity_param_state_names_for_gen = [['q_lv']]
+            # self.param_const_names = [[name + '/C' for name in venous_names]]
+            self.sensitivity_param_const_names = []
+            # param_const_names_for_gen = [['C_' + name for name in venous_names]]
+            sensitivity_param_const_names_for_gen = []
+            param_terminals = []
+            param_terminals_for_gen = []
+            same_group = False
+            # get terminal parameter names
+            for terminal_name in terminal_names:
+                for idx, terminal_group in enumerate(param_terminals):
+                    # check if left or right of this terminal is already in param_terminals and add it to the
+                    # same group so that they have the same parameter identified
+                    if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
+                        param_terminals[idx].append(f'{terminal_name}_T/R_T')
+                        param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
+                        same_group = True
+                        break
+                    else:
+                        same_group = False
+                if not same_group:
+                    param_terminals.append([f'{terminal_name}_T/R_T'])
+                    param_terminals_for_gen.append([f'R_T_{terminal_name}'])
+
+            num_resistance_params = len(param_terminals)
+            self.sensitivity_param_const_names += param_terminals
+
+            sensitivity_param_const_names_for_gen += param_terminals_for_gen
+
+            # define allowed param ranges
+            # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
+            self.sensitivity_param_mins = np.array([700e-6] + [5e5]*num_resistance_params)
+            # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
+            self.sensitivity_param_maxs = np.array([2600e-6] + [5e10]*num_resistance_params)
+
+        if self.rank == 0:
+            with open(os.path.join(self.output_dir, 'sensitivity_param_state_names.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(self.sensitivity_param_state_names)
+            with open(os.path.join(self.output_dir, 'sensitivity_param_state_names_for_gen.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(sensitivity_param_state_names_for_gen)
+            with open(os.path.join(self.output_dir, 'sensitivity_param_const_names.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(self.sensitivity_param_const_names)
+            with open(os.path.join(self.output_dir, 'sensitivity_param_const_names_for_gen.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(sensitivity_param_const_names_for_gen)
+
+        return
     def __get_ground_truth_values(self):
 
         # _______ First we access data for mean values
@@ -446,8 +566,9 @@ class OpencorParamID():
     """
     def __init__(self, model_path, param_id_method,
                  obs_state_names, obs_alg_names, obs_types, obs_state_or_alg, weight_const_vec, weight_series_vec,
-                 param_state_names, param_const_names, ground_truth_consts, ground_truth_series,
-                 param_mins, param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
+                 param_state_names, param_const_names, sensitivity_param_state_names, sensitivity_param_const_names,
+                 ground_truth_consts, ground_truth_series,
+                 param_mins, param_maxs, sensitivity_param_mins, sensitivity_param_maxs, sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
                  DEBUG=False):
 
         self.model_path = model_path
@@ -462,14 +583,19 @@ class OpencorParamID():
         self.weight_series_vec = weight_series_vec
         self.param_state_names = param_state_names
         self.param_const_names = param_const_names
+        self.sensitivity_param_state_names = sensitivity_param_state_names
+        self.sensitivity_param_const_names = sensitivity_param_const_names
         self.num_obs_states = len(self.obs_state_names)
         self.num_obs_algs = len(self.obs_alg_names)
         self.num_obs = self.num_obs_states + self.num_obs_algs
         self.num_params = len(self.param_state_names) + len(self.param_const_names)
+        self.sensitivity_num_params = len(self.sensitivity_param_state_names) + len(self.sensitivity_param_const_names)
         self.ground_truth_consts = ground_truth_consts
         self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
+        self.sensitivity_param_mins = sensitivity_param_mins
+        self.sensitivity_param_maxs = sensitivity_param_maxs
 
 
         # set up opencor simulation
@@ -857,17 +983,34 @@ class OpencorParamID():
         
     def run_sensitivity(self):
 
-        self.param_init = self.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
+        self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_state_names, self.sensitivity_param_const_names)
+        param_vec_init = np.array(self.param_init).flatten()
+        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.sensitivity_param_state_names,
+                                                                             self.sensitivity_param_const_names,
+                                                                             param_vec_init, self.obs_state_names,
+                                                                             self.obs_alg_names, absolute=True)
+        cost_base = self.get_cost_from_obs(new_pred_obs)
 
-        print(self.param_state_names)
-        print(self.param_const_names)
-        print(self.param_init)
- 
-#        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.param_state_names, self.param_const_names,
-#                                             self.param_init, self.obs_state_names, self.obs_alg_names, absolute=True)
-        self.sim_helper.set_param_vals(self.param_state_names, self.param_const_names, self.param_init)
-                                           
+        sensitivity_change = []
+        for i in range(len(param_vec_init)):
+            param_vec = param_vec_init.copy()
+            param_vec[i] = param_vec[i]*1.01
+            new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.sensitivity_param_state_names,
+                                                                                 self.sensitivity_param_const_names,
+                                                                                 param_vec, self.obs_state_names,
+                                                                                 self.obs_alg_names, absolute=True)
+            cost = self.get_cost_from_obs(new_pred_obs)
+            percentage_cost_change = (cost/cost_base - 1)
+            percentage_cost_change_per_paramater_change = percentage_cost_change/0.01
+            sensitivity_change.append([percentage_cost_change_per_paramater_change]*1)
+        print(f'state')
+        print(self.sensitivity_param_state_names)
+        print(f'constant')
+        print(self.sensitivity_param_const_names)
+        print(f'cost sensitivity')
+        print(sensitivity_change)
         return
+
     def get_cost_from_params(self, param_vals, reset=True):
 
         # set params for this case

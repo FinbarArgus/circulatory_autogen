@@ -50,8 +50,10 @@ if __name__ == '__main__':
         input_params_to_id = sys.argv[4]
         if input_params_to_id:
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
         else:
             input_params_path = False
+            sensitivity_params_path = False
         param_id_obs_path = sys.argv[5]
         if not os.path.exists(param_id_obs_path):
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
@@ -66,7 +68,9 @@ if __name__ == '__main__':
         sim_time = 2.0
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
+                                input_params_path=input_params_path,
+                                sensitivity_params_path=sensitivity_params_path,
+                                param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
