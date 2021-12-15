@@ -629,10 +629,10 @@ class OpencorParamID():
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
         elif self.param_id_method == 'genetic_algorithm':
-            num_elite = 3
-            num_survivors = 12
+            num_elite = 12
+            num_survivors = 48
             num_mutations_per_survivor = 12
-            num_cross_breed = 30
+            num_cross_breed = 120
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
             if self.n_calls < num_pop:
@@ -656,18 +656,24 @@ class OpencorParamID():
             cost[0] = 9999
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
-                # TODO make these modifiable to the user
-                if gen_count > 100:
-                   mutation_weight = 0.01
-                elif gen_count > 160:
-                   mutation_weight = 0.005
-                elif gen_count > 220:
-                   mutation_weight = 0.002
-                elif gen_count > 300:
-                   mutation_weight = 0.001
-                else:
+                if gen_count > 30:
+                   mutation_weight = 0.04
+                elif gen_count > 60 :
                    mutation_weight = 0.02
-
+                else:
+                   mutation_weight = 0.08
+                # TODO make these modifiable to the user
+                # if gen_count > 100:
+                #    mutation_weight = 0.01
+                # elif gen_count > 160:
+                #    mutation_weight = 0.005
+                # elif gen_count > 220:
+                #    mutation_weight = 0.002
+                # elif gen_count > 300:
+                #    mutation_weight = 0.001
+                # else:
+                #    mutation_weight = 0.02
+                #
                 # elif gen_count > 280:
                 #     mutation_weight = 0.0003
 
