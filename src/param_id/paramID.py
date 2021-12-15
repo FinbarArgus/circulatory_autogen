@@ -792,12 +792,17 @@ class OpencorParamID():
                     # keep the num_survivors best param_vals, replace these with mutations
                     param_idx = num_elite
 
-                    for idx in range(num_elite, num_survivors):
-                        # TODO make the below depend on probability (normalised cost function)
-                        rand_survivor_idx = np.random.randint(num_elite, num_pop)
-                        param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
+                    # for idx in range(num_elite, num_survivors):
+                    #     survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                    #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
+                    #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
+                    #
+                    survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                    rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
+                                                         size=num_survivors-num_elite, p=survive_prob)
+                    param_vals_norm[:, num_elite:num_survivors] = param_vals_norm[:, rand_survivor_idxs]
 
-                        param_idx += 1
+                    param_idx = num_survivors
 
                     for survivor_idx in range(num_survivors):
                         for JJ in range(num_mutations_per_survivor):
