@@ -434,101 +434,34 @@ class CVS0DParamID():
             sensitivity_params = csv_parser.get_data_as_dataframe_param_id(sensitivity_params_path)
             self.sensitivity_param_state_names = []
             self.sensitivity_param_const_names = []
-            sensitivity_param_state_names_for_gen = []
-            sensitivity_param_const_names_for_gen = []
             for II in range(sensitivity_params.shape[0]):
                 if sensitivity_params["param_type"][II] == 'state':
                     self.sensitivity_param_state_names.append([sensitivity_params["vessel_name"][II][JJ] + '/' +
                                                    sensitivity_params["param_name"][II]for JJ in
                                                    range(len(sensitivity_params["vessel_name"][II]))])
-                    # TODO the below if is temporary until the heart and pulmonary are modules
-                    if sensitivity_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
-                        sensitivity_param_state_names_for_gen.append([sensitivity_params["param_name"][II]])
-                    else:
-                        sensitivity_param_state_names_for_gen.append([sensitivity_params["param_name"][II] + '_' +
-                                                          re.sub('_T$', '', sensitivity_params["vessel_name"][II][JJ])
-                                                          for JJ in range(len(sensitivity_params["vessel_name"][II]))])
-
 
                 elif sensitivity_params["param_type"][II] == 'const':
                     self.sensitivity_param_const_names.append([sensitivity_params["vessel_name"][II][JJ] + '/' +
                                                    sensitivity_params["param_name"][II]for JJ in
                                                    range(len(sensitivity_params["vessel_name"][II]))])
-                    if sensitivity_params["vessel_name"][II][0] in ['heart', 'pulmonary']:
-                        sensitivity_param_const_names_for_gen.append([sensitivity_params["param_name"][II]])
-                    else:
-                        sensitivity_param_const_names_for_gen.append([sensitivity_params["param_name"][II] + '_' +
-                                                          re.sub('_T$', '', sensitivity_params["vessel_name"][II][JJ])
-                                                          for JJ in range(len(sensitivity_params["vessel_name"][II]))])
 
             # set param ranges from file
             self.sensitivity_param_mins = np.array([float(sensitivity_params["min"][JJ]) for JJ in range(sensitivity_params.shape[0])])
             self.sensitivity_param_maxs = np.array([float(sensitivity_params["max"][JJ]) for JJ in range(sensitivity_params.shape[0])])
 
         else:
-            # load the vessel array to get the terminals
-            vessel_array = genfromtxt(os.path.join(resources_dir, f'{self.file_name_prefix}_vessel_array.csv'),
-                                      delimiter=',', dtype=None, encoding='UTF-8')[1:, :]
-            vessel_array = np.array([[vessel_array[II, JJ].strip() for JJ in range(vessel_array.shape[1])]
-                                     for II in range(vessel_array.shape[0])])
-
-            terminal_names = vessel_array[np.where(vessel_array[:, 2] == 'terminal'), 0].flatten()
-            num_terminals = len(terminal_names)
-            terminal_names = [terminal_names[II].replace('_T', '') for II in range(num_terminals)]
-
-            # chpose parameters automatically.
-            self.sensitivity_param_state_names = [['heart/q_lv']]
-            # the param_*_for_gen stores the names of the constants as they are saved in the parameters csv file
-            sensitivity_param_state_names_for_gen = [['q_lv']]
-            # self.param_const_names = [[name + '/C' for name in venous_names]]
-            self.sensitivity_param_const_names = []
-            # param_const_names_for_gen = [['C_' + name for name in venous_names]]
-            sensitivity_param_const_names_for_gen = []
-            param_terminals = []
-            param_terminals_for_gen = []
-            same_group = False
-            # get terminal parameter names
-            for terminal_name in terminal_names:
-                for idx, terminal_group in enumerate(param_terminals):
-                    # check if left or right of this terminal is already in param_terminals and add it to the
-                    # same group so that they have the same parameter identified
-                    if re.sub('_L?R?$', '', terminal_name) in terminal_group[0]:
-                        param_terminals[idx].append(f'{terminal_name}_T/R_T')
-                        param_terminals_for_gen[idx].append(f'R_T_{terminal_name}')
-                        same_group = True
-                        break
-                    else:
-                        same_group = False
-                if not same_group:
-                    param_terminals.append([f'{terminal_name}_T/R_T'])
-                    param_terminals_for_gen.append([f'R_T_{terminal_name}'])
-
-            num_resistance_params = len(param_terminals)
-            self.sensitivity_param_const_names += param_terminals
-
-            sensitivity_param_const_names_for_gen += param_terminals_for_gen
-
-            # define allowed param ranges
-            # self.param_mins = np.array([100e-6, 1e-9] + [4e6]*self.num_resistance_params)
-            self.sensitivity_param_mins = np.array([700e-6] + [5e5]*num_resistance_params)
-            # self.param_maxs = np.array([1200e-6, 1e-6] + [4e10]*self.num_resistance_params)
-            self.sensitivity_param_maxs = np.array([2600e-6] + [5e10]*num_resistance_params)
+            pass
 
         if self.rank == 0:
             with open(os.path.join(self.output_dir, 'sensitivity_param_state_names.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(self.sensitivity_param_state_names)
-            with open(os.path.join(self.output_dir, 'sensitivity_param_state_names_for_gen.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(sensitivity_param_state_names_for_gen)
             with open(os.path.join(self.output_dir, 'sensitivity_param_const_names.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(self.sensitivity_param_const_names)
-            with open(os.path.join(self.output_dir, 'sensitivity_param_const_names_for_gen.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(sensitivity_param_const_names_for_gen)
 
         return
+
     def __get_ground_truth_values(self):
 
         # _______ First we access data for mean values
@@ -1000,9 +933,9 @@ class OpencorParamID():
                                                                                  param_vec, self.obs_state_names,
                                                                                  self.obs_alg_names, absolute=True)
             cost = self.get_cost_from_obs(new_pred_obs)
-            percentage_cost_change = (cost/cost_base - 1)
-            percentage_cost_change_per_paramater_change = percentage_cost_change/0.01
-            sensitivity_change.append([percentage_cost_change_per_paramater_change]*1)
+            decimal_cost_change = (cost/cost_base - 1)
+            percentage_cost_change_per_parameter_change = decimal_cost_change/0.01
+            sensitivity_change.append([percentage_cost_change_per_parameter_change])
         print(f'state')
         print(self.sensitivity_param_state_names)
         print(f'constant')
