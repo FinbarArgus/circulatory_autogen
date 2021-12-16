@@ -16,7 +16,6 @@ param_id_method=genetic_algorithm
 # num_procs=31
 num_procs=3
 num_calls_to_function=140000
-param_id_output_dir=../generated_models/ # path is from the user_run_files dir
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json 

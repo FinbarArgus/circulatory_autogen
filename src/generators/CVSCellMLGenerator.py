@@ -482,6 +482,8 @@ class CVS0DCellMLGenerator(object):
             if vessel_vec['vessel_type']=='venous':
                 wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
+            if vessel_vec['vessel_type']=='arterial':
+                wf.write('   <variable name="E" public_interface="in" units="J_per_m3"/>\n')
             wf.write('</component>\n')
 
     def __write_comp_to_module_mappings(self, wf, vessel_array):
@@ -501,6 +503,9 @@ class CVS0DCellMLGenerator(object):
             elif vessel_vec["vessel_type"] == 'arterial_simple':
                 inp_vars = ['u', 'v', 'C', 'R', 'I']
                 out_vars = ['u', 'v', 'C', 'R', 'I']
+            elif vessel_vec["vessel_type"] == 'arterial':
+                inp_vars = ['u', 'v', 'E']
+                out_vars = ['u', 'v', 'E']
             else:
                 inp_vars = ['u', 'v']
                 out_vars = ['u', 'v']
