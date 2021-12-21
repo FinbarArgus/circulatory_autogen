@@ -918,18 +918,89 @@ class OpencorParamID():
 
         self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_state_names, self.sensitivity_param_const_names)
         param_vec_init = np.array(self.param_init).flatten()
-        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.sensitivity_param_state_names,
-                                                                             self.sensitivity_param_const_names,
-                                                                             param_vec_init, self.obs_state_names,
+        self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+
+        master_param_state_names = []
+        master_param_const_names = []
+        master_param_values = []
+
+        for i in range(len(self.sensitivity_param_state_names)):
+            master_param_state_names.append(self.sensitivity_param_state_names[i])
+            master_param_values.append(param_vec_init[i])
+#            print(self.sensitivity_param_state_names[i],param_vec_init[i])
+#            print(master_param_values)
+
+        for i in range(len(self.param_state_names)):
+            element_index = -1
+            for j in range(len(master_param_state_names)):
+                if master_param_state_names[j]==self.param_state_names[i]:
+                    element_index = j
+                    break
+            if element_index>=0:
+                master_param_values[element_index] = self.best_param_vals[i]
+            else:
+                master_param_state_names.append(self.param_state_names[i])
+                master_param_values.append(self.best_param_vals[i])
+#            print(master_param_state_names[i], self.best_param_vals[i])
+#            print(master_param_values)
+
+        for i in range(len(self.sensitivity_param_const_names)):
+            master_param_const_names.append(self.sensitivity_param_const_names[i])
+            master_param_values.append(param_vec_init[i+len(self.sensitivity_param_state_names)])
+#            print(master_param_const_names[i], master_param_values)
+
+        for i in range(len(self.param_const_names)):
+            element_index = -1
+            for j in range(len(master_param_const_names)):
+                if master_param_const_names[j]==self.param_const_names[i]:
+                    element_index = j
+                    break
+            if element_index>=0:
+                master_param_values[element_index+len(master_param_state_names)] = self.best_param_vals[i+len(self.param_state_names)]
+            else:
+                master_param_const_names.append(self.param_const_names[i])
+                master_param_values.append(self.best_param_vals[i+len(self.param_state_names)])
+ #           print(master_param_const_names, master_param_values)
+
+
+#        print(f'sensitivity state')
+#        print(self.sensitivity_param_state_names)
+#        print(f'best state')
+#        print(self.param_state_names)
+#        print(f'combined state')
+#        print(master_param_state_names)
+#        print(f'sensitivity const')
+#        print(self.sensitivity_param_const_names)
+#        print(f'best const')
+#        print(self.param_const_names)
+#        print(f'combined const')
+#        print(master_param_const_names)
+#        print(f'Sensitivity Values')
+#        print(param_vec_init)
+#        print(f'Best values')
+#        print(self.best_param_vals)
+#        print(f'Values')
+#        print(master_param_values)
+
+        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
+                                                                             master_param_const_names,
+                                                                             master_param_values, self.obs_state_names,
                                                                              self.obs_alg_names, absolute=True)
         cost_base = self.get_cost_from_obs(new_pred_obs)
 
+        sensitivity_indices = [];
+        for i in range(len(self.sensitivity_param_state_names)):
+            sensitivity_indices.append(i)
+        for i in range(len(self.sensitivity_param_const_names)):
+            sensitivity_indices.append(i+len(master_param_state_names))
+#        print(sensitivity_indices)
+
         sensitivity_change = []
-        for i in range(len(param_vec_init)):
-            param_vec = param_vec_init.copy()
-            param_vec[i] = param_vec[i]*1.01
-            new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(self.sensitivity_param_state_names,
-                                                                                 self.sensitivity_param_const_names,
+        for i in range(len(sensitivity_indices)):
+            param_vec = master_param_values.copy()
+            param_vec[sensitivity_indices[i]] = param_vec[sensitivity_indices[i]]*1.01
+            new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
+                                                                                 master_param_const_names,
                                                                                  param_vec, self.obs_state_names,
                                                                                  self.obs_alg_names, absolute=True)
             cost = self.get_cost_from_obs(new_pred_obs)
