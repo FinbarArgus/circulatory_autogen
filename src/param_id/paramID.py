@@ -25,6 +25,7 @@ import resource
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
+import copy
 
 class CVS0DParamID():
     """
@@ -927,8 +928,6 @@ class OpencorParamID():
         for i in range(len(self.sensitivity_param_state_names)):
             master_param_state_names.append(self.sensitivity_param_state_names[i])
             master_param_values.append(param_vec_init[i])
-#            print(self.sensitivity_param_state_names[i],param_vec_init[i])
-#            print(master_param_values)
 
         for i in range(len(self.param_state_names)):
             element_index = -1
@@ -941,13 +940,10 @@ class OpencorParamID():
             else:
                 master_param_state_names.append(self.param_state_names[i])
                 master_param_values.append(self.best_param_vals[i])
-#            print(master_param_state_names[i], self.best_param_vals[i])
-#            print(master_param_values)
 
         for i in range(len(self.sensitivity_param_const_names)):
             master_param_const_names.append(self.sensitivity_param_const_names[i])
             master_param_values.append(param_vec_init[i+len(self.sensitivity_param_state_names)])
-#            print(master_param_const_names[i], master_param_values)
 
         for i in range(len(self.param_const_names)):
             element_index = -1
@@ -960,59 +956,41 @@ class OpencorParamID():
             else:
                 master_param_const_names.append(self.param_const_names[i])
                 master_param_values.append(self.best_param_vals[i+len(self.param_state_names)])
- #           print(master_param_const_names, master_param_values)
 
 
-#        print(f'sensitivity state')
-#        print(self.sensitivity_param_state_names)
-#        print(f'best state')
-#        print(self.param_state_names)
-#        print(f'combined state')
-#        print(master_param_state_names)
-#        print(f'sensitivity const')
-#        print(self.sensitivity_param_const_names)
-#        print(f'best const')
-#        print(self.param_const_names)
-#        print(f'combined const')
-#        print(master_param_const_names)
-#        print(f'Sensitivity Values')
-#        print(param_vec_init)
-#        print(f'Best values')
-#        print(self.best_param_vals)
-#        print(f'Values')
-#        print(master_param_values)
-
-        new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
+        base_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
                                                                              master_param_const_names,
                                                                              master_param_values, self.obs_state_names,
                                                                              self.obs_alg_names, absolute=True)
-        cost_base = self.get_cost_from_obs(new_pred_obs)
-
-        sensitivity_indices = [];
+        sensitivity_indices = []
         for i in range(len(self.sensitivity_param_state_names)):
             sensitivity_indices.append(i)
         for i in range(len(self.sensitivity_param_const_names)):
             sensitivity_indices.append(i+len(master_param_state_names))
-#        print(sensitivity_indices)
 
-        sensitivity_change = []
+        jacobian_sensitivity = np.zeros((len(sensitivity_indices),len(base_pred_obs)))
+
         for i in range(len(sensitivity_indices)):
-            param_vec = master_param_values.copy()
-            param_vec[sensitivity_indices[i]] = param_vec[sensitivity_indices[i]]*1.01
-            new_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
+            param_vec_up = copy.deepcopy(master_param_values)
+            param_vec_down = copy.deepcopy(master_param_values)
+            param_vec_up[sensitivity_indices[i]] = param_vec_up[sensitivity_indices[i]]*1.01
+            param_vec_down[sensitivity_indices[i]] = param_vec_down[sensitivity_indices[i]]*0.99
+            up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
                                                                                  master_param_const_names,
-                                                                                 param_vec, self.obs_state_names,
+                                                                                 param_vec_up, self.obs_state_names,
                                                                                  self.obs_alg_names, absolute=True)
-            cost = self.get_cost_from_obs(new_pred_obs)
-            decimal_cost_change = (cost/cost_base - 1)
-            percentage_cost_change_per_parameter_change = decimal_cost_change/0.01
-            sensitivity_change.append([percentage_cost_change_per_parameter_change])
-        print(f'state')
-        print(self.sensitivity_param_state_names)
-        print(f'constant')
-        print(self.sensitivity_param_const_names)
-        print(f'cost sensitivity')
-        print(sensitivity_change)
+            down_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
+                                                                                 master_param_const_names,
+                                                                                 param_vec_down, self.obs_state_names,
+                                                                                 self.obs_alg_names, absolute=True)
+            up_pred_obs_consts_vec, up_pred_obs_series_array = self.get_pred_obs_vec_and_array(up_pred_obs)
+            down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
+            for j in range(len(up_pred_obs_consts_vec)):
+                dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_indices[i]]-param_vec_down[sensitivity_indices[i]])
+                jacobian_sensitivity[i,j] = dObs_param
+
+        np.save(os.path.join(self.output_dir, 'jacobian_matrix.npy'), jacobian_sensitivity)
+
         return
 
     def get_cost_from_params(self, param_vals, reset=True):
