@@ -26,6 +26,7 @@ from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
 import copy
+import math
 
 class CVS0DParamID():
     """
@@ -104,13 +105,14 @@ class CVS0DParamID():
             self.param_id.set_output_dir(self.output_dir)
 
         self.best_output_calculated = False
-
+        self.sensitivity_calculated = False
 
     def run(self):
         self.param_id.run()
 
     def run_sensitivity(self):
         self.param_id.run_sensitivity()
+        self.sensitivity_calculated = True
 
     def simulate_with_best_param_vals(self):
         self.param_id.simulate_with_best_param_vals()
@@ -263,6 +265,57 @@ class CVS0DParamID():
             plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_{plot_idx}.pdf'))
+
+    def plot_sensitivity(self):
+        if not self.sensitivity_calculated:
+            print('sensitivity must be calculated first')
+            print('calculating sensitivity ')
+            self.run_sensitivity()
+
+        m3_to_cm3 = 1e6
+        Pa_to_kPa = 1e-3
+
+        sensitivity_param_names = self.sensitivity_param_state_names + self.sensitivity_param_const_names
+        jacobian = np.load(os.path.join(self.output_dir, 'jacobian_matrix.npy'))
+        number_Params = len(jacobian)
+
+        obs_names = self.obs_state_names + self.obs_alg_names
+        obs_names_unique = []
+        for obs_name in obs_names:
+            if obs_name not in obs_names_unique:
+                obs_names_unique.append(obs_name)
+
+        subplot_height = math.floor(math.sqrt(len(obs_names_unique)))
+        subplot_width = math.ceil(len(obs_names_unique)/subplot_height)
+        fig, axs = plt.subplots(subplot_height, subplot_width)
+
+        x_index = 0
+        for param in range(len(obs_names_unique)):
+            x_pos = param % subplot_width
+            y_pos = math.floor(param/subplot_width)
+            x_labels = []
+            subset = []
+            for i in range(len(obs_names)):
+                if obs_names[i] == obs_names_unique[param]:
+                    if self.obs_types[i]!="series":
+                        x_labels.append(self.obs_types[i])
+                        subset.append(x_index)
+                        x_index = x_index + 1
+            for index in range(number_Params):
+                y_values = []
+                for i in range(len(x_labels)):
+                    y_values.append(jacobian[index][subset[i]])
+                axs[x_pos, y_pos].plot(x_labels, y_values, label = sensitivity_param_names[index][0])
+            axs[x_pos,y_pos].set_xlabel(obs_names_unique[param])
+            axs[x_pos,y_pos].set_ylabel("Partial Derivative")
+        axs[0, 0].legend(loc='lower right', fontsize=6)
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_sensitivity.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_sensitivity.pdf'))
 
     def set_genetic_algorithm_parameters(self, n_calls):
         self.param_id.set_genetic_algorithm_parameters(n_calls)
@@ -983,15 +1036,21 @@ class OpencorParamID():
                                                                                  master_param_const_names,
                                                                                  param_vec_down, self.obs_state_names,
                                                                                  self.obs_alg_names, absolute=True)
+
             up_pred_obs_consts_vec, up_pred_obs_series_array = self.get_pred_obs_vec_and_array(up_pred_obs)
             down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
-            for j in range(len(up_pred_obs_consts_vec)):
-                dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_indices[i]]-param_vec_down[sensitivity_indices[i]])
+            for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
+                if j < len(up_pred_obs_consts_vec):
+                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_indices[i]]-param_vec_down[sensitivity_indices[i]])
+                else:
+                    dObs_param = 0
                 jacobian_sensitivity[i,j] = dObs_param
 
         np.save(os.path.join(self.output_dir, 'jacobian_matrix.npy'), jacobian_sensitivity)
 
         return
+
+
 
     def get_cost_from_params(self, param_vals, reset=True):
 
