@@ -745,10 +745,10 @@ class OpencorParamID():
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
         elif self.param_id_method == 'genetic_algorithm':
-            num_elite = 3
-            num_survivors = 12
+            num_elite = 12
+            num_survivors = 48
             num_mutations_per_survivor = 12
-            num_cross_breed = 30
+            num_cross_breed = 120
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
             if self.n_calls < num_pop:
@@ -772,18 +772,24 @@ class OpencorParamID():
             cost[0] = 9999
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
-                # TODO make these modifiable to the user
-                if gen_count > 100:
-                   mutation_weight = 0.01
-                elif gen_count > 160:
-                   mutation_weight = 0.005
-                elif gen_count > 220:
-                   mutation_weight = 0.002
-                elif gen_count > 300:
-                   mutation_weight = 0.001
-                else:
+                if gen_count > 30:
+                   mutation_weight = 0.04
+                elif gen_count > 60 :
                    mutation_weight = 0.02
-
+                else:
+                   mutation_weight = 0.08
+                # TODO make these modifiable to the user
+                # if gen_count > 100:
+                #    mutation_weight = 0.01
+                # elif gen_count > 160:
+                #    mutation_weight = 0.005
+                # elif gen_count > 220:
+                #    mutation_weight = 0.002
+                # elif gen_count > 300:
+                #    mutation_weight = 0.001
+                # else:
+                #    mutation_weight = 0.02
+                #
                 # elif gen_count > 280:
                 #     mutation_weight = 0.0003
 
@@ -902,12 +908,17 @@ class OpencorParamID():
                     # keep the num_survivors best param_vals, replace these with mutations
                     param_idx = num_elite
 
-                    for idx in range(num_elite, num_survivors):
-                        # TODO make the below depend on probability (normalised cost function)
-                        rand_survivor_idx = np.random.randint(num_elite, num_pop)
-                        param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
+                    # for idx in range(num_elite, num_survivors):
+                    #     survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                    #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
+                    #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
+                    #
+                    survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                    rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
+                                                         size=num_survivors-num_elite, p=survive_prob)
+                    param_vals_norm[:, num_elite:num_survivors] = param_vals_norm[:, rand_survivor_idxs]
 
-                        param_idx += 1
+                    param_idx = num_survivors
 
                     for survivor_idx in range(num_survivors):
                         for JJ in range(num_mutations_per_survivor):
@@ -1015,19 +1026,15 @@ class OpencorParamID():
                                                                              master_param_const_names,
                                                                              master_param_values, self.obs_state_names,
                                                                              self.obs_alg_names, absolute=True)
-        sensitivity_indices = []
-        for i in range(len(self.sensitivity_param_state_names)):
-            sensitivity_indices.append(i)
-        for i in range(len(self.sensitivity_param_const_names)):
-            sensitivity_indices.append(i+len(master_param_state_names))
+        num_sensitivity_params = len(self.sensitivity_param_state_names + self.sensitivity_param_const_names)
 
-        jacobian_sensitivity = np.zeros((len(sensitivity_indices),len(base_pred_obs)))
+        jacobian_sensitivity = np.zeros((num_sensitivity_params,self.num_obs))
 
-        for i in range(len(sensitivity_indices)):
+        for i in range(num_sensitivity_params):
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
-            param_vec_up[sensitivity_indices[i]] = param_vec_up[sensitivity_indices[i]]*1.01
-            param_vec_down[sensitivity_indices[i]] = param_vec_down[sensitivity_indices[i]]*0.99
+            param_vec_up[i] = param_vec_up[i]*1.01
+            param_vec_down[i] = param_vec_down[i]*0.99
             up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
                                                                                  master_param_const_names,
                                                                                  param_vec_up, self.obs_state_names,
@@ -1041,7 +1048,9 @@ class OpencorParamID():
             down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
             for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
                 if j < len(up_pred_obs_consts_vec):
-                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_indices[i]]-param_vec_down[sensitivity_indices[i]])
+                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    # TODO Create a normalised jacobian.
+                    #   this must be normalised wrt the parameter range and the observable magnitude or variance
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i,j] = dObs_param
@@ -1110,9 +1119,11 @@ class OpencorParamID():
         return cost
 
     def cost_calc(self, prediction_consts, prediction_series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+        #                        self.ground_truth_consts)/np.minimum(prediction_consts,
+        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
-                               self.ground_truth_consts)/np.minimum(prediction_consts,
-                                                                    self.ground_truth_consts), 2))/(self.num_obs)
+                               self.ground_truth_consts)/self.ground_truth_consts, 2))/(self.num_obs)
         # if prediction_series:
             # TODO Have not included cost from series error yet
             # cost +=
