@@ -36,6 +36,10 @@ if __name__ == '__main__':
         sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
         param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
 
+        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        identifiability_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_identifiability.csv')
+
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
         if file_name_prefix == '3compartment':
@@ -48,6 +52,7 @@ if __name__ == '__main__':
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
+                                identifiability_params_path=identifiability_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
 
