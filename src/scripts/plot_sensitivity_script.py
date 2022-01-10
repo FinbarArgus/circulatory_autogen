@@ -24,22 +24,17 @@ if __name__ == '__main__':
 
     try:
 
-        if len(sys.argv) != 5:
-            print(f'incorrect number of inputs to param_id_run_script.py')
+        if len(sys.argv) != 4:
+            print(f'incorrect number of inputs')
             exit()
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = sys.argv[3]
-        if input_params_to_id:
-            input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
-            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-        else:
-            input_params_path = False
-            sensitivity_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
+        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -63,6 +58,6 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: param_id_method file_name_prefix input_params_to_id, param_id_obs_file")
-        print("e.g. bayesian simple_physiological True simple_physiological_obs_data.json")
+        print("Usage: param_id_method file_name_prefix param_id_obs_file")
+        print("e.g. bayesian simple_physiological simple_physiological_obs_data.json")
         exit()
