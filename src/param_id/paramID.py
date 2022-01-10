@@ -283,38 +283,68 @@ class CVS0DParamID():
         jacobian = np.load(os.path.join(self.output_dir, 'jacobian_matrix.npy'))
         number_Params = len(jacobian)
 
+        print("Jacobian")
+        print(jacobian)
         obs_names = self.obs_state_names + self.obs_alg_names
-        obs_names_unique = []
-        for obs_name in obs_names:
-            if obs_name not in obs_names_unique:
-                obs_names_unique.append(obs_name)
+#        obs_names_unique = []
+#        for obs_name in obs_names:
+#            if obs_name not in obs_names_unique:
+#                obs_names_unique.append(obs_name)
 
-        subplot_height = math.floor(math.sqrt(len(obs_names_unique)))
-        subplot_width = math.ceil(len(obs_names_unique)/subplot_height)
+#        for multiple plot option
+#        subplot_height = math.floor(math.sqrt(len(obs_names_unique)))
+#        subplot_width = math.ceil(len(obs_names_unique)/subplot_height)
+        subplot_height = 1
+        subplot_width = 1
+        plt.rc('xtick', labelsize=3)
         fig, axs = plt.subplots(subplot_height, subplot_width)
 
+        x_labels = []
+        subset = []
         x_index = 0
-        for param in range(len(obs_names_unique)):
-            x_pos = param % subplot_width
-            y_pos = math.floor(param/subplot_width)
-            x_labels = []
-            subset = []
-            for i in range(len(obs_names)):
-                if obs_names[i] == obs_names_unique[param]:
-                    if self.obs_types[i]!="series":
-                        x_labels.append(self.obs_types[i])
-                        subset.append(x_index)
-                        x_index = x_index + 1
-            for index in range(number_Params):
-                y_values = []
-                for i in range(len(x_labels)):
-                    y_values.append(abs(jacobian[index][subset[i]]))
-                axs[x_pos, y_pos].plot(x_labels, y_values, label = sensitivity_param_names[index][0])
-            axs[x_pos,y_pos].set_xlabel(obs_names_unique[param])
-            axs[x_pos,y_pos].set_yscale('log')
-            axs[x_pos,y_pos].set_ylabel(" Abs Derivative")
-        axs[0, 0].legend(loc='lower right', fontsize=6)
-        plt.tight_layout()
+        gt_scalefactor = []
+        for obs in range(len(obs_names)):
+            if self.obs_types[obs]!="series":
+                x_labels.append(obs_names[obs] + " " + self.obs_types[obs])
+                gt_scalefactor.append(1/self.ground_truth_consts[x_index])
+                subset.append(x_index)
+                x_index = x_index + 1
+        print(x_labels)
+        print(subset)
+        print(self.ground_truth_consts)
+        print("Y values")
+        for param in range(len(sensitivity_param_names)):
+            y_values = []
+            param_scalefactor = (self.sensitivity_param_maxs[param]-self.sensitivity_param_mins[param])
+#            param_scalefactor = 1
+            for obs in range(len(x_labels)):
+                y_values.append(abs((jacobian[param][subset[obs]])*gt_scalefactor[subset[obs]]*param_scalefactor))
+            print(y_values)
+            axs.plot(x_labels, y_values, label = sensitivity_param_names[param][0])
+
+#        x_index = 0
+#        for param in range(len(obs_names_unique)):
+#            x_pos = param % subplot_width
+#            y_pos = math.floor(param/subplot_width)
+#            x_labels = []
+#            subset = []
+#            for i in range(len(obs_names)):
+#                if obs_names[i] == obs_names_unique[param]:
+#                    if self.obs_types[i]!="series":
+#                        x_labels.append(self.obs_types[i])
+#                        subset.append(x_index)
+#                        x_index = x_index + 1
+#            for index in range(number_Params):
+#                y_values = []
+#                for i in range(len(x_labels)):
+#                    y_values.append(abs(jacobian[index][subset[i]]))
+#                axs[x_pos, y_pos].plot(x_labels, y_values, label = sensitivity_param_names[index][0])
+#            axs[x_pos,y_pos].set_xlabel(obs_names_unique[param])
+#            axs[x_pos,y_pos].set_yscale('log')
+#            axs[x_pos,y_pos].set_ylabel(" Abs Derivative")
+        axs.set_yscale('log')
+        axs.legend(loc='upper left', fontsize=6)
+#        plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_sensitivity.eps'))
