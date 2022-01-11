@@ -283,8 +283,8 @@ class CVS0DParamID():
         jacobian = np.load(os.path.join(self.output_dir, 'jacobian_matrix.npy'))
         number_Params = len(jacobian)
 
-        print("Jacobian")
-        print(jacobian)
+#        print("Jacobian")
+#        print(jacobian)
         obs_names = self.obs_state_names + self.obs_alg_names
 #        obs_names_unique = []
 #        for obs_name in obs_names:
@@ -306,20 +306,14 @@ class CVS0DParamID():
         for obs in range(len(obs_names)):
             if self.obs_types[obs]!="series":
                 x_labels.append(obs_names[obs] + " " + self.obs_types[obs])
-                gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 subset.append(x_index)
                 x_index = x_index + 1
-        print(x_labels)
-        print(subset)
-        print(self.ground_truth_consts)
-        print("Y values")
         for param in range(len(sensitivity_param_names)):
             y_values = []
-            param_scalefactor = (self.sensitivity_param_maxs[param]-self.sensitivity_param_mins[param])
+#            param_scalefactor = (self.sensitivity_param_maxs[param]-self.sensitivity_param_mins[param])
 #            param_scalefactor = 1
             for obs in range(len(x_labels)):
-                y_values.append(abs((jacobian[param][subset[obs]])*gt_scalefactor[subset[obs]]*param_scalefactor))
-            print(y_values)
+                y_values.append(abs((jacobian[param][subset[obs]])))
             axs.plot(x_labels, y_values, label = sensitivity_param_names[param][0])
 
 #        x_index = 0
@@ -343,7 +337,7 @@ class CVS0DParamID():
 #            axs[x_pos,y_pos].set_yscale('log')
 #            axs[x_pos,y_pos].set_ylabel(" Abs Derivative")
         axs.set_yscale('log')
-        axs.legend(loc='upper left', fontsize=6)
+        axs.legend(loc='lower left', fontsize=6)
 #        plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
@@ -1024,10 +1018,12 @@ class OpencorParamID():
         master_param_state_names = []
         master_param_const_names = []
         master_param_values = []
+        sensitivity_index = []
 
         for i in range(len(self.sensitivity_param_state_names)):
             master_param_state_names.append(self.sensitivity_param_state_names[i])
             master_param_values.append(param_vec_init[i])
+            sensitivity_index.append(i)
 
         for i in range(len(self.param_state_names)):
             element_index = -1
@@ -1043,6 +1039,7 @@ class OpencorParamID():
 
         for i in range(len(self.sensitivity_param_const_names)):
             master_param_const_names.append(self.sensitivity_param_const_names[i])
+            sensitivity_index.append(len(master_param_values))
             master_param_values.append(param_vec_init[i+len(self.sensitivity_param_state_names)])
 
         for i in range(len(self.param_const_names)):
@@ -1063,14 +1060,25 @@ class OpencorParamID():
                                                                              master_param_values, self.obs_state_names,
                                                                              self.obs_alg_names, absolute=True)
         num_sensitivity_params = len(self.sensitivity_param_state_names + self.sensitivity_param_const_names)
+        num_objs = len(self.obs_state_names)+len(self.obs_alg_names)
+        gt_scalefactor = []
+        x_index = 0
+        objs_index = []
+        for obs in range(num_objs):
+            if self.obs_types[obs]!="series":
+                gt_scalefactor.append(1/self.ground_truth_consts[x_index])
+                objs_index.append(x_index)
+                x_index = x_index + 1
 
         jacobian_sensitivity = np.zeros((num_sensitivity_params,self.num_obs))
 
         for i in range(num_sensitivity_params):
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
-            param_vec_up[i] = param_vec_up[i]*1.01
-            param_vec_down[i] = param_vec_down[i]*0.99
+            param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
+            param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
+            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
+            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
             up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
                                                                                  master_param_const_names,
                                                                                  param_vec_up, self.obs_state_names,
@@ -1084,7 +1092,8 @@ class OpencorParamID():
             down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
             for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
                 if j < len(up_pred_obs_consts_vec):
-                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
+                    dObs_param = dObs_param*param_vec_range*gt_scalefactor[objs_index[j]]
                     # TODO Create a normalised jacobian.
                     #   this must be normalised wrt the parameter range and the observable magnitude or variance
                 else:
@@ -1093,6 +1102,20 @@ class OpencorParamID():
 
         np.save(os.path.join(self.output_dir, 'jacobian_matrix.npy'), jacobian_sensitivity)
 
+        param_sensitivity = np.zeros(num_sensitivity_params)
+        for param in range(num_sensitivity_params):
+            sensitivity = 0
+            for objs in range(num_objs):
+                sensitivity = sensitivity + jacobian_sensitivity[param][objs] * jacobian_sensitivity[param][objs]
+            sensitivity = math.sqrt(sensitivity / num_objs)
+            param_sensitivity[param] = sensitivity
+        np.save(os.path.join(self.output_dir, 'sensitivity_vector.npy'), param_sensitivity)
+
+        S_norm = np.zeros((num_sensitivity_params,self.num_obs))
+        for param in range(num_sensitivity_params):
+            for objs in range(num_objs):
+                S_norm[param][objs]= jacobian_sensitivity[param][objs]/param_sensitivity[param]/math.sqrt(num_objs)
+#        Skl_norm =
         return
 
     def run_identifiability(self):
