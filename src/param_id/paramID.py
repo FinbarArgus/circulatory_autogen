@@ -27,6 +27,7 @@ import pandas as pd
 import json
 import copy
 import math
+import scipy.linalg as la
 
 class CVS0DParamID():
     """
@@ -283,8 +284,6 @@ class CVS0DParamID():
         jacobian = np.load(os.path.join(self.output_dir, 'jacobian_matrix.npy'))
         number_Params = len(jacobian)
 
-#        print("Jacobian")
-#        print(jacobian)
         obs_names = self.obs_state_names + self.obs_alg_names
 #        obs_names_unique = []
 #        for obs_name in obs_names:
@@ -302,7 +301,6 @@ class CVS0DParamID():
         x_labels = []
         subset = []
         x_index = 0
-        gt_scalefactor = []
         for obs in range(len(obs_names)):
             if self.obs_types[obs]!="series":
                 x_labels.append(obs_names[obs] + " " + self.obs_types[obs])
@@ -310,8 +308,6 @@ class CVS0DParamID():
                 x_index = x_index + 1
         for param in range(len(sensitivity_param_names)):
             y_values = []
-#            param_scalefactor = (self.sensitivity_param_maxs[param]-self.sensitivity_param_mins[param])
-#            param_scalefactor = 1
             for obs in range(len(x_labels)):
                 y_values.append(abs((jacobian[param][subset[obs]])))
             axs.plot(x_labels, y_values, label = sensitivity_param_names[param][0])
@@ -338,13 +334,50 @@ class CVS0DParamID():
 #            axs[x_pos,y_pos].set_ylabel(" Abs Derivative")
         axs.set_yscale('log')
         axs.legend(loc='lower left', fontsize=6)
-#        plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_sensitivity.eps'))
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_sensitivity.pdf'))
+        sensitivity_vector = np.load(os.path.join(self.output_dir, 'sensitivity_vector.npy'))
+        sensitivity_params = self.sensitivity_param_state_names + self.sensitivity_param_const_names
+        plt.rc('xtick', labelsize=6)
+        plt.rc('ytick', labelsize=12)
+        figB, axsB = plt.subplots(1, 1)
+
+        x_values = []
+        for i in range(len(sensitivity_params)):
+            x_values.append(sensitivity_params[i][0])
+
+        axsB.bar(x_values, sensitivity_vector)
+        axsB.set_ylabel("Parameter Importance", fontsize = 12)
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_parameter_importance.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_parameter_importance.pdf'))
+
+        collinearity_index = np.load(os.path.join(self.output_dir, 'collinearity_index.npy'))
+        plt.rc('xtick', labelsize=12)
+        plt.rc('ytick', labelsize=4)
+        figC, axsC = plt.subplots(1, 1)
+
+        x_values_cumulative = []
+        x_values_temp = x_values[0]
+        for i in range(len(x_values)):
+            x_values_cumulative.append(x_values_temp)
+            if (i+1) < len(x_values):
+                x_values_temp =  x_values[i+1] + "\n" + x_values_temp
+        axsC.barh(x_values_cumulative,collinearity_index)
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_index.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_index.pdf'))
+
 
     def set_genetic_algorithm_parameters(self, n_calls):
         self.param_id.set_genetic_algorithm_parameters(n_calls)
@@ -1008,6 +1041,29 @@ class OpencorParamID():
 
         return
 
+    def Sl_matrix_from_Normalised_Skl(self, Skl, l):
+        num_parameters = len(Skl)
+        num_objectives = len(Skl[0])
+        if l > num_parameters:
+            print("l is greater than the number of parameters")
+            exit()
+        Sl = np.zeros((l,num_objectives))
+
+        for i in range(l):
+            for m in range(num_objectives):
+                Sl[i][m] = Skl[i][m]
+        return Sl
+
+    def Sll_matrix_from_Sl(self,Sl):
+        l = len(Sl)
+        num_objectives = len(Sl[0])
+        Sll = np.zeros((l,l))
+
+        for i in range(l):
+            for j in range(l):
+                for k in range(num_objectives):
+                    Sll[i][j] = Sll[i][j] + Sl[i][k]*Sl[j][k]
+        return Sll
 
     def run_sensitivity(self):
 
@@ -1115,7 +1171,21 @@ class OpencorParamID():
         for param in range(num_sensitivity_params):
             for objs in range(num_objs):
                 S_norm[param][objs]= jacobian_sensitivity[param][objs]/param_sensitivity[param]/math.sqrt(num_objs)
-#        Skl_norm =
+
+        collinearity_eigvals = []
+        for i in range(num_sensitivity_params):
+            Sl = self.Sl_matrix_from_Normalised_Skl(S_norm,i+1)
+            Sll = self.Sll_matrix_from_Sl(Sl)
+            eigvals, eigvecs = la.eig(Sll)
+            real_eigvals = eigvals.real
+            collinearity_eigvals.append(min(real_eigvals))
+
+        collinearity_index = np.zeros(len(collinearity_eigvals))
+        for i in range(len(collinearity_eigvals)):
+            collinearity_index[i] = 1/math.sqrt(collinearity_eigvals[i])
+
+        np.save(os.path.join(self.output_dir, 'collinearity_index.npy'), collinearity_index)
+
         return
 
     def run_identifiability(self):
