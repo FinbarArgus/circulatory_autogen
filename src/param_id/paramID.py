@@ -378,6 +378,29 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_collinearity_index.pdf'))
 
+        plt.rc('xtick', labelsize=4)
+        plt.rc('ytick', labelsize=4)
+        figD, axsD = plt.subplots(1,1)
+        collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_pairs.npy'))
+        print(collinearity_pairs)
+        X, Y = np.meshgrid(range(len(x_values)), range(len(x_values)))
+        co = axsD.contourf(X,Y,collinearity_pairs)
+        co=fig.colorbar(co, ax = axsD)
+        axsD.set_xticklabels(x_values)
+        axsD.set_yticklabels(x_values)
+
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_pairs.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_pairs.pdf'))
+        param_init_values = self.param_id.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
+        print(self.param_state_names)
+        print(self.param_const_names)
+        print(param_init_values)
+
+
 
     def set_genetic_algorithm_parameters(self, n_calls):
         self.param_id.set_genetic_algorithm_parameters(n_calls)
@@ -1065,6 +1088,16 @@ class OpencorParamID():
                     Sll[i][j] = Sll[i][j] + Sl[i][k]*Sl[j][k]
         return Sll
 
+    def Sl_matrix_from_Normalised_Skl_pair(self, Skl, l, j):
+        num_parameters = 2
+        num_objectives = len(Skl[0])
+        Sl = np.zeros((num_parameters,num_objectives))
+
+        for m in range(num_objectives):
+            Sl[0][m] = Skl[l][m]
+            Sl[1][m] = Skl[j][m]
+        return Sl
+
     def run_sensitivity(self):
 
         self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_state_names, self.sensitivity_param_const_names)
@@ -1186,6 +1219,20 @@ class OpencorParamID():
 
         np.save(os.path.join(self.output_dir, 'collinearity_index.npy'), collinearity_index)
 
+        #   check this part
+        collinearity_index_pairs = np.zeros((num_sensitivity_params,num_sensitivity_params))
+        for i in range(num_sensitivity_params):
+            for j in range(num_sensitivity_params):
+                if i!=j:
+                    Sl = self.Sl_matrix_from_Normalised_Skl_pair(S_norm,i,j)
+                    Sll = self.Sll_matrix_from_Sl(Sl)
+                    eigvals_pairs, eigvecs_pairs = la.eig(Sll)
+                    real_eigvals_pairs = eigvals_pairs.real
+                    collinearity_index_pairs[i][j] = 1/math.sqrt(min(real_eigvals_pairs))
+                else:
+                    collinearity_index_pairs[i][j] = 0
+
+        np.save(os.path.join(self.output_dir, 'collinearity_pairs.npy'), collinearity_index_pairs)
         return
 
     def run_identifiability(self):
