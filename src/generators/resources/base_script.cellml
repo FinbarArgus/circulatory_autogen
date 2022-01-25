@@ -25,6 +25,8 @@
     </import>
     <component name="environment">
         <variable name="time" public_interface="out" units="second"/>
+        <variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="gain_int" public_interface="out" units="J_per_m9"/>
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; pulmonary Circulation &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="pulmonary">

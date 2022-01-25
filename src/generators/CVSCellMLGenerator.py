@@ -475,6 +475,7 @@ class CVS0DCellMLGenerator(object):
             if vessel_vec['vessel_type']=='terminal':
                 wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
+                wf.write('   <variable name="alpha" public_interface="in" units="dimensionless"/>\n')
             if vessel_vec['vessel_type']=='arterial_simple':
                 wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
@@ -495,8 +496,8 @@ class CVS0DCellMLGenerator(object):
                 # of prewritten comp environments in the base cellml code.
                 continue
             if vessel_vec["vessel_type"] == 'terminal':
-                inp_vars = ['u', 'v', 'R_T', 'C_T']
-                out_vars = ['u', 'v_T', 'R_T', 'C_T']
+                inp_vars = ['u', 'v', 'R_T', 'C_T', 'alpha']
+                out_vars = ['u', 'v_T', 'R_T', 'C_T', 'alpha']
             elif vessel_vec["vessel_type"] == 'venous':
                 inp_vars = ['u', 'v', 'C', 'R']
                 out_vars = ['u', 'v', 'C', 'R']
@@ -515,22 +516,27 @@ class CVS0DCellMLGenerator(object):
         for vessel_vec in vessel_array:
             # input and output vessels
             vessel_name = vessel_vec["name"]
+            module_addon = '_module'
             if vessel_name in ['heart', 'pulmonary']:
                 continue
     
             if vessel_vec["vessel_type"] == 'terminal':
+                # first write a mapping for global params
+                self.__write_mapping(wf, 'environment', vessel_name + module_addon,
+                                     ['gain_int'], ['gain_int'])
+
+                # now do module param mappings
                 vessel_name_minus_T = re.sub('_T$', '', vessel_name)
                 systemic_vars = [f'R_T_{vessel_name_minus_T}',
                                  f'C_T_{vessel_name_minus_T}',
                                  f'alpha_{vessel_name_minus_T}',
-                                 f'v_nom_{vessel_name_minus_T}',
-                                 'gain_int']
+                                 f'v_nom_{vessel_name_minus_T}']
+
                 module_vars = ['R_T',
                                'C_T',
                                'alpha',
-                               'v_nominal',
-                               'gain_int']
-    
+                               'v_nominal']
+
             elif vessel_vec["vessel_type"]=='venous':
                 systemic_vars = [f'R_{vessel_name}',
                                  f'C_{vessel_name}',
@@ -545,18 +551,25 @@ class CVS0DCellMLGenerator(object):
                 module_vars = ['R',
                                'C',
                                'I']
-            else:
+            elif vessel_vec["vessel_type"] in ['arterial', 'split_junction', 'merge_junction', '2in2out_junction']:
+                # first write a mapping for global params
+                self.__write_mapping(wf, 'environment', vessel_name + module_addon,
+                                     ['beta_g'], ['beta_g'])
+
+                # now do module param mappings
                 systemic_vars = [f'l_{vessel_name}',
                                  f'E_{vessel_name}',
                                  f'r_{vessel_name}',
-                                 f'theta_{vessel_name}',
-                                 'beta_g']
+                                 f'theta_{vessel_name}']
+
                 module_vars = ['l',
                                'E',
                                'r',
-                               'theta',
-                               'beta_g']
-    
+                               'theta']
+            else:
+                print(f'vessel type of {vessel_vec["vessel_type"]} is unknown')
+                exit()
+
             # check that the variables are in the parameter array
             if params_array is not None:
                 for variable_name in systemic_vars:
@@ -564,10 +577,10 @@ class CVS0DCellMLGenerator(object):
                         print(f'variable {variable_name} is not in the parameter '
                               f'dataframe/csv file')
                         exit()
-            module_addon = '_module'
             self.__write_mapping(wf, 'parameters_systemic', vessel_name+module_addon,
                           systemic_vars, module_vars)
-    
+
+
     def __write_time_mappings(self, wf, vessel_array):
         for vessel_vec in vessel_array:
             # input and output vessels

@@ -133,10 +133,11 @@ class CSV0DModelParser(object):
                 num_params += 3
             else:
                 print(f'unknown required parameters for vessel_type {vessel["vessel_type"]}, exiting')
-        # append global parameters
-        required_params.append([f'beta_g', 'dimensionless', 'systemic'])
-        required_params.append([f'gain_int', 'dimensionless', 'systemic'])
-        num_params += 2
+        # The below params are no longer in the params files.
+        # # append global parameters
+        # required_params.append([f'beta_g', 'dimensionless', 'systemic'])
+        # required_params.append([f'gain_int', 'dimensionless', 'systemic'])
+        # num_params += 2
 
         required_params = np.array(required_params)
 

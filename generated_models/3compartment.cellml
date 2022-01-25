@@ -25,6 +25,8 @@
     </import>
     <component name="environment">
         <variable name="time" public_interface="out" units="second"/>
+        <variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="gain_int" public_interface="out" units="J_per_m9"/>
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; pulmonary Circulation &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="pulmonary">
@@ -1470,6 +1472,7 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="venous_svc">
    <variable name="u" public_interface="in" units="J_per_m3"/>
@@ -1492,6 +1495,7 @@
    <map_variables variable_1="v" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
    <map_components component_1="venous_svc" component_2="venous_svc_module"/>
@@ -1508,12 +1512,15 @@
    <map_variables variable_1="I_aortic_root" variable_2="I"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="systemic_T_module"/>
+   <map_variables variable_1="gain_int" variable_2="gain_int"/>
+</connection>
+<connection>
    <map_components component_1="parameters_systemic" component_2="systemic_T_module"/>
    <map_variables variable_1="R_T_systemic" variable_2="R_T"/>
    <map_variables variable_1="C_T_systemic" variable_2="C_T"/>
    <map_variables variable_1="alpha_systemic" variable_2="alpha"/>
    <map_variables variable_1="v_nom_systemic" variable_2="v_nominal"/>
-   <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
    <map_components component_1="parameters_systemic" component_2="venous_svc_module"/>

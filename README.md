@@ -4,7 +4,7 @@ This array is written in a csv file such as test_vessel_array.csv where the entr
 
 [vessel_name,
 BC_type             ('vv', 'vp', 'pv', 'pp'),
-vessel_type         ('arterial', 'venous', 'terminal', 'split_junction', 'merge_junction', 2in2out_junction),
+vessel_type         ('arterial', 'arterial_simple', 'venous', 'terminal', 'split_junction', 'merge_junction', 2in2out_junction),
 inp_vessel_1        (name of the first input vessel. This doesn't need to be specified for venous type
 inp_vessel_2        (name of the second input vessel if merge or 2in2out junction, '' otherwise)
 out_vessel_1        (name of first output vessel)
