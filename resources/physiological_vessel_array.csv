@@ -9,7 +9,8 @@ aortic_arch_C46,         pv, split_junction,     aortic_arch_C2,       ,        
 aortic_arch_C64,         pv, split_junction,     aortic_arch_C46,      ,             aortic_arch_C94,      subclavian_L66
 brachiocephalic_trunk_C4,pv, split_junction,     aortic_arch_C2,       ,             common_carotid_R6_A,  subclavian_R28
 subclavian_L66,          pv, split_junction,     aortic_arch_C64,      ,             subclavian_L78,       vertebral_L2
-subclavian_L78,          pv, arterial,           subclavian_L66,       ,             arm_L_T,              
+subclavian_L78,          pv, arterial,           subclavian_L66,       ,             brachial_L82,              
+brachial_L82,            pv, arterial,           subclavian_L78,       ,             arm_L_T,              
 common_carotid_L48_A,    pv, arterial,           aortic_arch_C46,      ,             common_carotid_L48_B, 
 common_carotid_L48_B,    pv, arterial,           common_carotid_L48_A, ,             common_carotid_L48_C, 
 common_carotid_L48_C,    pv, arterial,           common_carotid_L48_B, ,             common_carotid_L48_D, 
@@ -38,7 +39,8 @@ anterior_cerebral_L42,   vv, merge_junction,     anterior_cerebral_L110, anterio
 anterior_communicating_C44,pp, arterial,         anterior_cerebral_R46, ,            anterior_cerebral_L42, 
 vertebral_L2,            pp, arterial,           subclavian_L66,       ,             basilar_C4,           
 subclavian_R28,          pv, split_junction,     brachiocephalic_trunk_C4, ,         subclavian_R30,       vertebral_R272
-subclavian_R30,          pv, arterial,           subclavian_R28,       ,             arm_R_T,              
+subclavian_R30,          pv, arterial,           subclavian_R28,       ,             brachial_R34,              
+brachial_R34,            pv, arterial,           subclavian_R30,       ,             arm_R_T,              
 vertebral_R272,          pp, arterial,           subclavian_R28,       ,             basilar_C4,           
 basilar_C4,              vv, 2in2out_junction,   vertebral_R272,       vertebral_L2, posterior_cerebral_pre_L6, posterior_cerebral_pre_R204
 posterior_cerebral_pre_L6,pp,arterial,           basilar_C4,           ,             posterior_cerebral_post_L12, 
@@ -53,8 +55,8 @@ middle_cerebral_L_T,     pp, terminal,           middle_cerebral_L114, ,        
 middle_cerebral_R_T,     pp, terminal,           middle_cerebral_R52,  ,             venous_ub,            
 anterior_cerebral_L_T,   pp, terminal,           anterior_cerebral_L42, ,            venous_ub,            
 anterior_cerebral_R_T,   pp, terminal,           anterior_cerebral_R238, ,           venous_ub,            
-arm_L_T,                 pp, terminal,           subclavian_L78,       ,             venous_ub,            
-arm_R_T,                 pp, terminal,           subclavian_R30,       ,             venous_ub,            
+arm_L_T,                 pp, terminal,           brachial_L82,         ,             venous_ub,            
+arm_R_T,                 pp, terminal,           brachial_R34,       ,             venous_ub,            
 aortic_arch_C94,         pv, arterial,           aortic_arch_C64,      ,             thoracic_aorta_C96,   
 thoracic_aorta_C96,      pv, arterial,           aortic_arch_C94,      ,             thoracic_aorta_C100,  
 thoracic_aorta_C100,     pv, arterial,           thoracic_aorta_C96,   ,             thoracic_aorta_C104,  

@@ -92,6 +92,10 @@
 <variable initial_value="41.1396e-03" name="l_subclavian_L78" public_interface="out" units="metre"/>
 <variable initial_value="90" name="theta_subclavian_L78" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.4e+6" name="E_subclavian_L78" public_interface="out" units="J_per_m3"/>
+<variable initial_value="1.96732e-03" name="r_brachial_L82" public_interface="out" units="metre"/>
+<variable initial_value="223.119e-03" name="l_brachial_L82" public_interface="out" units="metre"/>
+<variable initial_value="180" name="theta_brachial_L82" public_interface="out" units="dimensionless"/>
+<variable initial_value="0.4e+6" name="E_brachial_L82" public_interface="out" units="J_per_m3"/>
 <variable initial_value="4.36635e-03" name="r_common_carotid_L48_A" public_interface="out" units="metre"/>
 <variable initial_value="30.339e-03" name="l_common_carotid_L48_A" public_interface="out" units="metre"/>
 <variable initial_value="0" name="theta_common_carotid_L48_A" public_interface="out" units="dimensionless"/>
@@ -208,6 +212,10 @@
 <variable initial_value="41.1419e-03" name="l_subclavian_R30" public_interface="out" units="metre"/>
 <variable initial_value="90" name="theta_subclavian_R30" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.4e+6" name="E_subclavian_R30" public_interface="out" units="J_per_m3"/>
+<variable initial_value="1.96732e-03" name="r_brachial_R34" public_interface="out" units="metre"/>
+<variable initial_value="223.119e-03" name="l_brachial_R34" public_interface="out" units="metre"/>
+<variable initial_value="180" name="theta_brachial_R34" public_interface="out" units="dimensionless"/>
+<variable initial_value="0.4e+6" name="E_brachial_R34" public_interface="out" units="J_per_m3"/>
 <variable initial_value="0.133527e-2" name="r_vertebral_R272" public_interface="out" units="metre"/>
 <variable initial_value="21.0146e-2" name="l_vertebral_R272" public_interface="out" units="metre"/>
 <variable initial_value="0" name="theta_vertebral_R272" public_interface="out" units="dimensionless"/>

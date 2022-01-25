@@ -1434,6 +1434,9 @@
     <component component_ref="pv_type" name="subclavian_L78_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
+    <component component_ref="pv_type" name="brachial_L82_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
     <component component_ref="pv_type" name="common_carotid_L48_A_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
@@ -1519,6 +1522,9 @@
 </import>
 <import xlink:href="physiological_modules.cellml">
     <component component_ref="pv_type" name="subclavian_R30_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pv_type" name="brachial_R34_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
     <component component_ref="pp_type" name="vertebral_R272_module"/>
@@ -1720,7 +1726,12 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="subclavian_L78_module" component_2="arm_L_T_module"/>
+   <map_components component_1="subclavian_L78_module" component_2="brachial_L82_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="brachial_L82_module" component_2="arm_L_T_module"/>
    <map_variables variable_1="v_out" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
@@ -1910,7 +1921,12 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="subclavian_R30_module" component_2="arm_R_T_module"/>
+   <map_components component_1="subclavian_R30_module" component_2="brachial_R34_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="brachial_R34_module" component_2="arm_R_T_module"/>
    <map_variables variable_1="v_out" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
@@ -2286,6 +2302,11 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
 </component>
+<component name="brachial_L82">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
 <component name="common_carotid_L48_A">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
@@ -2418,6 +2439,11 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
 </component>
 <component name="subclavian_R30">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="brachial_R34">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -2709,6 +2735,12 @@
    <map_variables variable_1="E" variable_2="E"/>
 </connection>
 <connection>
+   <map_components component_1="brachial_L82" component_2="brachial_L82_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
    <map_components component_1="common_carotid_L48_A" component_2="common_carotid_L48_A_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
@@ -2869,6 +2901,12 @@
 </connection>
 <connection>
    <map_components component_1="subclavian_R30" component_2="subclavian_R30_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="brachial_R34" component_2="brachial_R34_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
    <map_variables variable_1="E" variable_2="E"/>
@@ -3256,6 +3294,17 @@
    <map_variables variable_1="theta_subclavian_L78" variable_2="theta"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="brachial_L82_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="brachial_L82_module"/>
+   <map_variables variable_1="l_brachial_L82" variable_2="l"/>
+   <map_variables variable_1="E_brachial_L82" variable_2="E"/>
+   <map_variables variable_1="r_brachial_L82" variable_2="r"/>
+   <map_variables variable_1="theta_brachial_L82" variable_2="theta"/>
+</connection>
+<connection>
    <map_components component_1="environment" component_2="common_carotid_L48_A_module"/>
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
@@ -3573,6 +3622,17 @@
    <map_variables variable_1="E_subclavian_R30" variable_2="E"/>
    <map_variables variable_1="r_subclavian_R30" variable_2="r"/>
    <map_variables variable_1="theta_subclavian_R30" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="brachial_R34_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_systemic" component_2="brachial_R34_module"/>
+   <map_variables variable_1="l_brachial_R34" variable_2="l"/>
+   <map_variables variable_1="E_brachial_R34" variable_2="E"/>
+   <map_variables variable_1="r_brachial_R34" variable_2="r"/>
+   <map_variables variable_1="theta_brachial_R34" variable_2="theta"/>
 </connection>
 <connection>
    <map_components component_1="environment" component_2="vertebral_R272_module"/>
@@ -4047,6 +4107,10 @@
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="brachial_L82_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
    <map_components component_1="environment" component_2="common_carotid_L48_A_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
@@ -4160,6 +4224,10 @@
 </connection>
 <connection>
    <map_components component_1="environment" component_2="subclavian_R30_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="brachial_R34_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
