@@ -7,6 +7,8 @@ Created on 29/10/2021
 import sys
 import os
 from mpi4py import MPI
+from distutils import util
+
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
@@ -47,7 +49,7 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = sys.argv[4]
+        input_params_to_id = bool(util.strtobool(sys.argv[4]))
         if input_params_to_id:
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         else:
