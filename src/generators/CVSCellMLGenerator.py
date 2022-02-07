@@ -473,6 +473,10 @@ class CVS0DCellMLGenerator(object):
             '   <variable name="u" public_interface="in" units="J_per_m3"/>\n',
             '   <variable name="v" public_interface="in" units="m3_per_s"/>\n'])
             if vessel_vec['vessel_type']=='terminal':
+                if vessel_vec['BC_type'] != 'pp':
+                    print('currently terminals must have pp type boundary condition, exiting')
+                    exit()
+                wf.write('   <variable name="v_T" public_interface="in" units="m3_per_s"/>\n')
                 wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
                 wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
                 wf.write('   <variable name="alpha" public_interface="in" units="dimensionless"/>\n')
@@ -496,8 +500,8 @@ class CVS0DCellMLGenerator(object):
                 # of prewritten comp environments in the base cellml code.
                 continue
             if vessel_vec["vessel_type"] == 'terminal':
-                inp_vars = ['u', 'v', 'R_T', 'C_T', 'alpha']
-                out_vars = ['u', 'v_T', 'R_T', 'C_T', 'alpha']
+                inp_vars = ['u', 'v', 'v_T', 'R_T', 'C_T', 'alpha']
+                out_vars = ['u', 'v', 'v_T', 'R_T', 'C_T', 'alpha']
             elif vessel_vec["vessel_type"] == 'venous':
                 inp_vars = ['u', 'v', 'C', 'R']
                 out_vars = ['u', 'v', 'C', 'R']

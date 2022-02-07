@@ -14,6 +14,8 @@ out_vessel_2        (name of second output vessel if split or 2in2out junction, 
 The aim is to combine the autogeneration of a circulatory system structure graph from an image with this code to
 completely automate the creation of circulatory system models from images.
 
+NOTE: currently the terminal vessels should only have 'pp' type boundary conditions
+
 ## requirements  
 
 If the model being generated is a cellml model, OpenCOR must be downloaded 

@@ -1893,6 +1893,7 @@
 <component name="head_L_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -1900,6 +1901,7 @@
 <component name="head_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -1907,6 +1909,7 @@
 <component name="arm_L_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -1914,6 +1917,7 @@
 <component name="arm_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -1955,6 +1959,7 @@
 <component name="trunk_C_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -2016,6 +2021,7 @@
 <component name="leg_L_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -2023,6 +2029,7 @@
 <component name="leg_R_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -2123,7 +2130,8 @@
 <connection>
    <map_components component_1="head_L_T" component_2="head_L_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2131,7 +2139,8 @@
 <connection>
    <map_components component_1="head_R_T" component_2="head_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2139,7 +2148,8 @@
 <connection>
    <map_components component_1="arm_L_T" component_2="arm_L_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2147,7 +2157,8 @@
 <connection>
    <map_components component_1="arm_R_T" component_2="arm_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2196,7 +2207,8 @@
 <connection>
    <map_components component_1="trunk_C_T" component_2="trunk_C_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2269,7 +2281,8 @@
 <connection>
    <map_components component_1="leg_L_T" component_2="leg_L_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
@@ -2277,7 +2290,8 @@
 <connection>
    <map_components component_1="leg_R_T" component_2="leg_R_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>

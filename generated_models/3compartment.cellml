@@ -243,7 +243,7 @@
         <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="7.9091e-04" name="q_lv" units="m3"/>
+        <variable initial_value="7.6345e-04" name="q_lv" units="m3"/>
         <variable initial_value="1e-05" name="q_rv" units="m3"/>
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
@@ -1470,6 +1470,7 @@
 <component name="systemic_T">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
@@ -1492,7 +1493,8 @@
 <connection>
    <map_components component_1="systemic_T" component_2="systemic_T_module"/>
    <map_variables variable_1="u" variable_2="u"/>
-   <map_variables variable_1="v" variable_2="v_T"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>

@@ -52,15 +52,15 @@
 <variable initial_value="1050" name="rho" public_interface="out" units="Js2_per_m5"/>
 </component>
 <component name="parameters_systemic">
-<variable initial_value="6.2788e+06" name="R_aortic_root" public_interface="out" units="Js_per_m6"/>
-<variable initial_value="1.5954e-08" name="C_aortic_root" public_interface="out" units="m6_per_J"/>
+<variable initial_value="6.6237e+06" name="R_aortic_root" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="1.5637e-08" name="C_aortic_root" public_interface="out" units="m6_per_J"/>
 <variable initial_value="1.0e+4" name="I_aortic_root" public_interface="out" units="Js2_per_m6"/>
-<variable initial_value="9.4967e+07" name="R_T_systemic" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="9.9709e+07" name="R_T_systemic" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="1e-10" name="C_T_systemic" public_interface="out" units="m6_per_J"/>
 <variable initial_value="1.0" name="alpha_systemic" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.0" name="v_nom_systemic" public_interface="out" units="m3_per_s"/>
-<variable initial_value="3.4428e+06" name="R_venous_svc" public_interface="out" units="Js_per_m6"/>
-<variable initial_value="2.6456e-08" name="C_venous_svc" public_interface="out" units="m6_per_J"/>
+<variable initial_value="1.2582e+06" name="R_venous_svc" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="1.7948e-08" name="C_venous_svc" public_interface="out" units="m6_per_J"/>
 <variable initial_value="1.0e-3" name="I_venous_svc" public_interface="out" units="Js2_per_m6"/>
 </component>
 </model>
