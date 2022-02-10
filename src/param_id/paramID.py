@@ -307,7 +307,7 @@ class CVS0DParamID():
         # Each entry in param_const_names is a name or list of names that gets modified by one parameter
         if input_params_path:
             csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_param_id(input_params_path)
+            input_params = csv_parser.get_data_as_dataframe_multistrings(input_params_path)
             self.param_state_names = []
             self.param_const_names = []
             param_state_names_for_gen = []
