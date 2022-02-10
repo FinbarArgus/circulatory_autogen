@@ -116,6 +116,9 @@ class CVS0DParamID():
         self.param_id.run_sensitivity()
         self.sensitivity_calculated = True
 
+    def run_sensitivity_average(self):
+        self.param_id.run_sensitivity_average()
+
 #    def run_identifiability(self):
 #        self.param_id.run_identifiability()
 
@@ -280,19 +283,12 @@ class CVS0DParamID():
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
 
+        #plot sensitivity (normalised jacobian)
         sensitivity_param_names = self.sensitivity_param_state_names + self.sensitivity_param_const_names
         jacobian = np.load(os.path.join(self.output_dir, 'jacobian_matrix.npy'))
         number_Params = len(jacobian)
 
         obs_names = self.obs_state_names + self.obs_alg_names
-#        obs_names_unique = []
-#        for obs_name in obs_names:
-#            if obs_name not in obs_names_unique:
-#                obs_names_unique.append(obs_name)
-
-#        for multiple plot option
-#        subplot_height = math.floor(math.sqrt(len(obs_names_unique)))
-#        subplot_width = math.ceil(len(obs_names_unique)/subplot_height)
         subplot_height = 1
         subplot_width = 1
         plt.rc('xtick', labelsize=3)
@@ -302,6 +298,7 @@ class CVS0DParamID():
         subset = []
         x_index = 0
         for obs in range(len(obs_names)):
+            #ignore series for now
             if self.obs_types[obs]!="series":
                 x_labels.append(obs_names[obs] + " " + self.obs_types[obs])
                 subset.append(x_index)
@@ -311,27 +308,7 @@ class CVS0DParamID():
             for obs in range(len(x_labels)):
                 y_values.append(abs((jacobian[param][subset[obs]])))
             axs.plot(x_labels, y_values, label = sensitivity_param_names[param][0])
-
-#        x_index = 0
-#        for param in range(len(obs_names_unique)):
-#            x_pos = param % subplot_width
-#            y_pos = math.floor(param/subplot_width)
-#            x_labels = []
-#            subset = []
-#            for i in range(len(obs_names)):
-#                if obs_names[i] == obs_names_unique[param]:
-#                    if self.obs_types[i]!="series":
-#                        x_labels.append(self.obs_types[i])
-#                        subset.append(x_index)
-#                        x_index = x_index + 1
-#            for index in range(number_Params):
-#                y_values = []
-#                for i in range(len(x_labels)):
-#                    y_values.append(abs(jacobian[index][subset[i]]))
-#                axs[x_pos, y_pos].plot(x_labels, y_values, label = sensitivity_param_names[index][0])
-#            axs[x_pos,y_pos].set_xlabel(obs_names_unique[param])
-#            axs[x_pos,y_pos].set_yscale('log')
-#            axs[x_pos,y_pos].set_ylabel(" Abs Derivative")
+        #use logarithmic scale due to wide variation in values
         axs.set_yscale('log')
         axs.legend(loc='lower left', fontsize=6)
         plt.savefig(os.path.join(self.plot_dir,
@@ -340,6 +317,7 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_sensitivity.pdf'))
+        #plot parameter importance
         sensitivity_vector = np.load(os.path.join(self.output_dir, 'sensitivity_vector.npy'))
         sensitivity_params = self.sensitivity_param_state_names + self.sensitivity_param_const_names
         plt.rc('xtick', labelsize=6)
@@ -359,11 +337,13 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_parameter_importance.pdf'))
 
+        #plot collinearity index
         collinearity_index = np.load(os.path.join(self.output_dir, 'collinearity_index.npy'))
         plt.rc('xtick', labelsize=12)
         plt.rc('ytick', labelsize=4)
         figC, axsC = plt.subplots(1, 1)
 
+        #prepare x lables
         x_values_cumulative = []
         x_values_temp = x_values[0]
         for i in range(len(x_values)):
@@ -381,11 +361,28 @@ class CVS0DParamID():
         plt.rc('xtick', labelsize=4)
         plt.rc('ytick', labelsize=4)
         figD, axsD = plt.subplots(1,1)
+        #determine maximum collinearity value for scaling all plots to same range
+        collinearity_max = 0
+        for i in range(len(x_values)):
+            collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_triples'+str(i)+'.npy'))
+            if collinearity_pairs.max()>collinearity_max:
+                collinearity_max=collinearity_pairs.max()
+        for i in range(len(x_values)):
+            for j in range(len(x_values)):
+                collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'))
+                if collinearity_pairs.max()>collinearity_max:
+                    collinearity_max=collinearity_pairs.max()
         collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_pairs.npy'))
-        print(collinearity_pairs)
+        if collinearity_pairs.max() > collinearity_max:
+            collinearity_max = collinearity_pairs.max()
+
+        #plot collinearity pairs
+        collinearity_levels = np.linspace(0,collinearity_max,20)
         X, Y = np.meshgrid(range(len(x_values)), range(len(x_values)))
-        co = axsD.contourf(X,Y,collinearity_pairs)
+        co = axsD.contourf(X,Y,collinearity_pairs,levels=collinearity_levels)
         co=fig.colorbar(co, ax = axsD)
+        axsD.set_xticks(range(len(x_values)))
+        axsD.set_yticks(range(len(x_values)))
         axsD.set_xticklabels(x_values)
         axsD.set_yticklabels(x_values)
 
@@ -395,12 +392,278 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_collinearity_pairs.pdf'))
-        param_init_values = self.param_id.sim_helper.get_init_param_vals(self.param_state_names, self.param_const_names)
-        print(self.param_state_names)
-        print(self.param_const_names)
-        print(param_init_values)
+
+        #plot collinearity triples
+        for i in range(len(x_values)):
+            figE, axsE = plt.subplots(1,1)
+            collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_triples'+str(i)+'.npy'))
+            co = axsE.contourf(X,Y,collinearity_pairs,levels=collinearity_levels)
+            co=fig.colorbar(co, ax = axsE)
+            axsE.set_xticks(range(len(x_values)))
+            axsE.set_yticks(range(len(x_values)))
+            axsE.set_xticklabels(x_values)
+            axsE.set_yticklabels(x_values)
+
+            plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_triples'+str(i)+'.eps'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_triples'+str(i)+'.pdf'))
+
+        #plot collinearity quads
+        for i in range(len(x_values)):
+            for j in range(len(x_values)):
+                figE, axsE = plt.subplots(1,1)
+                collinearity_pairs = np.load(os.path.join(self.output_dir, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'))
+                co = axsE.contourf(X,Y,collinearity_pairs,levels=collinearity_levels)
+                co=fig.colorbar(co, ax = axsE)
+                axsE.set_xticks(range(len(x_values)))
+                axsE.set_yticks(range(len(x_values)))
+                axsE.set_xticklabels(x_values)
+                axsE.set_yticklabels(x_values)
+
+                plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}collinearity_quads'+str(i)+'_'+str(j)+'.eps'))
+                plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}collinearity_quads'+str(i)+'_'+str(j)+'.pdf'))
+
+    def run_sensitivity_average(self):
+        m3_to_cm3 = 1e6
+        Pa_to_kPa = 1e-3
+        number_samples = 10
+        #Currently where sample data is being stored
+        sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+        sensitivity_param_names = self.sensitivity_param_state_names + self.sensitivity_param_const_names
+        #calculate the average of the jacobian, parameter importance, and first set of collinearitys
+        jacobian_average = np.load(os.path.join(sample_path, 'jacobian_matrix.npy'))
+        for i in range(len(jacobian_average)):
+            for j in range(len(jacobian_average[0])):
+                jacobian_average[i][j] = jacobian_average[i][j] / number_samples
+        sensitivity_vector_average = np.load(os.path.join(sample_path, 'sensitivity_vector.npy'))
+        for i in range(len(sensitivity_vector_average)):
+            sensitivity_vector_average[i] = sensitivity_vector_average[i] / number_samples
+        collinearity_index_average = np.load(os.path.join(self.output_dir, 'collinearity_index.npy'))
+        for i in range(len(collinearity_index_average)):
+            collinearity_index_average[i] = collinearity_index_average[i] / number_samples
+        collinearity_max = 0
+        x_values = []
+        sensitivity_params = self.sensitivity_param_state_names + self.sensitivity_param_const_names
+        for i in range(len(sensitivity_params)):
+            x_values.append(sensitivity_params[i][0])
+
+        for i in range(number_samples-1):
+            sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
+                    i + 2) + "/param_id_output/genetic_algorithm_3compartment"
+            jacobian = np.load(os.path.join(sample_path, 'jacobian_matrix.npy'))
+
+            for j in range(len(jacobian_average)):
+                for k in range(len(jacobian_average[0])):
+                    jacobian_average[j][k] = jacobian_average[j][k] + jacobian[j][k]/number_samples
+
+            sensitivity_vector = np.load(os.path.join(sample_path, 'sensitivity_vector.npy'))
+            for j in range(len(sensitivity_vector_average)):
+                sensitivity_vector_average[j] = sensitivity_vector_average[j] + sensitivity_vector[j]/number_samples
+
+            collinearity_index = np.load(os.path.join(sample_path, 'collinearity_index.npy'))
+            for j in range(len(collinearity_index_average)):
+                collinearity_index_average[j] = collinearity_index_average[j] + collinearity_index[j]/number_samples
+        #update maximum found average value
+        if collinearity_index_average.max() > collinearity_max:
+            collinearity_max = collinearity_index_average.max()
+
+        #find maximum average value of collinearity triples
+        for i in range(len(x_values)):
+            sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+            test_average = np.load(os.path.join(sample_path, 'collinearity_triples'+str(i)+'.npy'))
+            for j in range(len(test_average)):
+                for k in range(len(test_average[0])):
+                    test_average[j][k] = test_average[j][k] / number_samples
+            for j in range(number_samples-1):
+                sample_path = "/home/matthew/Documents/poster/param5/Sample"+str(j+2)+"/param_id_output/genetic_algorithm_3compartment"
+                test_values = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i)+'.npy'))
+                for k in range(len(test_average)):
+                    for l in range(len(test_average[0])):
+                        test_average[k][l] = test_average[k][l] + test_values[k][l]/number_samples
+            if test_average.max() > collinearity_max:
+                collinearity_max = test_average.max()
+
+        #find maximum value of collinearity quads
+        for i in range(len(x_values)):
+            for j in range(len(x_values)):
+                sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+                test_average = np.load(os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                for k in range(len(test_average)):
+                    for l in range(len(test_average[0])):
+                        test_average[k][l] = test_average[k][l] / number_samples
+                for k in range(number_samples - 1):
+                    sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
+                        k + 2) + "/param_id_output/genetic_algorithm_3compartment"
+                    test_values = np.load(os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                    for l in range(len(test_average)):
+                        for m in range(len(test_average[0])):
+                            test_average[l][m] = test_average[l][m] + test_values[l][m] / number_samples
+                if test_average.max() > collinearity_max:
+                    collinearity_max = test_average.max()
+        #find maximum average value and average values for collinearity index
+        sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+        collinearity_pairs_average = np.load(os.path.join(sample_path, 'collinearity_pairs.npy'))
+        for i in range(len(collinearity_pairs_average)):
+            for j in range(len(collinearity_pairs_average[0])):
+                collinearity_pairs_average[i][j] = collinearity_pairs_average[i][j]/number_samples
+        for i in range(number_samples-1):
+            sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
+                i + 2) + "/param_id_output/genetic_algorithm_3compartment"
+            test_values = np.load(os.path.join(sample_path, 'collinearity_pairs.npy'))
+            for j in range(len(collinearity_pairs_average)):
+                for k in range(len(collinearity_pairs_average[0])):
+                    collinearity_pairs_average[j][k] = collinearity_pairs_average[j][k] + test_values[j][k] / number_samples
+
+        if collinearity_pairs_average.max() > collinearity_max:
+            collinearity_max = collinearity_pairs_average.max()
+
+        number_Params = len(jacobian_average)
+        #plot jacobian
+        obs_names = self.obs_state_names + self.obs_alg_names
+        subplot_height = 1
+        subplot_width = 1
+        plt.rc('xtick', labelsize=3)
+        fig, axs = plt.subplots(subplot_height, subplot_width)
+
+        x_labels = []
+        subset = []
+        x_index = 0
+        for obs in range(len(obs_names)):
+            if self.obs_types[obs] != "series":
+                x_labels.append(obs_names[obs] + " " + self.obs_types[obs])
+                subset.append(x_index)
+                x_index = x_index + 1
+        for param in range(len(sensitivity_param_names)):
+            y_values = []
+            for obs in range(len(x_labels)):
+                y_values.append(abs((jacobian_average[param][subset[obs]])))
+            axs.plot(x_labels, y_values, label=sensitivity_param_names[param][0])
+        axs.set_yscale('log')
+        axs.legend(loc='lower left', fontsize=6)
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_sensitivity_average.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_sensitivity_average.pdf'))
+        #plot parameter importance
+        plt.rc('xtick', labelsize=6)
+        plt.rc('ytick', labelsize=12)
+        figB, axsB = plt.subplots(1, 1)
 
 
+        axsB.bar(x_values, sensitivity_vector_average)
+        axsB.set_ylabel("Parameter Importance", fontsize=12)
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_parameter_importance_average.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_parameter_importance_average.pdf'))
+        #plot collinearity index average
+        plt.rc('xtick', labelsize=12)
+        plt.rc('ytick', labelsize=4)
+        figC, axsC = plt.subplots(1, 1)
+        x_values_cumulative = []
+        x_values_temp = x_values[0]
+        for i in range(len(x_values)):
+            x_values_cumulative.append(x_values_temp)
+            if (i + 1) < len(x_values):
+                x_values_temp = x_values[i + 1] + "\n" + x_values_temp
+        axsC.barh(x_values_cumulative, collinearity_index_average)
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_index_average.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_index_average.pdf'))
+
+        plt.rc('xtick', labelsize=4)
+        plt.rc('ytick', labelsize=4)
+        figD, axsD = plt.subplots(1, 1)
+
+        collinearity_levels = np.linspace(0, collinearity_max, 20)
+        X, Y = np.meshgrid(range(len(x_values)), range(len(x_values)))
+        co = axsD.contourf(X, Y, collinearity_pairs_average, levels=collinearity_levels)
+        co = fig.colorbar(co, ax=axsD)
+        axsD.set_xticks(range(len(x_values)))
+        axsD.set_yticks(range(len(x_values)))
+        axsD.set_xticklabels(x_values)
+        axsD.set_yticklabels(x_values)
+
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_pairs_average.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                     f'reconstruct_{self.param_id_method}_'
+                                     f'{self.file_name_prefix}_collinearity_pairs_average.pdf'))
+#plot collinearity triples average
+        for i in range(len(x_values)):
+            sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+            collinearity_pairs = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+            for j in range(len(collinearity_pairs)):
+                for k in range(len(collinearity_pairs[0])):
+                    collinearity_pairs[j][k] = collinearity_pairs[j][k] / number_samples
+            for j in range(number_samples - 1):
+                sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
+                    j + 2) + "/param_id_output/genetic_algorithm_3compartment"
+                test_values = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+                for k in range(len(collinearity_pairs)):
+                    for l in range(len(collinearity_pairs[0])):
+                        collinearity_pairs[k][l] = collinearity_pairs[k][l] + test_values[k][l] / number_samples
+
+            figE, axsE = plt.subplots(1, 1)
+            co = axsE.contourf(X, Y, collinearity_pairs, levels=collinearity_levels)
+            co = fig.colorbar(co, ax=axsE)
+            axsE.set_xticks(range(len(x_values)))
+            axsE.set_yticks(range(len(x_values)))
+            axsE.set_xticklabels(x_values)
+            axsE.set_yticklabels(x_values)
+
+            plt.savefig(os.path.join(self.plot_dir,
+                                         f'reconstruct_{self.param_id_method}_'
+                                         f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.eps'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                         f'reconstruct_{self.param_id_method}_'
+                                         f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.pdf'))
+#plot collinearity quads average
+        for i in range(len(x_values)):
+            for j in range(len(x_values)):
+                sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
+                collinearity_pairs = np.load(os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                for k in range(len(collinearity_pairs)):
+                    for l in range(len(collinearity_pairs[0])):
+                        collinearity_pairs[k][l] = collinearity_pairs[k][l] / number_samples
+                for k in range(number_samples - 1):
+                    sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
+                        k + 2) + "/param_id_output/genetic_algorithm_3compartment"
+                    test_values = np.load(os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                    for l in range(len(collinearity_pairs)):
+                        for m in range(len(collinearity_pairs[0])):
+                            collinearity_pairs[l][m] = collinearity_pairs[l][m] + test_values[l][m] / number_samples
+                figE, axsE = plt.subplots(1, 1)
+                co = axsE.contourf(X, Y, collinearity_pairs, levels=collinearity_levels)
+                co = fig.colorbar(co, ax=axsE)
+                axsE.set_xticks(range(len(x_values)))
+                axsE.set_yticks(range(len(x_values)))
+                axsE.set_xticklabels(x_values)
+                axsE.set_yticklabels(x_values)
+
+                plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.param_id_method}_'
+                                             f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                 j) + '.eps'))
+                plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.param_id_method}_'
+                                             f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                 j) + '.pdf'))
 
     def set_genetic_algorithm_parameters(self, n_calls):
         self.param_id.set_genetic_algorithm_parameters(n_calls)
@@ -1065,6 +1328,7 @@ class OpencorParamID():
         return
 
     def Sl_matrix_from_Normalised_Skl(self, Skl, l):
+        #create subset of collinearities matrix
         num_parameters = len(Skl)
         num_objectives = len(Skl[0])
         if l > num_parameters:
@@ -1078,6 +1342,7 @@ class OpencorParamID():
         return Sl
 
     def Sll_matrix_from_Sl(self,Sl):
+        #multiple Sl by Sl
         l = len(Sl)
         num_objectives = len(Sl[0])
         Sll = np.zeros((l,l))
@@ -1089,6 +1354,7 @@ class OpencorParamID():
         return Sll
 
     def Sl_matrix_from_Normalised_Skl_pair(self, Skl, l, j):
+        #Sl matrix from pair of Skl
         num_parameters = 2
         num_objectives = len(Skl[0])
         Sl = np.zeros((num_parameters,num_objectives))
@@ -1098,12 +1364,24 @@ class OpencorParamID():
             Sl[1][m] = Skl[j][m]
         return Sl
 
+    def Sl_matrix_from_Normalised_Skl_subset(self, Skl, subset):
+        #create generic subset of Skl
+        num_parameters = len(subset)
+        num_objectives = len(Skl[0])
+        Sl = np.zeros((num_parameters,num_objectives))
+
+        for m in range(num_objectives):
+            for k in range(num_parameters):
+                Sl[k][m] = Skl[subset[k]][m]
+        return Sl
+
     def run_sensitivity(self):
 
         self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_state_names, self.sensitivity_param_const_names)
         param_vec_init = np.array(self.param_init).flatten()
         self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
 
+        #merge best found and initial values
         master_param_state_names = []
         master_param_const_names = []
         master_param_values = []
@@ -1154,7 +1432,9 @@ class OpencorParamID():
         x_index = 0
         objs_index = []
         for obs in range(num_objs):
+            #ignore series data for now
             if self.obs_types[obs]!="series":
+                #part of scale factor for normalising jacobain
                 gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 objs_index.append(x_index)
                 x_index = x_index + 1
@@ -1162,6 +1442,7 @@ class OpencorParamID():
         jacobian_sensitivity = np.zeros((num_sensitivity_params,self.num_obs))
 
         for i in range(num_sensitivity_params):
+            #central difference calculation of derivative
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
             param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
@@ -1180,6 +1461,7 @@ class OpencorParamID():
             up_pred_obs_consts_vec, up_pred_obs_series_array = self.get_pred_obs_vec_and_array(up_pred_obs)
             down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
             for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
+                #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
                     dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
                     dObs_param = dObs_param*param_vec_range*gt_scalefactor[objs_index[j]]
@@ -1191,6 +1473,7 @@ class OpencorParamID():
 
         np.save(os.path.join(self.output_dir, 'jacobian_matrix.npy'), jacobian_sensitivity)
 
+        #calculate parameter importance
         param_sensitivity = np.zeros(num_sensitivity_params)
         for param in range(num_sensitivity_params):
             sensitivity = 0
@@ -1200,6 +1483,7 @@ class OpencorParamID():
             param_sensitivity[param] = sensitivity
         np.save(os.path.join(self.output_dir, 'sensitivity_vector.npy'), param_sensitivity)
 
+        #calculate S-norm
         S_norm = np.zeros((num_sensitivity_params,self.num_obs))
         for param in range(num_sensitivity_params):
             for objs in range(num_objs):
@@ -1213,13 +1497,14 @@ class OpencorParamID():
             real_eigvals = eigvals.real
             collinearity_eigvals.append(min(real_eigvals))
 
+        #calculate collinearity
         collinearity_index = np.zeros(len(collinearity_eigvals))
         for i in range(len(collinearity_eigvals)):
             collinearity_index[i] = 1/math.sqrt(collinearity_eigvals[i])
 
         np.save(os.path.join(self.output_dir, 'collinearity_index.npy'), collinearity_index)
 
-        #   check this part
+
         collinearity_index_pairs = np.zeros((num_sensitivity_params,num_sensitivity_params))
         for i in range(num_sensitivity_params):
             for j in range(num_sensitivity_params):
@@ -1233,31 +1518,48 @@ class OpencorParamID():
                     collinearity_index_pairs[i][j] = 0
 
         np.save(os.path.join(self.output_dir, 'collinearity_pairs.npy'), collinearity_index_pairs)
+
+        collinearity_index_triple = np.zeros((num_sensitivity_params, num_sensitivity_params, num_sensitivity_params))
+        for i in range(num_sensitivity_params):
+            for j in range(num_sensitivity_params):
+                for k in range(num_sensitivity_params):
+                    if ((i!=j) and (i!=k) and (j!=k)):
+                        indices = []
+                        indices.append(i)
+                        indices.append(j)
+                        indices.append(k)
+                        Sl = self.Sl_matrix_from_Normalised_Skl_subset(S_norm,indices)
+                        Sll = self.Sll_matrix_from_Sl(Sl)
+                        eigvals_pairs, eigvecs_pairs = la.eig(Sll)
+                        real_eigvals_pairs = eigvals_pairs.real
+                        collinearity_index_triple[i][j][k] = 1/math.sqrt(min(real_eigvals_pairs))
+                    else:
+                        collinearity_index_triple[i][j][k] = 0
+            np.save(os.path.join(self.output_dir, 'collinearity_triples'+str(i)+'.npy'), collinearity_index_triple[i])
+
+        for i in range(num_sensitivity_params):
+            for j in range(num_sensitivity_params):
+                for k in range(num_sensitivity_params):
+                    for l in range(num_sensitivity_params):
+                        if ((i!=j) and (i!=k) and (i!=l) and (j!=k) and (j!=l) and (k!=l)):
+                            indices = []
+                            indices.append(i)
+                            indices.append(j)
+                            indices.append(k)
+                            indices.append(l)
+                            Sl = self.Sl_matrix_from_Normalised_Skl_subset(S_norm,indices)
+                            Sll = self.Sll_matrix_from_Sl(Sl)
+                            eigvals_pairs, eigvecs_pairs = la.eig(Sll)
+                            real_eigvals_pairs = eigvals_pairs.real
+                            collinearity_index_pairs[k][l] = 1/math.sqrt(min(real_eigvals_pairs))
+                    else:
+                        collinearity_index_pairs[k][l] = 0
+                np.save(os.path.join(self.output_dir, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_index_pairs)
+
         return
 
     def run_identifiability(self):
-
-#        self.run_restricted_identifiability()
-#        self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals_identifiability.npy'))
-#        confidence_interval_max = copy.deepcopy(self.identifiability_param_maxs)
-#        confidence_interval_min = copy.deepcopy(self.identifiability_param_mins)
-#        threshold = []
-#        for i in range(len(self.ground_truth_consts)):
-#            threshold.append(self.ground_truth_consts[i]*.1)
-#here
-#        for index in range(len(self.best_param_vals)):
-#            maximum_param_value = self.identifiability_param_maxs[index]
-#            minimum_param_value = self.identifiability_param_mins[index]
-#            param_diff = 0.01* self.best_param_vals[index]
-#            i = 1;
-#            difference = 0;
-#            while((i<25) and (difference < threshold[index])):
-#                self.identifiability_param_maxs[index] = self.best_param_vals[index]-param_diff*i
-#                self.identifiability_param_mins[index] = self.best_param_vals[index]-param_diff*i
-
-#                self.run_restricted_identifiability()
-
-
+#stub
         return
 
     def get_cost_from_params(self, param_vals, reset=True):
