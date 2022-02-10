@@ -25,6 +25,18 @@ class CSV0DModelParser(object):
         # TODO if file ending is csv. elif file ending is json
         # TODO create a json_parser
         vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename,True)
+
+        # TODO remove the below:
+        #  Temporarily we add a pulmonary system if there isnt one defined, this should be defined by
+        #   the user but we include this to improve backwards compatitibility.
+        if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
+            # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
+            # add pulmonary vein and artey to df
+            vessels_df.loc[vessels_df.index.max()+1] = ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']]
+            vessels_df.loc[vessels_df.index.max()+1] = ['pvn', 'vp', 'arterial_simple', ['par'], ['heart']]
+            # add pulmonary artery (par) to output of heart and pvn to input
+            vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
+            vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
         parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename,True)
         # Reduce parameters_array so that it only includes the required parameters for
         # this vessel_array.
@@ -62,13 +74,6 @@ class CSV0DModelParser(object):
         num_params = 0
         # Add pulmonary parameters # TODO put this into the for loop when pulmonary vessels are modules
         # TODO include units and model_environment in the appended item so they can be included
-        required_params.append(['C_par', 'm6_per_J', 'pulmonary'])
-        required_params.append(['C_pvn', 'm6_per_J', 'pulmonary'])
-        required_params.append(['R_par', 'Js_per_m6', 'pulmonary'])
-        required_params.append(['R_pvn', 'Js_per_m6', 'pulmonary'])
-        required_params.append(['I_par', 'Js2_per_m6', 'pulmonary'])
-        required_params.append(['I_pvn', 'Js2_per_m6', 'pulmonary'])
-        num_params += 6
         for vessel in vessels_df.itertuples():
             if vessel.name.startswith('heart'):
                 required_params.append(['T', 'second', 'heart'])

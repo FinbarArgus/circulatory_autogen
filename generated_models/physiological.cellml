@@ -19,143 +19,13 @@
         <units name="m3_per_Js" units_ref="m3_per_Js"/>
     </import>
     <import xlink:href="physiological_parameters.cellml">
-        <component component_ref="parameters_systemic" name="parameters_systemic"/>
-        <component component_ref="parameters_pulmonary" name="parameters_pulmonary"/>
+        <component component_ref="parameters" name="parameters"/>
         <component component_ref="parameters_heart" name="parameters_heart"/>
     </import>
     <component name="environment">
         <variable name="time" public_interface="out" units="second"/>
         <variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="gain_int" public_interface="out" units="J_per_m9"/>
-    </component>
-    <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; pulmonary Circulation &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
-    <component name="pulmonary">
-        <variable name="t" public_interface="in" units="second"/>
-        <!-- Constitutive parameters_systemic-->
-        <variable name="C_par" public_interface="in" units="m6_per_J"/>
-        <variable name="C_pvn" public_interface="in" units="m6_per_J"/>
-        <variable name="R_par" public_interface="in" units="Js_per_m6"/>
-        <variable name="R_pvn" public_interface="in" units="Js_per_m6"/>
-        <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
-        <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
-        <!-- State Variables-->
-        <!-- -->
-        <variable name="u_par" public_interface="out" units="J_per_m3"/>
-        <variable name="u_pvn" public_interface="out" units="J_per_m3"/>
-        <!-- TODO the below parameters should be set in an init_states parameter file
- The values are chosen arbitrarily to give the pulmonary system an initial stressed volume.
- Identification of the initial stressed volume is done by identifying initial q_lv-->
-        <variable initial_value="0.0" name="q_par" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_pvn" public_interface="out" units="J_per_m3"/>
-        <variable name="u_la" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
-        <variable name="v_pul_valve" public_interface="in" units="m3_per_s"/>
-        <!-- Constitutive Relations-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>q_par</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <ci>v_pul_valve</ci>
-                    <ci>v_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>q_pvn</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <ci>v_par</ci>
-                    <ci>v_pvn</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u_par</ci>
-                <apply>
-                    <divide/>
-                    <ci>q_par</ci>
-                    <ci>C_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u_pvn</ci>
-                <apply>
-                    <divide/>
-                    <ci>q_pvn</ci>
-                    <ci>C_pvn</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>v_par</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>u_par</ci>
-                            <ci>u_pvn</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>v_par</ci>
-                            <ci>R_par</ci>
-                        </apply>
-                    </apply>
-                    <ci>I_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>v_pvn</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>u_pvn</ci>
-                            <ci>u_la</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>v_pvn</ci>
-                            <ci>R_pvn</ci>
-                        </apply>
-                    </apply>
-                    <ci>I_pvn</ci>
-                </apply>
-            </apply>
-        </math>
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; heart &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="heart">
@@ -1334,22 +1204,6 @@
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; Mapping &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <connection>
-        <map_components component_1="heart" component_2="pulmonary"/>
-        <map_variables variable_1="u_par" variable_2="u_par"/>
-        <map_variables variable_1="v_pvn" variable_2="v_pvn"/>
-        <map_variables variable_1="u_la" variable_2="u_la"/>
-        <map_variables variable_1="v_puv" variable_2="v_pul_valve"/>
-    </connection>
-    <connection>
-        <map_components component_1="parameters_pulmonary" component_2="pulmonary"/>
-        <map_variables variable_1="C_par" variable_2="C_par"/>
-        <map_variables variable_1="C_pvn" variable_2="C_pvn"/>
-        <map_variables variable_1="R_par" variable_2="R_par"/>
-        <map_variables variable_1="R_pvn" variable_2="R_pvn"/>
-        <map_variables variable_1="I_par" variable_2="I_par"/>
-        <map_variables variable_1="I_pvn" variable_2="I_pvn"/>
-    </connection>
-    <connection>
         <map_components component_1="parameters_heart" component_2="heart"/>
         <map_variables variable_1="T" variable_2="T"/>
         <map_variables variable_1="t_ac" variable_2="t_ac"/>
@@ -1395,10 +1249,6 @@
     </connection>
     <connection>
         <map_components component_1="environment" component_2="heart"/>
-        <map_variables variable_1="time" variable_2="t"/>
-    </connection>
-    <connection>
-        <map_components component_1="environment" component_2="pulmonary"/>
         <map_variables variable_1="time" variable_2="t"/>
     </connection>
     <!--#STARTGENBELOW-->
@@ -1649,11 +1499,22 @@
 <import xlink:href="physiological_modules.cellml">
     <component component_ref="vp_simple_type" name="venous_svc_module"/>
 </import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="par_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="pvn_module"/>
+</import>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="heart" component_2="ascending_aorta_A_module"/>
    <map_variables variable_1="v_aov" variable_2="v_in"/>
    <map_variables variable_1="u_root" variable_2="u_C"/>
+</connection>
+<connection>
+   <map_components component_1="heart" component_2="par_module"/>
+   <map_variables variable_1="v_puv" variable_2="v_in"/>
+   <map_variables variable_1="u_par" variable_2="u"/>
 </connection>
 <connection>
    <map_components component_1="ascending_aorta_A_module" component_2="ascending_aorta_B_module"/>
@@ -1896,11 +1757,6 @@
    <map_variables variable_1="u_d" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="anterior_cerebral_L42_module" component_2="anterior_cerebral_L_T_module"/>
-   <map_variables variable_1="v_out" variable_2="v"/>
-   <map_variables variable_1="u_d" variable_2="u_in"/>
-</connection>
-<connection>
    <map_components component_1="anterior_communicating_C44_module" component_2="anterior_cerebral_L42_module"/>
    <map_variables variable_1="v_d" variable_2="v_in_2"/>
    <map_variables variable_1="u_out" variable_2="u"/>
@@ -1956,19 +1812,9 @@
    <map_variables variable_1="u_d" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="posterior_cerebral_post_L12_module" component_2="posterior_cerebral_L_T_module"/>
-   <map_variables variable_1="v_out" variable_2="v"/>
-   <map_variables variable_1="u_d" variable_2="u_in"/>
-</connection>
-<connection>
    <map_components component_1="posterior_cerebral_pre_R204_module" component_2="posterior_cerebral_post_R208_module"/>
    <map_variables variable_1="v_d" variable_2="v_in_1"/>
    <map_variables variable_1="u_out" variable_2="u"/>
-</connection>
-<connection>
-   <map_components component_1="posterior_cerebral_post_R208_module" component_2="posterior_cerebral_R_T_module"/>
-   <map_variables variable_1="v_out" variable_2="v"/>
-   <map_variables variable_1="u_d" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="posterior_cerebral_post_R208_module" component_2="posterior_cerebral_R_T_module"/>
@@ -2146,6 +1992,16 @@
    <map_components component_1="venous_svc_module" component_2="heart"/>
    <map_variables variable_1="v" variable_2="v_svc"/>
    <map_variables variable_1="u_out" variable_2="u_ra"/>
+</connection>
+<connection>
+   <map_components component_1="par_module" component_2="pvn_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="pvn_module" component_2="heart"/>
+   <map_variables variable_1="v" variable_2="v_pvn"/>
+   <map_variables variable_1="u_out" variable_2="u_la"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;terminal venous connection&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -2691,6 +2547,20 @@
    <variable name="R" public_interface="in" units="Js_per_m6"/>
    <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
+<component name="par">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="pvn">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="ascending_aorta_A" component_2="ascending_aorta_A_module"/>
@@ -3208,13 +3078,29 @@
    <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
 </connection>
+<connection>
+   <map_components component_1="par" component_2="par_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="pvn" component_2="pvn_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="environment" component_2="ascending_aorta_A_module"/>
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="ascending_aorta_A_module"/>
+   <map_components component_1="parameters" component_2="ascending_aorta_A_module"/>
    <map_variables variable_1="l_ascending_aorta_A" variable_2="l"/>
    <map_variables variable_1="E_ascending_aorta_A" variable_2="E"/>
    <map_variables variable_1="r_ascending_aorta_A" variable_2="r"/>
@@ -3225,7 +3111,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="ascending_aorta_B_module"/>
+   <map_components component_1="parameters" component_2="ascending_aorta_B_module"/>
    <map_variables variable_1="l_ascending_aorta_B" variable_2="l"/>
    <map_variables variable_1="E_ascending_aorta_B" variable_2="E"/>
    <map_variables variable_1="r_ascending_aorta_B" variable_2="r"/>
@@ -3236,7 +3122,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="ascending_aorta_C_module"/>
+   <map_components component_1="parameters" component_2="ascending_aorta_C_module"/>
    <map_variables variable_1="l_ascending_aorta_C" variable_2="l"/>
    <map_variables variable_1="E_ascending_aorta_C" variable_2="E"/>
    <map_variables variable_1="r_ascending_aorta_C" variable_2="r"/>
@@ -3247,7 +3133,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="ascending_aorta_D_module"/>
+   <map_components component_1="parameters" component_2="ascending_aorta_D_module"/>
    <map_variables variable_1="l_ascending_aorta_D" variable_2="l"/>
    <map_variables variable_1="E_ascending_aorta_D" variable_2="E"/>
    <map_variables variable_1="r_ascending_aorta_D" variable_2="r"/>
@@ -3258,7 +3144,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="aortic_arch_C2_module"/>
+   <map_components component_1="parameters" component_2="aortic_arch_C2_module"/>
    <map_variables variable_1="l_aortic_arch_C2" variable_2="l"/>
    <map_variables variable_1="E_aortic_arch_C2" variable_2="E"/>
    <map_variables variable_1="r_aortic_arch_C2" variable_2="r"/>
@@ -3269,7 +3155,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="aortic_arch_C46_module"/>
+   <map_components component_1="parameters" component_2="aortic_arch_C46_module"/>
    <map_variables variable_1="l_aortic_arch_C46" variable_2="l"/>
    <map_variables variable_1="E_aortic_arch_C46" variable_2="E"/>
    <map_variables variable_1="r_aortic_arch_C46" variable_2="r"/>
@@ -3280,7 +3166,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="aortic_arch_C64_module"/>
+   <map_components component_1="parameters" component_2="aortic_arch_C64_module"/>
    <map_variables variable_1="l_aortic_arch_C64" variable_2="l"/>
    <map_variables variable_1="E_aortic_arch_C64" variable_2="E"/>
    <map_variables variable_1="r_aortic_arch_C64" variable_2="r"/>
@@ -3291,7 +3177,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_components component_1="parameters" component_2="brachiocephalic_trunk_C4_module"/>
    <map_variables variable_1="l_brachiocephalic_trunk_C4" variable_2="l"/>
    <map_variables variable_1="E_brachiocephalic_trunk_C4" variable_2="E"/>
    <map_variables variable_1="r_brachiocephalic_trunk_C4" variable_2="r"/>
@@ -3302,7 +3188,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="subclavian_L66_module"/>
+   <map_components component_1="parameters" component_2="subclavian_L66_module"/>
    <map_variables variable_1="l_subclavian_L66" variable_2="l"/>
    <map_variables variable_1="E_subclavian_L66" variable_2="E"/>
    <map_variables variable_1="r_subclavian_L66" variable_2="r"/>
@@ -3313,7 +3199,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="subclavian_L78_module"/>
+   <map_components component_1="parameters" component_2="subclavian_L78_module"/>
    <map_variables variable_1="l_subclavian_L78" variable_2="l"/>
    <map_variables variable_1="E_subclavian_L78" variable_2="E"/>
    <map_variables variable_1="r_subclavian_L78" variable_2="r"/>
@@ -3324,7 +3210,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="brachial_L82_module"/>
+   <map_components component_1="parameters" component_2="brachial_L82_module"/>
    <map_variables variable_1="l_brachial_L82" variable_2="l"/>
    <map_variables variable_1="E_brachial_L82" variable_2="E"/>
    <map_variables variable_1="r_brachial_L82" variable_2="r"/>
@@ -3335,7 +3221,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_L48_A_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_L48_A_module"/>
    <map_variables variable_1="l_common_carotid_L48_A" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_L48_A" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_L48_A" variable_2="r"/>
@@ -3346,7 +3232,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_L48_B_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_L48_B_module"/>
    <map_variables variable_1="l_common_carotid_L48_B" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_L48_B" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_L48_B" variable_2="r"/>
@@ -3357,7 +3243,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_L48_C_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_L48_C_module"/>
    <map_variables variable_1="l_common_carotid_L48_C" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_L48_C" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_L48_C" variable_2="r"/>
@@ -3368,7 +3254,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_L48_D_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_L48_D_module"/>
    <map_variables variable_1="l_common_carotid_L48_D" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_L48_D" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_L48_D" variable_2="r"/>
@@ -3379,7 +3265,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_R6_A_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_R6_A_module"/>
    <map_variables variable_1="l_common_carotid_R6_A" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_R6_A" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_R6_A" variable_2="r"/>
@@ -3390,7 +3276,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_R6_B_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_R6_B_module"/>
    <map_variables variable_1="l_common_carotid_R6_B" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_R6_B" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_R6_B" variable_2="r"/>
@@ -3401,7 +3287,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_carotid_R6_C_module"/>
+   <map_components component_1="parameters" component_2="common_carotid_R6_C_module"/>
    <map_variables variable_1="l_common_carotid_R6_C" variable_2="l"/>
    <map_variables variable_1="E_common_carotid_R6_C" variable_2="E"/>
    <map_variables variable_1="r_common_carotid_R6_C" variable_2="r"/>
@@ -3412,7 +3298,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_carotid_L62_module"/>
+   <map_components component_1="parameters" component_2="external_carotid_L62_module"/>
    <map_variables variable_1="l_external_carotid_L62" variable_2="l"/>
    <map_variables variable_1="E_external_carotid_L62" variable_2="E"/>
    <map_variables variable_1="r_external_carotid_L62" variable_2="r"/>
@@ -3423,7 +3309,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_carotid_R26_module"/>
+   <map_components component_1="parameters" component_2="external_carotid_R26_module"/>
    <map_variables variable_1="l_external_carotid_R26" variable_2="l"/>
    <map_variables variable_1="E_external_carotid_R26" variable_2="E"/>
    <map_variables variable_1="r_external_carotid_R26" variable_2="r"/>
@@ -3434,7 +3320,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_L50_A_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_L50_A_module"/>
    <map_variables variable_1="l_internal_carotid_L50_A" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_L50_A" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_L50_A" variable_2="r"/>
@@ -3445,7 +3331,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_L50_B_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_L50_B_module"/>
    <map_variables variable_1="l_internal_carotid_L50_B" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_L50_B" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_L50_B" variable_2="r"/>
@@ -3456,7 +3342,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_L50_C_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_L50_C_module"/>
    <map_variables variable_1="l_internal_carotid_L50_C" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_L50_C" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_L50_C" variable_2="r"/>
@@ -3467,7 +3353,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_R8_A_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_R8_A_module"/>
    <map_variables variable_1="l_internal_carotid_R8_A" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_R8_A" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_R8_A" variable_2="r"/>
@@ -3478,7 +3364,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_R8_B_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_R8_B_module"/>
    <map_variables variable_1="l_internal_carotid_R8_B" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_R8_B" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_R8_B" variable_2="r"/>
@@ -3489,7 +3375,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_R8_C_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_R8_C_module"/>
    <map_variables variable_1="l_internal_carotid_R8_C" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_R8_C" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_R8_C" variable_2="r"/>
@@ -3500,7 +3386,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_communicating_L8_module"/>
+   <map_components component_1="parameters" component_2="posterior_communicating_L8_module"/>
    <map_variables variable_1="l_posterior_communicating_L8" variable_2="l"/>
    <map_variables variable_1="E_posterior_communicating_L8" variable_2="E"/>
    <map_variables variable_1="r_posterior_communicating_L8" variable_2="r"/>
@@ -3511,7 +3397,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_communicating_R206_module"/>
+   <map_components component_1="parameters" component_2="posterior_communicating_R206_module"/>
    <map_variables variable_1="l_posterior_communicating_R206" variable_2="l"/>
    <map_variables variable_1="E_posterior_communicating_R206" variable_2="E"/>
    <map_variables variable_1="r_posterior_communicating_R206" variable_2="r"/>
@@ -3522,7 +3408,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_L112_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_L112_module"/>
    <map_variables variable_1="l_internal_carotid_L112" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_L112" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_L112" variable_2="r"/>
@@ -3533,7 +3419,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="internal_carotid_R48_module"/>
+   <map_components component_1="parameters" component_2="internal_carotid_R48_module"/>
    <map_variables variable_1="l_internal_carotid_R48" variable_2="l"/>
    <map_variables variable_1="E_internal_carotid_R48" variable_2="E"/>
    <map_variables variable_1="r_internal_carotid_R48" variable_2="r"/>
@@ -3544,7 +3430,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="middle_cerebral_L114_module"/>
+   <map_components component_1="parameters" component_2="middle_cerebral_L114_module"/>
    <map_variables variable_1="l_middle_cerebral_L114" variable_2="l"/>
    <map_variables variable_1="E_middle_cerebral_L114" variable_2="E"/>
    <map_variables variable_1="r_middle_cerebral_L114" variable_2="r"/>
@@ -3555,7 +3441,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="middle_cerebral_R52_module"/>
+   <map_components component_1="parameters" component_2="middle_cerebral_R52_module"/>
    <map_variables variable_1="l_middle_cerebral_R52" variable_2="l"/>
    <map_variables variable_1="E_middle_cerebral_R52" variable_2="E"/>
    <map_variables variable_1="r_middle_cerebral_R52" variable_2="r"/>
@@ -3566,7 +3452,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_L110_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_L110_module"/>
    <map_variables variable_1="l_anterior_cerebral_L110" variable_2="l"/>
    <map_variables variable_1="E_anterior_cerebral_L110" variable_2="E"/>
    <map_variables variable_1="r_anterior_cerebral_L110" variable_2="r"/>
@@ -3577,7 +3463,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_R46_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_R46_module"/>
    <map_variables variable_1="l_anterior_cerebral_R46" variable_2="l"/>
    <map_variables variable_1="E_anterior_cerebral_R46" variable_2="E"/>
    <map_variables variable_1="r_anterior_cerebral_R46" variable_2="r"/>
@@ -3588,7 +3474,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_R238_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_R238_module"/>
    <map_variables variable_1="l_anterior_cerebral_R238" variable_2="l"/>
    <map_variables variable_1="E_anterior_cerebral_R238" variable_2="E"/>
    <map_variables variable_1="r_anterior_cerebral_R238" variable_2="r"/>
@@ -3599,7 +3485,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_L42_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_L42_module"/>
    <map_variables variable_1="l_anterior_cerebral_L42" variable_2="l"/>
    <map_variables variable_1="E_anterior_cerebral_L42" variable_2="E"/>
    <map_variables variable_1="r_anterior_cerebral_L42" variable_2="r"/>
@@ -3610,7 +3496,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_communicating_C44_module"/>
+   <map_components component_1="parameters" component_2="anterior_communicating_C44_module"/>
    <map_variables variable_1="l_anterior_communicating_C44" variable_2="l"/>
    <map_variables variable_1="E_anterior_communicating_C44" variable_2="E"/>
    <map_variables variable_1="r_anterior_communicating_C44" variable_2="r"/>
@@ -3621,7 +3507,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="vertebral_L2_module"/>
+   <map_components component_1="parameters" component_2="vertebral_L2_module"/>
    <map_variables variable_1="l_vertebral_L2" variable_2="l"/>
    <map_variables variable_1="E_vertebral_L2" variable_2="E"/>
    <map_variables variable_1="r_vertebral_L2" variable_2="r"/>
@@ -3632,7 +3518,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="subclavian_R28_module"/>
+   <map_components component_1="parameters" component_2="subclavian_R28_module"/>
    <map_variables variable_1="l_subclavian_R28" variable_2="l"/>
    <map_variables variable_1="E_subclavian_R28" variable_2="E"/>
    <map_variables variable_1="r_subclavian_R28" variable_2="r"/>
@@ -3643,7 +3529,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="subclavian_R30_module"/>
+   <map_components component_1="parameters" component_2="subclavian_R30_module"/>
    <map_variables variable_1="l_subclavian_R30" variable_2="l"/>
    <map_variables variable_1="E_subclavian_R30" variable_2="E"/>
    <map_variables variable_1="r_subclavian_R30" variable_2="r"/>
@@ -3654,7 +3540,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="brachial_R34_module"/>
+   <map_components component_1="parameters" component_2="brachial_R34_module"/>
    <map_variables variable_1="l_brachial_R34" variable_2="l"/>
    <map_variables variable_1="E_brachial_R34" variable_2="E"/>
    <map_variables variable_1="r_brachial_R34" variable_2="r"/>
@@ -3665,7 +3551,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="vertebral_R272_module"/>
+   <map_components component_1="parameters" component_2="vertebral_R272_module"/>
    <map_variables variable_1="l_vertebral_R272" variable_2="l"/>
    <map_variables variable_1="E_vertebral_R272" variable_2="E"/>
    <map_variables variable_1="r_vertebral_R272" variable_2="r"/>
@@ -3676,7 +3562,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="basilar_C4_module"/>
+   <map_components component_1="parameters" component_2="basilar_C4_module"/>
    <map_variables variable_1="l_basilar_C4" variable_2="l"/>
    <map_variables variable_1="E_basilar_C4" variable_2="E"/>
    <map_variables variable_1="r_basilar_C4" variable_2="r"/>
@@ -3687,7 +3573,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_pre_L6_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_pre_L6_module"/>
    <map_variables variable_1="l_posterior_cerebral_pre_L6" variable_2="l"/>
    <map_variables variable_1="E_posterior_cerebral_pre_L6" variable_2="E"/>
    <map_variables variable_1="r_posterior_cerebral_pre_L6" variable_2="r"/>
@@ -3698,7 +3584,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_post_L12_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_post_L12_module"/>
    <map_variables variable_1="l_posterior_cerebral_post_L12" variable_2="l"/>
    <map_variables variable_1="E_posterior_cerebral_post_L12" variable_2="E"/>
    <map_variables variable_1="r_posterior_cerebral_post_L12" variable_2="r"/>
@@ -3709,7 +3595,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_pre_R204_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_pre_R204_module"/>
    <map_variables variable_1="l_posterior_cerebral_pre_R204" variable_2="l"/>
    <map_variables variable_1="E_posterior_cerebral_pre_R204" variable_2="E"/>
    <map_variables variable_1="r_posterior_cerebral_pre_R204" variable_2="r"/>
@@ -3720,7 +3606,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_post_R208_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_post_R208_module"/>
    <map_variables variable_1="l_posterior_cerebral_post_R208" variable_2="l"/>
    <map_variables variable_1="E_posterior_cerebral_post_R208" variable_2="E"/>
    <map_variables variable_1="r_posterior_cerebral_post_R208" variable_2="r"/>
@@ -3731,7 +3617,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_L_T_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_L_T_module"/>
    <map_variables variable_1="R_T_posterior_cerebral_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_posterior_cerebral_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_posterior_cerebral_L" variable_2="alpha"/>
@@ -3742,7 +3628,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="posterior_cerebral_R_T_module"/>
+   <map_components component_1="parameters" component_2="posterior_cerebral_R_T_module"/>
    <map_variables variable_1="R_T_posterior_cerebral_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_posterior_cerebral_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_posterior_cerebral_R" variable_2="alpha"/>
@@ -3753,7 +3639,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_carotid_L_T_module"/>
+   <map_components component_1="parameters" component_2="external_carotid_L_T_module"/>
    <map_variables variable_1="R_T_external_carotid_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_external_carotid_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_external_carotid_L" variable_2="alpha"/>
@@ -3764,7 +3650,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_carotid_R_T_module"/>
+   <map_components component_1="parameters" component_2="external_carotid_R_T_module"/>
    <map_variables variable_1="R_T_external_carotid_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_external_carotid_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_external_carotid_R" variable_2="alpha"/>
@@ -3775,7 +3661,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="middle_cerebral_L_T_module"/>
+   <map_components component_1="parameters" component_2="middle_cerebral_L_T_module"/>
    <map_variables variable_1="R_T_middle_cerebral_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_middle_cerebral_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_middle_cerebral_L" variable_2="alpha"/>
@@ -3786,7 +3672,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="middle_cerebral_R_T_module"/>
+   <map_components component_1="parameters" component_2="middle_cerebral_R_T_module"/>
    <map_variables variable_1="R_T_middle_cerebral_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_middle_cerebral_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_middle_cerebral_R" variable_2="alpha"/>
@@ -3797,7 +3683,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_L_T_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_L_T_module"/>
    <map_variables variable_1="R_T_anterior_cerebral_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_anterior_cerebral_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_anterior_cerebral_L" variable_2="alpha"/>
@@ -3808,7 +3694,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="anterior_cerebral_R_T_module"/>
+   <map_components component_1="parameters" component_2="anterior_cerebral_R_T_module"/>
    <map_variables variable_1="R_T_anterior_cerebral_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_anterior_cerebral_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_anterior_cerebral_R" variable_2="alpha"/>
@@ -3819,7 +3705,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="arm_L_T_module"/>
+   <map_components component_1="parameters" component_2="arm_L_T_module"/>
    <map_variables variable_1="R_T_arm_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_arm_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_arm_L" variable_2="alpha"/>
@@ -3830,7 +3716,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="arm_R_T_module"/>
+   <map_components component_1="parameters" component_2="arm_R_T_module"/>
    <map_variables variable_1="R_T_arm_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_arm_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_arm_R" variable_2="alpha"/>
@@ -3841,7 +3727,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="aortic_arch_C94_module"/>
+   <map_components component_1="parameters" component_2="aortic_arch_C94_module"/>
    <map_variables variable_1="l_aortic_arch_C94" variable_2="l"/>
    <map_variables variable_1="E_aortic_arch_C94" variable_2="E"/>
    <map_variables variable_1="r_aortic_arch_C94" variable_2="r"/>
@@ -3852,7 +3738,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C96_module"/>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C96_module"/>
    <map_variables variable_1="l_thoracic_aorta_C96" variable_2="l"/>
    <map_variables variable_1="E_thoracic_aorta_C96" variable_2="E"/>
    <map_variables variable_1="r_thoracic_aorta_C96" variable_2="r"/>
@@ -3863,7 +3749,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C100_module"/>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C100_module"/>
    <map_variables variable_1="l_thoracic_aorta_C100" variable_2="l"/>
    <map_variables variable_1="E_thoracic_aorta_C100" variable_2="E"/>
    <map_variables variable_1="r_thoracic_aorta_C100" variable_2="r"/>
@@ -3874,7 +3760,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C104_module"/>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C104_module"/>
    <map_variables variable_1="l_thoracic_aorta_C104" variable_2="l"/>
    <map_variables variable_1="E_thoracic_aorta_C104" variable_2="E"/>
    <map_variables variable_1="r_thoracic_aorta_C104" variable_2="r"/>
@@ -3885,7 +3771,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C108_module"/>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C108_module"/>
    <map_variables variable_1="l_thoracic_aorta_C108" variable_2="l"/>
    <map_variables variable_1="E_thoracic_aorta_C108" variable_2="E"/>
    <map_variables variable_1="r_thoracic_aorta_C108" variable_2="r"/>
@@ -3896,7 +3782,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="thoracic_aorta_C112_module"/>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C112_module"/>
    <map_variables variable_1="l_thoracic_aorta_C112" variable_2="l"/>
    <map_variables variable_1="E_thoracic_aorta_C112" variable_2="E"/>
    <map_variables variable_1="r_thoracic_aorta_C112" variable_2="r"/>
@@ -3907,7 +3793,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C114_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C114_module"/>
    <map_variables variable_1="l_abdominal_aorta_C114" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C114" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C114" variable_2="r"/>
@@ -3918,7 +3804,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="trunk_C_T_module"/>
+   <map_components component_1="parameters" component_2="trunk_C_T_module"/>
    <map_variables variable_1="R_T_trunk_C" variable_2="R_T"/>
    <map_variables variable_1="C_T_trunk_C" variable_2="C_T"/>
    <map_variables variable_1="alpha_trunk_C" variable_2="alpha"/>
@@ -3929,7 +3815,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C136_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C136_module"/>
    <map_variables variable_1="l_abdominal_aorta_C136" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C136" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C136" variable_2="r"/>
@@ -3940,7 +3826,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C164_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C164_module"/>
    <map_variables variable_1="l_abdominal_aorta_C164" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C164" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C164" variable_2="r"/>
@@ -3951,7 +3837,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C176_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C176_module"/>
    <map_variables variable_1="l_abdominal_aorta_C176" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C176" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C176" variable_2="r"/>
@@ -3962,7 +3848,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C188_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C188_module"/>
    <map_variables variable_1="l_abdominal_aorta_C188" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C188" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C188" variable_2="r"/>
@@ -3973,7 +3859,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="abdominal_aorta_C192_module"/>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C192_module"/>
    <map_variables variable_1="l_abdominal_aorta_C192" variable_2="l"/>
    <map_variables variable_1="E_abdominal_aorta_C192" variable_2="E"/>
    <map_variables variable_1="r_abdominal_aorta_C192" variable_2="r"/>
@@ -3984,7 +3870,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_iliac_L194_module"/>
+   <map_components component_1="parameters" component_2="common_iliac_L194_module"/>
    <map_variables variable_1="l_common_iliac_L194" variable_2="l"/>
    <map_variables variable_1="E_common_iliac_L194" variable_2="E"/>
    <map_variables variable_1="r_common_iliac_L194" variable_2="r"/>
@@ -3995,7 +3881,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_iliac_L198_module"/>
+   <map_components component_1="parameters" component_2="external_iliac_L198_module"/>
    <map_variables variable_1="l_external_iliac_L198" variable_2="l"/>
    <map_variables variable_1="E_external_iliac_L198" variable_2="E"/>
    <map_variables variable_1="r_external_iliac_L198" variable_2="r"/>
@@ -4006,7 +3892,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="common_iliac_R216_module"/>
+   <map_components component_1="parameters" component_2="common_iliac_R216_module"/>
    <map_variables variable_1="l_common_iliac_R216" variable_2="l"/>
    <map_variables variable_1="E_common_iliac_R216" variable_2="E"/>
    <map_variables variable_1="r_common_iliac_R216" variable_2="r"/>
@@ -4017,7 +3903,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="external_iliac_R220_module"/>
+   <map_components component_1="parameters" component_2="external_iliac_R220_module"/>
    <map_variables variable_1="l_external_iliac_R220" variable_2="l"/>
    <map_variables variable_1="E_external_iliac_R220" variable_2="E"/>
    <map_variables variable_1="r_external_iliac_R220" variable_2="r"/>
@@ -4028,7 +3914,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="femoral_L200_module"/>
+   <map_components component_1="parameters" component_2="femoral_L200_module"/>
    <map_variables variable_1="l_femoral_L200" variable_2="l"/>
    <map_variables variable_1="E_femoral_L200" variable_2="E"/>
    <map_variables variable_1="r_femoral_L200" variable_2="r"/>
@@ -4039,7 +3925,7 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="femoral_R222_module"/>
+   <map_components component_1="parameters" component_2="femoral_R222_module"/>
    <map_variables variable_1="l_femoral_R222" variable_2="l"/>
    <map_variables variable_1="E_femoral_R222" variable_2="E"/>
    <map_variables variable_1="r_femoral_R222" variable_2="r"/>
@@ -4050,7 +3936,7 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="leg_L_T_module"/>
+   <map_components component_1="parameters" component_2="leg_L_T_module"/>
    <map_variables variable_1="R_T_leg_L" variable_2="R_T"/>
    <map_variables variable_1="C_T_leg_L" variable_2="C_T"/>
    <map_variables variable_1="alpha_leg_L" variable_2="alpha"/>
@@ -4061,35 +3947,47 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="leg_R_T_module"/>
+   <map_components component_1="parameters" component_2="leg_R_T_module"/>
    <map_variables variable_1="R_T_leg_R" variable_2="R_T"/>
    <map_variables variable_1="C_T_leg_R" variable_2="C_T"/>
    <map_variables variable_1="alpha_leg_R" variable_2="alpha"/>
    <map_variables variable_1="v_nom_leg_R" variable_2="v_nominal"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="venous_lb_module"/>
+   <map_components component_1="parameters" component_2="venous_lb_module"/>
    <map_variables variable_1="R_venous_lb" variable_2="R"/>
    <map_variables variable_1="C_venous_lb" variable_2="C"/>
    <map_variables variable_1="I_venous_lb" variable_2="I"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="venous_ub_module"/>
+   <map_components component_1="parameters" component_2="venous_ub_module"/>
    <map_variables variable_1="R_venous_ub" variable_2="R"/>
    <map_variables variable_1="C_venous_ub" variable_2="C"/>
    <map_variables variable_1="I_venous_ub" variable_2="I"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="venous_ivc_module"/>
+   <map_components component_1="parameters" component_2="venous_ivc_module"/>
    <map_variables variable_1="R_venous_ivc" variable_2="R"/>
    <map_variables variable_1="C_venous_ivc" variable_2="C"/>
    <map_variables variable_1="I_venous_ivc" variable_2="I"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="venous_svc_module"/>
+   <map_components component_1="parameters" component_2="venous_svc_module"/>
    <map_variables variable_1="R_venous_svc" variable_2="R"/>
    <map_variables variable_1="C_venous_svc" variable_2="C"/>
    <map_variables variable_1="I_venous_svc" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="par_module"/>
+   <map_variables variable_1="R_par" variable_2="R"/>
+   <map_variables variable_1="C_par" variable_2="C"/>
+   <map_variables variable_1="I_par" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="pvn_module"/>
+   <map_variables variable_1="R_pvn" variable_2="R"/>
+   <map_variables variable_1="C_pvn" variable_2="C"/>
+   <map_variables variable_1="I_pvn" variable_2="I"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;time mapping&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -4418,6 +4316,14 @@
 </connection>
 <connection>
    <map_components component_1="environment" component_2="venous_svc_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="par_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="pvn_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 </model>

@@ -19,143 +19,13 @@
         <units name="m3_per_Js" units_ref="m3_per_Js"/>
     </import>
     <import xlink:href="3compartment_parameters.cellml">
-        <component component_ref="parameters_systemic" name="parameters_systemic"/>
-        <component component_ref="parameters_pulmonary" name="parameters_pulmonary"/>
+        <component component_ref="parameters" name="parameters"/>
         <component component_ref="parameters_heart" name="parameters_heart"/>
     </import>
     <component name="environment">
         <variable name="time" public_interface="out" units="second"/>
         <variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="gain_int" public_interface="out" units="J_per_m9"/>
-    </component>
-    <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; pulmonary Circulation &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
-    <component name="pulmonary">
-        <variable name="t" public_interface="in" units="second"/>
-        <!-- Constitutive parameters_systemic-->
-        <variable name="C_par" public_interface="in" units="m6_per_J"/>
-        <variable name="C_pvn" public_interface="in" units="m6_per_J"/>
-        <variable name="R_par" public_interface="in" units="Js_per_m6"/>
-        <variable name="R_pvn" public_interface="in" units="Js_per_m6"/>
-        <variable name="I_par" public_interface="in" units="Js2_per_m6"/>
-        <variable name="I_pvn" public_interface="in" units="Js2_per_m6"/>
-        <!-- State Variables-->
-        <!-- -->
-        <variable name="u_par" public_interface="out" units="J_per_m3"/>
-        <variable name="u_pvn" public_interface="out" units="J_per_m3"/>
-        <!-- TODO the below parameters should be set in an init_states parameter file
- The values are chosen arbitrarily to give the pulmonary system an initial stressed volume.
- Identification of the initial stressed volume is done by identifying initial q_lv-->
-        <variable initial_value="0.0" name="q_par" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_pvn" public_interface="out" units="J_per_m3"/>
-        <variable name="u_la" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.0" name="v_par" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="0.0" name="v_pvn" public_interface="out" units="m3_per_s"/>
-        <variable name="v_pul_valve" public_interface="in" units="m3_per_s"/>
-        <!-- Constitutive Relations-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>q_par</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <ci>v_pul_valve</ci>
-                    <ci>v_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>q_pvn</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <ci>v_par</ci>
-                    <ci>v_pvn</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u_par</ci>
-                <apply>
-                    <divide/>
-                    <ci>q_par</ci>
-                    <ci>C_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u_pvn</ci>
-                <apply>
-                    <divide/>
-                    <ci>q_pvn</ci>
-                    <ci>C_pvn</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>v_par</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>u_par</ci>
-                            <ci>u_pvn</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>v_par</ci>
-                            <ci>R_par</ci>
-                        </apply>
-                    </apply>
-                    <ci>I_par</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>v_pvn</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>u_pvn</ci>
-                            <ci>u_la</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>v_pvn</ci>
-                            <ci>R_pvn</ci>
-                        </apply>
-                    </apply>
-                    <ci>I_pvn</ci>
-                </apply>
-            </apply>
-        </math>
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; heart &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <component name="heart">
@@ -1334,22 +1204,6 @@
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; Mapping &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
     <connection>
-        <map_components component_1="heart" component_2="pulmonary"/>
-        <map_variables variable_1="u_par" variable_2="u_par"/>
-        <map_variables variable_1="v_pvn" variable_2="v_pvn"/>
-        <map_variables variable_1="u_la" variable_2="u_la"/>
-        <map_variables variable_1="v_puv" variable_2="v_pul_valve"/>
-    </connection>
-    <connection>
-        <map_components component_1="parameters_pulmonary" component_2="pulmonary"/>
-        <map_variables variable_1="C_par" variable_2="C_par"/>
-        <map_variables variable_1="C_pvn" variable_2="C_pvn"/>
-        <map_variables variable_1="R_par" variable_2="R_par"/>
-        <map_variables variable_1="R_pvn" variable_2="R_pvn"/>
-        <map_variables variable_1="I_par" variable_2="I_par"/>
-        <map_variables variable_1="I_pvn" variable_2="I_pvn"/>
-    </connection>
-    <connection>
         <map_components component_1="parameters_heart" component_2="heart"/>
         <map_variables variable_1="T" variable_2="T"/>
         <map_variables variable_1="t_ac" variable_2="t_ac"/>
@@ -1397,10 +1251,6 @@
         <map_components component_1="environment" component_2="heart"/>
         <map_variables variable_1="time" variable_2="t"/>
     </connection>
-    <connection>
-        <map_components component_1="environment" component_2="pulmonary"/>
-        <map_variables variable_1="time" variable_2="t"/>
-    </connection>
     <!--#STARTGENBELOW-->
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <import xlink:href="3compartment_modules.cellml">
@@ -1413,6 +1263,12 @@
     <component component_ref="vp_simple_type" name="venous_svc_module"/>
 </import>
 <import xlink:href="3compartment_modules.cellml">
+    <component component_ref="vp_simple_type" name="par_module"/>
+</import>
+<import xlink:href="3compartment_modules.cellml">
+    <component component_ref="vp_simple_type" name="pvn_module"/>
+</import>
+<import xlink:href="3compartment_modules.cellml">
     <component component_ref="zero_flow" name="zero_flow_module"/>
 </import>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
@@ -1420,6 +1276,11 @@
    <map_components component_1="heart" component_2="aortic_root_module"/>
    <map_variables variable_1="v_aov" variable_2="v_in"/>
    <map_variables variable_1="u_root" variable_2="u_C"/>
+</connection>
+<connection>
+   <map_components component_1="heart" component_2="par_module"/>
+   <map_variables variable_1="v_puv" variable_2="v_in"/>
+   <map_variables variable_1="u_par" variable_2="u"/>
 </connection>
 <connection>
    <map_components component_1="aortic_root_module" component_2="systemic_T_module"/>
@@ -1434,6 +1295,16 @@
    <map_components component_1="venous_svc_module" component_2="heart"/>
    <map_variables variable_1="v" variable_2="v_svc"/>
    <map_variables variable_1="u_out" variable_2="u_ra"/>
+</connection>
+<connection>
+   <map_components component_1="par_module" component_2="pvn_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="pvn_module" component_2="heart"/>
+   <map_variables variable_1="v" variable_2="v_pvn"/>
+   <map_variables variable_1="u_out" variable_2="u_la"/>
 </connection>
 <connection>
    <map_components component_1="zero_flow_module" component_2="heart"/>
@@ -1481,6 +1352,20 @@
    <variable name="R" public_interface="in" units="Js_per_m6"/>
    <variable name="C" public_interface="in" units="m6_per_J"/>
 </component>
+<component name="par">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="pvn">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="aortic_root" component_2="aortic_root_module"/>
@@ -1506,9 +1391,25 @@
    <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
 </connection>
+<connection>
+   <map_components component_1="par" component_2="par_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="pvn" component_2="pvn_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
-   <map_components component_1="parameters_systemic" component_2="aortic_root_module"/>
+   <map_components component_1="parameters" component_2="aortic_root_module"/>
    <map_variables variable_1="R_aortic_root" variable_2="R"/>
    <map_variables variable_1="C_aortic_root" variable_2="C"/>
    <map_variables variable_1="I_aortic_root" variable_2="I"/>
@@ -1518,17 +1419,29 @@
    <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="systemic_T_module"/>
+   <map_components component_1="parameters" component_2="systemic_T_module"/>
    <map_variables variable_1="R_T_systemic" variable_2="R_T"/>
    <map_variables variable_1="C_T_systemic" variable_2="C_T"/>
    <map_variables variable_1="alpha_systemic" variable_2="alpha"/>
    <map_variables variable_1="v_nom_systemic" variable_2="v_nominal"/>
 </connection>
 <connection>
-   <map_components component_1="parameters_systemic" component_2="venous_svc_module"/>
+   <map_components component_1="parameters" component_2="venous_svc_module"/>
    <map_variables variable_1="R_venous_svc" variable_2="R"/>
    <map_variables variable_1="C_venous_svc" variable_2="C"/>
    <map_variables variable_1="I_venous_svc" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="par_module"/>
+   <map_variables variable_1="R_par" variable_2="R"/>
+   <map_variables variable_1="C_par" variable_2="C"/>
+   <map_variables variable_1="I_par" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="pvn_module"/>
+   <map_variables variable_1="R_pvn" variable_2="R"/>
+   <map_variables variable_1="C_pvn" variable_2="C"/>
+   <map_variables variable_1="I_pvn" variable_2="I"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;time mapping&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -1541,6 +1454,14 @@
 </connection>
 <connection>
    <map_components component_1="environment" component_2="venous_svc_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="par_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="pvn_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 </model>

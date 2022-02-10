@@ -169,20 +169,18 @@ class CVS0DCellMLGenerator(object):
             systemic_params_array = self.model.parameters_array[np.where(self.model.parameters_array["comp_env"] ==
                                                                          'systemic')]
 
-            wf.write('<component name="parameters_pulmonary">\n')
-            self.__write_constant_declarations(wf, pulmonary_params_array["variable_name"],
-                                        pulmonary_params_array["units"],
-                                        pulmonary_params_array["value"])
-            wf.write('</component>\n')
             wf.write('<component name="parameters_heart">\n')
             self.__write_constant_declarations(wf, heart_params_array["variable_name"],
                                         heart_params_array["units"],
                                         heart_params_array["value"])
             wf.write('</component>\n')
-            wf.write('<component name="parameters_systemic">\n')
+            wf.write('<component name="parameters">\n')
             self.__write_constant_declarations(wf, systemic_params_array["variable_name"],
                                         systemic_params_array["units"],
                                         systemic_params_array["value"])
+            self.__write_constant_declarations(wf, pulmonary_params_array["variable_name"],
+                                               pulmonary_params_array["units"],
+                                               pulmonary_params_array["value"])
             wf.write('</component>\n')
             wf.write('</model>\n')
 
@@ -236,7 +234,7 @@ class CVS0DCellMLGenerator(object):
 
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
-            if vessel_tup.vessel_type in ['heart', 'pulmonary']:
+            if vessel_tup.vessel_type in ['heart']:
                 continue
             self.__write_import(wf, vessel_tup)
         # add a zero mapping to heart ivc or svc flow input if only one input is specified
@@ -252,159 +250,179 @@ class CVS0DCellMLGenerator(object):
 
     def __write_vessel_mappings(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
+            # TODO store input and output variables in a config file so we don't have to modify this
+            #  for every new module
             # input and output vessels
             main_vessel = vessel_tup.name
             main_vessel_BC_type = vessel_tup.BC_type
             main_vessel_type = vessel_tup.vessel_type
-            out_vessel = vessel_tup.out_vessels[0]
+            for out_vessel_idx, out_vessel in enumerate(vessel_tup.out_vessels):
 
-            if not (vessel_df["name"] == out_vessel).any():
-                print(f'the output vessel of {out_vessel} is not defined')
-                exit()
-            out_vessel_df_vec = vessel_df.loc[vessel_df["name"] == out_vessel]
-            out_vessel_BC_type = out_vessel_df_vec.BC_type.values[0]
-            out_vessel_type = out_vessel_df_vec.vessel_type.values[0]
-    
-            # check that input and output vessels are defined as connection variables
-            # for that vessel and they have corresponding BCs
-            self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
-                                       main_vessel_BC_type, out_vessel_BC_type,
-                                       main_vessel_type, out_vessel_type)
-    
-            # determine BC variables from vessel_type and BC_type
-            if main_vessel_type == 'heart':
-                v_1 = 'v_aov'
-                p_1 = 'u_root'
-            elif main_vessel_type == 'last_venous':
-                v_1 = 'v'
-                p_1 = 'u_out'
-            elif main_vessel_type == 'terminal':
-                # flow output is to the terminal_venous_connection, not
-                # to the venous module
-                v_1 = ''
-                p_1 = 'u_out'
-            elif main_vessel_type == 'split_junction':
-                if main_vessel_BC_type.endswith('v'):
-                    v_1 = 'v_out_1'
-                    p_1 = 'u'
-                elif main_vessel_BC_type == 'vp':
-                    v_1 = 'v_out_1'
-                    p_1 = 'u'
-                elif main_vessel_BC_type == 'pp':
-                    print('Currently we have not implemented junctions'
-                          'with output pressure boundary conditions, '
-                          f'change {main_vessel}')
-                    exit()
-            elif main_vessel_type == '2in2out_junction':
-                if main_vessel_BC_type == 'vv':
-                    v_1 = 'v_out_1'
-                    p_1 = 'u_d'
-                else:
-                    print('2in2out vessels only have vv type BC, '
-                          f'change "{main_vessel}" or create new BC module '
-                          f'in BG_modules.cellml')
-                    exit()
-            elif main_vessel_type == 'merge_junction':
-                if main_vessel_BC_type == 'vp':
-                    v_1 = 'v'
-                    p_1 = 'u_out'
-                elif main_vessel_BC_type == 'vv':
-                    v_1 = 'v_out'
-                    p_1 = 'u_d'
-                else:
-                    print('Merge boundary condiditons only have vp or vv type BC, '
-                          f'change "{main_vessel}" or create new BC module in '
-                          f'BG_modules.cellml')
-                    exit()
-            else:
-                if main_vessel_BC_type.endswith('v'):
-                    v_1 = 'v_out'
-                    p_1 = 'u'
-                elif main_vessel_BC_type == 'vp':
-                    v_1 = 'v'
-                    p_1 = 'u_out'
-                elif main_vessel_BC_type == 'pp':
-                    v_1 = 'v_d'
-                    p_1 = 'u_out'
-    
-            if out_vessel_type == 'heart':
-                if main_vessel == 'venous_ivc':
-                    v_2 = 'v_ivc'
-                elif main_vessel == 'venous_svc':
-                    v_2 = 'v_svc'
-                else:
-                    print('venous input to heart can only be venous_ivc or venous_svc')
-                    exit()
-                p_2 = 'u_ra'
-            elif out_vessel_type in ['merge_junction', '2in2out_junction']:
-                if out_vessel_df_vec["inp_vessels"].values[0][0] == main_vessel:
-                    v_2 = 'v_in_1'
-                elif out_vessel_df_vec["inp_vessels"].values[0][1] == main_vessel:
-                    v_2 = 'v_in_2'
-                else:
-                    print('error, exiting')
-                    exit()
-                p_2 = 'u'
-            elif main_vessel_type == 'terminal':
-                # For terminal output we link to a terminal_venous connection
-                # to sum up the output terminal flows
-                if out_vessel_BC_type == 'vp':
-                    v_2 = ''
-                    p_2 = f'u'
-                else:
-                    print('venous section connected to terminal only works'
-                          'for vp BC currently')
-                    exit()
-            else:
-                if out_vessel_BC_type == 'vp':
-                    v_2 = 'v_in'
-                    p_2 = 'u'
-                elif out_vessel_BC_type == 'vv':
-                    v_2 = 'v_in'
-                    p_2 = 'u_C'
-                elif out_vessel_BC_type.startswith('p'):
-                    v_2 = 'v'
-                    p_2 = 'u_in'
-    
-            # TODO make heart and pulmonary BG modules so everything can be a module
-            if main_vessel in ['heart', 'pulmonary']:
-                main_vessel_module = main_vessel
-            else:
-                main_vessel_module = main_vessel + '_module'
-            if out_vessel in ['heart', 'pulmonary']:
-                out_vessel_module = out_vessel
-            else:
-                out_vessel_module = out_vessel + '_module'
-    
-            self.__write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
-    
-            if vessel_tup.vessel_type.endswith('junction'):
-                if vessel_tup.vessel_type in ['split_junction', '2in2out_junction']:
-                    out_vessel = vessel_tup.out_vessels[1]
-                    if out_vessel in ['heart', 'pulmonary']:
-                        out_vessel_module = out_vessel
-                    else:
-                        out_vessel_module = out_vessel + '_module'
-                    if vessel_tup.BC_type.endswith('v'):
-                        v_1 = 'v_out_2'
-                    else:
-                        pass
                 if not (vessel_df["name"] == out_vessel).any():
                     print(f'the output vessel of {out_vessel} is not defined')
                     exit()
                 out_vessel_df_vec = vessel_df.loc[vessel_df["name"] == out_vessel]
                 out_vessel_BC_type = out_vessel_df_vec.BC_type.values[0]
                 out_vessel_type = out_vessel_df_vec.vessel_type.values[0]
+
+                # check that input and output vessels are defined as connection variables
+                # for that vessel and they have corresponding BCs
                 self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
                                            main_vessel_BC_type, out_vessel_BC_type,
                                            main_vessel_type, out_vessel_type)
+
+                # determine BC variables from vessel_type and BC_type
+                if main_vessel_type == 'heart':
+                    if out_vessel_idx == 0:
+                        v_1 = 'v_aov'
+                        p_1 = 'u_root'
+                    elif out_vessel_idx == 1:
+                        v_1 = 'v_puv'
+                        p_1 = 'u_par'
+                    else:
+                        print('heart model is only implemented with two outputs currently. exiting')
+                        exit()
+                elif main_vessel_type == 'last_venous':
+                    v_1 = 'v'
+                    p_1 = 'u_out'
+                elif main_vessel_type == 'terminal':
+                    # flow output is to the terminal_venous_connection, not
+                    # to the venous module
+                    v_1 = ''
+                    p_1 = 'u_out'
+                elif main_vessel_type == 'split_junction':
+                    if main_vessel_BC_type.endswith('v'):
+                        if out_vessel_idx == 0:
+                            v_1 = 'v_out_1'
+                        elif out_vessel_idx == 1:
+                            v_1 = 'v_out_2'
+                        p_1 = 'u'
+                    elif main_vessel_BC_type.endswith('p'):
+                        print('Currently we have not implemented junctions'
+                              'with output pressure boundary conditions, '
+                              f'change {main_vessel}')
+                        exit()
+                elif main_vessel_type == '2in2out_junction':
+                    if main_vessel_BC_type == 'vv':
+                        if out_vessel_idx == 0:
+                            v_1 = 'v_out_1'
+                        elif out_vessel_idx == 1:
+                            v_1 = 'v_out_2'
+                        p_1 = 'u_d'
+                    else:
+                        print('2in2out vessels only have vv type BC, '
+                              f'change "{main_vessel}" or create new BC module '
+                              f'in BG_modules.cellml')
+                        exit()
+                elif main_vessel_type == 'merge_junction':
+                    if main_vessel_BC_type == 'vp':
+                        v_1 = 'v'
+                        p_1 = 'u_out'
+                    elif main_vessel_BC_type == 'vv':
+                        v_1 = 'v_out'
+                        p_1 = 'u_d'
+                    else:
+                        print('Merge boundary condiditons only have vp or vv type BC, '
+                              f'change "{main_vessel}" or create new BC module in '
+                              f'BG_modules.cellml')
+                        exit()
+                else:
+                    if main_vessel_BC_type.endswith('v'):
+                        v_1 = 'v_out'
+                        p_1 = 'u'
+                    elif main_vessel_BC_type == 'vp':
+                        v_1 = 'v'
+                        p_1 = 'u_out'
+                    elif main_vessel_BC_type == 'pp':
+                        v_1 = 'v_d'
+                        p_1 = 'u_out'
+
+                if out_vessel_type == 'heart':
+                    if main_vessel == 'venous_ivc':
+                        v_2 = 'v_ivc'
+                        p_2 = 'u_ra'
+                    elif main_vessel == 'venous_svc':
+                        v_2 = 'v_svc'
+                        p_2 = 'u_ra'
+                    elif main_vessel == 'pvn':
+                        v_2 = 'v_pvn'
+                        p_2 = 'u_la'
+                    else:
+                        print('venous input to heart can only be venous_ivc or venous_svc')
+                        exit()
+                elif out_vessel_type in ['merge_junction', '2in2out_junction']:
+                    if out_vessel_df_vec["inp_vessels"].values[0][0] == main_vessel:
+                        v_2 = 'v_in_1'
+                    elif out_vessel_df_vec["inp_vessels"].values[0][1] == main_vessel:
+                        v_2 = 'v_in_2'
+                    else:
+                        print('error, exiting')
+                        exit()
+                    p_2 = 'u'
+                elif main_vessel_type == 'terminal':
+                    # For terminal output we link to a terminal_venous connection
+                    # to sum up the output terminal flows
+                    if out_vessel_BC_type == 'vp':
+                        v_2 = ''
+                        p_2 = f'u'
+                    else:
+                        print('venous section connected to terminal only works'
+                              'for vp BC currently')
+                        exit()
+                else:
+                    if out_vessel_BC_type == 'vp':
+                        v_2 = 'v_in'
+                        p_2 = 'u'
+                    elif out_vessel_BC_type == 'vv':
+                        v_2 = 'v_in'
+                        p_2 = 'u_C'
+                    elif out_vessel_BC_type.startswith('p'):
+                        v_2 = 'v'
+                        p_2 = 'u_in'
+
+                # TODO make heart a BG module so everything can be a module
+                if main_vessel in ['heart']:
+                    main_vessel_module = main_vessel
+                else:
+                    main_vessel_module = main_vessel + '_module'
+                if out_vessel in ['heart']:
+                    out_vessel_module = out_vessel
+                else:
+                    out_vessel_module = out_vessel + '_module'
+
                 self.__write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+
+            # # TODO Change this whole function to a loop through output vessels
+            # if vessel_tup.vessel_type.endswith('junction'):
+            #     if vessel_tup.vessel_type in ['split_junction', '2in2out_junction']:
+            #         out_vessel = vessel_tup.out_vessels[1]
+            #         if out_vessel in ['heart']:
+            #             out_vessel_module = out_vessel
+            #         else:
+            #             out_vessel_module = out_vessel + '_module'
+            #         if vessel_tup.BC_type.endswith('v'):
+            #             v_1 = 'v_out_2'
+            #         else:
+            #             pass
+            #     if not (vessel_df["name"] == out_vessel).any():
+            #         print(f'the output vessel of {out_vessel} is not defined')
+            #         exit()
+            #     out_vessel_df_vec = vessel_df.loc[vessel_df["name"] == out_vessel]
+            #     out_vessel_BC_type = out_vessel_df_vec.BC_type.values[0]
+            #     out_vessel_type = out_vessel_df_vec.vessel_type.values[0]
+            #     self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
+            #                                main_vessel_BC_type, out_vessel_BC_type,
+            #                                main_vessel_type, out_vessel_type)
+            #     self.__write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+
         # check if heart has a second input vessel
         # if it doesn't add a zero flow mapping to that input
         if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
             self.__write_mapping(wf, 'zero_flow_module', 'heart', ['v_zero'], ['v_ivc'])
         if "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
             self.__write_mapping(wf, 'zero_flow_module', 'heart', ['v_zero'], ['v_svc'])
+
+
 
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
@@ -474,7 +492,7 @@ class CVS0DCellMLGenerator(object):
 
     def __write_access_variables(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
-            if vessel_tup.vessel_type in ['heart', 'pulmonary']:
+            if vessel_tup.vessel_type in ['heart']:
                 continue
             wf.writelines([f'<component name="{vessel_tup.name}">\n',
             '   <variable name="u" public_interface="in" units="J_per_m3"/>\n',
@@ -502,7 +520,7 @@ class CVS0DCellMLGenerator(object):
         for vessel_tup in vessel_df.itertuples():
             # input and output vessels
             vessel_name = vessel_tup.name
-            if vessel_name in ['heart', 'pulmonary']:
+            if vessel_name in ['heart']:
                 # TODO make the heart and pulmonary sections modules instead
                 # of prewritten comp environments in the base cellml code.
                 continue
@@ -528,7 +546,7 @@ class CVS0DCellMLGenerator(object):
             # input and output vessels
             vessel_name = vessel_tup.name
             module_addon = '_module'
-            if vessel_name in ['heart', 'pulmonary']:
+            if vessel_name in ['heart']:
                 continue
     
             if vessel_tup.vessel_type == 'terminal':
@@ -588,7 +606,7 @@ class CVS0DCellMLGenerator(object):
                         print(f'variable {variable_name} is not in the parameter '
                               f'dataframe/csv file')
                         exit()
-            self.__write_mapping(wf, 'parameters_systemic', vessel_name+module_addon,
+            self.__write_mapping(wf, 'parameters', vessel_name+module_addon,
                           systemic_vars, module_vars)
 
 
@@ -596,7 +614,7 @@ class CVS0DCellMLGenerator(object):
         for vessel_tup in vessel_df.itertuples():
             # input and output vessels
             vessel_name = vessel_tup.name
-            if vessel_name in ['heart', 'pulmonary']:
+            if vessel_name in ['heart']:
                 continue
     
             module_addon = '_module'
