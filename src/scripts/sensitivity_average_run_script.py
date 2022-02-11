@@ -70,6 +70,9 @@ if __name__ == '__main__':
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004, DEBUG=True)
 
+        # FA: It would be easier to have one sensitivity_run_script and pass in a number of runs.
+        # FA: You could also remove plot_sensitivity script and include param_id.plot_sensitivity below as well
+        # run_sensitivity(num_sensitivity_runs)
         param_id.run_sensitivity_average()
 
         param_id.close_simulation()

@@ -431,15 +431,24 @@ class CVS0DParamID():
                                      f'{self.file_name_prefix}collinearity_quads'+str(i)+'_'+str(j)+'.pdf'))
 
     def run_sensitivity_average(self):
+        # FA: rename this to run_sensitivity and have it call run_single_sensitivity as many times as
+        # FA: the length of input paths.
+        # FA: If no input path. input_path = self.output_dir
+        # FA: Call this run_sensitivity. Have as input a list of paths where the parameters are stored.
+        # FA: Eventually we will automate the multiple runs of param_id and store the outputs in indexed
+        # FA: directories that can all be accessed automatically by this function without defining input paths.
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
+        # FA: Make this an input to the function so it can be called from the bash script
         number_samples = 10
         #Currently where sample data is being stored
         sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
         sensitivity_param_names = self.sensitivity_param_state_names + self.sensitivity_param_const_names
+
+        # FA: This block can be removed, see below
         #calculate the average of the jacobian, parameter importance, and first set of collinearitys
         jacobian_average = np.load(os.path.join(sample_path, 'jacobian_matrix.npy'))
-        for i in range(len(jacobian_average)):
+        for i in range(len(jacobian_average)): # FA: could use .shape[0]
             for j in range(len(jacobian_average[0])):
                 jacobian_average[i][j] = jacobian_average[i][j] / number_samples
         sensitivity_vector_average = np.load(os.path.join(sample_path, 'sensitivity_vector.npy'))
@@ -454,11 +463,21 @@ class CVS0DParamID():
         for i in range(len(sensitivity_params)):
             x_values.append(sensitivity_params[i][0])
 
+
         for i in range(number_samples-1):
             sample_path = "/home/matthew/Documents/poster/param5/Sample" + str(
                     i + 2) + "/param_id_output/genetic_algorithm_3compartment"
+            # FA: these shouldn't need to be loaded, they can be output of run_single_sensitivity
             jacobian = np.load(os.path.join(sample_path, 'jacobian_matrix.npy'))
 
+            # FA: Instead of the whole above block just do
+            # if i == 0:
+            #     jacobian_average = np.zeros(jacobian.shape)
+            # FA: then you can loop through all of the sample cases
+
+            # FA: instead of the loops below you can do
+            # jacobian_average = jacobian_average + jacobian/number_samples
+            # FA: same applies for the vectors below
             for j in range(len(jacobian_average)):
                 for k in range(len(jacobian_average[0])):
                     jacobian_average[j][k] = jacobian_average[j][k] + jacobian[j][k]/number_samples
@@ -472,12 +491,14 @@ class CVS0DParamID():
                 collinearity_index_average[j] = collinearity_index_average[j] + collinearity_index[j]/number_samples
         #update maximum found average value
         if collinearity_index_average.max() > collinearity_max:
+            # FA: shouldn't you normalise by the maximum colinearity, not the maximum average colinearity?
             collinearity_max = collinearity_index_average.max()
 
         #find maximum average value of collinearity triples
         for i in range(len(x_values)):
             sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
             test_average = np.load(os.path.join(sample_path, 'collinearity_triples'+str(i)+'.npy'))
+            # FA: same points apply as above, only the number_samples for loop is needed and the first block isn't needed
             for j in range(len(test_average)):
                 for k in range(len(test_average[0])):
                     test_average[j][k] = test_average[j][k] / number_samples
@@ -495,6 +516,7 @@ class CVS0DParamID():
             for j in range(len(x_values)):
                 sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
                 test_average = np.load(os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                #FA: same thing as above applies
                 for k in range(len(test_average)):
                     for l in range(len(test_average[0])):
                         test_average[k][l] = test_average[k][l] / number_samples
@@ -510,6 +532,7 @@ class CVS0DParamID():
         #find maximum average value and average values for collinearity index
         sample_path = "/home/matthew/Documents/poster/param5/Sample1/param_id_output/genetic_algorithm_3compartment"
         collinearity_pairs_average = np.load(os.path.join(sample_path, 'collinearity_pairs.npy'))
+        # FA: as above applies here too
         for i in range(len(collinearity_pairs_average)):
             for j in range(len(collinearity_pairs_average[0])):
                 collinearity_pairs_average[i][j] = collinearity_pairs_average[i][j]/number_samples
@@ -1376,6 +1399,9 @@ class OpencorParamID():
         return Sl
 
     def run_sensitivity(self):
+        # FA: rename to run_single_sensitivity
+        # FA: This should take in a path to the output dir we want to do sensitivity for
+        # and return the jacobian etc
 
         self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_state_names, self.sensitivity_param_const_names)
         param_vec_init = np.array(self.param_init).flatten()
@@ -1398,11 +1424,12 @@ class OpencorParamID():
                 if master_param_state_names[j]==self.param_state_names[i]:
                     element_index = j
                     break
-            if element_index>=0:
+            if element_index >= 0:
                 master_param_values[element_index] = self.best_param_vals[i]
             else:
                 master_param_state_names.append(self.param_state_names[i])
                 master_param_values.append(self.best_param_vals[i])
+                # FA: sensitivity index here?
 
         for i in range(len(self.sensitivity_param_const_names)):
             master_param_const_names.append(self.sensitivity_param_const_names[i])
@@ -1412,20 +1439,22 @@ class OpencorParamID():
         for i in range(len(self.param_const_names)):
             element_index = -1
             for j in range(len(master_param_const_names)):
-                if master_param_const_names[j]==self.param_const_names[i]:
+                if master_param_const_names[j] == self.param_const_names[i]:
                     element_index = j
                     break
-            if element_index>=0:
+            if element_index >= 0:
                 master_param_values[element_index+len(master_param_state_names)] = self.best_param_vals[i+len(self.param_state_names)]
             else:
                 master_param_const_names.append(self.param_const_names[i])
                 master_param_values.append(self.best_param_vals[i+len(self.param_state_names)])
+                # FA: sensitivity index here?
 
 
         base_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_state_names,
                                                                              master_param_const_names,
                                                                              master_param_values, self.obs_state_names,
                                                                              self.obs_alg_names, absolute=True)
+        #FA: do the len command over each so you dont have to add two lists
         num_sensitivity_params = len(self.sensitivity_param_state_names + self.sensitivity_param_const_names)
         num_objs = len(self.obs_state_names)+len(self.obs_alg_names)
         gt_scalefactor = []
@@ -1436,6 +1465,7 @@ class OpencorParamID():
             #ignore series data for now
             if self.obs_types[obs]!="series":
                 #part of scale factor for normalising jacobain
+                # FA: Let's include the weighting from weight_const_vec, so multiply by this value
                 gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 objs_index.append(x_index)
                 x_index = x_index + 1
@@ -1446,6 +1476,7 @@ class OpencorParamID():
             #central difference calculation of derivative
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
+            # FA: It might be worth testing this out with a value smaller than 0.01 here
             param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
             param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
             param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
@@ -1464,6 +1495,7 @@ class OpencorParamID():
             for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
                 #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
+                    # FA: param_vec_diff as denominator here?
                     dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
                     dObs_param = dObs_param*self.weight_const_vec[j]*param_vec_range*gt_scalefactor[objs_index[j]]
                     dObs_param = dObs_param*dObs_param/self.num_obs
