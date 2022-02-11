@@ -1431,6 +1431,7 @@ class OpencorParamID():
         gt_scalefactor = []
         x_index = 0
         objs_index = []
+
         for obs in range(num_objs):
             #ignore series data for now
             if self.obs_types[obs]!="series":
@@ -1464,7 +1465,8 @@ class OpencorParamID():
                 #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
                     dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
-                    dObs_param = dObs_param*param_vec_range*gt_scalefactor[objs_index[j]]
+                    dObs_param = dObs_param*self.weight_const_vec[j]*param_vec_range*gt_scalefactor[objs_index[j]]
+                    dObs_param = dObs_param*dObs_param/self.num_obs
                     # TODO Create a normalised jacobian.
                     #   this must be normalised wrt the parameter range and the observable magnitude or variance
                 else:

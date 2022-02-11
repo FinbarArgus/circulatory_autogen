@@ -52,7 +52,7 @@
 <variable initial_value="1050" name="rho" public_interface="out" units="Js2_per_m5"/>
 </component>
 <component name="parameters_systemic">
-<variable initial_value="1.017056847e+7" name="R_aortic_root" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="477210" name="R_aortic_root" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="1.2028e-08" name="C_aortic_root" public_interface="out" units="m6_per_J"/>
 <variable initial_value="1.0e+4" name="I_aortic_root" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="115400000.0" name="R_T_systemic" public_interface="out" units="Js_per_m6"/>

@@ -46,7 +46,7 @@ M_st_trv,dimensionless,heart,1,Mynard_2012
 M_st_puv,dimensionless,heart,1,Mynard_2012
 M_st_miv,dimensionless,heart,1,Mynard_2012
 M_st_aov,dimensionless,heart,1,Mynard_2012
-R_aortic_root,Js_per_m6,systemic,1.017056847e+7,to_be_identified
+R_aortic_root,Js_per_m6,systemic,477210,to_be_identified
 C_aortic_root,m6_per_J,systemic,1.2028e-08,to_be_identified
 I_aortic_root,Js2_per_m6,systemic,1.0e+4,to_be_identified
 R_T_systemic,Js_per_m6,systemic,115400000.0,to_be_identified
