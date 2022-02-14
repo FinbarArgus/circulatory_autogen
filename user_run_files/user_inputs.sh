@@ -13,9 +13,10 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
 ## parameter identification inputs
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
-num_procs=3
-num_calls_to_function=50000
-param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
+num_procs=1
+num_calls_to_function=80000
+param_id_obs_path=/home/matthew/Documents/data/cardiohance_data/cardiohance_observables.json
+sensitivity_output_paths=3compartment_sensitivity_output_paths.csv
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 # param_id_obs_path=/home/matthew/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables.json

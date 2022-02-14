@@ -3,12 +3,13 @@ Created on 13/12/2021
 
 @author: Finbar J. Argus
 
-Modified by M Savage for sensitivity analysis
+Modified by M Savage for sensitivity and identifiability analysis
 '''
 
 import sys
 import os
 from mpi4py import MPI
+import numpy as np
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
@@ -51,11 +52,13 @@ if __name__ == '__main__':
 
         input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        sensitivity_output_paths = os.path.join(resources_dir_path, f'{file_name_prefix}_sensitivity_output_paths.csv')
 
         param_id_obs_path = sys.argv[3]
         if not os.path.exists(param_id_obs_path):
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
             exit()
+
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -70,8 +73,7 @@ if __name__ == '__main__':
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004, DEBUG=True)
 
-        param_id.run_sensitivity()
-
+        param_id.run_sensitivity(sensitivity_output_paths)
         param_id.close_simulation()
 
     except:
