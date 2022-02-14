@@ -471,7 +471,7 @@ class OpencorParamID():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
-        self.maximumStep=maximumStep
+        self.maximumStep = maximumStep
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
