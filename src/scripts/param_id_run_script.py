@@ -7,7 +7,7 @@ Created on 29/10/2021
 import sys
 import os
 from mpi4py import MPI
-from distutils import util
+from distutils import util, dir_util
 
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
@@ -40,7 +40,7 @@ if __name__ == '__main__':
             port_mapping = [36939, 44271, 33017, 46467]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
-        if len(sys.argv) != 6:
+        if len(sys.argv) != 7:
             print(f'incorrect number of inputs to param_id_run_script.py')
             exit()
 
@@ -52,8 +52,12 @@ if __name__ == '__main__':
         input_params_to_id = bool(util.strtobool(sys.argv[4]))
         if input_params_to_id:
             input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+            if not os.path.exists(sensitivity_params_path):
+                sensitivity_params_path = input_params_path
         else:
             input_params_path = False
+            sensitivity_params_path = False
         param_id_obs_path = sys.argv[5]
         if not os.path.exists(param_id_obs_path):
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
@@ -61,14 +65,16 @@ if __name__ == '__main__':
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
-        if file_name_prefix == '3compartment':
+        if file_name_prefix == '3compartment' or 'FTU_wCVS':
           pre_time = 6.0
         else: 
           pre_time = 20.0
         sim_time = 2.0
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
-                                input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
+                                input_params_path=input_params_path,
+                                sensitivity_params_path=sensitivity_params_path,
+                                param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
@@ -87,13 +93,40 @@ if __name__ == '__main__':
                                                              # so it needs both xi and kappa
             param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
                                              acq_func_kwargs=acq_func_kwargs)
-        param_id.run()
+        num_param_id_runs = int(sys.argv[6])
+        if num_param_id_runs > 1:
+            # get output_dir
+            if rank == 0:
+                output_dir_base = param_id.output_dir
+                output_dirs = []
+                best_cost_all_runs = 999999
+                best_idx = 0
+            for run_idx in range(num_param_id_runs):
+                if rank == 0:
+                    output_dir_new = output_dir_base + f'{run_idx}'
+                    output_dirs.append(output_dir_new)
+                    param_id.set_output_dir(output_dir_new)
+                param_id.run()
+                if rank == 0:
+                    if param_id.param_id.best_cost < best_cost_all_runs:
+                        best_idx = run_idx
+                        best_cost_all_runs = param_id.param_id.best_cost
 
+            if rank == 0:
+                # copy directory of best cost to directory with no number idx.
+                dir_util.copy_tree(output_dirs[best_idx], output_dir_base)
+
+        else:
+            output_dirs = [param_id.output_dir]
+            param_id.run()
+
+        # create file with paths for param_id
         if rank == 0:
-            pass
-            # TODO uncomment these
-            # param_id.simulate_with_best_param_vals()
-            # param_id.plot_outputs()
+            file_path = os.path.join(resources_dir_path, f'{file_name_prefix}_sensitivity_output_paths.csv')
+            with open(file_path, 'w') as wf:
+                output_dir_lines = [output_dir+'\n' for output_dir in output_dirs]
+                output_dir_lines.insert(0, 'path \n')
+                wf.writelines(output_dir_lines)
 
         param_id.close_simulation()
 
