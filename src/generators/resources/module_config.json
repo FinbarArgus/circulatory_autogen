@@ -1,0 +1,627 @@
+[
+  {
+    "vessel_type":"arterial_simple",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial_simple",
+    "BC_type":"pv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial",
+    "BC_type":"pv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial_simple",
+    "BC_type":"pp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_d","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial",
+    "BC_type":"pp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_d","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial_simple",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"arterial",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"terminal",
+    "BC_type":"pp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_T_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"multi_port",
+        "variables":["","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["v_T", "m3_per_s", "access", "state"],
+      ["R_T", "Js_per_m6", "access", "constant"],
+      ["C_T", "m6_per_J", "access", "constant"],
+      ["alpha", "dimensionless", "access", "constant"],
+      ["v_nom", "m3_per_s", "no_access", "constant"],
+      ["gain_int", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"split_junction",
+    "BC_type":"pv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_split_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_1","u"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_2","u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"merge_junction",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_merge_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_1","u"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_2","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"merge_junction",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_merge_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_1","u"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_2","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"2in2out_junction",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_2in2out_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_1","u"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_2","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_1","u_d"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_2","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "no_access", "constant"],
+      ["r", "metre", "no_access", "constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"heart",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"heart_simple",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_ivc","u_ra"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_svc","u_ra"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_pvn","u_la"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_aov","u_root"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_puv","u_par"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["rho", "kg_per_m3", "access", "constant"],
+      ["T", "seconds", "access", "constant"],
+      ["u_ra", "J_per_m3", "access", "state"],
+      ["u_rv", "J_per_m3", "access", "state"],
+      ["u_la", "J_per_m3", "access", "state"],
+      ["u_lv", "J_per_m3", "access", "state"],
+      ["q_ra", "m3", "access", "state"],
+      ["q_rv", "m3", "access", "state"],
+      ["q_la", "m3", "access", "state"],
+      ["q_lv", "m3", "access", "state"],
+      ["q_ra_0", "m3", "access", "constant"],
+      ["q_rv_0", "m3", "access", "constant"],
+      ["q_la_0", "m3", "access", "constant"],
+      ["q_lv_0", "m3", "access", "constant"],
+      ["t_ac", "dimensionless", "access", "constant"],
+      ["t_ar", "dimensionless", "access", "constant"],
+      ["T_ac", "dimensionless", "access", "constant"],
+      ["T_ar", "dimensionless", "access", "constant"],
+      ["T_vc", "dimensionless", "access", "constant"],
+      ["T_vr", "dimensionless", "access", "constant"],
+      ["E_ra_A", "J_per_m6", "access", "constant"],
+      ["E_ra_B", "J_per_m6", "access", "constant"],
+      ["E_rv_A", "J_per_m6", "access", "constant"],
+      ["E_rv_B", "J_per_m6", "access", "constant"],
+      ["E_la_A", "J_per_m6", "access", "constant"],
+      ["E_la_B", "J_per_m6", "access", "constant"],
+      ["E_lv_A", "J_per_m6", "access", "constant"],
+      ["E_lv_B", "J_per_m6", "access", "constant"],
+      ["v_trv", "m3_per_s", "access", "state"],
+      ["v_puv", "m3_per_s", "access", "state"],
+      ["v_miv", "m3_per_s", "access", "state"],
+      ["v_aov", "m3_per_s", "access", "state"],
+      ["K_vo_trv", "m3_per_Js", "access", "constant"],
+      ["K_vo_puv", "m3_per_Js", "access", "constant"],
+      ["K_vo_miv", "m3_per_Js", "access", "constant"],
+      ["K_vo_aov", "m3_per_Js", "access", "constant"],
+      ["K_vc_trv", "m3_per_Js", "access", "constant"],
+      ["K_vc_puv", "m3_per_Js", "access", "constant"],
+      ["K_vc_miv", "m3_per_Js", "access", "constant"],
+      ["K_vc_aov", "m3_per_Js", "access", "constant"],
+      ["M_rg_trv", "dimensionless", "access", "constant"],
+      ["M_rg_puv", "dimensionless", "access", "constant"],
+      ["M_rg_miv", "dimensionless", "access", "constant"],
+      ["M_rg_aov", "dimensionless", "access", "constant"],
+      ["M_st_trv", "dimensionless", "access", "constant"],
+      ["M_st_puv", "dimensionless", "access", "constant"],
+      ["M_st_miv", "dimensionless", "access", "constant"],
+      ["M_st_aov", "dimensionless", "access", "constant"],
+      ["l_eff", "metre", "access", "constant"],
+      ["A_nn_trv", "m2", "access", "constant"],
+      ["A_nn_puv", "m2", "access", "constant"],
+      ["A_nn_miv", "m2", "access", "constant"],
+      ["A_nn_aov", "m2", "access", "constant"],
+      ["A_eff_trv", "m2", "access", "state"],
+      ["A_eff_puv", "m2", "access", "state"],
+      ["A_eff_miv", "m2", "access", "state"],
+      ["A_eff_aov", "m2", "access", "state"]
+    ]
+  },
+  {
+    "vessel_type":"venous",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"venous",
+    "BC_type":"pv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"venous",
+    "BC_type":"pp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_d","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"venous",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "state"],
+      ["v", "m3_per_s", "access", "state"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"]
+    ]
+  }
+]

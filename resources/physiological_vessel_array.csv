@@ -79,6 +79,6 @@ femoral_R222,            pv, arterial,           external_iliac_R220   ,        
 leg_L_T,                 pp, terminal,           femoral_L200          ,             venous_lb            
 leg_R_T,                 pp, terminal,           femoral_R222          ,             venous_lb            
 venous_lb,               vp, venous,             leg_L_T leg_R_T trunk_C_T,          venous_ivc           
-venous_ub,               vp, venous,             arm_L_T arm_R_T posterior_cerebral_L_T posterior_cerebral_R_T middle_cerebral_L_T middle_cerebral_R_T anterior_cerebral_L_T anterior_cerebral_R_T ,           venous_svc           
+venous_ub,               vp, venous,             arm_L_T arm_R_T external_carotid_L_T external_carotid_R_T posterior_cerebral_L_T posterior_cerebral_R_T middle_cerebral_L_T middle_cerebral_R_T anterior_cerebral_L_T anterior_cerebral_R_T ,           venous_svc           
 venous_ivc,              vp, venous,             venous_lb             ,             heart                
 venous_svc,              vp, venous,             venous_ub             ,             heart                

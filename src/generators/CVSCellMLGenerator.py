@@ -99,18 +99,18 @@ class CVS0DCellMLGenerator(object):
                 print('writing vessel mappings')
                 self.__write_section_break(wf, 'vessel mappings')
                 self.__write_vessel_mappings(wf, self.model.vessels_df)
-    
+
                 # create computation environment to sum flows from terminals
                 # to have a total flow input into each first venous component.
                 print('writing environment to sum venous input flows')
                 self.__write_section_break(wf, 'terminal venous connection')
                 self.__write_terminal_venous_connection_comp(wf, self.model.vessels_df)
-    
+
                 # define variables so they can be accessed
                 print('writing variable access')
                 self.__write_section_break(wf, 'access_variables')
                 self.__write_access_variables(wf, self.model.vessels_df)
-    
+
                 # map between computational environment and module so they can be accessed
                 print('writing mappings between computational environment and modules')
                 self.__write_section_break(wf, 'vessel mappings')
@@ -252,151 +252,68 @@ class CVS0DCellMLGenerator(object):
             exit()
 
     def __write_vessel_mappings(self, wf, vessel_df):
-        for vessel_tup in vessel_df.itertuples():
-            # TODO store input and output variables in a config file so we don't have to modify this
-            #  for every new module
-            # input and output vessels
-            main_vessel = vessel_tup.name
-            main_vessel_BC_type = vessel_tup.BC_type
-            main_vessel_type = vessel_tup.vessel_type
-            for out_vessel_idx, out_vessel in enumerate(vessel_tup.out_vessels):
+        vessel_df.apply(self.__write_vessel_mapping_for_row, args=(vessel_df, wf), axis=1)
 
-                if not (vessel_df["name"] == out_vessel).any():
-                    print(f'the output vessel of {out_vessel} is not defined')
-                    exit()
-                out_vessel_df_vec = vessel_df.loc[vessel_df["name"] == out_vessel]
-                out_vessel_BC_type = out_vessel_df_vec.BC_type.values[0]
-                out_vessel_type = out_vessel_df_vec.vessel_type.values[0]
+    def __write_vessel_mapping_for_row(self, vessel_row, vessel_df, wf):
+        # input and output vessels
+        main_vessel = vessel_row["name"]
+        main_vessel_BC_type = vessel_row["BC_type"]
+        main_vessel_type = vessel_row["vessel_type"]
 
-                # check that input and output vessels are defined as connection variables
-                # for that vessel and they have corresponding BCs
-                self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
-                                           main_vessel_BC_type, out_vessel_BC_type,
-                                           main_vessel_type, out_vessel_type)
+        for out_vessel_idx, out_vessel in enumerate(vessel_row["out_vessels"]):
+            if not (vessel_df["name"] == out_vessel).any():
+                print(f'the output vessel of {out_vessel} is not defined')
+                exit()
+            out_vessel_row = vessel_df.loc[vessel_df["name"] == out_vessel].squeeze()
+            out_vessel_BC_type = out_vessel_row["BC_type"]
+            out_vessel_type = out_vessel_row["vessel_type"]
 
-                # determine BC variables from vessel_type and BC_type
-                if main_vessel_type == 'heart':
-                    if out_vessel_idx == 0:
-                        v_1 = 'v_aov'
-                        p_1 = 'u_root'
-                    elif out_vessel_idx == 1:
-                        v_1 = 'v_puv'
-                        p_1 = 'u_par'
-                    else:
-                        print('heart model is only implemented with two outputs currently. exiting')
-                        exit()
-                elif main_vessel_type == 'last_venous':
-                    v_1 = 'v'
-                    p_1 = 'u_out'
-                elif main_vessel_type == 'terminal':
-                    # flow output is to the terminal_venous_connection, not
-                    # to the venous module
-                    v_1 = ''
-                    p_1 = 'u_out'
-                elif main_vessel_type == 'split_junction':
-                    if main_vessel_BC_type.endswith('v'):
-                        if out_vessel_idx == 0:
-                            v_1 = 'v_out_1'
-                        elif out_vessel_idx == 1:
-                            v_1 = 'v_out_2'
-                        p_1 = 'u'
-                    elif main_vessel_BC_type.endswith('p'):
-                        print('Currently we have not implemented junctions'
-                              'with output pressure boundary conditions, '
-                              f'change {main_vessel}')
-                        exit()
-                elif main_vessel_type == '2in2out_junction':
-                    if main_vessel_BC_type == 'vv':
-                        if out_vessel_idx == 0:
-                            v_1 = 'v_out_1'
-                        elif out_vessel_idx == 1:
-                            v_1 = 'v_out_2'
-                        p_1 = 'u_d'
-                    else:
-                        print('2in2out vessels only have vv type BC, '
-                              f'change "{main_vessel}" or create new BC module '
-                              f'in BG_modules.cellml')
-                        exit()
-                elif main_vessel_type == 'merge_junction':
-                    if main_vessel_BC_type == 'vp':
-                        v_1 = 'v'
-                        p_1 = 'u_out'
-                    elif main_vessel_BC_type == 'vv':
-                        v_1 = 'v_out'
-                        p_1 = 'u_d'
-                    else:
-                        print('Merge boundary condiditons only have vp or vv type BC, '
-                              f'change "{main_vessel}" or create new BC module in '
-                              f'BG_modules.cellml')
-                        exit()
+            # check that input and output vessels are defined as connection variables
+            # for that vessel and they have corresponding BCs
+            self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
+                                              main_vessel_BC_type, out_vessel_BC_type,
+                                              main_vessel_type, out_vessel_type)
+
+            # ___ get variables to map ___ #
+
+            # get the entrance port idx for the output vessel
+            inp_port_idx = -1
+            for II in range(len(out_vessel_row["inp_vessels"])):
+                if out_vessel_row["inp_vessels"][II] == main_vessel:
+                    inp_port_idx = II
+                    break
+            if main_vessel_type == 'terminal':
+                if inp_port_idx == -1:
+                    # TODO For now we allow the first venous sections to not define all input terminals
+                    #  but this should be deprecated
+                    pass
+                elif inp_port_idx == 0:
+                    pass
                 else:
-                    if main_vessel_BC_type.endswith('v'):
-                        v_1 = 'v_out'
-                        p_1 = 'u'
-                    elif main_vessel_BC_type == 'vp':
-                        v_1 = 'v'
-                        p_1 = 'u_out'
-                    elif main_vessel_BC_type == 'pp':
-                        v_1 = 'v_d'
-                        p_1 = 'u_out'
+                    # TODO create a module called venous_multi_input, to take in multiple terminals
+                    inp_port_idx = 0
 
-                if out_vessel_type == 'heart':
-                    if main_vessel == 'venous_ivc':
-                        v_2 = 'v_ivc'
-                        p_2 = 'u_ra'
-                    elif main_vessel == 'venous_svc':
-                        v_2 = 'v_svc'
-                        p_2 = 'u_ra'
-                    elif main_vessel == 'pvn':
-                        v_2 = 'v_pvn'
-                        p_2 = 'u_la'
-                    else:
-                        print('venous input to heart can only be venous_ivc or venous_svc')
-                        exit()
-                elif out_vessel_type in ['merge_junction', '2in2out_junction']:
-                    if out_vessel_df_vec["inp_vessels"].values[0][0] == main_vessel:
-                        v_2 = 'v_in_1'
-                    elif out_vessel_df_vec["inp_vessels"].values[0][1] == main_vessel:
-                        v_2 = 'v_in_2'
-                    else:
-                        print('error, exiting')
-                        exit()
-                    p_2 = 'u'
-                elif main_vessel_type == 'terminal':
-                    # For terminal output we link to a terminal_venous connection
-                    # to sum up the output terminal flows
-                    if out_vessel_BC_type == 'vp':
-                        v_2 = ''
-                        p_2 = f'u'
-                    else:
-                        print('venous section connected to terminal only works'
-                              'for vp BC currently')
-                        exit()
-                else:
-                    if out_vessel_BC_type == 'vp':
-                        v_2 = 'v_in'
-                        p_2 = 'u'
-                    elif out_vessel_BC_type == 'vv':
-                        v_2 = 'v_in'
-                        p_2 = 'u_C'
-                    elif out_vessel_BC_type.startswith('p'):
-                        v_2 = 'v'
-                        p_2 = 'u_in'
+            # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
+            #  heart module?
+            if out_vessel == 'heart':
+                if len(out_vessel_row["inp_vessels"]) == 2:
+                    # this is the case if there is only one vc and one pulmonary
+                    # We map the ivc to a zero flow mapping
+                    if inp_port_idx == 0:
+                        self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
+                    # if only two inputs are defined, then that means there is one vc and one pulmonary vein
+                    # we increase the inp_port_idx by 1 to ignore the ivc port of the heart. The vc defined in
+                    # the vessel array will be connected to the svc entrance port, which is equivalent to connecting
+                    # it to the ivc port. the ivc, is the 0'th inp_port_idx, so adding one avoids it.
+                    inp_port_idx += 1
 
-                main_vessel_module = main_vessel + '_module'
-                out_vessel_module = out_vessel + '_module'
+            variables_1 = vessel_row["exit_ports"][out_vessel_idx]['variables']
+            variables_2 = out_vessel_row["entrance_ports"][inp_port_idx]['variables']
 
-                self.__write_mapping(wf, main_vessel_module, out_vessel_module, [v_1, p_1], [v_2, p_2])
+            main_vessel_module = main_vessel + '_module'
+            out_vessel_module = out_vessel + '_module'
 
-        # check if heart has a second input vessel
-        # if it doesn't add a zero flow mapping to that input
-        if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
-            self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
-        if "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
-            self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_svc'])
-
-
-
+            self.__write_mapping(wf, main_vessel_module, out_vessel_module, variables_1, variables_2)
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
         first_venous_names = [] # stores name of venous compartments that take flow from terminals
@@ -435,6 +352,11 @@ class CVS0DCellMLGenerator(object):
                 vessel_name = vessel_tup.name
                 for idx, venous_name in enumerate(first_venous_names):
                     if vessel_tup.out_vessels[0] == venous_name:
+                        if vessel_name not in vessel_df.loc[vessel_df["name"] == venous_name].squeeze()["inp_vessels"]:
+                            print(f'venous input of {venous_name} does not include the terminal vessel '
+                                  f'{vessel_name} as an inp_vessel in {self.filename_prefix}_vessel_array. '
+                                  f'not including terminal names as input has been deprecated')
+                            exit()
                         terminal_names_for_first_venous[idx].append(vessel_name)
     
         # create computation environment for connection and write the
@@ -464,220 +386,78 @@ class CVS0DCellMLGenerator(object):
         wf.write('</component>\n')
 
     def __write_access_variables(self, wf, vessel_df):
-        for vessel_tup in vessel_df.itertuples():
-            wf.write(f'<component name="{vessel_tup.name}">\n')
-            # TODO parameters should all be defined in the modules config file and accessed to be written here.
-            if vessel_tup.vessel_type in ['heart']:
-                wf.writelines(['   <variable name="u_ra" public_interface="in" units="J_per_m3"/>\n',
-                               '   <variable name="u_rv" public_interface="in" units="J_per_m3"/>\n',
-                               '   <variable name="u_la" public_interface="in" units="J_per_m3"/>\n',
-                               '   <variable name="u_lv" public_interface="in" units="J_per_m3"/>\n',
-                               '   <variable name="q_ra" public_interface="in" units="m3"/>\n',
-                               '   <variable name="q_rv" public_interface="in" units="m3"/>\n',
-                               '   <variable name="q_la" public_interface="in" units="m3"/>\n',
-                               '   <variable name="q_lv" public_interface="in" units="m3"/>\n',
-                               '   <variable name="t_ac" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="t_ar" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="T_ac" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="T_ar" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="T_vc" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="T_vr" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_rv_A" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_la_A" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_la_B" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>\n',
-                               '   <variable name="v_trv" public_interface="in" units="m3_per_s"/>\n',
-                               '   <variable name="v_puv" public_interface="in" units="m3_per_s"/>\n',
-                               '   <variable name="v_miv" public_interface="in" units="m3_per_s"/>\n',
-                               '   <variable name="v_aov" public_interface="in" units="m3_per_s"/>\n',
-                               '   <variable name="K_vo_trv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vo_puv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vo_miv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vo_aov" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vc_trv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vc_puv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vc_miv" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="K_vc_aov" public_interface="in" units="m3_per_Js"/>\n',
-                               '   <variable name="M_rg_trv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_rg_puv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_rg_miv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_rg_aov" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_st_trv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_st_puv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_st_miv" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="M_st_aov" public_interface="in" units="dimensionless"/>\n',
-                               '   <variable name="l_eff" public_interface="in" units="metre"/>\n',
-                               '   <variable name="A_nn_trv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_nn_puv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_nn_miv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_nn_aov" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_eff_trv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_eff_puv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_eff_miv" public_interface="in" units="m2"/>\n',
-                               '   <variable name="A_eff_aov" public_interface="in" units="m2"/>\n'])
+        vessel_df.apply(self.__write_access_variables_for_row, args=(wf,), axis=1)
 
-            else:
-                wf.writelines(['   <variable name="u" public_interface="in" units="J_per_m3"/>\n',
-                               '   <variable name="v" public_interface="in" units="m3_per_s"/>\n'])
-
-                if vessel_tup.vessel_type == 'terminal':
-                    if vessel_tup.BC_type != 'pp':
-                        print('currently terminals must have pp type boundary condition, exiting')
-                        exit()
-                    wf.write('   <variable name="v_T" public_interface="in" units="m3_per_s"/>\n')
-                    wf.write('   <variable name="R_T" public_interface="in" units="Js_per_m6"/>\n')
-                    wf.write('   <variable name="C_T" public_interface="in" units="m6_per_J"/>\n')
-                    wf.write('   <variable name="alpha" public_interface="in" units="dimensionless"/>\n')
-                if vessel_tup.vessel_type == 'arterial_simple':
-                    wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
-                    wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
-                    wf.write('   <variable name="I" public_interface="in" units="Js2_per_m6"/>\n')
-                if vessel_tup.vessel_type == 'venous':
-                    wf.write('   <variable name="R" public_interface="in" units="Js_per_m6"/>\n')
-                    wf.write('   <variable name="C" public_interface="in" units="m6_per_J"/>\n')
-                if vessel_tup.vessel_type == 'arterial':
-                    wf.write('   <variable name="E" public_interface="in" units="J_per_m3"/>\n')
-            wf.write('</component>\n')
+    def __write_access_variables_for_row(self, vessel_row, wf):
+        wf.write(f'<component name="{vessel_row["name"]}">\n')
+        lines_to_write = []
+        for variable, unit, access_str, _ in vessel_row["variables_and_units"]:
+            if access_str == 'access':
+                lines_to_write.append(f'   <variable name="{variable}" public_interface="in" units="{unit}"/>\n')
+        wf.writelines(lines_to_write)
+        wf.write('</component>\n')
 
     def __write_comp_to_module_mappings(self, wf, vessel_df):
-        for vessel_tup in vessel_df.itertuples():
-            # TODO again, parameters should all be defined in the modules config file and accessed to be written here.
-            # input and output vessels
-            vessel_name = vessel_tup.name
-            if vessel_name in ['heart']:
-                inp_vars = ["u_ra", "u_rv", "u_la", "u_lv", "q_ra", "q_rv", "q_la", "q_lv", "t_ac", "t_ar", "T_ac",
-                            "T_ar", "T_vc", "T_vr", "E_ra_A", "E_ra_B", "E_rv_A", "E_rv_B", "E_la_A", "E_la_B",
-                            "E_lv_A", "E_lv_B", "v_trv", "v_puv", "v_miv", "v_aov", "K_vo_trv", "K_vo_puv",
-                            "K_vo_miv", "K_vo_aov", "K_vc_trv", "K_vc_puv", "K_vc_miv", "K_vc_aov", "M_rg_trv",
-                            "M_rg_puv", "M_rg_miv", "M_rg_aov", "M_st_trv", "M_st_puv", "M_st_miv", "M_st_aov",
-                            "l_eff", "A_nn_trv", "A_nn_puv", "A_nn_miv", "A_nn_aov", "A_eff_trv" , "A_eff_puv",
-                            "A_eff_miv", "A_eff_aov"]
-                out_vars = ["u_ra", "u_rv", "u_la", "u_lv", "q_ra", "q_rv", "q_la", "q_lv", "t_ac", "t_ar", "T_ac",
-                            "T_ar", "T_vc", "T_vr", "E_ra_A", "E_ra_B", "E_rv_A", "E_rv_B", "E_la_A", "E_la_B",
-                            "E_lv_A", "E_lv_B", "v_trv", "v_puv", "v_miv", "v_aov", "K_vo_trv", "K_vo_puv",
-                            "K_vo_miv", "K_vo_aov", "K_vc_trv", "K_vc_puv", "K_vc_miv", "K_vc_aov", "M_rg_trv",
-                            "M_rg_puv", "M_rg_miv", "M_rg_aov", "M_st_trv", "M_st_puv", "M_st_miv", "M_st_aov",
-                            "l_eff", "A_nn_trv", "A_nn_puv", "A_nn_miv", "A_nn_aov", "A_eff_trv" , "A_eff_puv",
-                            "A_eff_miv", "A_eff_aov"]
-            else:
-                if vessel_tup.vessel_type == 'terminal':
-                    inp_vars = ['u', 'v', 'v_T', 'R_T', 'C_T', 'alpha']
-                    out_vars = ['u', 'v', 'v_T', 'R_T', 'C_T', 'alpha']
-                elif vessel_tup.vessel_type == 'venous':
-                    inp_vars = ['u', 'v', 'C', 'R']
-                    out_vars = ['u', 'v', 'C', 'R']
-                elif vessel_tup.vessel_type == 'arterial_simple':
-                    inp_vars = ['u', 'v', 'C', 'R', 'I']
-                    out_vars = ['u', 'v', 'C', 'R', 'I']
-                elif vessel_tup.vessel_type == 'arterial':
-                    inp_vars = ['u', 'v', 'E']
-                    out_vars = ['u', 'v', 'E']
-                else:
-                    inp_vars = ['u', 'v']
-                    out_vars = ['u', 'v']
-            self.__write_mapping(wf, vessel_name, vessel_name+'_module', inp_vars, out_vars)
+        vessel_df.apply(self.__write_comp_to_module_mappings_for_row, args=(wf,), axis=1)
+
+    def __write_comp_to_module_mappings_for_row(self, vessel_row, wf):
+        vessel_name = vessel_row["name"]
+        inp_vars = [vessel_row["variables_and_units"][i][0] for i in
+                    range(len(vessel_row["variables_and_units"])) if
+                    vessel_row["variables_and_units"][i][2] == 'access']
+        out_vars = inp_vars
+
+        self.__write_mapping(wf, vessel_name, vessel_name + '_module', inp_vars, out_vars)
 
     def __write_param_mappings(self, wf, vessel_df, params_array=None):
-        for vessel_tup in vessel_df.itertuples():
-            # input and output vessels
-            vessel_name = vessel_tup.name
-            module_addon = '_module'
-            if vessel_name in ['heart']:
-                heart_vars = ["rho", "T", "t_ac", "t_ar", "T_ac",
-                            "T_ar", "T_vc", "T_vr", "E_ra_A", "E_ra_B", "E_rv_A", "E_rv_B", "E_la_A", "E_la_B",
-                            "E_lv_A", "E_lv_B", "K_vo_trv", "K_vo_puv",
-                            "K_vo_miv", "K_vo_aov", "K_vc_trv", "K_vc_puv", "K_vc_miv", "K_vc_aov", "M_rg_trv",
-                            "M_rg_puv", "M_rg_miv", "M_rg_aov", "M_st_trv", "M_st_puv", "M_st_miv", "M_st_aov",
-                            "l_eff", "A_nn_trv", "A_nn_puv", "A_nn_miv", "A_nn_aov", "q_ra_0", "q_rv_0", "q_la_0",
-                            "q_lv_0"]
-                module_vars = ["rho", "T", "t_ac", "t_ar", "T_ac",
-                            "T_ar", "T_vc", "T_vr", "E_ra_A", "E_ra_B", "E_rv_A", "E_rv_B", "E_la_A", "E_la_B",
-                            "E_lv_A", "E_lv_B", "K_vo_trv", "K_vo_puv",
-                            "K_vo_miv", "K_vo_aov", "K_vc_trv", "K_vc_puv", "K_vc_miv", "K_vc_aov", "M_rg_trv",
-                            "M_rg_puv", "M_rg_miv", "M_rg_aov", "M_st_trv", "M_st_puv", "M_st_miv", "M_st_aov",
-                            "l_eff", "A_nn_trv", "A_nn_puv", "A_nn_miv", "A_nn_aov", "q_ra_0", "q_rv_0", "q_la_0",
-                            "q_lv_0"]
+        vessel_df.apply(self.__write_param_mappings_for_row, args=(wf,), params_array=params_array, axis=1)
 
-                if len(heart_vars) != len(module_vars):
-                    print('heart vars and module vars not matched properly, see module config files. exiting')
+    def __write_param_mappings_for_row(self, vessel_row, wf, params_array=None):
+        vessel_name = vessel_row["name"]
+        module_addon = '_module'
+        if vessel_row["vessel_type"].startswith('heart'):
+            global_variable_addon = ''
+            param_file_name = 'parameters_heart'
+        else:
+            global_variable_addon = f'_{vessel_name}'
+            if vessel_row["vessel_type"] == 'terminal':
+                global_variable_addon = re.sub('_T$', '', global_variable_addon)
+            param_file_name = 'parameters'
+
+        vars = [vessel_row["variables_and_units"][i][0] for
+                       i in range(len(vessel_row["variables_and_units"])) if
+                       vessel_row["variables_and_units"][i][3] == 'constant']
+
+        module_vars = [vars[i] + global_variable_addon for i in range(len(vars))]
+
+        global_vars = [vessel_row["variables_and_units"][i][0] for
+                       i in range(len(vessel_row["variables_and_units"])) if
+                       vessel_row["variables_and_units"][i][3] == 'global_constant']
+
+        # check that the variables are in the parameter array
+        if params_array is not None:
+            for variable_name in module_vars:
+                if variable_name not in params_array["variable_name"]:
+                    print(f'variable {variable_name} is not in the parameter '
+                          f'dataframe/csv file')
                     exit()
+        self.__write_mapping(wf, param_file_name, vessel_name + module_addon,
+                             module_vars, vars)
 
-                # check that the variables are in the parameter array
-                if params_array is not None:
-                    for variable_name in heart_vars:
-                        if variable_name not in params_array["variable_name"]:
-                            print(f'variable {variable_name} is not in the parameter '
-                                  f'dataframe/csv file')
-                            exit()
-                self.__write_mapping(wf, 'parameters_heart', vessel_name + module_addon,
-                                     heart_vars, module_vars)
-            else:
-                if vessel_tup.vessel_type == 'terminal':
-                    # first write a mapping for global params
-                    self.__write_mapping(wf, 'environment', vessel_name + module_addon,
-                                         ['gain_int'], ['gain_int'])
-
-                    # now do module param mappings
-                    vessel_name_minus_T = re.sub('_T$', '', vessel_name)
-                    systemic_vars = [f'R_T_{vessel_name_minus_T}',
-                                     f'C_T_{vessel_name_minus_T}',
-                                     f'alpha_{vessel_name_minus_T}',
-                                     f'v_nom_{vessel_name_minus_T}']
-
-                    module_vars = ['R_T',
-                                   'C_T',
-                                   'alpha',
-                                   'v_nominal']
-
-                elif vessel_tup.vessel_type == 'venous':
-                    systemic_vars = [f'R_{vessel_name}',
-                                     f'C_{vessel_name}',
-                                     f'I_{vessel_name}']
-                    module_vars = ['R',
-                                   'C',
-                                   'I']
-                elif vessel_tup.vessel_type == 'arterial_simple':
-                    systemic_vars = [f'R_{vessel_name}',
-                                     f'C_{vessel_name}',
-                                     f'I_{vessel_name}']
-                    module_vars = ['R',
-                                   'C',
-                                   'I']
-                elif vessel_tup.vessel_type in ['arterial', 'split_junction', 'merge_junction', '2in2out_junction']:
-                    # first write a mapping for global params
-                    self.__write_mapping(wf, 'environment', vessel_name + module_addon,
-                                         ['beta_g'], ['beta_g'])
-
-                    # now do module param mappings
-                    systemic_vars = [f'l_{vessel_name}',
-                                     f'E_{vessel_name}',
-                                     f'r_{vessel_name}',
-                                     f'theta_{vessel_name}']
-
-                    module_vars = ['l',
-                                   'E',
-                                   'r',
-                                   'theta']
-                else:
-                    print(f'vessel type of {vessel_tup.vessel_type} is unknown')
-                    exit()
-
-                # check that the variables are in the parameter array
-                if params_array is not None:
-                    for variable_name in systemic_vars:
-                        if variable_name not in params_array["variable_name"]:
-                            print(f'variable {variable_name} is not in the parameter '
-                                  f'dataframe/csv file')
-                            exit()
-                self.__write_mapping(wf, 'parameters', vessel_name+module_addon,
-                              systemic_vars, module_vars)
-
+        self.__write_mapping(wf, 'environment', vessel_name + module_addon,
+                             global_vars, global_vars)
 
     def __write_time_mappings(self, wf, vessel_df):
+        vessel_df.apply(self.__write_time_mappings_for_row, args=(wf,), axis=1)
+
+    def __write_time_mappings_for_row(self, vessel_row, wf):
+        vessel_name = vessel_row["name"]
+        module_addon = '_module'
+
+        self.__write_mapping(wf, 'environment', vessel_name + module_addon,
+                             ['time'], ['t'])
+
+    def __write_time_mappings_OLD(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
             # input and output vessels
             vessel_name = vessel_tup.name
@@ -686,23 +466,8 @@ class CVS0DCellMLGenerator(object):
                           ['time'], ['t'])
 
     def __write_import(self, wf, vessel_tup):
-        if vessel_tup.vessel_type == 'terminal':
-            module_type = f'{vessel_tup.BC_type}_T_type'
-        elif vessel_tup.vessel_type == 'split_junction':
-            module_type = f'{vessel_tup.BC_type}_split_type'
-        elif vessel_tup.vessel_type == 'merge_junction':
-            module_type = f'{vessel_tup.BC_type}_merge_type'
-        elif vessel_tup.vessel_type == '2in2out_junction':
-            module_type = f'{vessel_tup.BC_type}_2in2out_type'
-        elif vessel_tup.vessel_type == 'venous':
-            module_type = f'{vessel_tup.BC_type}_simple_type'
-        elif vessel_tup.vessel_type == 'arterial_simple':
-            module_type = f'{vessel_tup.BC_type}_simple_type'
-        elif vessel_tup.vessel_type == 'heart':
-            module_type = 'heart'
-        else:
-            module_type = f'{vessel_tup.BC_type}_type'
-    
+        module_type = vessel_tup.module_type
+
         str_addon = '_module'
     
         wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',

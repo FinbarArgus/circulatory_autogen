@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="Heart_Modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
-    <component name="heart">
+    <component name="heart_simple">
         <variable name="t" public_interface="in" units="second"/>
         <variable initial_value="0.1" name="s" public_interface="out" units="second"/>
         <!-- Constitutive parameters-->

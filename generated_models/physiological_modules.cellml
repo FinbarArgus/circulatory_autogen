@@ -1579,7 +1579,7 @@
         <variable initial_value="0.0" name="int_control_sum" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
         <variable name="gain_int" public_interface="in" units="J_per_m9"/>
-        <variable name="v_nominal" public_interface="in" units="m3_per_s"/>
+        <variable name="v_nom" public_interface="in" units="m3_per_s"/>
         <variable name="alpha" public_interface="in" units="dimensionless"/>
         <!-- TODO should I_T be identified?-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1685,7 +1685,7 @@
                     <apply>
                         <minus/>
                         <ci>v_in</ci>
-                        <ci>v_nominal</ci>
+                        <ci>v_nom</ci>
                     </apply>
                 </apply>
             </apply>
@@ -1723,7 +1723,7 @@
         <variable initial_value="0.0" name="int_control_sum" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
         <variable name="gain_int" public_interface="in" units="J_per_m9"/>
-        <variable name="v_nominal" public_interface="in" units="m3_per_s"/>
+        <variable name="v_nom" public_interface="in" units="m3_per_s"/>
         <variable name="alpha" public_interface="in" units="dimensionless"/>
         <!-- TODO should I_T be identified?-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1862,7 +1862,7 @@
                     <apply>
                         <minus/>
                         <ci>v</ci>
-                        <ci>v_nominal</ci>
+                        <ci>v_nom</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3041,7 +3041,7 @@
             </apply>
         </math>
     </component>
-    <component name="heart">
+    <component name="heart_simple">
         <variable name="t" public_interface="in" units="second"/>
         <variable initial_value="0.1" name="s" public_interface="out" units="second"/>
         <!-- Constitutive parameters-->

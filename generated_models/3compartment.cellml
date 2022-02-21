@@ -30,7 +30,7 @@
     <!--#STARTGENBELOW-->
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <import xlink:href="3compartment_modules.cellml">
-    <component component_ref="heart" name="heart_module"/>
+    <component component_ref="heart_simple" name="heart_module"/>
 </import>
 <import xlink:href="3compartment_modules.cellml">
     <component component_ref="vv_simple_type" name="aortic_root_module"/>
@@ -54,7 +54,7 @@
 <connection>
    <map_components component_1="heart_module" component_2="aortic_root_module"/>
    <map_variables variable_1="v_aov" variable_2="v_in"/>
-   <map_variables variable_1="u_root" variable_2="u_C"/>
+   <map_variables variable_1="u_root" variable_2="u"/>
 </connection>
 <connection>
    <map_components component_1="heart_module" component_2="par_module"/>
@@ -64,11 +64,15 @@
 <connection>
    <map_components component_1="aortic_root_module" component_2="systemic_T_module"/>
    <map_variables variable_1="v_out" variable_2="v"/>
-   <map_variables variable_1="u" variable_2="u_in"/>
+   <map_variables variable_1="u_d" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="systemic_T_module" component_2="venous_svc_module"/>
    <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="zero_flow_module" component_2="heart_module"/>
+   <map_variables variable_1="v_zero" variable_2="v_ivc"/>
 </connection>
 <connection>
    <map_components component_1="venous_svc_module" component_2="heart_module"/>
@@ -84,10 +88,6 @@
    <map_components component_1="pvn_module" component_2="heart_module"/>
    <map_variables variable_1="v" variable_2="v_pvn"/>
    <map_variables variable_1="u_out" variable_2="u_la"/>
-</connection>
-<connection>
-   <map_components component_1="zero_flow_module" component_2="heart_module"/>
-   <map_variables variable_1="v_zero" variable_2="v_ivc"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;terminal venous connection&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
@@ -111,6 +111,8 @@
 </component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="heart">
+   <variable name="rho" public_interface="in" units="kg_per_m3"/>
+   <variable name="T" public_interface="in" units="seconds"/>
    <variable name="u_ra" public_interface="in" units="J_per_m3"/>
    <variable name="u_rv" public_interface="in" units="J_per_m3"/>
    <variable name="u_la" public_interface="in" units="J_per_m3"/>
@@ -119,6 +121,10 @@
    <variable name="q_rv" public_interface="in" units="m3"/>
    <variable name="q_la" public_interface="in" units="m3"/>
    <variable name="q_lv" public_interface="in" units="m3"/>
+   <variable name="q_ra_0" public_interface="in" units="m3"/>
+   <variable name="q_rv_0" public_interface="in" units="m3"/>
+   <variable name="q_la_0" public_interface="in" units="m3"/>
+   <variable name="q_lv_0" public_interface="in" units="m3"/>
    <variable name="t_ac" public_interface="in" units="dimensionless"/>
    <variable name="t_ar" public_interface="in" units="dimensionless"/>
    <variable name="T_ac" public_interface="in" units="dimensionless"/>
@@ -183,6 +189,7 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="R" public_interface="in" units="Js_per_m6"/>
    <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
 </component>
 <component name="par">
    <variable name="u" public_interface="in" units="J_per_m3"/>
@@ -201,6 +208,8 @@
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
    <map_components component_1="heart" component_2="heart_module"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="T" variable_2="T"/>
    <map_variables variable_1="u_ra" variable_2="u_ra"/>
    <map_variables variable_1="u_rv" variable_2="u_rv"/>
    <map_variables variable_1="u_la" variable_2="u_la"/>
@@ -209,6 +218,10 @@
    <map_variables variable_1="q_rv" variable_2="q_rv"/>
    <map_variables variable_1="q_la" variable_2="q_la"/>
    <map_variables variable_1="q_lv" variable_2="q_lv"/>
+   <map_variables variable_1="q_ra_0" variable_2="q_ra_0"/>
+   <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
+   <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
+   <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
    <map_variables variable_1="t_ac" variable_2="t_ac"/>
    <map_variables variable_1="t_ar" variable_2="t_ar"/>
    <map_variables variable_1="T_ac" variable_2="T_ac"/>
@@ -257,8 +270,8 @@
    <map_components component_1="aortic_root" component_2="aortic_root_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
-   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="I" variable_2="I"/>
 </connection>
 <connection>
@@ -274,23 +287,24 @@
    <map_components component_1="venous_svc" component_2="venous_svc_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
-   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
 </connection>
 <connection>
    <map_components component_1="par" component_2="par_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
-   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="I" variable_2="I"/>
 </connection>
 <connection>
    <map_components component_1="pvn" component_2="pvn_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
-   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="I" variable_2="I"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
@@ -298,6 +312,10 @@
    <map_components component_1="parameters_heart" component_2="heart_module"/>
    <map_variables variable_1="rho" variable_2="rho"/>
    <map_variables variable_1="T" variable_2="T"/>
+   <map_variables variable_1="q_ra_0" variable_2="q_ra_0"/>
+   <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
+   <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
+   <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
    <map_variables variable_1="t_ac" variable_2="t_ac"/>
    <map_variables variable_1="t_ar" variable_2="t_ar"/>
    <map_variables variable_1="T_ac" variable_2="T_ac"/>
@@ -333,10 +351,9 @@
    <map_variables variable_1="A_nn_puv" variable_2="A_nn_puv"/>
    <map_variables variable_1="A_nn_miv" variable_2="A_nn_miv"/>
    <map_variables variable_1="A_nn_aov" variable_2="A_nn_aov"/>
-   <map_variables variable_1="q_ra_0" variable_2="q_ra_0"/>
-   <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
-   <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
-   <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="heart_module"/>
 </connection>
 <connection>
    <map_components component_1="parameters" component_2="aortic_root_module"/>
@@ -345,15 +362,18 @@
    <map_variables variable_1="I_aortic_root" variable_2="I"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="systemic_T_module"/>
-   <map_variables variable_1="gain_int" variable_2="gain_int"/>
+   <map_components component_1="environment" component_2="aortic_root_module"/>
 </connection>
 <connection>
    <map_components component_1="parameters" component_2="systemic_T_module"/>
    <map_variables variable_1="R_T_systemic" variable_2="R_T"/>
    <map_variables variable_1="C_T_systemic" variable_2="C_T"/>
    <map_variables variable_1="alpha_systemic" variable_2="alpha"/>
-   <map_variables variable_1="v_nom_systemic" variable_2="v_nominal"/>
+   <map_variables variable_1="v_nom_systemic" variable_2="v_nom"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="systemic_T_module"/>
+   <map_variables variable_1="gain_int" variable_2="gain_int"/>
 </connection>
 <connection>
    <map_components component_1="parameters" component_2="venous_svc_module"/>
@@ -362,16 +382,25 @@
    <map_variables variable_1="I_venous_svc" variable_2="I"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="venous_svc_module"/>
+</connection>
+<connection>
    <map_components component_1="parameters" component_2="par_module"/>
    <map_variables variable_1="R_par" variable_2="R"/>
    <map_variables variable_1="C_par" variable_2="C"/>
    <map_variables variable_1="I_par" variable_2="I"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="par_module"/>
+</connection>
+<connection>
    <map_components component_1="parameters" component_2="pvn_module"/>
    <map_variables variable_1="R_pvn" variable_2="R"/>
    <map_variables variable_1="C_pvn" variable_2="C"/>
    <map_variables variable_1="I_pvn" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="pvn_module"/>
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;time mapping&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>

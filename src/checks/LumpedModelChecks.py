@@ -58,12 +58,14 @@ class LumpedBCVesselCheck(AbstractLumpedCheck):
         Executes all check activities.
         :param model_0D: model to be checked.
         '''
-        for vessel_tup in model_0D.vessels_df.itertuples():
-            if vessel_tup.BC_type not in model_0D.possible_BC_types:
-                print(f'BC_type of {vessel_tup.BC_type} is not allowed for vessel {vessel_tup.name}')
+        model_0D.vessels_df.apply(self.execute_for_row, args=(model_0D, ), axis=1)
+
+    def execute_for_row(self, vessel_row, model_0D):
+            if vessel_row["BC_type"] not in model_0D.possible_BC_types:
+                print(f'BC_type of {vessel_row["BC_type"]} is not allowed for vessel {vessel_row["name"]}')
                 exit()
-            if vessel_tup.vessel_type not in model_0D.possible_vessel_types:
-                print(f'vessel_type of {vessel_tup.vessel_type} is not allowed for vessel {vessel_tup.name}')
+            if vessel_row["vessel_type"] not in model_0D.possible_vessel_types:
+                print(f'vessel_type of {vessel_row["vessel_type"]} is not allowed for vessel {vessel_row["name"]}')
                 exit()
 
 class LumpedIDParamsCheck(AbstractLumpedCheck):

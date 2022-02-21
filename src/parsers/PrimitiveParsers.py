@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 import csv
-import re
+import json
 
 class CSVFileParser(object):
     '''
@@ -139,4 +139,40 @@ class CSVFileParser(object):
                 exit()
 
         return state_param_name_and_val, const_param_name_and_val, date_id
+
+
+class JSONFileParser(object):
+    '''
+    Parses json files
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    def json_to_dataframe(self, json_path):
+        with open(json_path, encoding='utf-8-sig') as rf:
+            json_obj = json.load(rf)
+        df = pd.DataFrame(json_obj)
+        return df
+
+    def append_module_config_info_to_vessel_df(self, vessel_df, module_config_path):
+        # add columns to vessel_df
+        module_df = self.json_to_dataframe(module_config_path)
+        add_on_lists = {column:[] for column in module_df.columns[2:]}
+        for vessel_tup in vessel_df.itertuples():
+            vessel_type = vessel_tup.vessel_type
+            BC_type = vessel_tup.BC_type
+            this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
+                                                   & (module_df["BC_type"] == BC_type))].squeeze()
+            for column in add_on_lists:
+                add_on_lists[column].append(this_vessel_module_df[column])
+
+        for column in add_on_lists:
+            vessel_df[column] = add_on_lists[column]
+
+
+
+
 
