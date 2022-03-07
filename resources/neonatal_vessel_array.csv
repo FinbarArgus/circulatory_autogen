@@ -1,21 +1,21 @@
-name,BC_type,vessel_type,inp_vessel_1,inp_vessel_2,out_vessel_1,out_vessel_2
-heart,                   vp, heart,              venous_ivc,           venous_svc, aortic_root,    
-aortic_root,             vv, arterial,           heart,                ,ascending_aorta,       
-ascending_aorta,         pv, split_junction,     aortic_root,          ,aortic_arch_1,        brachiocephalic      
-brachiocephalic,         pv, split_junction,     ascending_aorta,      ,subclavian_R,         common_carotid_R
-subclavian_R,            pv, arterial,           brachiocephalic,      ,arm_R_T,
-common_carotid_R,        pv, arterial,           brachiocephalic,      ,head_R_T,
-aortic_arch_1,           pv, split_junction,     ascending_aorta,      ,aortic_arch_2,        common_carotid_L
-common_carotid_L,        pv, arterial,           aortic_arch_1,        ,head_L_T,
-aortic_arch_2,           pv, split_junction,     aortic_arch_1,        ,descending_aorta,     subclavian_L
-subclavian_L,            pv, arterial,           aortic_arch_2,        ,arm_L_T,
-descending_aorta,        pv, arterial,           aortic_arch_2,        ,abdominal_aorta,      
-abdominal_aorta,         pv, split_junction,     descending_aorta,     ,leg_L_T,              leg_R_T
-head_L_T,                pp, terminal,           common_carotid_L,     ,venous_svc,            
-head_R_T,                pp, terminal,           common_carotid_R,     ,venous_svc,            
-arm_L_T,                 pp, terminal,           subclavian_L,         ,venous_svc,            
-arm_R_T,                 pp, terminal,           subclavian_R,         ,venous_svc,            
-leg_L_T,                 pp, terminal,           abdominal_aorta,      ,venous_ivc,            
-leg_R_T,                 pp, terminal,           abdominal_aorta,      ,venous_ivc,            
-venous_ivc,              vp, venous,             ,                     ,heart,                
-venous_svc,              vp, venous,             ,                     ,heart,                
+name,BC_type,vessel_type,inp_vessels,out_vessels
+heart,                   vp, heart,              venous_ivc venous_svc ,aortic_root    
+aortic_root,             vv, arterial,           heart                 ,ascending_aorta       
+ascending_aorta,         pv, split_junction,     aortic_root           ,aortic_arch_1        brachiocephalic      
+brachiocephalic,         pv, split_junction,     ascending_aorta       ,subclavian_R         common_carotid_R
+subclavian_R,            pv, arterial,           brachiocephalic       ,arm_R_T
+common_carotid_R,        pv, arterial,           brachiocephalic       ,head_R_T
+aortic_arch_1,           pv, split_junction,     ascending_aorta       ,aortic_arch_2        common_carotid_L
+common_carotid_L,        pv, arterial,           aortic_arch_1         ,head_L_T
+aortic_arch_2,           pv, split_junction,     aortic_arch_1         ,descending_aorta     subclavian_L
+subclavian_L,            pv, arterial,           aortic_arch_2         ,arm_L_T
+descending_aorta,        pv, arterial,           aortic_arch_2         ,abdominal_aorta      
+abdominal_aorta,         pv, split_junction,     descending_aorta      ,leg_L_T              leg_R_T
+head_L_T,                pp, terminal,           common_carotid_L      ,venous_svc            
+head_R_T,                pp, terminal,           common_carotid_R      ,venous_svc            
+arm_L_T,                 pp, terminal,           subclavian_L          ,venous_svc            
+arm_R_T,                 pp, terminal,           subclavian_R          ,venous_svc            
+leg_L_T,                 pp, terminal,           abdominal_aorta       ,venous_ivc            
+leg_R_T,                 pp, terminal,           abdominal_aorta       ,venous_ivc            
+venous_ivc,              vp, venous,             leg_L_T leg_R_T       ,heart                
+venous_svc,              vp, venous,             arm_L_T arm_R_T head_L_T head_R_T  ,heart                

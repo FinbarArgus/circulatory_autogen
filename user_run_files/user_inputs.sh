@@ -1,11 +1,13 @@
 ## general inputs
 # file_prefix=FTU_wCVS
 # file_prefix=3compartment
-file_prefix=simple_physiological
+# file_prefix=simple_physiological
+file_prefix=neonatal
 # file_prefix=physiological
 # input_param_file=FTU_wCVS.csv # this must be stored in resources.
-# input_param_file=3compartment_parameters.csv # this must be stored in resources.
-input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
+input_param_file=3compartment_parameters.csv # this must be stored in resources.
+# input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
+# input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 

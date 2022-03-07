@@ -3,15 +3,19 @@ This array is written in a csv file such as test_vessel_array.csv where the entr
 
 
 [vessel_name,
+
 BC_type             ('vv', 'vp', 'pv', 'pp'),
+
 vessel_type         ('heart', 'arterial', 'arterial_simple', 'venous', 'terminal', 'split_junction', 'merge_junction', 2in2out_junction),
+
 inp_vessels         (name of the input vessels.)
+
 out_vessels         (name of the output vessels)
 ]
 
 IMPORTANT: The order of input and output vessels is important for the heart module. The order must be
 inp_vessels: 1:inferior vena cava, 2:superior vena cava, 3:pulmonary vein
-out_vessels: 1:aorta, 2:pulmonary artery
+out_vessels: 1:aorta, 2:pulmonary artery.
 
 If the pulmonary vessels aren't included, a simple 2 vessel pulmonary system will be used.
 
@@ -37,6 +41,12 @@ then run the following to generate the model
 ```bash
 ./run_autogeneration.sh
 ```
+
+If there were missing parameters in {file_prefix}_parameters.csv a new file named 
+{file_prefix}_parameters_unfinished.csv will be created with the required parameters.
+This must be filled in and renamed to {file_prefix}_parameters_unfinished.csv to
+generate a working model.
+
 To then run the parameter identification you must fill in the param_id parameters in user_inputs.sh,
 create a {file_prefix}_params_for_id.csv file and
 create a json file with the ground truth data. See resources/simple_physiological_params_for_id.csv and resources/simple_physiological_obs_data.json for an example.
