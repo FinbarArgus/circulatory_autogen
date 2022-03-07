@@ -20,6 +20,41 @@ completely automate the creation of circulatory system models from images.
 
 NOTE: currently the terminal vessels should only have 'pp' type boundary conditions
 
+## Process for generating a model and running the parameter identification
+
+First create a {file_prefix}_vessel_array.csv and {file_prefix}_parameters.csv file in resources/.
+file_prefix's of simple_physiological and physiological are good example files.
+
+Then move to the user_run_files directory and ensure the user_inputs.sh file is filled out correctly. 
+For model generation the following must be set
+
+file_prefix={file_prefix} 
+input_param_file={file_prefix}_parameters.csv
+opencor_pythonshell_path=path/to/opencor/pythonshell
+
+then run the following to generate the model
+
+```bash
+./run_autogeneration.sh
+```
+To then run the parameter identification you must fill in the param_id parameters in user_inputs.sh,
+create a {file_prefix}_params_for_id.csv file and
+create a json file with the ground truth data. See resources/simple_physiological_params_for_id.csv and resources/simple_physiological_obs_data.json for an example.
+
+```bash
+./run_param_id.sh
+```
+
+The above will output progress and errors to /param_id_output/log.txt
+
+Following a succesfull parameter_id process the model with updated parameters can be generated with
+```bash
+./run_autogeneration_with_id_params.sh
+```
+
+The generated models will be saved in generated_models/
+
+
 ## requirements  
 
 If the model being generated is a cellml model, OpenCOR must be downloaded 
