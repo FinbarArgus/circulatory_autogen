@@ -17,6 +17,7 @@ out_vessels         (name of the output vessels)
 IMPORTANT: The order of input and output vessels is important for the heart module. The order must be
 
 inp_vessels: 1:inferior vena cava, 2:superior vena cava, 3:pulmonary vein
+
 out_vessels: 1:aorta, 2:pulmonary artery.
 
 If the pulmonary vessels aren't included, a simple 2 vessel pulmonary system will be used.
