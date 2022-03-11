@@ -58,7 +58,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'weight': 1.0,
                          'obs_type': 'min',
                          'value': min_val*conversion}
-                entry_dict["data_item"].append(entry)
+                entry_list.append(entry)
             if 'max' in obs_types:
                 max_val = np.max(series_resampled)
                 entry = {'variable': variable_name,
@@ -68,7 +68,7 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'weight': 1.0,
                          'obs_type': 'max',
                          'value': max_val*conversion}
-                entry_dict["data_item"].append(entry)
+                entry_list.append(entry)
             if 'series' in obs_types:
                 entry = {'variable': variable_name,
                          'data_type': 'series',
@@ -78,10 +78,10 @@ for file_idx, excel_path in enumerate(excel_paths):
                          'obs_type': 'series',
                          'series': series_rs_2period*conversion,
                          't': t_resampled}
-                entry_dict["data_item"].append(entry)
+                entry_list.append(entry)
 
 # Now create json file from entry_dict
-json_df = pd.DataFrame(entry_dict['data_item'])
+json_df = pd.DataFrame(entry_list)
 # json_df.to_json(output_json_file_name)
 result = json_df.to_json(orient='records')
 parsed = json.loads(result)
