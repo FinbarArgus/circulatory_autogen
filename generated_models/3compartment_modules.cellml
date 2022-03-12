@@ -3130,6 +3130,8 @@
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
         <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_1" units="dimensionless"/>
+        <variable initial_value="0.01" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="7.6345e-04" name="q_lv" units="m3"/>
@@ -3181,8 +3183,65 @@
                                 <apply>
                                     <plus/>
                                     <ci>t_astart_norm</ci>
-                                    <ci>T_ac_norm</ci>
+                                    <ci>eps_1</ci>
                                 </apply>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.5</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="second">0.5</cn>
+                            <ci>T_ac</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <apply>
+                                    <plus/>
+                                    <ci>t_astart_norm</ci>
+                                    <ci>eps_1</ci>
+                                </apply>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>mt</ci>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <plus/>
+                                        <ci>t_astart_norm</ci>
+                                        <ci>eps_1</ci>
+                                    </apply>
+                                    <cn cellml:units="dimensionless">1.0</cn>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.5</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="second">0.5</cn>
+                            <ci>T_ac</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_afloor</ci>
+                                <ci>eps_2</ci>
                             </apply>
                             <apply>
                                 <leq/>
@@ -3198,7 +3257,7 @@
                             <ci>T_ar</ci>
                         </apply>
                         <apply>
-                            <gt/>
+                            <geq/>
                             <ci>chi_afloor</ci>
                             <cn cellml:units="dimensionless">0.5</cn>
                         </apply>
@@ -3253,8 +3312,65 @@
                                 <apply>
                                     <plus/>
                                     <ci>t_vstart_norm</ci>
-                                    <ci>T_vc_norm</ci>
+                                    <ci>eps_1</ci>
                                 </apply>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.5</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="second">0.5</cn>
+                            <ci>T_vc</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <apply>
+                                    <plus/>
+                                    <ci>t_vstart_norm</ci>
+                                    <ci>eps_1</ci>
+                                </apply>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>mt</ci>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <plus/>
+                                        <ci>t_vstart_norm</ci>
+                                        <ci>eps_1</ci>
+                                    </apply>
+                                    <cn cellml:units="dimensionless">1.0</cn>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <leq/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.5</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="second">0.5</cn>
+                            <ci>T_vc</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <ci>eps_2</ci>
                             </apply>
                             <apply>
                                 <leq/>
