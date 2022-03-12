@@ -5,11 +5,12 @@ q_ra_0,m3,heart,4.0e-6,Korakianitis_2006_Table_1
 q_rv_0,m3,heart,10.0e-6,Korakianitis_2006_Table_1
 q_la_0,m3,heart,4.0e-6,Korakianitis_2006_Table_1
 q_lv_0,m3,heart,5.0e-6,Korakianitis_2006_Table_1
+T_ac,second,heart,0.17,Liang_2009_Table_2
+T_ar,second,heart,0.17,Liang_2009_Table_2
 t_astart,second,heart,0.80,Liang_2009_Table_2
-t_apeak,second,heart,0.97,Liang_2009_Table_2
-t_aend,second,heart,0.14,Liang_2009_Table_2
 T_vc,second,heart,0.34,Liang_2009_Table_2
 T_vr,second,heart,0.15,Liang_2009_Table_2
+t_vstart,second,heart,0.0,Liang_2009_Table_2
 E_ra_A,J_per_m6,heart,7.998e+6,Liang_2009_Table_2
 E_ra_B,J_per_m6,heart,9.331e+6,Liang_2009_Table_2
 E_rv_A,J_per_m6,heart,73.315e+6,Liang_2009_Table_2

@@ -7,11 +7,12 @@
 <variable initial_value="10.0e-6" name="q_rv_0" public_interface="out" units="m3"/>
 <variable initial_value="4.0e-6" name="q_la_0" public_interface="out" units="m3"/>
 <variable initial_value="5.0e-6" name="q_lv_0" public_interface="out" units="m3"/>
+<variable initial_value="0.17" name="T_ac" public_interface="out" units="second"/>
+<variable initial_value="0.17" name="T_ar" public_interface="out" units="second"/>
 <variable initial_value="0.80" name="t_astart" public_interface="out" units="second"/>
-<variable initial_value="0.97" name="t_apeak" public_interface="out" units="second"/>
-<variable initial_value="0.14" name="t_aend" public_interface="out" units="second"/>
 <variable initial_value="0.34" name="T_vc" public_interface="out" units="second"/>
 <variable initial_value="0.15" name="T_vr" public_interface="out" units="second"/>
+<variable initial_value="0.0" name="t_vstart" public_interface="out" units="second"/>
 <variable initial_value="7.998e+6" name="E_ra_A" public_interface="out" units="J_per_m6"/>
 <variable initial_value="9.331e+6" name="E_ra_B" public_interface="out" units="J_per_m6"/>
 <variable initial_value="73.315e+6" name="E_rv_A" public_interface="out" units="J_per_m6"/>
