@@ -3043,18 +3043,25 @@
     </component>
     <component name="heart_simple">
         <variable name="t" public_interface="in" units="second"/>
-        <variable initial_value="0.1" name="s" public_interface="out" units="second"/>
+        <variable initial_value="0.0" name="s" public_interface="out" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mt" units="second"/>
         <variable name="e_a" units="dimensionless"/>
         <variable name="e_v" units="dimensionless"/>
         <variable name="T" public_interface="in" units="second"/>
-        <variable name="t_ac" public_interface="in" units="dimensionless"/>
-        <variable name="t_ar" public_interface="in" units="dimensionless"/>
-        <variable name="T_ac" public_interface="in" units="dimensionless"/>
-        <variable name="T_ar" public_interface="in" units="dimensionless"/>
-        <variable name="T_vc" public_interface="in" units="dimensionless"/>
-        <variable name="T_vr" public_interface="in" units="dimensionless"/>
+        <variable name="t_ar_norm" units="dimensionless"/>
+        <variable name="T_ac_norm" units="dimensionless"/>
+        <variable name="T_ar_norm" units="dimensionless"/>
+        <variable name="t_astart" public_interface="in" units="second"/>
+        <variable name="t_aend" public_interface="in" units="second"/>
+        <variable name="t_apeak" public_interface="in" units="second"/>
+        <variable name="t_astart_norm" units="dimensionless"/>
+        <variable name="t_aend_norm" units="dimensionless"/>
+        <variable name="t_apeak_norm" units="dimensionless"/>
+        <variable name="T_vc" public_interface="in" units="second"/>
+        <variable name="T_vr" public_interface="in" units="second"/>
+        <variable name="T_vc_norm" units="dimensionless"/>
+        <variable name="T_vr_norm" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_la_A" public_interface="in" units="J_per_m6"/>
@@ -3131,7 +3138,6 @@
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
-        <variable initial_value="1" name="modifiable_T" public_interface="out" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3145,7 +3151,7 @@
                 <apply>
                     <divide/>
                     <cn cellml:units="second">1</cn>
-                    <ci>modifiable_T</ci>
+                    <ci>T</ci>
                 </apply>
             </apply>
             <apply>
@@ -3155,24 +3161,150 @@
                     <minus/>
                     <ci>s</ci>
                     <apply>
-                        <times/>
-                        <ci>T</ci>
-                        <apply>
-                            <floor/>
-                            <apply>
-                                <divide/>
-                                <ci>s</ci>
-                                <ci>T</ci>
-                            </apply>
-                        </apply>
+                        <floor/>
+                        <ci>s</ci>
                     </apply>
                 </apply>
             </apply>
             <!-- Elastance Functions-->
             <apply>
                 <eq/>
+                <ci>t_apeak_norm</ci>
+                <apply>
+                    <divide/>
+                    <ci>t_apeak</ci>
+                    <ci>T</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>t_astart_norm</ci>
+                <apply>
+                    <divide/>
+                    <ci>t_astart</ci>
+                    <ci>T</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>t_aend_norm</ci>
+                <apply>
+                    <divide/>
+                    <ci>t_aend</ci>
+                    <ci>T</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>t_ar_norm</ci>
+                <ci>t_apeak_norm</ci>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>T_ac_norm</ci>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <ci>t_apeak_norm</ci>
+                        <ci>t_astart_norm</ci>
+                    </apply>
+                    <apply>
+                        <floor/>
+                        <apply>
+                            <minus/>
+                            <ci>t_apeak_norm</ci>
+                            <ci>t_astart_norm</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>T_ar_norm</ci>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <ci>t_aend_norm</ci>
+                        <ci>t_apeak_norm</ci>
+                    </apply>
+                    <apply>
+                        <floor/>
+                        <apply>
+                            <minus/>
+                            <ci>t_aend_norm</ci>
+                            <ci>t_apeak_norm</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>T_vc_norm</ci>
+                <apply>
+                    <divide/>
+                    <ci>T_vc</ci>
+                    <ci>T</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>T_vr_norm</ci>
+                <apply>
+                    <divide/>
+                    <ci>T_vr</ci>
+                    <ci>T</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <ci>e_a</ci>
                 <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <apply>
+                                    <cos/>
+                                    <apply>
+                                        <divide/>
+                                        <apply>
+                                            <times/>
+                                            <pi/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>mt</ci>
+                                                <ci>t_astart_norm</ci>
+                                            </apply>
+                                        </apply>
+                                        <ci>T_ac_norm</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>mt</ci>
+                                <ci>t_astart_norm</ci>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>mt</ci>
+                                <ci>t_apeak_norm</ci>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>t_astart_norm</ci>
+                                <ci>t_apeak_norm</ci>
+                            </apply>
+                        </apply>
+                    </piece>
                     <piece>
                         <apply>
                             <times/>
@@ -3189,15 +3321,11 @@
                                             <pi/>
                                             <apply>
                                                 <minus/>
-                                                <apply>
-                                                    <plus/>
-                                                    <ci>mt</ci>
-                                                    <ci>T</ci>
-                                                </apply>
-                                                <ci>t_ar</ci>
+                                                <ci>mt</ci>
+                                                <ci>t_apeak_norm</ci>
                                             </apply>
                                         </apply>
-                                        <ci>T_ar</ci>
+                                        <ci>T_ar_norm</ci>
                                     </apply>
                                 </apply>
                             </apply>
@@ -3207,44 +3335,109 @@
                             <apply>
                                 <geq/>
                                 <ci>mt</ci>
-                                <cn cellml:units="second">0</cn>
+                                <ci>t_apeak_norm</ci>
                             </apply>
                             <apply>
-                                <leq/>
+                                <lt/>
                                 <ci>mt</ci>
-                                <apply>
-                                    <minus/>
-                                    <apply>
-                                        <plus/>
-                                        <ci>t_ar</ci>
-                                        <ci>T_ar</ci>
-                                    </apply>
-                                    <ci>T</ci>
-                                </apply>
+                                <ci>t_aend_norm</ci>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>t_apeak_norm</ci>
+                                <ci>t_aend_norm</ci>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
-                        <cn cellml:units="dimensionless">0</cn>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                            <apply>
+                                <plus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <apply>
+                                    <cos/>
+                                    <apply>
+                                        <divide/>
+                                        <apply>
+                                            <times/>
+                                            <pi/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>mt</ci>
+                                                <ci>t_apeak_norm</ci>
+                                            </apply>
+                                        </apply>
+                                        <ci>T_ar_norm</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
                         <apply>
                             <and/>
                             <apply>
-                                <gt/>
+                                <geq/>
                                 <ci>mt</ci>
-                                <apply>
-                                    <minus/>
-                                    <apply>
-                                        <plus/>
-                                        <ci>t_ar</ci>
-                                        <ci>T_ar</ci>
-                                    </apply>
-                                    <ci>T</ci>
-                                </apply>
+                                <ci>t_apeak_norm</ci>
                             </apply>
                             <apply>
-                                <leq/>
+                                <lt/>
                                 <ci>mt</ci>
-                                <ci>t_ac</ci>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                            </apply>
+                            <apply>
+                                <gt/>
+                                <ci>t_apeak_norm</ci>
+                                <ci>t_aend_norm</ci>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                            <apply>
+                                <plus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <apply>
+                                    <cos/>
+                                    <apply>
+                                        <divide/>
+                                        <apply>
+                                            <times/>
+                                            <pi/>
+                                            <apply>
+                                                <plus/>
+                                                <apply>
+                                                    <minus/>
+                                                    <ci>mt</ci>
+                                                    <ci>t_apeak_norm</ci>
+                                                </apply>
+                                                <cn cellml:units="dimensionless">1.0</cn>
+                                            </apply>
+                                        </apply>
+                                        <ci>T_ar_norm</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>mt</ci>
+                                <cn cellml:units="dimensionless">0.0</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>mt</ci>
+                                <ci>t_aend_norm</ci>
+                            </apply>
+                            <apply>
+                                <gt/>
+                                <ci>t_apeak_norm</ci>
+                                <ci>t_aend_norm</ci>
                             </apply>
                         </apply>
                     </piece>
@@ -3265,10 +3458,10 @@
                                             <apply>
                                                 <minus/>
                                                 <ci>mt</ci>
-                                                <ci>t_ac</ci>
+                                                <ci>t_astart_norm</ci>
                                             </apply>
                                         </apply>
-                                        <ci>T_ac</ci>
+                                        <ci>T_ac_norm</ci>
                                     </apply>
                                 </apply>
                             </apply>
@@ -3276,18 +3469,19 @@
                         <apply>
                             <and/>
                             <apply>
-                                <gt/>
+                                <geq/>
                                 <ci>mt</ci>
-                                <ci>t_ac</ci>
+                                <ci>t_astart_norm</ci>
                             </apply>
                             <apply>
-                                <leq/>
+                                <lt/>
                                 <ci>mt</ci>
-                                <apply>
-                                    <plus/>
-                                    <ci>t_ac</ci>
-                                    <ci>T_ac</ci>
-                                </apply>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                            </apply>
+                            <apply>
+                                <gt/>
+                                <ci>t_astart_norm</ci>
+                                <ci>t_apeak_norm</ci>
                             </apply>
                         </apply>
                     </piece>
@@ -3296,7 +3490,7 @@
                             <times/>
                             <cn cellml:units="dimensionless">0.5</cn>
                             <apply>
-                                <plus/>
+                                <minus/>
                                 <cn cellml:units="dimensionless">1</cn>
                                 <apply>
                                     <cos/>
@@ -3306,12 +3500,16 @@
                                             <times/>
                                             <pi/>
                                             <apply>
-                                                <minus/>
-                                                <ci>mt</ci>
-                                                <ci>t_ar</ci>
+                                                <plus/>
+                                                <apply>
+                                                    <minus/>
+                                                    <ci>mt</ci>
+                                                    <ci>t_astart_norm</ci>
+                                                </apply>
+                                                <cn cellml:units="dimensionless">1.0</cn>
                                             </apply>
                                         </apply>
-                                        <ci>T_ar</ci>
+                                        <ci>T_ac_norm</ci>
                                     </apply>
                                 </apply>
                             </apply>
@@ -3319,21 +3517,25 @@
                         <apply>
                             <and/>
                             <apply>
-                                <gt/>
+                                <geq/>
                                 <ci>mt</ci>
-                                <apply>
-                                    <plus/>
-                                    <ci>t_ac</ci>
-                                    <ci>T_ac</ci>
-                                </apply>
+                                <cn cellml:units="dimensionless">0.0</cn>
                             </apply>
                             <apply>
-                                <leq/>
+                                <lt/>
                                 <ci>mt</ci>
-                                <ci>T</ci>
+                                <ci>t_apeak_norm</ci>
+                            </apply>
+                            <apply>
+                                <gt/>
+                                <ci>t_astart_norm</ci>
+                                <ci>t_apeak_norm</ci>
                             </apply>
                         </apply>
                     </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
+                    </otherwise>
                 </piecewise>
             </apply>
             <apply>
@@ -3356,7 +3558,7 @@
                                             <pi/>
                                             <ci>mt</ci>
                                         </apply>
-                                        <ci>T_vc</ci>
+                                        <ci>T_vc_norm</ci>
                                     </apply>
                                 </apply>
                             </apply>
@@ -3371,7 +3573,7 @@
                             <apply>
                                 <leq/>
                                 <ci>mt</ci>
-                                <ci>T_vc</ci>
+                                <ci>T_vc_norm</ci>
                             </apply>
                         </apply>
                     </piece>
@@ -3392,10 +3594,10 @@
                                             <apply>
                                                 <minus/>
                                                 <ci>mt</ci>
-                                                <ci>T_vc</ci>
+                                                <ci>T_vc_norm</ci>
                                             </apply>
                                         </apply>
-                                        <ci>T_vr</ci>
+                                        <ci>T_vr_norm</ci>
                                     </apply>
                                 </apply>
                             </apply>
@@ -3405,15 +3607,15 @@
                             <apply>
                                 <gt/>
                                 <ci>mt</ci>
-                                <ci>T_vc</ci>
+                                <ci>T_vc_norm</ci>
                             </apply>
                             <apply>
                                 <leq/>
                                 <ci>mt</ci>
                                 <apply>
                                     <plus/>
-                                    <ci>T_vc</ci>
-                                    <ci>T_vr</ci>
+                                    <ci>T_vc_norm</ci>
+                                    <ci>T_vr_norm</ci>
                                 </apply>
                             </apply>
                         </apply>
@@ -3427,14 +3629,14 @@
                                 <ci>mt</ci>
                                 <apply>
                                     <plus/>
-                                    <ci>T_vc</ci>
-                                    <ci>T_vr</ci>
+                                    <ci>T_vc_norm</ci>
+                                    <ci>T_vr_norm</ci>
                                 </apply>
                             </apply>
                             <apply>
                                 <lt/>
                                 <ci>mt</ci>
-                                <ci>T</ci>
+                                <cn cellml:units="dimensionless">1.0</cn>
                             </apply>
                         </apply>
                     </piece>

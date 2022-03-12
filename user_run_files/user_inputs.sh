@@ -1,8 +1,8 @@
 ## general inputs
 # file_prefix=FTU_wCVS
-# file_prefix=3compartment
+file_prefix=3compartment
 # file_prefix=simple_physiological
-file_prefix=neonatal
+# file_prefix=neonatal
 # file_prefix=physiological
 # input_param_file=FTU_wCVS.csv # this must be stored in resources.
 input_param_file=3compartment_parameters.csv # this must be stored in resources.
