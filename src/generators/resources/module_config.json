@@ -268,7 +268,7 @@
       ["C_T", "m6_per_J", "access", "constant"],
       ["alpha", "dimensionless", "access", "constant"],
       ["v_nom", "m3_per_s", "no_access", "constant"],
-      ["gain_int", "dimensionless", "no_access", "global_constant"]
+      ["gain_int", "J_per_m9", "no_access", "global_constant"]
     ]
   },
   {
