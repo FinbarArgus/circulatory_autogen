@@ -117,7 +117,8 @@ if __name__ == '__main__':
                 dir_util.copy_tree(output_dirs[best_idx], output_dir_base)
 
         else:
-            output_dirs = [param_id.output_dir]
+            if rank == 0:
+                output_dirs = [param_id.output_dir]
             param_id.run()
 
         # create file with paths for param_id
