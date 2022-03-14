@@ -89,8 +89,8 @@
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
         <variable initial_value="1e-14" name="eps" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.01" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="0.00069934" name="q_lv" units="m3"/>

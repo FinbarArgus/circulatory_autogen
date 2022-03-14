@@ -35,7 +35,7 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None,  sensitivity_params_path=None,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0004, dt=0.01,
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0001, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -730,7 +730,7 @@ class OpencorParamID():
                  param_state_names, param_const_names, sensitivity_param_state_names, sensitivity_param_const_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs, sensitivity_param_mins, sensitivity_param_maxs,
-                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0004,
+                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
                  DEBUG=False):
 
         self.model_path = model_path

@@ -1,8 +1,6 @@
 heart/E_lv_A
-heart/E_lv_B
 heart/E_rv_A
-heart/E_rv_B
-pulmonary/R_par
+par/R
 leg_L_T/R_T,leg_R_T/R_T
 arm_L_T/R_T,arm_R_T/R_T
 anterior_cerebral_L_T/R_T,anterior_cerebral_R_T/R_T
