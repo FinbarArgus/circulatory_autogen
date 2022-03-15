@@ -486,7 +486,8 @@
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="heart">
    <variable name="rho" public_interface="in" units="kg_per_m3"/>
-   <variable name="T" public_interface="in" units="seconds"/>
+   <variable name="T" public_interface="in" units="second"/>
+   <variable name="mt" public_interface="in" units="second"/>
    <variable name="u_ra" public_interface="in" units="J_per_m3"/>
    <variable name="u_rv" public_interface="in" units="J_per_m3"/>
    <variable name="u_la" public_interface="in" units="J_per_m3"/>
@@ -499,12 +500,16 @@
    <variable name="q_rv_0" public_interface="in" units="m3"/>
    <variable name="q_la_0" public_interface="in" units="m3"/>
    <variable name="q_lv_0" public_interface="in" units="m3"/>
-   <variable name="t_ac" public_interface="in" units="dimensionless"/>
-   <variable name="t_ar" public_interface="in" units="dimensionless"/>
-   <variable name="T_ac" public_interface="in" units="dimensionless"/>
-   <variable name="T_ar" public_interface="in" units="dimensionless"/>
-   <variable name="T_vc" public_interface="in" units="dimensionless"/>
-   <variable name="T_vr" public_interface="in" units="dimensionless"/>
+   <variable name="T_ac" public_interface="in" units="second"/>
+   <variable name="T_ar" public_interface="in" units="second"/>
+   <variable name="t_astart" public_interface="in" units="second"/>
+   <variable name="t_astart_norm" public_interface="in" units="second"/>
+   <variable name="chi_a" public_interface="in" units="dimensionless"/>
+   <variable name="chi_afloor" public_interface="in" units="dimensionless"/>
+   <variable name="T_vc" public_interface="in" units="second"/>
+   <variable name="T_vr" public_interface="in" units="second"/>
+   <variable name="t_vstart" public_interface="in" units="second"/>
+   <variable name="t_vstart_norm" public_interface="in" units="second"/>
    <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
    <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
    <variable name="E_rv_A" public_interface="in" units="J_per_m6"/>
@@ -513,6 +518,8 @@
    <variable name="E_la_B" public_interface="in" units="J_per_m6"/>
    <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
    <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
+   <variable name="e_a" public_interface="in" units="dimensionless"/>
+   <variable name="e_v" public_interface="in" units="dimensionless"/>
    <variable name="v_trv" public_interface="in" units="m3_per_s"/>
    <variable name="v_puv" public_interface="in" units="m3_per_s"/>
    <variable name="v_miv" public_interface="in" units="m3_per_s"/>
@@ -796,6 +803,7 @@
    <map_components component_1="heart" component_2="heart_module"/>
    <map_variables variable_1="rho" variable_2="rho"/>
    <map_variables variable_1="T" variable_2="T"/>
+   <map_variables variable_1="mt" variable_2="mt"/>
    <map_variables variable_1="u_ra" variable_2="u_ra"/>
    <map_variables variable_1="u_rv" variable_2="u_rv"/>
    <map_variables variable_1="u_la" variable_2="u_la"/>
@@ -808,12 +816,16 @@
    <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
    <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
    <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
-   <map_variables variable_1="t_ac" variable_2="t_ac"/>
-   <map_variables variable_1="t_ar" variable_2="t_ar"/>
    <map_variables variable_1="T_ac" variable_2="T_ac"/>
    <map_variables variable_1="T_ar" variable_2="T_ar"/>
+   <map_variables variable_1="t_astart" variable_2="t_astart"/>
+   <map_variables variable_1="t_astart_norm" variable_2="t_astart_norm"/>
+   <map_variables variable_1="chi_a" variable_2="chi_a"/>
+   <map_variables variable_1="chi_afloor" variable_2="chi_afloor"/>
    <map_variables variable_1="T_vc" variable_2="T_vc"/>
    <map_variables variable_1="T_vr" variable_2="T_vr"/>
+   <map_variables variable_1="t_vstart" variable_2="t_vstart"/>
+   <map_variables variable_1="t_vstart_norm" variable_2="t_vstart_norm"/>
    <map_variables variable_1="E_ra_A" variable_2="E_ra_A"/>
    <map_variables variable_1="E_ra_B" variable_2="E_ra_B"/>
    <map_variables variable_1="E_rv_A" variable_2="E_rv_A"/>
@@ -822,6 +834,8 @@
    <map_variables variable_1="E_la_B" variable_2="E_la_B"/>
    <map_variables variable_1="E_lv_A" variable_2="E_lv_A"/>
    <map_variables variable_1="E_lv_B" variable_2="E_lv_B"/>
+   <map_variables variable_1="e_a" variable_2="e_a"/>
+   <map_variables variable_1="e_v" variable_2="e_v"/>
    <map_variables variable_1="v_trv" variable_2="v_trv"/>
    <map_variables variable_1="v_puv" variable_2="v_puv"/>
    <map_variables variable_1="v_miv" variable_2="v_miv"/>
@@ -1152,12 +1166,12 @@
    <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
    <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
    <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
-   <map_variables variable_1="t_ac" variable_2="t_ac"/>
-   <map_variables variable_1="t_ar" variable_2="t_ar"/>
    <map_variables variable_1="T_ac" variable_2="T_ac"/>
    <map_variables variable_1="T_ar" variable_2="T_ar"/>
+   <map_variables variable_1="t_astart" variable_2="t_astart"/>
    <map_variables variable_1="T_vc" variable_2="T_vc"/>
    <map_variables variable_1="T_vr" variable_2="T_vr"/>
+   <map_variables variable_1="t_vstart" variable_2="t_vstart"/>
    <map_variables variable_1="E_ra_A" variable_2="E_ra_A"/>
    <map_variables variable_1="E_ra_B" variable_2="E_ra_B"/>
    <map_variables variable_1="E_rv_A" variable_2="E_rv_A"/>
