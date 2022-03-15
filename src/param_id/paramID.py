@@ -49,7 +49,8 @@ class CVS0DParamID():
         self.dt = dt
         self.n_steps = int(sim_time/self.dt)
 
-        case_type = f'{param_id_method}_{file_name_prefix}'
+        param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        case_type = f'{param_id_method}_{file_name_prefix}_{param_id_obs_file_prefix}'
         if self.rank == 0:
             self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
             if not os.path.exists(self.param_id_output_dir):
@@ -188,8 +189,7 @@ class CVS0DParamID():
 
         for unique_obs_count in range(len(obs_names_unique)):
             this_obs_waveform_plotted = False
-            words = obs_names_unique[unique_obs_count].replace('_', ' ').upper().split()
-            obs_name_for_plot = "".join([word[0] for word in words])
+            obs_name_for_plot = obs_names_unique[unique_obs_count].replace('/', '_')
             consts_idx = -1
             series_idx = -1
             for II in range(self.num_obs):
@@ -207,13 +207,13 @@ class CVS0DParamID():
 
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'v_{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'q_{obs_name_for_plot} [$cm^3$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
-                        axs[row_idx, col_idx].set_ylabel(f'P_{obs_name_for_plot} [$kPa$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$kPa$]', fontsize=14)
                     else:
                         print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
                               f'for plotting')
