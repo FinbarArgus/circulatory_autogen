@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     try:
 
-        if len(sys.argv) != 5:
+        if len(sys.argv) != 4:
             print(f'incorrect number of inputs to param_id_run_script.py')
             exit()
         param_id_method = sys.argv[1]
@@ -33,16 +33,15 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = bool(util.strtobool(sys.argv[3]))
-        if input_params_to_id:
-            input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
-            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-            if not os.path.exists(sensitivity_params_path):
-                sensitivity_params_path = input_params_path
-        else:
-            input_params_path = False
-            sensitivity_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
+        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        if not os.path.exists(input_params_path):
+            print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
+            exit()
+        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        if not os.path.exists(sensitivity_params_path):
+            sensitivity_params_path = input_params_path
+
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)

@@ -545,6 +545,8 @@ class CVS0DParamID():
             # set param ranges from file
             self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
             self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
+        else:
+            print(f'input_params_path cannot be None, exiting')
 
         if self.rank == 0:
             with open(os.path.join(self.output_dir, 'param_names.csv'), 'w') as f:

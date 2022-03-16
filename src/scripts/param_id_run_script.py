@@ -40,7 +40,7 @@ if __name__ == '__main__':
             port_mapping = [36939, 44271, 33017, 46467]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
-        if len(sys.argv) != 7:
+        if len(sys.argv) != 6:
             print(f'incorrect number of inputs to param_id_run_script.py')
             exit()
 
@@ -49,16 +49,15 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = bool(util.strtobool(sys.argv[4]))
-        if input_params_to_id:
-            input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
-            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-            if not os.path.exists(sensitivity_params_path):
-                sensitivity_params_path = input_params_path
-        else:
-            input_params_path = False
-            sensitivity_params_path = False
-        param_id_obs_path = sys.argv[5]
+        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        if not os.path.exists(input_params_path):
+            print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
+            exit()
+        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        if not os.path.exists(sensitivity_params_path):
+            sensitivity_params_path = input_params_path
+
+        param_id_obs_path = sys.argv[4]
         if not os.path.exists(param_id_obs_path):
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
             exit()
@@ -93,7 +92,7 @@ if __name__ == '__main__':
                                                              # so it needs both xi and kappa
             param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
                                              acq_func_kwargs=acq_func_kwargs)
-        num_param_id_runs = int(sys.argv[6])
+        num_param_id_runs = int(sys.argv[5])
         if num_param_id_runs > 1:
             # get output_dir
             if rank == 0:
