@@ -57,12 +57,15 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0002)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
+        param_id.save_prediction_data()
+
         param_id.close_simulation()
+
 
     except:
         print(traceback.format_exc())
