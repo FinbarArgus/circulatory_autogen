@@ -175,6 +175,7 @@ class CVS0DParamID():
             obs_name_for_plot = obs_names_unique[unique_obs_count].replace('/', '_')
             consts_idx = -1
             series_idx = -1
+            percent_error_vec = np.zeros((self.num_obs,))
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -216,6 +217,15 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='bf min')
                     elif self.obs_types[II] == 'series':
                         axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='gt')
+
+                #also calculate the RMS error for each observable
+                if self.gt_df.iloc[II]["data_type"] == "constant":
+                    percent_error_vec[II] = 100*np.abs((best_fit_obs_consts[II] - self.ground_truth_consts[II])/
+                                                       self.ground_truth_consts[II])
+                elif self.gt_df.iloc[II]["data_type"] == "series":
+                    # rms_error_vec[II] = np.sqrt(consts_plot_gt[consts_idx, :] - consts_plot_bf[])
+                    pass
+
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
@@ -261,6 +271,15 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_{plot_idx}.pdf'))
             plt.close()
+
+        print('______observable errors______')
+        for obs_idx in range(self.num_obs):
+            if self.gt_df.iloc[obs_idx]["data_type"] == "constant":
+                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
+                print(f'{percent_error_vec[obs_idx]:.2f} %')
+            if self.gt_df.iloc[II]["data_type"] == "series":
+                # TODO
+                pass
 
     def run_sensitivity(self, sensitivity_output_paths):
         if sensitivity_output_paths == None:
