@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     try:
 
-        if len(sys.argv) != 4:
+        if len(sys.argv) != 5:
             print(f'incorrect number of inputs to param_id_run_script.py')
             exit()
         param_id_method = sys.argv[1]
@@ -42,6 +42,7 @@ if __name__ == '__main__':
             sensitivity_params_path = input_params_path
 
         param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
+        run_sensitivity = sys.argv[4]
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -62,7 +63,10 @@ if __name__ == '__main__':
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         param_id.save_prediction_data()
-
+        if run_sensitivity:
+            sensitivity_output_paths = os.path.join(resources_dir_path,
+                                                    f'{file_name_prefix}_param_id_output_paths.csv')
+            param_id.run_sensitivity(sensitivity_output_paths)
         param_id.close_simulation()
 
 

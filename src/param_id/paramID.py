@@ -109,8 +109,8 @@ class CVS0DParamID():
     def run_single_sensitivity(self,sensitivity_output_path):
         self.param_id.run_single_sensitivity(sensitivity_output_path)
 
-    def run_sensitivity(self,sensitivity_output_paths):
-        self.param_id.run_sensitivity(sensitivity_output_paths)
+    def run_sensitivity(self,param_id_output_paths):
+        self.param_id.run_sensitivity(param_id_output_paths)
         self.sensitivity_calculated = True
 
     def simulate_with_best_param_vals(self):
@@ -281,12 +281,12 @@ class CVS0DParamID():
                 # TODO
                 pass
 
-    def run_sensitivity(self, sensitivity_output_paths):
-        if sensitivity_output_paths == None:
+    def run_sensitivity(self, param_id_output_paths):
+        if param_id_output_paths == None:
             sample_path_list = [self.output_dir]
         else:
             sample_path_list = []
-            sample_paths = pd.read_csv(sensitivity_output_paths)
+            sample_paths = pd.read_csv(param_id_output_paths)
             for i in range(len(sample_paths)):
                 sample_path_list.append(sample_paths.iat[i,0])
             if len(sample_path_list) < 1:
@@ -373,8 +373,8 @@ class CVS0DParamID():
         for param_idx in range(len(self.sensitivity_param_names)):
             y_values = []
             for obs_idx in range(len(x_labels)):
-                y_values.append(abs((normalised_jacobian_average[param][subset[obs_idx]])))
-            axs.plot(x_labels, y_values, label=self.sensitivity_param_names[param][0])
+                y_values.append(abs((normalised_jacobian_average[param_idx][subset[obs_idx]])))
+            axs.plot(x_labels, y_values, label=self.sensitivity_param_names[param_idx][0])
         axs.set_yscale('log')
         axs.legend(loc='lower left', fontsize=6)
         plt.savefig(os.path.join(self.plot_dir,
@@ -494,6 +494,7 @@ class CVS0DParamID():
     def save_prediction_data(self):
         pred_variables_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
         if os.path.exists(pred_variables_path):
+            print('Saving prediction data')
             pred_variables_names = genfromtxt(pred_variables_path,
                                       delimiter=',', dtype=None, encoding='UTF-8').flatten()
             pred_variables_names = np.array([pred_variables_names[II].strip()
