@@ -33,21 +33,21 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
         param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
 
-        input_params_to_id = bool(util.strtobool(sys.argv[3]))
-        if input_params_to_id:
-            input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
-            sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-            if not os.path.exists(sensitivity_params_path):
-                sensitivity_params_path = input_params_path
-        else:
-            input_params_path = False
-            sensitivity_params_path = False
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[4])
+        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        if not os.path.exists(input_params_path):
+            print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
+            exit()
+        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
+        if not os.path.exists(sensitivity_params_path):
+            sensitivity_params_path = input_params_path
+
+        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
+        run_sensitivity = sys.argv[4]
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
         if file_name_prefix == '3compartment':
-          pre_time = 6.0
+          pre_time = 10.0
         else: 
           pre_time = 20.0
         sim_time = 2.0
@@ -57,12 +57,18 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
+        param_id.save_prediction_data()
+        if run_sensitivity:
+            sensitivity_output_paths = os.path.join(resources_dir_path,
+                                                    f'{file_name_prefix}_param_id_output_paths.csv')
+            param_id.run_sensitivity(sensitivity_output_paths)
         param_id.close_simulation()
+
 
     except:
         print(traceback.format_exc())

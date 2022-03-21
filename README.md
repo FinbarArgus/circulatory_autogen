@@ -49,7 +49,7 @@ then run the following to generate the model
 
 If there were missing parameters in `{file_prefix}_parameters.csv` a new file named 
 `{file_prefix}_parameters_unfinished.csv` will be created with the required parameters.
-This must be filled in and renamed to `{file_prefix}_parameters_unfinished.csv` to
+This must be filled in and renamed to `{file_prefix}_parameters.csv` to
 generate a working model.
 
 To then run the parameter identification you must fill in the `param_id` parameters in `user_inputs.sh`,

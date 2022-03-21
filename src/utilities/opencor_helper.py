@@ -45,98 +45,107 @@ class SimulationHelper():
         self.simulation.reset()
         self.simulation.clear_results()
 
-    def get_results(self, obs_state_names, obs_alg_names):
+    def get_results(self, obs_names):
         """
         gets results after a simulation
         inputs:
-        obs_state_names: list of strings, stores the names of state variables you wish to access
-        obs_alg_names: list of strings, stores the names of algebraic variables you wish to access
+        obs_names: list of strings, stores the names of state and algebraic variables you wish to access
         outputs:
-        results: numpy array of size (nStates + nAlgs, n_steps). This will store state variables in the
-        top rows, then algebraic variables
+        results: numpy array of size (nStates + nAlgs, n_steps). This will store
         """
-        nObs = len(obs_state_names) + len(obs_alg_names)
-        results = np.zeros((nObs, self.n_steps + 1))
-        for JJ, obsName in enumerate(obs_state_names):
-            results[JJ, :] = self.simulation.results().states()[obsName].values()[-self.n_steps-1:]
-        for JJ, obsName in enumerate(obs_alg_names):
-            results[len(obs_state_names) + JJ, :] = self.simulation.results().algebraic()[obsName].values()[-self.n_steps-1:]
+        n_obs = len(obs_names)
+        results = np.zeros((n_obs, self.n_steps + 1))
+        for JJ, obs_name in enumerate(obs_names):
+            if obs_name in self.simulation.results().states():
+                results[JJ, :] = self.simulation.results().states()[obs_name].values()[-self.n_steps - 1:]
+            elif obs_name in self.simulation.results().algebraic():
+                results[JJ, :] = self.simulation.results().algebraic()[obs_name].values()[-self.n_steps-1:]
+            else:
+                print(f'variable {obs_name} is not a model variable. model variables are')
+                print([name for name in self.simulation.results().states()])
+                print([name for name in self.simulation.results().algebraic()])
+                print('exiting')
+                exit()
 
         return results
 
-    def get_init_param_vals(self, init_state_names, const_names):
+    def get_init_param_vals(self, param_names):
         param_init = []
-        for JJ, param_name_or_list in enumerate(init_state_names):
+        for JJ, param_name_or_list in enumerate(param_names):
             if isinstance(param_name_or_list, list):
                 param_init.append([])
                 for param_name in param_name_or_list:
-                    if self.data.states()[param_name] is not None:
+                    if param_name in self.data.states():
                         param_init[JJ].append(self.data.states()[param_name])
+                    elif param_name in self.data.constants():
+                        param_init[JJ].append(self.data.constants()[param_name])
                     else:
-                        print(f'parameter name of {param_name} does not exist in the simulation object states. '
+                        print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
                               f'The states are:')
                         print([name for name in self.data.states()])
-                        exit()
-            else:
-                if self.data.states()[param_name]:
-                    param_init.append(self.data.states()[param_name])
-                else:
-                    print(f'parameter name of {param_name} does not exist in the simulation object states. '
-                          f'The states are:')
-                    print([name for name in self.data.states()])
-                    exit()
-        for JJ, param_name_or_list in enumerate(const_names):
-            if isinstance(param_name_or_list, list):
-                param_init.append([])
-                for param_name in param_name_or_list:
-                    if self.data.constants()[param_name] is not None:
-                        param_init[len(init_state_names) + JJ].append(self.data.constants()[param_name])
-                    else:
-                        print(f'parameter name of {param_name} does not exist in the simulation object constants. '
-                              f'The constants are:')
+                        print('the constants are:')
                         print([name for name in self.data.constants()])
                         exit()
             else:
-                if self.data.constants()[param_name_or_list] is not None:
-                    param_init.append(self.data.constants()[param_name_or_list])
+                param_name = param_name_or_list
+                if param_name in self.data.states():
+                    param_init.append(self.data.states()[param_name])
+                elif param_name in self.data.constants():
+                    param_init.append(self.data.constants()[param_name])
                 else:
-                    print(f'parameter name of {param_name_or_list} does not exist in the simulation object constants. '
-                          f'The constants are:')
+                    print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
+                          f'The states are:')
+                    print([name for name in self.data.states()])
+                    print('the constants are:')
                     print([name for name in self.data.constants()])
                     exit()
 
         return param_init
 
-    def set_param_vals(self, init_state_names, const_names, param_vals):
+    def set_param_vals(self, param_names, param_vals):
         # ensure param_vals stores state values first, then constant values
-        for JJ, param_name_or_list in enumerate(init_state_names):
+        for JJ, param_name_or_list in enumerate(param_names):
             if isinstance(param_name_or_list, list):
                 for param_name in param_name_or_list:
-                    self.data.states()[param_name] = param_vals[JJ]
-            else:
-                self.data.states()[param_name] = param_vals[JJ]
-        for JJ, param_name_or_list in enumerate(const_names):
-            if isinstance(param_name_or_list, list):
-                # this entry is a list of params, set all of them to the same value
-                for param_name in param_name_or_list:
-                    self.data.constants()[param_name] = param_vals[len(init_state_names) + JJ]
-            else:
-                self.data.constants()[param_name_or_list] = param_vals[len(init_state_names) + JJ]
+                    if param_name in self.data.states():
+                        self.data.states()[param_name] = param_vals[JJ]
+                    elif param_name in self.data.constants():
+                        self.data.constants()[param_name] = param_vals[JJ]
+                    else:
+                        print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
+                              f'The states are:')
+                        print([name for name in self.data.states()])
+                        print('the constants are:')
+                        print([name for name in self.data.constants()])
+                        exit()
 
-    def modify_params_and_run_and_get_results(self, param_state_names, param_const_names,
-                                             mod_factors, obs_state_names, obs_alg_names, absolute=False):
+            else:
+                param_name = param_name_or_list
+                if param_name in self.data.states():
+                    self.data.states()[param_name] = param_vals[JJ]
+                elif param_name in self.data.constants():
+                    self.data.constants()[param_name] = param_vals[JJ]
+                else:
+                    print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
+                          f'The states are:')
+                    print([name for name in self.data.states()])
+                    print('the constants are:')
+                    print([name for name in self.data.constants()])
+                    exit()
+
+    def modify_params_and_run_and_get_results(self, param_names, mod_factors, obs_names, absolute=False):
 
         if absolute:
             new_param_vals= mod_factors
         else:
-            init_param_vals = self.get_init_param_vals(param_state_names, param_const_names)
+            init_param_vals = self.get_init_param_vals(param_names)
             new_param_vals = [a*b for a, b in zip(init_param_vals, mod_factors)]
 
-        self.set_param_vals(param_state_names, param_const_names, new_param_vals)
+        self.set_param_vals(param_names, new_param_vals)
 
         success = self.run()
         if success:
-            pred_obs_new = self.get_results(obs_state_names, obs_alg_names)
+            pred_obs_new = self.get_results(obs_names)
             # reset params
             self.reset_and_clear()
 
