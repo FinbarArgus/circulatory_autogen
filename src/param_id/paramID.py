@@ -292,8 +292,10 @@ class CVS0DParamID():
             if len(sample_path_list) < 1:
                 sample_path_list = [self.output_dir]
 
+        do_triples_and_quads = False
+
         for i in range(len(sample_path_list)):
-            self.param_id.run_single_sensitivity(sample_path_list[i])
+            self.param_id.run_single_sensitivity(sample_path_list[i], do_triples_and_quads)
         # FA: Eventually we will automate the multiple runs of param_id and store the outputs in indexed
         # FA: directories that can all be accessed automatically by this function without defining input paths.
         m3_to_cm3 = 1e6
@@ -319,29 +321,30 @@ class CVS0DParamID():
 
         collinearity_max = collinearity_index_average.max()
 
-        #find maximum average value of collinearity triples
-        for i in range(len(x_values)):
-            for j in range(number_samples):
-                sample_path = sample_path_list[j]
-                collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
-                if j==0:
-                    collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
-                collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
-            if collinearity_index_triple_average.max() > collinearity_max:
-                collinearity_max = collinearity_index_triple_average.max()
+        if do_triples_and_quads:
+            #find maximum average value of collinearity triples
+            for i in range(len(x_values)):
+                for j in range(number_samples):
+                    sample_path = sample_path_list[j]
+                    collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+                    if j==0:
+                        collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
+                    collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
+                if collinearity_index_triple_average.max() > collinearity_max:
+                    collinearity_max = collinearity_index_triple_average.max()
 
-        #find maximum value of collinearity quads
-        for i in range(len(x_values)):
-            for j in range(len(x_values)):
-                for k in range(number_samples):
-                    sample_path = sample_path_list[k]
-                    collinearity_index_quad = np.load(
-                        os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
-                    if k==0:
-                        collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
-                    collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
-                if collinearity_index_quad_average.max() > collinearity_max:
-                    collinearity_max = collinearity_index_quad_average.max()
+            #find maximum value of collinearity quads
+            for i in range(len(x_values)):
+                for j in range(len(x_values)):
+                    for k in range(number_samples):
+                        sample_path = sample_path_list[k]
+                        collinearity_index_quad = np.load(
+                            os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                        if k==0:
+                            collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
+                        collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
+                    if collinearity_index_quad_average.max() > collinearity_max:
+                        collinearity_max = collinearity_index_quad_average.max()
 
         #find maximum average value and average values for collinearity index
         for i in range(number_samples):
@@ -438,42 +441,19 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_collinearity_pairs_average.pdf'))
 
-        #plot collinearity triples average
-        for i in range(len(x_values)):
-            for j in range(number_samples):
-                sample_path = sample_path_list[j]
-                collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
-                if j == 0:
-                    collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
-                collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
 
-            figE, axsE = plt.subplots(1, 1)
-            co = axsE.contourf(X, Y, collinearity_index_triple_average, levels=collinearity_levels)
-            co = fig.colorbar(co, ax=axsE)
-            axsE.set_xticks(range(len(x_values)))
-            axsE.set_yticks(range(len(x_values)))
-            axsE.set_xticklabels(x_values)
-            axsE.set_yticklabels(x_values)
+        if do_triples_and_quads:
+            #plot collinearity triples average
+            for i in range(len(x_values)):
+                for j in range(number_samples):
+                    sample_path = sample_path_list[j]
+                    collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+                    if j == 0:
+                        collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
+                    collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
 
-            plt.savefig(os.path.join(self.plot_dir,
-                                         f'reconstruct_{self.param_id_method}_'
-                                         f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.eps'))
-            plt.savefig(os.path.join(self.plot_dir,
-                                         f'reconstruct_{self.param_id_method}_'
-                                         f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.pdf'))
-            plt.close()
-        #plot collinearity quads average
-        for i in range(len(x_values)):
-            for j in range(len(x_values)):
-                for k in range(number_samples):
-                    sample_path = sample_path_list[k]
-                    collinearity_index_quad = np.load(
-                        os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
-                    if k==0:
-                        collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
-                    collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
                 figE, axsE = plt.subplots(1, 1)
-                co = axsE.contourf(X, Y, collinearity_index_quad_average, levels=collinearity_levels)
+                co = axsE.contourf(X, Y, collinearity_index_triple_average, levels=collinearity_levels)
                 co = fig.colorbar(co, ax=axsE)
                 axsE.set_xticks(range(len(x_values)))
                 axsE.set_yticks(range(len(x_values)))
@@ -482,13 +462,38 @@ class CVS0DParamID():
 
                 plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
-                                                 j) + '.eps'))
+                                             f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.eps'))
                 plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
-                                                 j) + '.pdf'))
+                                             f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.pdf'))
                 plt.close()
+            #plot collinearity quads average
+            for i in range(len(x_values)):
+                for j in range(len(x_values)):
+                    for k in range(number_samples):
+                        sample_path = sample_path_list[k]
+                        collinearity_index_quad = np.load(
+                            os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
+                        if k==0:
+                            collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
+                        collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
+                    figE, axsE = plt.subplots(1, 1)
+                    co = axsE.contourf(X, Y, collinearity_index_quad_average, levels=collinearity_levels)
+                    co = fig.colorbar(co, ax=axsE)
+                    axsE.set_xticks(range(len(x_values)))
+                    axsE.set_yticks(range(len(x_values)))
+                    axsE.set_xticklabels(x_values)
+                    axsE.set_yticklabels(x_values)
+
+                    plt.savefig(os.path.join(self.plot_dir,
+                                                 f'reconstruct_{self.param_id_method}_'
+                                                 f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                     j) + '.eps'))
+                    plt.savefig(os.path.join(self.plot_dir,
+                                                 f'reconstruct_{self.param_id_method}_'
+                                                 f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                     j) + '.pdf'))
+                    plt.close()
 
 
     def save_prediction_data(self):
@@ -1051,7 +1056,7 @@ class OpencorParamID():
 
         return
 
-    def run_single_sensitivity(self, sensitivity_output_path):
+    def run_single_sensitivity(self, sensitivity_output_path, do_triples_and_quads):
         if sensitivity_output_path == None:
             output_path = self.output_dir
         else:
@@ -1176,34 +1181,35 @@ class OpencorParamID():
 
         np.save(os.path.join(output_path, 'collinearity_pairs.npy'), collinearity_index_pairs)
 
-        collinearity_index_triple = np.zeros((num_sensitivity_params, num_sensitivity_params))
-        for i in range(num_sensitivity_params):
-            for j in range(num_sensitivity_params):
-                for k in range(num_sensitivity_params):
-                    if ((i!=j) and (i!=k) and (j!=k)):
-                        Sl = S_norm[[i,j,k],:]
-                        Sll = Sl@Sl.T
-                        eigvals_pairs, eigvecs_pairs = la.eig(Sll)
-                        real_eigvals_pairs = eigvals_pairs.real
-                        collinearity_index_triple[j][k] = 1/math.sqrt(min(real_eigvals_pairs))
-                    else:
-                        collinearity_index_triple[j][k] = 0
-            np.save(os.path.join(output_path, 'collinearity_triples'+str(i)+'.npy'), collinearity_index_triple)
-
-        collinearity_index_quad = np.zeros((num_sensitivity_params, num_sensitivity_params))
-        for i in range(num_sensitivity_params):
-            for j in range(num_sensitivity_params):
-                for k in range(num_sensitivity_params):
-                    for l in range(num_sensitivity_params):
-                        if ((i!=j) and (i!=k) and (i!=l) and (j!=k) and (j!=l) and (k!=l)):
-                            Sl = S_norm[[i,j,k,l],:]
+        if do_triples_and_quads:
+            collinearity_index_triple = np.zeros((num_sensitivity_params, num_sensitivity_params))
+            for i in range(num_sensitivity_params):
+                for j in range(num_sensitivity_params):
+                    for k in range(num_sensitivity_params):
+                        if ((i!=j) and (i!=k) and (j!=k)):
+                            Sl = S_norm[[i,j,k],:]
                             Sll = Sl@Sl.T
                             eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                             real_eigvals_pairs = eigvals_pairs.real
-                            collinearity_index_quad[k][l] = 1/math.sqrt(min(real_eigvals_pairs))
-                    else:
-                        collinearity_index_quad[k][l] = 0
-                np.save(os.path.join(output_path, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_index_quad)
+                            collinearity_index_triple[j][k] = 1/math.sqrt(min(real_eigvals_pairs))
+                        else:
+                            collinearity_index_triple[j][k] = 0
+                np.save(os.path.join(output_path, 'collinearity_triples'+str(i)+'.npy'), collinearity_index_triple)
+
+            collinearity_index_quad = np.zeros((num_sensitivity_params, num_sensitivity_params))
+            for i in range(num_sensitivity_params):
+                for j in range(num_sensitivity_params):
+                    for k in range(num_sensitivity_params):
+                        for l in range(num_sensitivity_params):
+                            if ((i!=j) and (i!=k) and (i!=l) and (j!=k) and (j!=l) and (k!=l)):
+                                Sl = S_norm[[i,j,k,l],:]
+                                Sll = Sl@Sl.T
+                                eigvals_pairs, eigvecs_pairs = la.eig(Sll)
+                                real_eigvals_pairs = eigvals_pairs.real
+                                collinearity_index_quad[k][l] = 1/math.sqrt(min(real_eigvals_pairs))
+                        else:
+                            collinearity_index_quad[k][l] = 0
+                    np.save(os.path.join(output_path, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_index_quad)
 
         return
 
