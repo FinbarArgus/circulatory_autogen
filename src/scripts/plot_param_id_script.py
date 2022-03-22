@@ -64,7 +64,7 @@ if __name__ == '__main__':
         param_id.plot_outputs()
         param_id.save_prediction_data()
         if run_sensitivity:
-            sensitivity_output_paths = os.path.join(resources_dir_path,
+            sensitivity_output_paths = os.path.join(param_id_dir_path,
                                                     f'{file_name_prefix}_param_id_output_paths.csv')
             param_id.run_sensitivity(sensitivity_output_paths)
         param_id.close_simulation()

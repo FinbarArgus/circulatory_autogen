@@ -3,6 +3,9 @@ heart,                        q_lv,             state,       300e-6,     1200e-6
 heart,                        E_la_B,           const,       8e6,        30e6 
 heart,                        E_la_A,           const,       3e6,        30e6 
 heart,                        E_lv_A,           const,       200e6,      400e6 
+heart,                        A_nn_aov,         const,       2e-4,       7e-4
+heart,                        A_nn_miv,         const,       2e-4,       7e-4
+heart,                        A_nn_trv,         const,       2e-4,       7e-4
 aortic_root,                  R,                const,       1.0e5,      1.0e7
 aortic_root,                  C,                const,       5.0e-10,    5.0e-8
 systemic_T,                   R_T,              const,       1.0e6,      5.0e8
