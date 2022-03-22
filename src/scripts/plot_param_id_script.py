@@ -57,7 +57,7 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0004)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0002)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
