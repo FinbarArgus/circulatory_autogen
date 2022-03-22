@@ -429,9 +429,12 @@ class CVS0DParamID():
         plt.rc('ytick', labelsize=4)
         figD, axsD = plt.subplots(1, 1)
 
-        collinearity_levels = np.linspace(0, collinearity_max, 20)
         X, Y = np.meshgrid(range(len(x_values)), range(len(x_values)))
-        co = axsD.contourf(X, Y, collinearity_index_pairs_average, levels=collinearity_levels)
+        if do_triples_and_quads:
+            collinearity_levels = np.linspace(0, collinearity_max, 20)
+            co = axsD.contourf(X, Y, collinearity_index_pairs_average, levels=collinearity_levels)
+        else:
+            co = axsD.contourf(X, Y, collinearity_index_pairs_average)
         co = fig.colorbar(co, ax=axsD)
         axsD.set_xticks(range(len(x_values)))
         axsD.set_yticks(range(len(x_values)))
