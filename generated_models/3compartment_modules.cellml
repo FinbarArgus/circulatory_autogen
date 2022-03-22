@@ -4164,7 +4164,7 @@
                 <ci>vel_puv</ci>
                 <apply>
                     <divide/>
-                    <ci>v_trv</ci>
+                    <ci>v_puv</ci>
                     <ci>A_nn_puv</ci>
                 </apply>
             </apply>
@@ -4173,7 +4173,7 @@
                 <ci>vel_miv</ci>
                 <apply>
                     <divide/>
-                    <ci>v_trv</ci>
+                    <ci>v_miv</ci>
                     <ci>A_nn_miv</ci>
                 </apply>
             </apply>
@@ -4182,7 +4182,7 @@
                 <ci>vel_aov</ci>
                 <apply>
                     <divide/>
-                    <ci>v_trv</ci>
+                    <ci>v_aov</ci>
                     <ci>A_nn_aov</ci>
                 </apply>
             </apply>
