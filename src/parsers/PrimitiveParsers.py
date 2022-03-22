@@ -101,6 +101,7 @@ class CSVFileParser(object):
 
         param_state_names = []
         param_const_names = []
+        param_names = []
 
         # param names that were identified in param_id
         with open(os.path.join(os.path.join(param_id_dir, 'param_state_names_for_gen.csv')), 'r') as f:
@@ -111,8 +112,12 @@ class CSVFileParser(object):
             rd = csv.reader(f)
             for row in rd:
                 param_const_names.append(row)
+        with open(os.path.join(os.path.join(param_id_dir, 'param_names_for_gen.csv')), 'r') as f:
+            rd = csv.reader(f)
+            for row in rd:
+                param_names.append(row)
 
-        param_names = param_state_names + param_const_names
+
         # get date identifier of the parameter id
         date_id = np.load(os.path.join(os.path.join(param_id_dir, 'date.npy'))).item()
 

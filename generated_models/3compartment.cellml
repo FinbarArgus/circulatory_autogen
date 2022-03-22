@@ -5,6 +5,7 @@
         <units name="m3" units_ref="m3"/>
         <units name="m3_per_s" units_ref="m3_per_s"/>
         <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m_per_s" units_ref="m_per_s"/>
         <units name="m6_per_J" units_ref="m6_per_J"/>
         <units name="per_m" units_ref="per_m"/>
         <units name="J_per_m3" units_ref="J_per_m3"/>
@@ -150,6 +151,10 @@
    <variable name="v_puv" public_interface="in" units="m3_per_s"/>
    <variable name="v_miv" public_interface="in" units="m3_per_s"/>
    <variable name="v_aov" public_interface="in" units="m3_per_s"/>
+   <variable name="vel_trv" public_interface="in" units="m_per_s"/>
+   <variable name="vel_puv" public_interface="in" units="m_per_s"/>
+   <variable name="vel_miv" public_interface="in" units="m_per_s"/>
+   <variable name="vel_aov" public_interface="in" units="m_per_s"/>
    <variable name="K_vo_trv" public_interface="in" units="m3_per_Js"/>
    <variable name="K_vo_puv" public_interface="in" units="m3_per_Js"/>
    <variable name="K_vo_miv" public_interface="in" units="m3_per_Js"/>
@@ -254,6 +259,10 @@
    <map_variables variable_1="v_puv" variable_2="v_puv"/>
    <map_variables variable_1="v_miv" variable_2="v_miv"/>
    <map_variables variable_1="v_aov" variable_2="v_aov"/>
+   <map_variables variable_1="vel_trv" variable_2="vel_trv"/>
+   <map_variables variable_1="vel_puv" variable_2="vel_puv"/>
+   <map_variables variable_1="vel_miv" variable_2="vel_miv"/>
+   <map_variables variable_1="vel_aov" variable_2="vel_aov"/>
    <map_variables variable_1="K_vo_trv" variable_2="K_vo_trv"/>
    <map_variables variable_1="K_vo_puv" variable_2="K_vo_puv"/>
    <map_variables variable_1="K_vo_miv" variable_2="K_vo_miv"/>

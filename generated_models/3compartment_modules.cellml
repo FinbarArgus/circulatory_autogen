@@ -3134,7 +3134,7 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="4.0000e-04" name="q_lv" units="m3"/>
+        <variable initial_value="3.4200e-04" name="q_lv" units="m3"/>
         <variable initial_value="1e-05" name="q_rv" units="m3"/>
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
@@ -4141,6 +4141,49 @@
                         <ci>u_root</ci>
                     </apply>
                     <ci>L_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <!-- calculate velocities from flow and nominal (constant) area-->
+        <variable name="vel_trv" units="m_per_s"/>
+        <variable name="vel_puv" units="m_per_s"/>
+        <variable name="vel_miv" units="m_per_s"/>
+        <variable name="vel_aov" units="m_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>vel_trv</ci>
+                <apply>
+                    <divide/>
+                    <ci>v_trv</ci>
+                    <ci>A_nn_trv</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>vel_puv</ci>
+                <apply>
+                    <divide/>
+                    <ci>v_trv</ci>
+                    <ci>A_nn_puv</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>vel_miv</ci>
+                <apply>
+                    <divide/>
+                    <ci>v_trv</ci>
+                    <ci>A_nn_miv</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>vel_aov</ci>
+                <apply>
+                    <divide/>
+                    <ci>v_trv</ci>
+                    <ci>A_nn_aov</ci>
                 </apply>
             </apply>
             <!-- Constitutive Relations-->
