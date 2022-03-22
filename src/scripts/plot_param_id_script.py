@@ -57,14 +57,14 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0002)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001)
 
         # print(obj_to_string(param_id))
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         param_id.save_prediction_data()
         if run_sensitivity:
-            sensitivity_output_paths = os.path.join(param_id_dir_path,
+            sensitivity_output_paths = os.path.join(os.path.split(param_id.output_dir)[0],
                                                     f'{file_name_prefix}_param_id_output_paths.csv')
             param_id.run_sensitivity(sensitivity_output_paths)
         param_id.close_simulation()

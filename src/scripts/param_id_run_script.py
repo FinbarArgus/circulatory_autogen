@@ -74,7 +74,7 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0002, DEBUG=True)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001, DEBUG=True)
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':
@@ -104,8 +104,8 @@ if __name__ == '__main__':
                 if rank == 0:
                     output_dir_new = output_dir_base + f'{run_idx}'
                     output_dirs.append(output_dir_new)
-                    file_with_output_paths = os.path.join(resources_dir_path,
-                                                          f'{file_name_prefix}_sensitivity_output_paths.csv')
+                    file_with_output_paths = os.path.join(output_dir_base,
+                                                          f'{file_name_prefix}_param_id_output_paths.csv')
                     with open(file_with_output_paths, 'w') as wf:
                         output_dir_lines = [output_dir + '\n' for output_dir in output_dirs]
                         output_dir_lines.insert(0, 'path \n')
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         else:
             if rank == 0:
                 output_dirs = [param_id.output_dir]
-                file_with_output_paths = os.path.join(resources_dir_path, f'{file_name_prefix}_param_id_output_paths.csv')
+                file_with_output_paths = os.path.join(os.path.split(output_dirs[0])[0], f'{file_name_prefix}_param_id_output_paths.csv')
                 with open(file_with_output_paths, 'w') as wf:
                     output_dir_lines = [output_dir+'\n' for output_dir in output_dirs]
                     output_dir_lines.insert(0, 'path \n')
