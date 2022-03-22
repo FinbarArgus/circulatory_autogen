@@ -1099,7 +1099,7 @@ class OpencorParamID():
         param_vec_init = np.array(self.param_init).flatten()
         self.best_param_vals = np.load(os.path.join(output_path, 'best_param_vals.npy'))
 
-        print(self.best_param_vals)
+        # print(self.best_param_vals)
 
         #merge best found and initial values
         master_param_names = []
