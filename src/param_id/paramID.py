@@ -147,6 +147,7 @@ class CVS0DParamID():
         print('plotting best observables')
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
+        no_conv = 1.0
 
         best_fit_obs = self.param_id.sim_helper.get_results(self.obs_names)
         best_fit_obs_consts, best_fit_obs_series = self.param_id.get_pred_obs_vec_and_array(best_fit_obs)
@@ -192,6 +193,9 @@ class CVS0DParamID():
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
+                    if self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
+                        conversion = no_conv
+                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$m/s$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3$]', fontsize=14)
