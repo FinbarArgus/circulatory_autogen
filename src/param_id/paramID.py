@@ -558,14 +558,37 @@ class CVS0DParamID():
             input_params = csv_parser.get_data_as_dataframe_multistrings(input_params_path)
             self.param_names = []
             param_names_for_gen = []
+            param_state_names_for_gen = []
+            param_const_names_for_gen = []
             for II in range(input_params.shape[0]):
                 self.param_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                input_params["param_name"][II]for JJ in
                                                range(len(input_params["vessel_name"][II]))])
 
-                param_names_for_gen.append([input_params["param_name"][II] + '_' +
+                if input_params["vessel_name"][II][0] == 'heart':
+                    param_names_for_gen.append([input_params["param_name"][II]])
+
+                    if input_params["param_type"][II] == 'state':
+                        param_state_names_for_gen.append([input_params["param_name"][II]])
+
+                    if input_params["param_type"][II] == 'const':
+                        param_const_names_for_gen.append([input_params["param_name"][II]])
+
+                else:
+                    param_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                for JJ in range(len(input_params["vessel_name"][II]))])
+
+                    param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
                                                       re.sub('_T$', '', input_params["vessel_name"][II][JJ])
-                                                      for JJ in range(len(input_params["vessel_name"][II]))])
+                                                      for JJ in range(len(input_params["vessel_name"][II]))
+                                                      if input_params["param_type"][II] == 'state'])
+
+                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                      for JJ in range(len(input_params["vessel_name"][II]))
+                                                      if input_params["param_type"][II] == 'const'])
+
 
             # set param ranges from file
             self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
@@ -580,6 +603,12 @@ class CVS0DParamID():
             with open(os.path.join(self.output_dir, 'param_names_for_gen.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(param_names_for_gen)
+            with open(os.path.join(self.output_dir, 'param_state_names_for_gen.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(param_state_names_for_gen)
+            with open(os.path.join(self.output_dir, 'param_const_names_for_gen.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(param_const_names_for_gen)
 
         return
 
