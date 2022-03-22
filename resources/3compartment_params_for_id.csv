@@ -1,7 +1,5 @@
 vessel_name,                  param_name,       param_type,  min,        max
 heart,                        q_lv,             state,       300e-6,     1200e-6 
-heart,                        E_la_B,           const,       8e6,        30e6 
-heart,                        E_la_A,           const,       3e6,        30e6 
 heart,                        E_lv_A,           const,       200e6,      400e6 
 heart,                        A_nn_aov,         const,       2e-4,       7e-4
 heart,                        A_nn_miv,         const,       2e-4,       7e-4
