@@ -11,7 +11,7 @@ t_astart,second,heart,0.64,Liang_2009_Table_2
 t_vstart,second,heart,0.0,Liang_2009_Table_2
 T_ac,second,heart,0.13,defined_by_user
 T_ar,second,heart,0.13,defined_by_user
-T_vc,second,heart,0.2,defined_by_user
+T_vc,second,heart,0.28,defined_by_user
 T_vr,second,heart,0.14,defined_by_user
 E_ra_A,J_per_m6,heart,7.998e+6,Liang_2009_Table_2
 E_ra_B,J_per_m6,heart,9.331e+6,Liang_2009_Table_2
