@@ -286,6 +286,7 @@ class CVS0DParamID():
                 pass
 
     def run_sensitivity(self, param_id_output_paths):
+        print('running sensitivity analysis')
         if param_id_output_paths == None:
             sample_path_list = [self.output_dir]
         else:
@@ -502,6 +503,8 @@ class CVS0DParamID():
                                                      j) + '.pdf'))
                     plt.close()
 
+        print('sensitivity analysis complete')
+
 
     def save_prediction_data(self):
         pred_variables_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
@@ -518,6 +521,7 @@ class CVS0DParamID():
 
             #save the prediction output
             np.save(os.path.join(self.output_dir, 'prediction_variable_data'), time_and_pred)
+            print('Prediction data saved')
 
         else:
             print(f'prediction variables have not been defined, if you want to save predicition variables,',
