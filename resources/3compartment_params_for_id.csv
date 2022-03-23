@@ -2,9 +2,9 @@ vessel_name,                  param_name,       param_type,  min,        max
 heart,                        q_lv,             state,       300e-6,     1200e-6 
 heart,                        E_lv_A,           const,       200e6,      400e6 
 heart,                        E_lv_B,           const,       2e6,        20e6 
-heart,                        A_nn_aov,         const,       4e-4,       9e-4
-heart,                        A_nn_miv,         const,       4e-4,       9e-4
-heart,                        A_nn_trv,         const,       4e-4,       9e-4
+heart,                        A_nn_aov,         const,       5e-4,       12e-4
+heart,                        A_nn_miv,         const,       5e-4,       12e-4
+heart,                        A_nn_trv,         const,       5e-4,       12e-4
 aortic_root,                  C,                const,       5.0e-10,    5.0e-8
 systemic_T,                   R_T,              const,       1.0e6,      5.0e8
 venous_svc,                   C,                const,       1.0e-11,    5.0e-8
