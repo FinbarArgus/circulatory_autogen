@@ -1147,7 +1147,7 @@ class OpencorParamID():
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
             # FA: It might be worth testing this out with a value smaller than 0.01 here
-            param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
+            param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.001
             param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
             param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
             param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
