@@ -3,7 +3,8 @@ E_lv_A
 E_lv_B
 A_nn_aov
 A_nn_miv
-Rmod_valve
+Rmod_valve_aov
+Rmod_valve_miv
 C_aortic_root
 R_T_systemic
 C_venous_svc
