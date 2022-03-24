@@ -36,6 +36,7 @@ M_st_puv,dimensionless,heart,1,Mynard_2012
 M_st_miv,dimensionless,heart,1,Mynard_2012
 M_st_aov,dimensionless,heart,1,Mynard_2012
 l_eff,metre,heart,0.01,to_be_identified
+Rmod_valve,dimensionless,heart,1.0,to_be_identified
 A_nn_trv,m2,heart,0.0003,to_be_identified
 A_nn_puv,m2,heart,0.0003,to_be_identified
 A_nn_miv,m2,heart,2.7677e-04,24_03_2022_identified

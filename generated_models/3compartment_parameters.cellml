@@ -38,6 +38,7 @@
 <variable initial_value="1" name="M_st_miv" public_interface="out" units="dimensionless"/>
 <variable initial_value="1" name="M_st_aov" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.01" name="l_eff" public_interface="out" units="metre"/>
+<variable initial_value="1.0" name="Rmod_valve" public_interface="out" units="dimensionless"/>
 <variable initial_value="0.0003" name="A_nn_trv" public_interface="out" units="m2"/>
 <variable initial_value="0.0003" name="A_nn_puv" public_interface="out" units="m2"/>
 <variable initial_value="2.7677e-04" name="A_nn_miv" public_interface="out" units="m2"/>
