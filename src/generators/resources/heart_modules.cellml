@@ -481,18 +481,15 @@
             </apply>
         </math>
         <!-- Valve model-->
-        <variable name="Rmod_valve" public_interface="in" units="dimensionless"/>
+        <variable name="Rmod_valve_aov" public_interface="in" units="dimensionless"/>
+        <variable name="Rmod_valve_miv" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>B_trv</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -534,7 +531,11 @@
                 <ci>B_miv</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>Rmod_valve_miv</ci>
+                        <ci>rho</ci>
+                    </apply>
                     <apply>
                         <plus/>
                         <apply>
@@ -555,7 +556,11 @@
                 <ci>B_aov</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>Rmod_valve_aov</ci>
+                        <ci>rho</ci>
+                    </apply>
                     <apply>
                         <plus/>
                         <apply>
