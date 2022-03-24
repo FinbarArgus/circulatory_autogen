@@ -29,7 +29,8 @@ A_nn_trv,m2,heart,0.0003,to_be_identified
 A_nn_puv,m2,heart,0.0003,to_be_identified
 A_nn_miv,m2,heart,0.0003,to_be_identified
 A_nn_aov,m2,heart,0.0003,to_be_identified
-Rmod_valve,dimensionless,heart,1.0,to_be_identified
+Rmod_valve_aov,dimensionless,heart,1.0,to_be_identified
+Rmod_valve_miv,dimensionless,heart,1.0,to_be_identified
 l_eff,metre,heart,0.01,to_be_identified
 K_vo_trv,m3_per_Js,heart,0.3,Mynard_2012
 K_vo_puv,m3_per_Js,heart,0.2,Mynard_2012

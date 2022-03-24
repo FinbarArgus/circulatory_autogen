@@ -3134,7 +3134,7 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="1.0539e-03" name="q_lv" units="m3"/>
+        <variable initial_value="0.00069934" name="q_lv" units="m3"/>
         <variable initial_value="1e-05" name="q_rv" units="m3"/>
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
@@ -3522,18 +3522,15 @@
             </apply>
         </math>
         <!-- Valve model-->
-        <variable name="Rmod_valve" public_interface="in" units="dimensionless"/>
+        <variable name="Rmod_valve_aov" public_interface="in" units="dimensionless"/>
+        <variable name="Rmod_valve_miv" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>B_trv</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -3554,11 +3551,7 @@
                 <ci>B_puv</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -3581,7 +3574,7 @@
                     <divide/>
                     <apply>
                         <times/>
-                        <ci>Rmod_valve</ci>
+                        <ci>Rmod_valve_miv</ci>
                         <ci>rho</ci>
                     </apply>
                     <apply>
@@ -3606,7 +3599,7 @@
                     <divide/>
                     <apply>
                         <times/>
-                        <ci>Rmod_valve</ci>
+                        <ci>Rmod_valve_aov</ci>
                         <ci>rho</ci>
                     </apply>
                     <apply>
