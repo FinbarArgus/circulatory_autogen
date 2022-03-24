@@ -513,11 +513,7 @@
                 <ci>B_puv</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -538,11 +534,7 @@
                 <ci>B_miv</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -563,11 +555,7 @@
                 <ci>B_aov</ci>
                 <apply>
                     <divide/>
-                    <apply>
-                        <times/>
-                        <ci>Rmod_valve</ci>
-                        <ci>rho</ci>
-                    </apply>
+                    <ci>rho</ci>
                     <apply>
                         <plus/>
                         <apply>

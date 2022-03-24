@@ -4,7 +4,7 @@ heart,                        E_lv_A,           const,       100e6,      400e6
 heart,                        E_lv_B,           const,       1e6,        30e6 
 heart,                        A_nn_aov,         const,       2e-4,       3.5e-4
 heart,                        A_nn_miv,         const,       2e-4,       3.5e-4
-heart,                        Rmod_valve,       const,       0.2,        2.0
+heart,                        Rmod_valve,       const,       1.0,        8.0
 aortic_root,                  C,                const,       5.0e-10,    1.0e-7
 systemic_T,                   R_T,              const,       1.0e6,      5.0e8
 venous_svc,                   C,                const,       1.0e-7,     1.0e-5
