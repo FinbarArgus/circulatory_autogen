@@ -495,11 +495,7 @@
                         <apply>
                             <times/>
                             <cn cellml:units="dimensionless">2</cn>
-                            <apply>
-                                <power/>
-                                <ci>A_eff_trv</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
+                            <ci>A_eff_trv</ci>
                         </apply>
                         <ci>eps</ci>
                     </apply>
@@ -516,11 +512,7 @@
                         <apply>
                             <times/>
                             <cn cellml:units="dimensionless">2</cn>
-                            <apply>
-                                <power/>
-                                <ci>A_eff_puv</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
+                            <ci>A_eff_puv</ci>
                         </apply>
                         <ci>eps</ci>
                     </apply>
@@ -541,11 +533,7 @@
                         <apply>
                             <times/>
                             <cn cellml:units="dimensionless">2</cn>
-                            <apply>
-                                <power/>
-                                <ci>A_eff_miv</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
+                            <ci>A_eff_miv</ci>
                         </apply>
                         <ci>eps</ci>
                     </apply>
@@ -566,11 +554,7 @@
                         <apply>
                             <times/>
                             <cn cellml:units="dimensionless">2</cn>
-                            <apply>
-                                <power/>
-                                <ci>A_eff_aov</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
+                            <ci>A_eff_aov</ci>
                         </apply>
                         <ci>eps</ci>
                     </apply>
