@@ -509,6 +509,8 @@
       ["M_st_miv", "dimensionless", "access", "constant"],
       ["M_st_aov", "dimensionless", "access", "constant"],
       ["l_eff", "metre", "access", "constant"],
+      ["Rmod_valve_trv", "dimensionless", "access", "constant"],
+      ["Rmod_valve_puv", "dimensionless", "access", "constant"],
       ["Rmod_valve_aov", "dimensionless", "access", "constant"],
       ["Rmod_valve_miv", "dimensionless", "access", "constant"],
       ["A_nn_trv", "m2", "access", "constant"],

@@ -172,6 +172,8 @@
    <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
    <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
    <variable name="l_eff" public_interface="in" units="metre"/>
+   <variable name="Rmod_valve_trv" public_interface="in" units="dimensionless"/>
+   <variable name="Rmod_valve_puv" public_interface="in" units="dimensionless"/>
    <variable name="Rmod_valve_aov" public_interface="in" units="dimensionless"/>
    <variable name="Rmod_valve_miv" public_interface="in" units="dimensionless"/>
    <variable name="A_nn_trv" public_interface="in" units="m2"/>
@@ -282,6 +284,8 @@
    <map_variables variable_1="M_st_miv" variable_2="M_st_miv"/>
    <map_variables variable_1="M_st_aov" variable_2="M_st_aov"/>
    <map_variables variable_1="l_eff" variable_2="l_eff"/>
+   <map_variables variable_1="Rmod_valve_trv" variable_2="Rmod_valve_trv"/>
+   <map_variables variable_1="Rmod_valve_puv" variable_2="Rmod_valve_puv"/>
    <map_variables variable_1="Rmod_valve_aov" variable_2="Rmod_valve_aov"/>
    <map_variables variable_1="Rmod_valve_miv" variable_2="Rmod_valve_miv"/>
    <map_variables variable_1="A_nn_trv" variable_2="A_nn_trv"/>
@@ -374,6 +378,8 @@
    <map_variables variable_1="M_st_miv" variable_2="M_st_miv"/>
    <map_variables variable_1="M_st_aov" variable_2="M_st_aov"/>
    <map_variables variable_1="l_eff" variable_2="l_eff"/>
+   <map_variables variable_1="Rmod_valve_trv" variable_2="Rmod_valve_trv"/>
+   <map_variables variable_1="Rmod_valve_puv" variable_2="Rmod_valve_puv"/>
    <map_variables variable_1="Rmod_valve_aov" variable_2="Rmod_valve_aov"/>
    <map_variables variable_1="Rmod_valve_miv" variable_2="Rmod_valve_miv"/>
    <map_variables variable_1="A_nn_trv" variable_2="A_nn_trv"/>

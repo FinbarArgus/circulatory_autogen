@@ -481,6 +481,8 @@
             </apply>
         </math>
         <!-- Valve model-->
+        <variable name="Rmod_valve_trv" public_interface="in" units="dimensionless"/>
+        <variable name="Rmod_valve_puv" public_interface="in" units="dimensionless"/>
         <variable name="Rmod_valve_aov" public_interface="in" units="dimensionless"/>
         <variable name="Rmod_valve_miv" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -489,14 +491,14 @@
                 <ci>B_trv</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>Rmod_valve_trv</ci>
+                        <ci>rho</ci>
+                    </apply>
                     <apply>
                         <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>A_eff_trv</ci>
-                        </apply>
+                        <ci>A_eff_trv</ci>
                         <ci>eps</ci>
                     </apply>
                 </apply>
@@ -506,14 +508,14 @@
                 <ci>B_puv</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>Rmod_valve_puv</ci>
+                        <ci>rho</ci>
+                    </apply>
                     <apply>
                         <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>A_eff_puv</ci>
-                        </apply>
+                        <ci>A_eff_puv</ci>
                         <ci>eps</ci>
                     </apply>
                 </apply>
@@ -530,11 +532,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>A_eff_miv</ci>
-                        </apply>
+                        <ci>A_eff_miv</ci>
                         <ci>eps</ci>
                     </apply>
                 </apply>
@@ -551,11 +549,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>A_eff_aov</ci>
-                        </apply>
+                        <ci>A_eff_aov</ci>
                         <ci>eps</ci>
                     </apply>
                 </apply>
