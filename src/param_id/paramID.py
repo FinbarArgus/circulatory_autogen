@@ -1082,6 +1082,10 @@ class OpencorParamID():
                 self.best_cost = cost[0]
                 self.best_param_vals = param_vals[:, 0]
 
+        elif self.param_id_method == 'mcmc':
+            import emcee
+            from schwimmbad import MPIPool
+
         else:
             print(f'param_id_method {self.param_id_method} hasn\'t been implemented')
             exit()
