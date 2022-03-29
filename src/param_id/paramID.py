@@ -9,9 +9,9 @@ import math as math
 import opencor as oc
 import time
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import paperPlotSetup
-matplotlib.use('Agg')
 from utilities import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from opencor_helper import SimulationHelper
@@ -21,7 +21,6 @@ from numpy import genfromtxt
 import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
-import resource
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
@@ -65,6 +64,8 @@ class CVS0DParamID():
         self.comm.Barrier()
 
         self.DEBUG = DEBUG
+        if self.DEBUG:
+            import resource
 
         # param names
         self.obs_names = None
