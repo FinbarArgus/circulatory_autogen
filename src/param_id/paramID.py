@@ -882,7 +882,7 @@ class OpencorParamID():
                 exit()
             if self.param_id_method == 'mcmc':
                 # if we choose mcmc, do a few genetic algorithm generations first to get a good first guess
-                self.max_generations = 0 # TODO make this user modifiable
+                self.max_generations = 30 # TODO make this user modifiable
                 if rank == 0:
                     print('This genetic algorithm run is a prerun to find a good initialisation for mcmc')
             else:
@@ -1107,9 +1107,8 @@ class OpencorParamID():
                 # from pathos.multiprocessing import ProcessPool
                 from schwimmbad import MPIPool
 
-                num_walkers = 2*self.num_params
-                num_steps = 2
-                num_chains = 1
+                num_walkers = 4*self.num_params
+                num_steps = 500
 
                 init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
@@ -1120,12 +1119,12 @@ class OpencorParamID():
 
                 try:
                     pool = MPIPool()
-                    sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                     pool=pool,
                                                     kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
 
                     start_time = time.time()
-                    sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                    self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
                     print(f'mcmc time = {time.time() - start_time}')
                 except:
                     if rank == 0:
@@ -1133,7 +1132,6 @@ class OpencorParamID():
                     else:
                         # workers pass to here
                         pass
-
 
             else:
                 num_walkers = 2*self.num_params
@@ -1145,16 +1143,16 @@ class OpencorParamID():
                 #                        0.01*np.random.randn(self.num_params, num_walkers)
                 # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
-                sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                      kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
                 start_time = time.time()
-                sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
                 print(f'mcmc time = {time.time()-start_time}')
 
             if rank == 0:
-                # flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
-                samples = sampler.get_chain()
-                flat_samples = sampler.get_chain(flat=True)
+                # flat_samples = self.sampler.get_chain(discard=100, thin=15, flat=True)
+                samples = self.sampler.get_chain()
+                flat_samples = self.sampler.get_chain(flat=True)
                 print(flat_samples.shape)
 
                 # TODO do this in plotting function instead
