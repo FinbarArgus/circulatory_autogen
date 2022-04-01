@@ -882,7 +882,7 @@ class OpencorParamID():
                 exit()
             if self.param_id_method == 'mcmc':
                 # if we choose mcmc, do a few genetic algorithm generations first to get a good first guess
-                self.max_generations = 0 # TODO make this user modifiable
+                self.max_generations = 10 # TODO make this user modifiable
                 if rank == 0:
                     print('This genetic algorithm run is a prerun to find a good initialisation for mcmc')
             else:
@@ -1108,14 +1108,14 @@ class OpencorParamID():
                 from schwimmbad import MPIPool
 
                 num_walkers = max(4*self.num_params, num_procs)
-                num_steps = 5
+                num_steps = 500
 
-                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
-                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
-                # best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                # init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
-                #                        0.01*np.random.randn(self.num_params, num_walkers)
+                # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
                 # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
+                                       0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
                 try:
                     pool = MPIPool()
@@ -1136,12 +1136,12 @@ class OpencorParamID():
             else:
                 num_walkers = 2*self.num_params
                 num_steps = 5
-                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
-                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
-                # best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                # init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                #                        0.01*np.random.randn(self.num_params, num_walkers)
+                # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
                 # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                       0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
                 self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                      kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
