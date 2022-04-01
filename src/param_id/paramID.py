@@ -1112,13 +1112,14 @@ class OpencorParamID():
 
                 # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
                 # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
-                best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
+                if rank == 0:
+                    best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
                                        0.01*np.random.randn(self.num_params, num_walkers)
-                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                    init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
                 try:
-                    pool = MPIPool()
+                    pool = MPIPool() # workers dont get past this line in this try
                     self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                     pool=pool,
                                                     kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
