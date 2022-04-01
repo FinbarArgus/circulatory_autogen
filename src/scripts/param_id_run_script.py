@@ -31,13 +31,15 @@ if __name__ == '__main__':
         print(f'starting script for rank = {rank}')
 
         # FOR MPI DEBUG WITH PYCHARM
+        # set mpi_debug to True
         # You have to change the configurations to "python debug server/mpi" and
         # click the debug button as many times as processes you want. You
         # must but the ports for each process in port_mapping.
+        # Then simply run through mpiexec
         if mpi_debug:
             import pydevd_pycharm
 
-            port_mapping = [36939, 44271, 33017, 46467]
+            port_mapping = [37979, 34075]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
         if len(sys.argv) != 6:

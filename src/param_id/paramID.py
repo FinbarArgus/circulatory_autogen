@@ -9,9 +9,9 @@ import math as math
 import opencor as oc
 import time
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import paperPlotSetup
-matplotlib.use('Agg')
 from utilities import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from opencor_helper import SimulationHelper
@@ -21,13 +21,14 @@ from numpy import genfromtxt
 import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
-import resource
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
 import copy
 import math
 import scipy.linalg as la
+import warnings
+warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 
 class CVS0DParamID():
     """
@@ -65,6 +66,8 @@ class CVS0DParamID():
         self.comm.Barrier()
 
         self.DEBUG = DEBUG
+        if self.DEBUG:
+            import resource
 
         # param names
         self.obs_names = None
@@ -93,7 +96,7 @@ class CVS0DParamID():
                                            self.weight_const_vec, self.weight_series_vec,
                                            self.param_names, self.sensitivity_param_names,
                                            self.ground_truth_consts, self.ground_truth_series,
-                                           self.param_mins, self.param_maxs, 
+                                           self.param_mins, self.param_maxs,
                                            self.sensitivity_param_mins, self.sensitivity_param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
@@ -701,6 +704,7 @@ class OpencorParamID():
         self.param_maxs = param_maxs
         self.sensitivity_param_mins = sensitivity_param_mins
         self.sensitivity_param_maxs = sensitivity_param_maxs
+        self.param_norm_obj = None
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
@@ -709,7 +713,8 @@ class OpencorParamID():
         self.sim_time = sim_time
         self.pre_time = pre_time
         self.n_steps = int(self.sim_time/self.dt)
-        self.sim_helper = self.initialise_sim_helper()
+        global sim_helper
+        sim_helper = self.initialise_sim_helper()
 
         # initialise
         self.param_init = None
@@ -717,11 +722,14 @@ class OpencorParamID():
         self.best_cost = 999999
 
         # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
-        self.n_calls = 100
+        self.n_calls = 10000
         self.acq_func = 'EI'  # the acquisition function
         self.n_initial_points = 5
         self.acq_func_kwargs = {}
         self.random_state = 1234 # random seed
+
+        # mcmc
+        self.sampler = None
 
         self.DEBUG = DEBUG
 
@@ -749,11 +757,11 @@ class OpencorParamID():
         # ________ Do parameter identification ________
 
         # Don't remove the get_init_param_vals, this also checks the parameters names are correct.
-        self.param_init = self.sim_helper.get_init_param_vals(self.param_names)
+        self.param_init = sim_helper.get_init_param_vals(self.param_names)
 
         # C_T min and max was 1e-9 and 1e-5 before
 
-        param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
+        self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         cost_convergence = 0.0001
         if self.param_id_method == 'bayesian':
@@ -861,7 +869,7 @@ class OpencorParamID():
                 np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
-        elif self.param_id_method == 'genetic_algorithm':
+        elif self.param_id_method in ['genetic_algorithm', 'mcmc']:
             num_elite = 12
             num_survivors = 48
             num_mutations_per_survivor = 12
@@ -872,7 +880,13 @@ class OpencorParamID():
                 print(f'Number of calls (n_calls={self.n_calls}) must be greater than the '
                       f'gen alg population (num_pop={num_pop}), exiting')
                 exit()
-            self.max_generations = math.floor(self.n_calls/num_pop)
+            if self.param_id_method == 'mcmc':
+                # if we choose mcmc, do a few genetic algorithm generations first to get a good first guess
+                self.max_generations = 30 # TODO make this user modifiable
+                if rank == 0:
+                    print('This genetic algorithm run is a prerun to find a good initialisation for mcmc')
+            else:
+                self.max_generations = math.floor(self.n_calls/num_pop)
             if rank == 0:
                 print(f'Running genetic algorithm with a population size of {num_pop},\n'
                       f'and a maximum number of generations of {self.max_generations}')
@@ -881,7 +895,7 @@ class OpencorParamID():
 
             if rank == 0:
                 param_vals_norm = np.random.rand(self.num_params, num_pop)
-                param_vals = param_norm_obj.unnormalise(param_vals_norm)
+                param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
             else:
                 param_vals = None
 
@@ -964,17 +978,17 @@ class OpencorParamID():
                             success = True
                             continue
                         # set params for this case
-                        self.sim_helper.set_param_vals(self.param_names, param_vals_proc[:, II])
+                        sim_helper.set_param_vals(self.param_names, param_vals_proc[:, II])
 
-                        success = self.sim_helper.run()
+                        success = sim_helper.run()
                         if success:
-                            pred_obs = self.sim_helper.get_results(self.obs_names)
+                            pred_obs = sim_helper.get_results(self.obs_names)
                             # calculate error between the observables of this set of parameters
                             # and the ground truth
                             cost_proc[II] = self.get_cost_from_obs(pred_obs)
 
                             # reset params
-                            self.sim_helper.reset_and_clear()
+                            sim_helper.reset_and_clear()
                             bools_proc[II] = True # this point has now been simulated
 
                         else:
@@ -982,7 +996,7 @@ class OpencorParamID():
                             print('simulation failed with params...')
                             print(param_vals_proc[:, II])
                             print('... choosing a new random point')
-                            param_vals_proc[:, II:II + 1] = param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
+                            param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
                             cost_proc[II] = 9999
                             break
 
@@ -1014,7 +1028,7 @@ class OpencorParamID():
                     cost = cost[order_indices]
                     param_vals = param_vals[:, order_indices]
                     print('Cost of first 10 of population : {}'.format(cost[:10]))
-                    param_vals_norm = param_norm_obj.normalise(param_vals)
+                    param_vals_norm = self.param_norm_obj.normalise(param_vals)
                     print('worst survivor params normed : {}'.format(param_vals_norm[:, num_survivors - 1]))
                     print('best params normed : {}'.format(param_vals_norm[:, 0]))
                     np.save(os.path.join(self.output_dir, 'best_cost'), cost[0])
@@ -1072,7 +1086,7 @@ class OpencorParamID():
                                                           mutation_weight*np.random.randn(self.num_params)
                         param_idx += 1
 
-                    param_vals = param_norm_obj.unnormalise(param_vals_norm)
+                    param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
 
                 else:
                     # non zero ranks don't do any of the ordering or mutations
@@ -1081,6 +1095,86 @@ class OpencorParamID():
             if rank == 0:
                 self.best_cost = cost[0]
                 self.best_param_vals = param_vals[:, 0]
+
+        if self.param_id_method == 'mcmc':
+            import emcee
+            import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
+            import corner
+
+            print(num_procs)
+            if num_procs > 1:
+                # from pathos import multiprocessing
+                # from pathos.multiprocessing import ProcessPool
+                from schwimmbad import MPIPool
+
+                num_walkers = 4*self.num_params
+                num_steps = 500
+
+                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                # best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                # init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
+                #                        0.01*np.random.randn(self.num_params, num_walkers)
+                # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+
+                try:
+                    pool = MPIPool()
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                    pool=pool,
+                                                    kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+
+                    start_time = time.time()
+                    self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                    print(f'mcmc time = {time.time() - start_time}')
+                except:
+                    if rank == 0:
+                        sys.exit()
+                    else:
+                        # workers pass to here
+                        pass
+
+            else:
+                num_walkers = 2*self.num_params
+                num_steps = 5
+                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                # best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                # init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
+                #                        0.01*np.random.randn(self.num_params, num_walkers)
+                # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+
+                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                     kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
+                start_time = time.time()
+                self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                print(f'mcmc time = {time.time()-start_time}')
+
+            if rank == 0:
+                # flat_samples = self.sampler.get_chain(discard=100, thin=15, flat=True)
+                samples = self.sampler.get_chain()
+                flat_samples = self.sampler.get_chain(flat=True)
+                print(flat_samples.shape)
+
+                # TODO do this in plotting function instead
+                fig, axes = plt.subplots(self.num_params, figsize=(10, 7), sharex=True)
+                for i in range(self.num_params):
+                    ax = axes[i]
+                    ax.plot(samples[:, :, i], "k", alpha=0.3)
+                    ax.set_xlim(0, len(samples))
+                    ax.set_ylabel(self.param_names[i])
+                    ax.yaxis.set_label_coords(-0.1, 0.5)
+
+                axes[-1].set_xlabel("step number")
+                # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.eps'))
+                plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
+                plt.close()
+
+                fig = corner.corner(flat_samples, labels=self.param_names, truths=self.best_param_vals)
+                # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
+                plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
+                # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
+                # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
+                plt.close()
 
         else:
             print(f'param_id_method {self.param_id_method} hasn\'t been implemented')
@@ -1102,7 +1196,7 @@ class OpencorParamID():
         else:
             output_path = sensitivity_output_path
 
-        self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_names)
+        self.param_init = sim_helper.get_init_param_vals(self.sensitivity_param_names)
         param_vec_init = np.array(self.param_init).flatten()
         self.best_param_vals = np.load(os.path.join(output_path, 'best_param_vals.npy'))
 
@@ -1155,10 +1249,10 @@ class OpencorParamID():
             param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
             param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
             param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
-            up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
+            up_pred_obs = sim_helper.modify_params_and_run_and_get_results(master_param_names,
                                                                                  param_vec_up, self.obs_names,
                                                                                  absolute=True)
-            down_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
+            down_pred_obs = sim_helper.modify_params_and_run_and_get_results(master_param_names,
                                                                                  param_vec_down, self.obs_names,
                                                                                  absolute=True)
 
@@ -1254,44 +1348,58 @@ class OpencorParamID():
         return
 
 
-    def get_cost_from_params(self, param_vals, reset=True):
+    def get_cost_from_params(self, param_vals, reset=True, param_vals_are_normalised=False, param_val_limits=False,
+                             likelihood_not_cost=False):
 
         # set params for this case
-        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        if param_vals_are_normalised:
+            param_vals = self.param_norm_obj.unnormalise(param_vals)
 
-        success = self.sim_helper.run()
+        if param_val_limits:
+            if any(param_vals < self.param_mins) or any(param_vals > self.param_maxs):
+                if likelihood_not_cost:
+                    return -np.inf
+                else:
+                    return np.inf
+
+        sim_helper.set_param_vals(self.param_names, param_vals)
+
+        success = sim_helper.run()
         if success:
-            pred_obs = self.sim_helper.get_results(self.obs_names)
+            pred_obs = sim_helper.get_results(self.obs_names)
 
             cost = self.get_cost_from_obs(pred_obs)
 
             # reset params
             if reset:
-                self.sim_helper.reset_and_clear()
+                sim_helper.reset_and_clear()
 
         else:
             # simulation set cost to large,
             print('simulation failed with params...')
             print(param_vals)
-            cost = 9999
+            cost = np.inf
 
-        return cost
+        if likelihood_not_cost:
+            return -0.5*cost
+        else:
+            return cost
 
 
     def get_cost_and_obs_from_params(self, param_vals, reset=True):
 
         # set params for this case
-        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        sim_helper.set_param_vals(self.param_names, param_vals)
 
-        success = self.sim_helper.run()
+        success = sim_helper.run()
         if success:
-            pred_obs = self.sim_helper.get_results(self.obs_names)
+            pred_obs = sim_helper.get_results(self.obs_names)
 
             cost = self.get_cost_from_obs(pred_obs)
 
             # reset params
             if reset:
-                self.sim_helper.reset_and_clear()
+                sim_helper.reset_and_clear()
 
         else:
             # simulation set cost to large,
@@ -1359,7 +1467,7 @@ class OpencorParamID():
 
         # ___________ Run model with new parameters ________________
 
-        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+        sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # run simulation and check cost
         cost_check, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
@@ -1383,7 +1491,7 @@ class OpencorParamID():
 
         # ___________ Run model with new parameters ________________
 
-        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+        sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # run simulation and check cost
         cost_check, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
@@ -1414,11 +1522,10 @@ class OpencorParamID():
         # TODO add more of the gen alg constants here so they can be changed by user.
 
     def close_simulation(self):
-        self.sim_helper.close_simulation()
+        sim_helper.close_simulation()
 
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
-
 
 class ProgressBar(object):
     """
