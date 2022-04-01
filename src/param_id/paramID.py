@@ -882,7 +882,7 @@ class OpencorParamID():
                 exit()
             if self.param_id_method == 'mcmc':
                 # if we choose mcmc, do a few genetic algorithm generations first to get a good first guess
-                self.max_generations = 30 # TODO make this user modifiable
+                self.max_generations = 0 # TODO make this user modifiable
                 if rank == 0:
                     print('This genetic algorithm run is a prerun to find a good initialisation for mcmc')
             else:
@@ -1107,8 +1107,8 @@ class OpencorParamID():
                 # from pathos.multiprocessing import ProcessPool
                 from schwimmbad import MPIPool
 
-                num_walkers = 4*self.num_params
-                num_steps = 500
+                num_walkers = max(4*self.num_params, num_procs)
+                num_steps = 5
 
                 init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
@@ -1124,7 +1124,7 @@ class OpencorParamID():
                                                     kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
 
                     start_time = time.time()
-                    self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                    self.sampler.run_mcmc(init_param_vals.T, num_steps) # , progress=True)
                     print(f'mcmc time = {time.time() - start_time}')
                 except:
                     if rank == 0:
