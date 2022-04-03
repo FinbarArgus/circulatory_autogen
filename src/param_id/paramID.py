@@ -882,7 +882,7 @@ class OpencorParamID():
                 exit()
             if self.param_id_method == 'mcmc':
                 # if we choose mcmc, do a few genetic algorithm generations first to get a good first guess
-                self.max_generations = 10 # TODO make this user modifiable
+                self.max_generations = 0 # TODO make this user modifiable
                 if rank == 0:
                     print('This genetic algorithm run is a prerun to find a good initialisation for mcmc')
             else:
@@ -1101,7 +1101,6 @@ class OpencorParamID():
             import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
             import corner
 
-            print(num_procs)
             if num_procs > 1:
                 # from pathos import multiprocessing
                 # from pathos.multiprocessing import ProcessPool
@@ -1110,11 +1109,11 @@ class OpencorParamID():
                 num_walkers = max(4*self.num_params, num_procs)
                 num_steps = 500
 
-                # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
-                # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                 if rank == 0:
+                    # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                    # init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm) + \
+                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                        0.01*np.random.randn(self.num_params, num_walkers)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
@@ -1152,9 +1151,8 @@ class OpencorParamID():
 
             if rank == 0:
                 # flat_samples = self.sampler.get_chain(discard=100, thin=15, flat=True)
-                samples = self.sampler.get_chain()
-                flat_samples = self.sampler.get_chain(flat=True)
-                print(flat_samples.shape)
+                samples = self.sampler.get_chain(discard=int(num_steps/10))
+                flat_samples = self.sampler.get_chain(discard=int(num_steps/10), flat=True)
 
                 # TODO do this in plotting function instead
                 fig, axes = plt.subplots(self.num_params, figsize=(10, 7), sharex=True)
