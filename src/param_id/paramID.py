@@ -678,6 +678,7 @@ class OpencorParamID():
     """
     Class for doing parameter identification on opencor models
     """
+    # define this as a global variable
     global sim_helper
     sim_helper = None
 
@@ -1115,8 +1116,14 @@ class OpencorParamID():
             # global sim_helper
             # sim_helper = self.initialise_sim_helper()
 
-            import emcee
             # import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
+            mcmc_lib = 'zeus' # TODO make this a user variable
+            if mcmc_lib == 'emcee':
+                import emcee
+            elif mcmc_lib == 'zeus':
+                import zeus
+            else:
+                print(f'unknown mcmc lib : {mcmc_lib}')
             import corner
 
             if num_procs > 1:
@@ -1137,8 +1144,14 @@ class OpencorParamID():
 
                 try:
                     pool = MPIPool() # workers dont get past this line in this try
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params,
-                                                    pool=pool)
+                    if mcmc_lib == 'emcee':
+                        self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                    pool=pool,
+                                                    kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+                    elif mcmc_lib == 'zeus':
+                        self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                             pool=pool,
+                                                             kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
 
                     start_time = time.time()
                     self.sampler.run_mcmc(init_param_vals.T, num_steps)# , progress=True)
@@ -1159,8 +1172,13 @@ class OpencorParamID():
                 init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                        0.01*np.random.randn(self.num_params, num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                if mcmc_lib == 'emcee':
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                        kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+                elif mcmc_lib == 'zeus':
+                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                     kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
 
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params)
                 start_time = time.time()
                 self.sampler.run_mcmc(init_param_vals.T, num_steps) # , progress=True)
                 print(f'mcmc time = {time.time()-start_time}')
