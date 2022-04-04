@@ -677,6 +677,10 @@ class OpencorParamID():
     """
     Class for doing parameter identification on opencor models
     """
+    # define this as a global variable
+    global sim_helper
+    sim_helper = None
+
     def __init__(self, model_path, param_id_method,
                  obs_names, obs_types, weight_const_vec, weight_series_vec,
                  param_names, sensitivity_param_names,
@@ -740,6 +744,7 @@ class OpencorParamID():
 
     def run(self):
 
+        global sim_helper
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -998,6 +1003,7 @@ class OpencorParamID():
                             print('... choosing a new random point')
                             param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
                             cost_proc[II] = 9999
+                            sim_helper.reset_and_clear()
                             break
 
                         simulated_bools[II] = True
@@ -1097,7 +1103,13 @@ class OpencorParamID():
                 self.best_param_vals = param_vals[:, 0]
 
         if self.param_id_method == 'mcmc':
-            import emcee
+            mcmc_lib = 'zeus' # TODO make this a user variable
+            if mcmc_lib == 'emcee':
+                import emcee
+            elif mcmc_lib == 'zeus':
+                import zeus
+            else:
+                print(f'unknown mcmc lib : {mcmc_lib}')
             import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
             import corner
 
@@ -1119,9 +1131,14 @@ class OpencorParamID():
 
                 try:
                     pool = MPIPool() # workers dont get past this line in this try
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                    if mcmc_lib == 'emcee':
+                        self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                     pool=pool,
                                                     kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+                    elif mcmc_lib == 'zeus':
+                        self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                             pool=pool,
+                                                             kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
 
                     start_time = time.time()
                     self.sampler.run_mcmc(init_param_vals.T, num_steps) # , progress=True)
@@ -1142,8 +1159,11 @@ class OpencorParamID():
                 init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                        0.01*np.random.randn(self.num_params, num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
-
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                if mcmc_lib == 'emcee':
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
+                                                        kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+                elif mcmc_lib == 'zeus':
+                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
                                                      kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
                 start_time = time.time()
                 self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
@@ -1350,6 +1370,7 @@ class OpencorParamID():
     def get_cost_from_params(self, param_vals, reset=True, param_vals_are_normalised=False, param_val_limits=False,
                              likelihood_not_cost=False):
 
+        global sim_helper
         # set params for this case
         if param_vals_are_normalised:
             param_vals = self.param_norm_obj.unnormalise(param_vals)
@@ -1378,6 +1399,7 @@ class OpencorParamID():
             print('simulation failed with params...')
             print(param_vals)
             cost = np.inf
+            sim_helper.reset_and_clear()
 
         if likelihood_not_cost:
             return -0.5*cost
@@ -1405,6 +1427,7 @@ class OpencorParamID():
             print('simulation failed with params...')
             print(param_vals)
             cost = 9999
+            sim_helper.reset_and_clear()
 
         return cost, pred_obs
 
