@@ -1124,7 +1124,7 @@ class OpencorParamID():
                                                     kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
 
                     start_time = time.time()
-                    self.sampler.run_mcmc(init_param_vals.T, num_steps) # , progress=True)
+                    self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
                     print(f'mcmc time = {time.time() - start_time}')
                 except:
                     if rank == 0:
