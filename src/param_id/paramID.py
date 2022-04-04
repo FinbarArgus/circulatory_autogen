@@ -152,6 +152,7 @@ class CVS0DParamID():
         Pa_to_kPa = 1e-3
         no_conv = 1.0
 
+        # TODO figure out how i'm going to use sim_helper here now that it is global
         best_fit_obs = self.param_id.sim_helper.get_results(self.obs_names)
         best_fit_obs_consts, best_fit_obs_series = self.param_id.get_pred_obs_vec_and_array(best_fit_obs)
 
@@ -677,6 +678,9 @@ class OpencorParamID():
     """
     Class for doing parameter identification on opencor models
     """
+    global sim_helper
+    sim_helper = None
+
     def __init__(self, model_path, param_id_method,
                  obs_names, obs_types, weight_const_vec, weight_series_vec,
                  param_names, sensitivity_param_names,
@@ -739,7 +743,7 @@ class OpencorParamID():
                                 maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
-
+        global sim_helper
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -870,10 +874,16 @@ class OpencorParamID():
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
         elif self.param_id_method in ['genetic_algorithm', 'mcmc']:
-            num_elite = 12
-            num_survivors = 48
-            num_mutations_per_survivor = 12
-            num_cross_breed = 120
+            # num_elite = 12
+            # num_survivors = 48
+            # num_mutations_per_survivor = 12
+            # num_cross_breed = 120
+            # num_elite = 12
+            # TODO change back to above
+            num_elite = 1
+            num_survivors = 2
+            num_mutations_per_survivor = 1
+            num_cross_breed = 0
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
             if self.n_calls < num_pop:
@@ -998,6 +1008,7 @@ class OpencorParamID():
                             print('... choosing a new random point')
                             param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
                             cost_proc[II] = 9999
+                            sim_helper.reset_and_clear()
                             break
 
                         simulated_bools[II] = True
@@ -1097,8 +1108,15 @@ class OpencorParamID():
                 self.best_param_vals = param_vals[:, 0]
 
         if self.param_id_method == 'mcmc':
+            # TODO This reinitialisation of a new sim_helper is needed for mcmc on the hpc, 
+            # otherwise a segmentation fault occurs, not sure why.
+            # sim_helper.close_simulation()
+            # del sim_helper
+            # global sim_helper
+            # sim_helper = self.initialise_sim_helper()
+
             import emcee
-            import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
+            # import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
             import corner
 
             if num_procs > 1:
@@ -1107,7 +1125,7 @@ class OpencorParamID():
                 from schwimmbad import MPIPool
 
                 num_walkers = max(4*self.num_params, num_procs)
-                num_steps = 500
+                num_steps = 5
 
                 if rank == 0:
                     # init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
@@ -1119,12 +1137,11 @@ class OpencorParamID():
 
                 try:
                     pool = MPIPool() # workers dont get past this line in this try
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
-                                                    pool=pool,
-                                                    kwargs={'param_val_limits': True, 'likelihood_not_cost': True})
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params,
+                                                    pool=pool)
 
                     start_time = time.time()
-                    self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                    self.sampler.run_mcmc(init_param_vals.T, num_steps)# , progress=True)
                     print(f'mcmc time = {time.time() - start_time}')
                 except:
                     if rank == 0:
@@ -1143,10 +1160,9 @@ class OpencorParamID():
                                        0.01*np.random.randn(self.num_params, num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_cost_from_params,
-                                                     kwargs={'param_val_limits':True, 'likelihood_not_cost':True})
+                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params)
                 start_time = time.time()
-                self.sampler.run_mcmc(init_param_vals.T, num_steps, progress=True)
+                self.sampler.run_mcmc(init_param_vals.T, num_steps) # , progress=True)
                 print(f'mcmc time = {time.time()-start_time}')
 
             if rank == 0:
@@ -1346,23 +1362,46 @@ class OpencorParamID():
 
         return
 
+    def get_lnlikelihood_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
+        global sim_helper
+        # set params for this case
+        if param_vals_are_normalised:
+            param_vals = self.param_norm_obj.unnormalise(param_vals)
 
-    def get_cost_from_params(self, param_vals, reset=True, param_vals_are_normalised=False, param_val_limits=False,
-                             likelihood_not_cost=False):
+        # The below if block implements the uniform prior
+        if any(param_vals < self.param_mins) or any(param_vals > self.param_maxs):
+            return -np.inf
+
+        sim_helper.set_param_vals(self.param_names, param_vals)
+        import pdb; pdb.set_trace()
+        success = sim_helper.run()
+        if success:
+            pred_obs = sim_helper.get_results(self.obs_names)
+
+            lnlikelihood = self.get_lnlikelihood_from_obs(pred_obs)
+
+            # reset params
+            if reset:
+                sim_helper.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed with params...')
+            print(param_vals)
+            cost = np.inf
+            sim_helper.reset_and_clear()
+
+        return lnlikelihood
+
+    def get_cost_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
+        global sim_helper
 
         # set params for this case
         if param_vals_are_normalised:
             param_vals = self.param_norm_obj.unnormalise(param_vals)
 
-        if param_val_limits:
-            if any(param_vals < self.param_mins) or any(param_vals > self.param_maxs):
-                if likelihood_not_cost:
-                    return -np.inf
-                else:
-                    return np.inf
-
         sim_helper.set_param_vals(self.param_names, param_vals)
-
+        
         success = sim_helper.run()
         if success:
             pred_obs = sim_helper.get_results(self.obs_names)
@@ -1378,14 +1417,13 @@ class OpencorParamID():
             print('simulation failed with params...')
             print(param_vals)
             cost = np.inf
+            sim_helper.reset_and_clear()
 
-        if likelihood_not_cost:
-            return -0.5*cost
-        else:
-            return cost
+        return cost
 
 
     def get_cost_and_obs_from_params(self, param_vals, reset=True):
+        global sim_helper
 
         # set params for this case
         sim_helper.set_param_vals(self.param_names, param_vals)
@@ -1405,8 +1443,20 @@ class OpencorParamID():
             print('simulation failed with params...')
             print(param_vals)
             cost = 9999
+            sim_helper.reset_and_clear()
 
         return cost, pred_obs
+
+
+    def get_lnlikelihood_from_obs(self, pred_obs):
+
+        pred_obs_consts_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+        # calculate error between the observables of this set of parameters
+        # and the ground truth
+        cost = self.lnlikelihood_calc(pred_obs_consts_vec, pred_obs_series_array)
+
+        return cost
+
 
     def get_cost_from_obs(self, pred_obs):
 
@@ -1416,6 +1466,21 @@ class OpencorParamID():
         cost = self.cost_calc(pred_obs_consts_vec, pred_obs_series_array)
 
         return cost
+
+
+    def lnlikelihood_calc(self, prediction_consts, prediction_series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+        #                        self.ground_truth_consts)/np.minimum(prediction_consts,
+        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
+        lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(prediction_consts -
+                               self.ground_truth_consts)/self.ground_truth_consts, 2))
+        # if prediction_series:
+            # TODO Have not included cost from series error yet
+            # cost +=
+            # pass
+
+        return lnlikelihood
+
 
     def cost_calc(self, prediction_consts, prediction_series=None):
         # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
@@ -1453,6 +1518,7 @@ class OpencorParamID():
         return pred_obs_consts_vec, pred_obs_series_array
 
     def simulate_with_best_param_vals(self):
+        global sim_helper
 
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
@@ -1480,6 +1546,7 @@ class OpencorParamID():
         # TODO print all const outputs with their variable name
 
     def simulate_once(self):
+        global sim_helper
 
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
@@ -1521,6 +1588,7 @@ class OpencorParamID():
         # TODO add more of the gen alg constants here so they can be changed by user.
 
     def close_simulation(self):
+        global sim_helper
         sim_helper.close_simulation()
 
     def set_output_dir(self, output_dir):

@@ -1,16 +1,6 @@
-starting script for rank = 1
 starting script for rank = 0
-starting param id run for rank = 1 process
+WARNING Running in serial, are you sure you want to be a snail?
 starting param id run for rank = 0 process
 This genetic algorithm run is a prerun to find a good initialisation for mcmc
-Running genetic algorithm with a population size of 744,
+Running genetic algorithm with a population size of 4,
 and a maximum number of generations of 0
-2
-2
-mcmc time = 67.42320203781128
-(80, 4)
-
-parameter identification is complete
-init params     : [[0.00069934], [1.2028e-08], [115400000.0], [3.6803e-08]]
-best fit params : [1.01737161e-03 7.53859319e-08 1.07894274e+08 6.78197671e-06]
-best cost       : 9999.0
