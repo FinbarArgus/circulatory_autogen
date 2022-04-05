@@ -449,7 +449,7 @@
     ],
     "variables_and_units":
     [
-      ["rho", "kg_per_m3", "access", "constant"],
+      ["rho", "Js2_per_m5", "access", "constant"],
       ["T", "second", "access", "constant"],
       ["mt", "second", "access", "variable"],
       ["u_ra", "J_per_m3", "access", "variable"],
