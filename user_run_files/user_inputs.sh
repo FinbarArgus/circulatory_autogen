@@ -18,7 +18,7 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
 num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
-num_calls_to_function=2000
+num_calls_to_function=20000
 num_param_id_runs=1
 run_sensitivity=False
 

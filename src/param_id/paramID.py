@@ -43,6 +43,10 @@ import resource
 curlimit = resource.getrlimit(resource.RLIMIT_STACK)
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY,resource.RLIM_INFINITY))
 
+# This mcmc_object will be an instance of the OpencorParamID class
+# it needs to be global so that it can be used in calculate_lnlikelihood()
+# without having its attributes pickled. opencor simulation objects
+# can't be pickled because they are pyqt.
 global mcmc_object
 mcmc_object = None
 
@@ -109,6 +113,10 @@ class CVS0DParamID():
 
 
         if self.mcmc_instead:
+            # This mcmc_object will be an instance of the OpencorParamID class
+            # it needs to be global so that it can be used in calculate_lnlikelihood()
+            # without having its attributes pickled. opencor simulation objects
+            # can't be pickled because they are pyqt.
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types,
@@ -333,19 +341,25 @@ class CVS0DParamID():
     
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
-        if os.path.exists(mcmc_chain_path): 
-            print('plotting mcmc results')
-            samples = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
-            # discard first num_steps/10 samples
-            samples = samples[:, samples.shape[1]/10:, :]
-        else:
+        if not os.path.exists(mcmc_chain_path): 
             print('No mcmc results to plot')
             return
-        flat_samples = samples.reshape(-1, samples.shape[-1])
+        
+        print('plotting mcmc results')
+        samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
+        num_steps = samples.shape[0] 
+        num_walkers = samples.shape[1] 
+        num_params = samples.shape[2] # TODO check this is the same as objects num_params
+        # discard first num_steps/10 samples
+        # samples = samples[samples.shape[0]//10:, :, :]
+        # discarding samples isnt needed because we start an "optimal" point
+        # TODO include a user defined burn in if we aren't starting from 
+        # an optimal point.
+        flat_samples = samples.reshape(-1, num_params)
 
         # TODO do this in plotting function instead
-        fig, axes = plt.subplots(self.num_params, figsize=(10, 7), sharex=True)
-        for i in range(self.num_params):
+        fig, axes = plt.subplots(num_params, figsize=(10, 7), sharex=True)
+        for i in range(num_params):
             ax = axes[i]
             ax.plot(samples[:, :, i], "k", alpha=0.3)
             ax.set_xlim(0, len(samples))
@@ -357,7 +371,7 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
-        fig = corner.corner(flat_samples, labels=self.param_names, truths=self.best_param_vals)
+        fig = corner.corner(flat_samples, labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
@@ -1510,6 +1524,12 @@ class OpencorParamID():
         self.output_dir = output_dir
 
 def calculate_lnlikelihood(param_vals):
+    """
+    This function is a wrapper around the mcmc_object method
+    to calculate the lnlikelihood from model simulation.
+    It allows the emcee algorithm to only pickle the param_vals
+    and not all the attributes of the class instance.
+    """
     return mcmc_object.get_lnlikelihood_from_params(param_vals)
 
 class OpencorMCMC():
@@ -1558,7 +1578,7 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        self.num_steps = 20
+        self.num_steps = 2000
 
         self.DEBUG = DEBUG
 
@@ -1582,11 +1602,12 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            num_walkers = 32 # TODO change back to max(4*self.num_params, num_procs)
+            num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals:
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                    # create initial params in gaussian ball around best_param_vals estimate
                     init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                        0.01*np.random.randn(self.num_params, num_walkers)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
@@ -1595,7 +1616,7 @@ class OpencorMCMC():
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             try:
-                pool = MPIPool() # workers dont get past this line in this try
+                pool = MPIPool() # workers dont get past this line in this try, they wait for work to do
                 if mcmc_lib == 'emcee':
                     self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
                                                 pool=pool)
