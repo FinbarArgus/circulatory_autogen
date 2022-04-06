@@ -15,13 +15,16 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-## param_id_method can be any of [genetic_algorithm, bayesian]
-param_id_method=mcmc
 num_procs=1
+## param_id_method can be any of [genetic_algorithm, bayesian]
+param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=80000
+num_calls_to_function=4000
 num_param_id_runs=1
 run_sensitivity=False
+
+## mcmc inputs
+do_mcmc=True
 
 # This for 3compartment
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
