@@ -318,13 +318,15 @@ class CVS0DParamID():
     def plot_mcmc(self):
     
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
+
         if os.path.exists(mcmc_chain_path): 
             samples = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
+            # discard first num_steps/10 samples
+            samples = samples[:, samples.shape[1]/10:, :]
         else:
             print('No mcmc results to print')
             return
-        # TODO get flat chain
-        # flat_samples = samples
+        flat_samples = samples.reshape(-1, samples.shape[-1])
 
         # TODO do this in plotting function instead
         fig, axes = plt.subplots(self.num_params, figsize=(10, 7), sharex=True)
@@ -1567,7 +1569,7 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            num_walkers = 64 # TODO change back to max(4*self.num_params, num_procs)
+            num_walkers = 16 # TODO change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals:
