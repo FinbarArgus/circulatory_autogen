@@ -43,17 +43,21 @@ import resource
 curlimit = resource.getrlimit(resource.RLIMIT_STACK)
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY,resource.RLIM_INFINITY))
 
+global mcmc_object
+mcmc_object = None
+
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
+    def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
                  input_params_path=None,  sensitivity_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0001, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
+        self.mcmc_instead = mcmc_instead
         self.param_id_model_type = param_id_model_type
         self.file_name_prefix = file_name_prefix
 
@@ -104,8 +108,9 @@ class CVS0DParamID():
         self.ground_truth_consts, self.ground_truth_series = self.__get_ground_truth_values()
 
 
-        if self.param_id_method == 'mcmc':
-            self.param_id = OpencorMCMC(self.model_path,
+        if self.mcmc_instead:
+            global mcmc_object 
+            mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types,
                                            self.weight_const_vec, self.weight_series_vec,
                                            self.param_names, 
@@ -132,6 +137,9 @@ class CVS0DParamID():
 
     def run(self):
         self.param_id.run()
+
+    def run_mcmc(self):
+        mcmc_object.run()
 
     def run_single_sensitivity(self,sensitivity_output_path):
         self.param_id.run_single_sensitivity(sensitivity_output_path)
@@ -162,10 +170,16 @@ class CVS0DParamID():
         self.output_dir = path
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
-        self.param_id.set_output_dir(self.output_dir)
+        if self.mcmc_instead:
+            mcmc_object.set_output_dir(self.output_dir)
+        else:
+            self.param_id.set_output_dir(self.output_dir)
     
     def set_best_param_vals(self, best_param_vals):
-        self.param_id.set_best_param_vals = best_param_vals
+        if self.mcmc_instead:
+            mcmc_object.set_best_param_vals = best_param_vals
+        else:
+            self.param_id.set_best_param_vals = best_param_vals
 
     def plot_outputs(self):
         if not self.best_output_calculated:
@@ -319,9 +333,10 @@ class CVS0DParamID():
     
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
         if os.path.exists(mcmc_chain_path): 
-            samples = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
+            samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
+            print('plotting mcmc results')
         else:
-            print('No mcmc results to print')
+            print('No mcmc results to plot')
             return
         # TODO get flat chain
         # flat_samples = samples
@@ -1492,14 +1507,13 @@ class OpencorParamID():
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
 
+def calculate_lnlikelihood(param_vals):
+    return mcmc_object.get_lnlikelihood_from_params(param_vals)
 
 class OpencorMCMC():
     """
     Class for doing mcmc on opencor models
     """
-    # define this as a global variable
-    global sim_helper_mcmc
-    sim_helper_mcmc = None
 
     def __init__(self, model_path,
                  obs_names, obs_types, weight_const_vec, weight_series_vec,
@@ -1533,8 +1547,7 @@ class OpencorMCMC():
         self.sim_time = sim_time
         self.pre_time = pre_time
         self.n_steps = int(self.sim_time/self.dt)
-        global sim_helper_mcmc
-        sim_helper_mcmc = self.initialise_sim_helper()
+        self.sim_helper = self.initialise_sim_helper()
 
         # initialise
         self.param_init = None
@@ -1543,7 +1556,7 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        self.num_steps = 100
+        self.num_steps = 20
 
         self.DEBUG = DEBUG
 
@@ -1567,7 +1580,7 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            num_walkers = 64 # TODO change back to max(4*self.num_params, num_procs)
+            num_walkers = 32 # TODO change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals:
@@ -1582,10 +1595,10 @@ class OpencorMCMC():
             try:
                 pool = MPIPool() # workers dont get past this line in this try
                 if mcmc_lib == 'emcee':
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params,
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
                                                 pool=pool)
                 elif mcmc_lib == 'zeus':
-                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params,
+                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
                                                          pool=pool)
 
                 start_time = time.time()
@@ -1611,9 +1624,9 @@ class OpencorMCMC():
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             if mcmc_lib == 'emcee':
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params)
+                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
             elif mcmc_lib == 'zeus':
-                self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, self.get_lnlikelihood_from_params)
+                self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
 
             start_time = time.time()
             self.sampler.run_mcmc(init_param_vals.T, self.num_steps) # , progress=True)
@@ -1632,7 +1645,6 @@ class OpencorMCMC():
 
 
     def get_lnlikelihood_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
-        global sim_helper_mcmc
         # set params for this case
         if param_vals_are_normalised:
             param_vals = self.param_norm_obj.unnormalise(param_vals)
@@ -1641,17 +1653,16 @@ class OpencorMCMC():
         if any(param_vals < self.param_mins) or any(param_vals > self.param_maxs):
             return -np.inf
 
-        # import pdb; pdb.set_trace()
-        sim_helper_mcmc.set_param_vals(self.param_names, param_vals)
-        success = sim_helper_mcmc.run()
+        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        success = self.sim_helper.run()
         if success:
-            pred_obs = sim_helper_mcmc.get_results(self.obs_names)
+            pred_obs = self.sim_helper.get_results(self.obs_names)
 
             lnlikelihood = self.get_lnlikelihood_from_obs(pred_obs)
 
             # reset params
             if reset:
-                sim_helper_mcmc.reset_and_clear()
+                self.sim_helper.reset_and_clear()
 
         else:
             # simulation set cost to large,
