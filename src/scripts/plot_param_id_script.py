@@ -26,7 +26,7 @@ if __name__ == '__main__':
     try:
 
         if len(sys.argv) != 5:
-            print(f'incorrect number of inputs to param_id_run_script.py')
+            print(f'incorrect number of inputs to plot_param_id.py script')
             exit()
         param_id_method = sys.argv[1]
         file_name_prefix = sys.argv[2]
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         sim_time = 2.0
 
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,

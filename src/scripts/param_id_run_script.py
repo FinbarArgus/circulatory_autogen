@@ -72,7 +72,7 @@ if __name__ == '__main__':
           pre_time = 20.0
         sim_time = 2.0
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
@@ -137,14 +137,14 @@ if __name__ == '__main__':
         param_id.close_simulation()
         do_mcmc = sys.argv[6]
         if do_mcmc:
-            mcmc = CVS0DParamID(model_path, param_id_model_type, 'mcmc', file_name_prefix,
+            mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
                                     input_params_path=input_params_path,
                                     sensitivity_params_path=sensitivity_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time, maximumStep=0.00003, DEBUG=True)
             mcmc.set_best_param_vals(best_param_vals)
             # mcmc.set_mcmc_parameters() TODO
-            mcmc.run()
+            mcmc.run_mcmc()
             
 
     except:
