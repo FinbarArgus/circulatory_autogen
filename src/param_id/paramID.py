@@ -352,6 +352,8 @@ class CVS0DParamID():
         num_params = samples.shape[2] # TODO check this is the same as objects num_params
         # discard first num_steps/10 samples
         # samples = samples[samples.shape[0]//10:, :, :]
+        # thin = 10
+        # samples = samples[::thin, :, :]
         # discarding samples isnt needed because we start an "optimal" point
         # TODO include a user defined burn in if we aren't starting from 
         # an optimal point.
@@ -371,7 +373,8 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
-        fig = corner.corner(flat_samples, labels=self.param_names, truths=self.param_id.best_param_vals)
+        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5,
+                            labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
