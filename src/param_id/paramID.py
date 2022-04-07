@@ -1565,6 +1565,9 @@ class OpencorMCMC():
         self.param_norm_obj = None
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
+        # TODO load this from file. Make the user define the priors
+        self.param_prior_dists = ['uniform', 'uniform', 'exponential']
+
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
         self.maximumStep = maximumStep
@@ -1581,7 +1584,7 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        self.num_steps = 2000
+        self.num_steps = 400
 
         self.DEBUG = DEBUG
 
@@ -1605,7 +1608,7 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
+            num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals:
@@ -1662,21 +1665,43 @@ class OpencorMCMC():
             # TODO save chains
             if mcmc_lib == 'emcee':
                 print(f'acceptance fraction was {self.sampler.acceptance_fraction}')
+                print(f'autocorrelation time was {self.sampler.get_autocorr_time}')
             samples = self.sampler.get_chain()
             mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
             np.save(mcmc_chain_path, samples)
             print('mcmc complete')
             print(f'mcmc chain saved in {mcmc_chain_path}')
 
+    def get_lnprior_from_params(self, param_vals):
+        lnprior = 0
+        for idx, param_val in enumerate(param_vals):
+            prior_dist = self.param_prior_dists[idx]
 
+            if prior_dist == 'uniform':
+                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
+                    return -np.inf
+                else:
+                    #prior += 0
+                    pass
+            
+            elif prior_dist == 'exponential':
+                lamb = 1.0 # TODO make this user modifiable
+                if param_val < self.param_mins[idx]:
+                    return -np.inf
+                else:
+                    # the normalisation isnt needed here but might be nice to
+                    # make sure prior for each param is between 0 and 1
+                    lnprior += -lamb*param_val/self.param_maxs[idx]
+        return lnprior
 
     def get_lnlikelihood_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
         # set params for this case
         if param_vals_are_normalised:
             param_vals = self.param_norm_obj.unnormalise(param_vals)
 
-        # The below if block implements the uniform prior
-        if any(param_vals < self.param_mins) or any(param_vals > self.param_maxs):
+        lnprior = self.get_lnprior_from_params(param_vals)
+
+        if not np.isfinite(lnprior):
             return -np.inf
 
         self.sim_helper.set_param_vals(self.param_names, param_vals)
@@ -1694,9 +1719,9 @@ class OpencorMCMC():
             # simulation set cost to large,
             print('simulation failed with params...')
             print(param_vals)
-            cost = np.inf
+            return -np.inf
 
-        return lnlikelihood
+        return lnprior + lnlikelihood
 
 
     def get_lnlikelihood_from_obs(self, pred_obs):
