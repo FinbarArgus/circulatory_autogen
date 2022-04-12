@@ -31,16 +31,18 @@ if __name__ == '__main__':
         print(f'starting script for rank = {rank}')
 
         # FOR MPI DEBUG WITH PYCHARM
+        # set mpi_debug to True
         # You have to change the configurations to "python debug server/mpi" and
         # click the debug button as many times as processes you want. You
         # must but the ports for each process in port_mapping.
+        # Then simply run through mpiexec
         if mpi_debug:
             import pydevd_pycharm
 
-            port_mapping = [36939, 44271, 33017, 46467]
+            port_mapping = [37979, 34075]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
-        if len(sys.argv) != 6:
+        if len(sys.argv) != 7:
             print(f'incorrect number of inputs to param_id_run_script.py')
             exit()
 
@@ -70,7 +72,7 @@ if __name__ == '__main__':
           pre_time = 20.0
         sim_time = 2.0
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
@@ -78,7 +80,6 @@ if __name__ == '__main__':
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':
-            max_generations = int(sys.argv[3])
             param_id.set_genetic_algorithm_parameters(num_calls_to_function)
         elif param_id_method == 'bayesian':
             acq_func = 'PI'  # 'gp_hedge'
@@ -132,15 +133,25 @@ if __name__ == '__main__':
                     wf.writelines(output_dir_lines)
             param_id.run()
 
-        # create file with paths for multiple param_id_runs
-
+        best_param_vals = param_id.get_best_param_vals()
         param_id.close_simulation()
+        do_mcmc = sys.argv[6]
+        if do_mcmc:
+            mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
+                                    input_params_path=input_params_path,
+                                    sensitivity_params_path=sensitivity_params_path,
+                                    param_id_obs_path=param_id_obs_path,
+                                    sim_time=sim_time, pre_time=pre_time, maximumStep=0.00003, DEBUG=True)
+            mcmc.set_best_param_vals(best_param_vals)
+            # mcmc.set_mcmc_parameters() TODO
+            mcmc.run_mcmc()
+            
 
     except:
         print(traceback.format_exc())
         print("Usage: parameter_id_method file_name_prefix num_calls_to_function "
-              "input_params_to_id path_to_obs_file.json")
+              "path_to_obs_file.json do_mcmc")
         print("e.g. genetic_algorithm simple_physiological 10 "
-              "True path/to/circulatory_autogen/resources/simple_physiological_obs_data.json")
+              "path/to/circulatory_autogen/resources/simple_physiological_obs_data.json True")
         comm.Abort()
         exit

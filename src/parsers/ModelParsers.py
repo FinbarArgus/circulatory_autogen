@@ -85,7 +85,7 @@ class CSV0DModelParser(object):
         # Add pulmonary parameters # TODO put this into the for loop when pulmonary vessels are modules
         # TODO include units and model_environment in the appended item so they can be included
         for vessel_tup in vessels_df.itertuples():
-            if vessel_tup.vessel_type == 'heart':
+            if vessel_tup.vessel_type.startswith('heart'):
                 str_addon = ''
                 module = 'heart'
             elif vessel_tup.vessel_type == 'terminal':

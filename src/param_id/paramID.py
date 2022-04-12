@@ -18,6 +18,15 @@ from opencor_helper import SimulationHelper
 from mpi4py import MPI
 import re
 from numpy import genfromtxt
+# import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
+mcmc_lib = 'emcee' # TODO make this a user variable
+if mcmc_lib == 'emcee':
+    import emcee
+elif mcmc_lib == 'zeus':
+    import zeus
+else:
+    print(f'unknown mcmc lib : {mcmc_lib}')
+import corner
 import csv
 from datetime import date
 from skopt import gp_minimize, Optimizer
@@ -27,17 +36,32 @@ import json
 import copy
 import math
 import scipy.linalg as la
+import warnings
+warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
+# set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
+import resource
+curlimit = resource.getrlimit(resource.RLIMIT_STACK)
+resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY,resource.RLIM_INFINITY))
+
+# This mcmc_object will be an instance of the OpencorParamID class
+# it needs to be global so that it can be used in calculate_lnlikelihood()
+# without having its attributes pickled. opencor simulation objects
+# can't be pickled because they are pyqt.
+global mcmc_object
+mcmc_object = None
+
 
 class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
+    def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
                  input_params_path=None,  sensitivity_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0001, dt=0.01,
                  DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
+        self.mcmc_instead = mcmc_instead
         self.param_id_model_type = param_id_model_type
         self.file_name_prefix = file_name_prefix
 
@@ -88,16 +112,31 @@ class CVS0DParamID():
         self.ground_truth_consts, self.ground_truth_series = self.__get_ground_truth_values()
 
 
-        if param_id_model_type == 'CVS0D':
-            self.param_id = OpencorParamID(self.model_path, self.param_id_method,
+        if self.mcmc_instead:
+            # This mcmc_object will be an instance of the OpencorParamID class
+            # it needs to be global so that it can be used in calculate_lnlikelihood()
+            # without having its attributes pickled. opencor simulation objects
+            # can't be pickled because they are pyqt.
+            global mcmc_object 
+            mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types,
                                            self.weight_const_vec, self.weight_series_vec,
-                                           self.param_names, self.sensitivity_param_names,
+                                           self.param_names, 
                                            self.ground_truth_consts, self.ground_truth_series,
-                                           self.param_mins, self.param_maxs, 
-                                           self.sensitivity_param_mins, self.sensitivity_param_maxs,
+                                           self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
+        else:
+            if param_id_model_type == 'CVS0D':
+                self.param_id = OpencorParamID(self.model_path, self.param_id_method,
+                                               self.obs_names, self.obs_types,
+                                               self.weight_const_vec, self.weight_series_vec,
+                                               self.param_names, self.sensitivity_param_names,
+                                               self.ground_truth_consts, self.ground_truth_series,
+                                               self.param_mins, self.param_maxs,
+                                               self.sensitivity_param_mins, self.sensitivity_param_maxs,
+                                               sim_time=sim_time, pre_time=pre_time,
+                                               dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
 
@@ -106,6 +145,9 @@ class CVS0DParamID():
 
     def run(self):
         self.param_id.run()
+
+    def run_mcmc(self):
+        mcmc_object.run()
 
     def run_single_sensitivity(self,sensitivity_output_path):
         self.param_id.run_single_sensitivity(sensitivity_output_path)
@@ -136,7 +178,16 @@ class CVS0DParamID():
         self.output_dir = path
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
-        self.param_id.set_output_dir(self.output_dir)
+        if self.mcmc_instead:
+            mcmc_object.set_output_dir(self.output_dir)
+        else:
+            self.param_id.set_output_dir(self.output_dir)
+    
+    def set_best_param_vals(self, best_param_vals):
+        if self.mcmc_instead:
+            mcmc_object.set_best_param_vals = best_param_vals
+        else:
+            self.param_id.set_best_param_vals = best_param_vals
 
     def plot_outputs(self):
         if not self.best_output_calculated:
@@ -285,6 +336,50 @@ class CVS0DParamID():
             if self.gt_df.iloc[II]["data_type"] == "series":
                 # TODO
                 pass
+
+    def plot_mcmc(self):
+    
+        mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
+
+        if not os.path.exists(mcmc_chain_path): 
+            print('No mcmc results to plot')
+            return
+        
+        print('plotting mcmc results')
+        samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
+        num_steps = samples.shape[0] 
+        num_walkers = samples.shape[1] 
+        num_params = samples.shape[2] # TODO check this is the same as objects num_params
+        # discard first num_steps/10 samples
+        # samples = samples[samples.shape[0]//10:, :, :]
+        # thin = 10
+        # samples = samples[::thin, :, :]
+        # discarding samples isnt needed because we start an "optimal" point
+        # TODO include a user defined burn in if we aren't starting from 
+        # an optimal point.
+        flat_samples = samples.reshape(-1, num_params)
+
+        # TODO do this in plotting function instead
+        fig, axes = plt.subplots(num_params, figsize=(10, 7), sharex=True)
+        for i in range(num_params):
+            ax = axes[i]
+            ax.plot(samples[:, :, i], "k", alpha=0.3)
+            ax.set_xlim(0, len(samples))
+            ax.set_ylabel(self.param_names[i])
+            ax.yaxis.set_label_coords(-0.1, 0.5)
+
+        axes[-1].set_xlabel("step number")
+        # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.eps'))
+        plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
+        plt.close()
+
+        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5,
+                            labels=self.param_names, truths=self.param_id.best_param_vals)
+        # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
+        plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
+        # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
+        # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
+        plt.close()
 
     def run_sensitivity(self, param_id_output_paths):
         print('running sensitivity analysis')
@@ -669,6 +764,10 @@ class CVS0DParamID():
             # np.save(os.path.join(self.output_dir, 'ground_truth_series'), ground_truth_series)
 
         return ground_truth_consts, ground_truth_series
+    
+    def get_best_param_vals(self):
+        return self.param_id.best_param_vals
+
 
 
 class OpencorParamID():
@@ -702,6 +801,8 @@ class OpencorParamID():
         self.param_maxs = param_maxs
         self.sensitivity_param_mins = sensitivity_param_mins
         self.sensitivity_param_maxs = sensitivity_param_maxs
+        self.param_norm_obj = None
+        self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
@@ -710,6 +811,7 @@ class OpencorParamID():
         self.sim_time = sim_time
         self.pre_time = pre_time
         self.n_steps = int(self.sim_time/self.dt)
+
         self.sim_helper = self.initialise_sim_helper()
 
         # initialise
@@ -718,11 +820,14 @@ class OpencorParamID():
         self.best_cost = 999999
 
         # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
-        self.n_calls = 100
+        self.n_calls = 10000
         self.acq_func = 'EI'  # the acquisition function
         self.n_initial_points = 5
         self.acq_func_kwargs = {}
         self.random_state = 1234 # random seed
+
+        # mcmc
+        self.sampler = None
 
         self.DEBUG = DEBUG
 
@@ -732,8 +837,6 @@ class OpencorParamID():
                                 maximumStep=self.maximumStep, pre_time=self.pre_time)
 
     def run(self):
-
-
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
@@ -742,8 +845,8 @@ class OpencorParamID():
             print('WARNING Running in serial, are you sure you want to be a snail?')
 
         if rank == 0:
-          # save date as identifier for the param_id
-          np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
+            # save date as identifier for the param_id
+            np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
         print('starting param id run for rank = {} process'.format(rank))
 
@@ -754,10 +857,10 @@ class OpencorParamID():
 
         # C_T min and max was 1e-9 and 1e-5 before
 
-        param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         cost_convergence = 0.0001
         if self.param_id_method == 'bayesian':
+            print('WARNING bayesian will be deprecated')
             if rank == 0:
                 print('Running bayesian optimisation')
             param_ranges = [a for a in zip(self.param_mins, self.param_maxs)]
@@ -873,6 +976,9 @@ class OpencorParamID():
                 print(f'Number of calls (n_calls={self.n_calls}) must be greater than the '
                       f'gen alg population (num_pop={num_pop}), exiting')
                 exit()
+            if num_procs > num_pop:
+                print(f'Number of processors must be less than number of population, exiting')
+                exit()
             self.max_generations = math.floor(self.n_calls/num_pop)
             if rank == 0:
                 print(f'Running genetic algorithm with a population size of {num_pop},\n'
@@ -882,7 +988,7 @@ class OpencorParamID():
 
             if rank == 0:
                 param_vals_norm = np.random.rand(self.num_params, num_pop)
-                param_vals = param_norm_obj.unnormalise(param_vals_norm)
+                param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
             else:
                 param_vals = None
 
@@ -983,7 +1089,7 @@ class OpencorParamID():
                             print('simulation failed with params...')
                             print(param_vals_proc[:, II])
                             print('... choosing a new random point')
-                            param_vals_proc[:, II:II + 1] = param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
+                            param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
                             cost_proc[II] = 9999
                             break
 
@@ -1015,7 +1121,7 @@ class OpencorParamID():
                     cost = cost[order_indices]
                     param_vals = param_vals[:, order_indices]
                     print('Cost of first 10 of population : {}'.format(cost[:10]))
-                    param_vals_norm = param_norm_obj.normalise(param_vals)
+                    param_vals_norm = self.param_norm_obj.normalise(param_vals)
                     print('worst survivor params normed : {}'.format(param_vals_norm[:, num_survivors - 1]))
                     print('best params normed : {}'.format(param_vals_norm[:, 0]))
                     np.save(os.path.join(self.output_dir, 'best_cost'), cost[0])
@@ -1073,7 +1179,7 @@ class OpencorParamID():
                                                           mutation_weight*np.random.randn(self.num_params)
                         param_idx += 1
 
-                    param_vals = param_norm_obj.unnormalise(param_vals_norm)
+                    param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
 
                 else:
                     # non zero ranks don't do any of the ordering or mutations
@@ -1082,6 +1188,7 @@ class OpencorParamID():
             if rank == 0:
                 self.best_cost = cost[0]
                 self.best_param_vals = param_vals[:, 0]
+
 
         else:
             print(f'param_id_method {self.param_id_method} hasn\'t been implemented')
@@ -1254,12 +1361,14 @@ class OpencorParamID():
 
         return
 
-
-    def get_cost_from_params(self, param_vals, reset=True):
+    def get_cost_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
 
         # set params for this case
-        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        if param_vals_are_normalised:
+            param_vals = self.param_norm_obj.unnormalise(param_vals)
 
+        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        
         success = self.sim_helper.run()
         if success:
             pred_obs = self.sim_helper.get_results(self.obs_names)
@@ -1274,13 +1383,12 @@ class OpencorParamID():
             # simulation set cost to large,
             print('simulation failed with params...')
             print(param_vals)
-            cost = 9999
+            cost = np.inf
 
         return cost
 
 
     def get_cost_and_obs_from_params(self, param_vals, reset=True):
-
         # set params for this case
         self.sim_helper.set_param_vals(self.param_names, param_vals)
 
@@ -1347,7 +1455,6 @@ class OpencorParamID():
         return pred_obs_consts_vec, pred_obs_series_array
 
     def simulate_with_best_param_vals(self):
-
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
@@ -1374,7 +1481,6 @@ class OpencorParamID():
         # TODO print all const outputs with their variable name
 
     def simulate_once(self):
-
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
@@ -1420,6 +1526,251 @@ class OpencorParamID():
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
 
+def calculate_lnlikelihood(param_vals):
+    """
+    This function is a wrapper around the mcmc_object method
+    to calculate the lnlikelihood from model simulation.
+    It allows the emcee algorithm to only pickle the param_vals
+    and not all the attributes of the class instance.
+    """
+    return mcmc_object.get_lnlikelihood_from_params(param_vals)
+
+class OpencorMCMC():
+    """
+    Class for doing mcmc on opencor models
+    """
+
+    def __init__(self, model_path,
+                 obs_names, obs_types, weight_const_vec, weight_series_vec,
+                 param_names,
+                 ground_truth_consts, ground_truth_series,
+                 param_mins, param_maxs,
+                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
+                 DEBUG=False):
+
+        self.model_path = model_path
+        self.output_dir = None
+
+        self.obs_names = obs_names
+        self.obs_types = obs_types
+        self.weight_const_vec = weight_const_vec
+        self.weight_series_vec = weight_series_vec
+        self.param_names = param_names
+        self.num_obs = len(self.obs_names)
+        self.num_params = len(self.param_names)
+        self.ground_truth_consts = ground_truth_consts
+        self.ground_truth_series = ground_truth_series
+        self.param_mins = param_mins
+        self.param_maxs = param_maxs
+        self.param_norm_obj = None
+        self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
+
+        # TODO load this from file. Make the user define the priors
+        self.param_prior_dists = ['uniform', 'uniform', 'exponential']
+
+        # set up opencor simulation
+        self.dt = dt  # TODO this could be optimised
+        self.maximumStep = maximumStep
+        self.point_interval = self.dt
+        self.sim_time = sim_time
+        self.pre_time = pre_time
+        self.n_steps = int(self.sim_time/self.dt)
+        self.sim_helper = self.initialise_sim_helper()
+
+        # initialise
+        self.param_init = None
+        self.best_param_vals = None
+        self.best_cost = 999999
+
+        # mcmc
+        self.sampler = None
+        self.num_steps = 400
+
+        self.DEBUG = DEBUG
+
+    def initialise_sim_helper(self):
+        return SimulationHelper(self.model_path, self.dt, self.sim_time,
+                                maximumNumberofSteps=100000000,
+                                maximumStep=self.maximumStep, pre_time=self.pre_time)
+
+    def set_best_param_vals(self, best_param_vals):
+        self.best_param_vals = best_param_vals
+
+    def run(self):
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        num_procs = comm.Get_size()
+        if rank == 0:
+            print('Running mcmc')
+
+        if num_procs > 1:
+            # from pathos import multiprocessing
+            # from pathos.multiprocessing import ProcessPool
+            from schwimmbad import MPIPool
+
+            num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
+
+            if rank == 0:
+                if self.best_param_vals:
+                    best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                    # create initial params in gaussian ball around best_param_vals estimate
+                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                       0.01*np.random.randn(self.num_params, num_walkers)
+                    init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+                else:
+                    init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                    init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+
+            try:
+                pool = MPIPool() # workers dont get past this line in this try, they wait for work to do
+                if mcmc_lib == 'emcee':
+                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                                                pool=pool)
+                elif mcmc_lib == 'zeus':
+                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                                                         pool=pool)
+
+                start_time = time.time()
+                self.sampler.run_mcmc(init_param_vals.T, self.num_steps, progress=True)
+                print(f'mcmc time = {time.time() - start_time}')
+            except:
+                if rank == 0:
+                    sys.exit()
+                else:
+                    # workers pass to here
+                    pass
+
+        else:
+            num_walkers = 2*self.num_params
+
+            if self.best_param_vals:
+                best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                   0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+            else:
+                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
+
+            if mcmc_lib == 'emcee':
+                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+            elif mcmc_lib == 'zeus':
+                self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+
+            start_time = time.time()
+            self.sampler.run_mcmc(init_param_vals.T, self.num_steps) # , progress=True)
+            print(f'mcmc time = {time.time()-start_time}')
+
+        if rank == 0:
+            # TODO save chains
+            if mcmc_lib == 'emcee':
+                print(f'acceptance fraction was {self.sampler.acceptance_fraction}')
+                print(f'autocorrelation time was {self.sampler.get_autocorr_time}')
+            samples = self.sampler.get_chain()
+            mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
+            np.save(mcmc_chain_path, samples)
+            print('mcmc complete')
+            print(f'mcmc chain saved in {mcmc_chain_path}')
+
+    def get_lnprior_from_params(self, param_vals):
+        lnprior = 0
+        for idx, param_val in enumerate(param_vals):
+            prior_dist = self.param_prior_dists[idx]
+
+            if prior_dist == 'uniform':
+                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
+                    return -np.inf
+                else:
+                    #prior += 0
+                    pass
+            
+            elif prior_dist == 'exponential':
+                lamb = 1.0 # TODO make this user modifiable
+                if param_val < self.param_mins[idx]:
+                    return -np.inf
+                else:
+                    # the normalisation isnt needed here but might be nice to
+                    # make sure prior for each param is between 0 and 1
+                    lnprior += -lamb*param_val/self.param_maxs[idx]
+        return lnprior
+
+    def get_lnlikelihood_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
+        # set params for this case
+        if param_vals_are_normalised:
+            param_vals = self.param_norm_obj.unnormalise(param_vals)
+
+        lnprior = self.get_lnprior_from_params(param_vals)
+
+        if not np.isfinite(lnprior):
+            return -np.inf
+
+        self.sim_helper.set_param_vals(self.param_names, param_vals)
+        success = self.sim_helper.run()
+        if success:
+            pred_obs = self.sim_helper.get_results(self.obs_names)
+
+            lnlikelihood = self.get_lnlikelihood_from_obs(pred_obs)
+
+            # reset params
+            if reset:
+                self.sim_helper.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed with params...')
+            print(param_vals)
+            return -np.inf
+
+        return lnprior + lnlikelihood
+
+
+    def get_lnlikelihood_from_obs(self, pred_obs):
+
+        pred_obs_consts_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+        # calculate error between the observables of this set of parameters
+        # and the ground truth
+        cost = self.lnlikelihood_calc(pred_obs_consts_vec, pred_obs_series_array)
+
+        return cost
+
+
+    def lnlikelihood_calc(self, prediction_consts, prediction_series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+        #                        self.ground_truth_consts)/np.minimum(prediction_consts,
+        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
+        lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(prediction_consts -
+                               self.ground_truth_consts)/self.ground_truth_consts, 2))
+        # if prediction_series:
+            # TODO Have not included cost from series error yet
+            # cost +=
+            # pass
+
+        return lnlikelihood
+    
+    def get_pred_obs_vec_and_array(self, pred_obs):
+
+        pred_obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))
+        pred_obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
+        const_count = 0
+        series_count = 0
+        for JJ in range(len(pred_obs)):
+            if self.obs_types[JJ] == 'mean':
+                pred_obs_consts_vec[const_count] = np.mean(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'max':
+                pred_obs_consts_vec[const_count] = np.max(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'min':
+                pred_obs_consts_vec[const_count] = np.min(pred_obs[JJ, :])
+                const_count += 1
+            elif self.obs_types[JJ] == 'series':
+                pred_obs_series_array[series_count, :] = pred_obs[JJ, :]
+                series_count += 1
+                pass
+        return pred_obs_consts_vec, pred_obs_series_array
+    
+    def set_output_dir(self, output_dir):
+        self.output_dir = output_dir
 
 class ProgressBar(object):
     """
