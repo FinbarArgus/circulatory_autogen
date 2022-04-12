@@ -42,7 +42,7 @@ if __name__ == '__main__':
             sensitivity_params_path = input_params_path
 
         param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
-        run_sensitivity = sys.argv[4]
+        run_sensitivity = sys.argv[4] in ['True', 'true']
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)

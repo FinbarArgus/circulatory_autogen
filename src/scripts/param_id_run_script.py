@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
         best_param_vals = param_id.get_best_param_vals()
         param_id.close_simulation()
-        do_mcmc = sys.argv[6]
+        do_mcmc = sys.argv[6] in ['True', 'true']
         if do_mcmc:
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
                                     input_params_path=input_params_path,
