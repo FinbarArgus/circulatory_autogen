@@ -24,7 +24,7 @@ num_param_id_runs=1
 run_sensitivity=False
 
 ## mcmc inputs
-do_mcmc=True
+do_mcmc=False
 
 # This for 3compartment
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 

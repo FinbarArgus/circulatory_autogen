@@ -419,7 +419,7 @@
     "vessel_type":"heart_new_valve",
     "BC_type":"vp",
     "module_format":"cellml",
-    "module_file":"BG_modules.cellml",
+    "module_file":"heart_modules.cellml",
     "module_type":"heart_new_valve",
     "entrance_ports":
     [
@@ -449,7 +449,7 @@
     ],
     "variables_and_units":
     [
-      ["rho", "kg_per_m3", "access", "constant"],
+      ["rho", "Js2_per_m5", "access", "constant"],
       ["T", "second", "access", "constant"],
       ["mt", "second", "access", "variable"],
       ["u_ra", "J_per_m3", "access", "variable"],
@@ -527,7 +527,7 @@
     "vessel_type":"heart",
     "BC_type":"vp",
     "module_format":"cellml",
-    "module_file":"BG_modules.cellml",
+    "module_file":"heart_modules.cellml",
     "module_type":"heart_simple",
     "entrance_ports":
     [
@@ -557,7 +557,7 @@
     ],
     "variables_and_units":
     [
-      ["rho", "kg_per_m3", "access", "constant"],
+      ["rho", "Js2_per_m5", "access", "constant"],
       ["T", "second", "access", "constant"],
       ["mt", "second", "access", "variable"],
       ["u_ra", "J_per_m3", "access", "variable"],
