@@ -1,15 +1,68 @@
-starting script for rank = 0
-starting script for rank = 2
-starting script for rank = 3
 starting script for rank = 1
-starting param id run for rank = 3 process
-starting param id run for rank = 1 process
+starting script for rank = 7
+starting script for rank = 13
+starting script for rank = 14
+starting script for rank = 15
+starting script for rank = 16
+starting script for rank = 21
+starting script for rank = 28
+starting script for rank = 4
+starting script for rank = 6
+starting script for rank = 9
+starting script for rank = 18
+starting script for rank = 8
+starting script for rank = 26
+starting script for rank = 25
+starting script for rank = 11
+starting script for rank = 22
+starting script for rank = 24
+starting script for rank = 0
+starting script for rank = 27
+starting script for rank = 5
+starting script for rank = 10
+starting script for rank = 12
+starting script for rank = 17
+starting script for rank = 20
+starting script for rank = 30
+starting script for rank = 23
+starting script for rank = 2
+starting script for rank = 29
+starting script for rank = 3
+starting script for rank = 19
+starting param id run for rank = 20 process
+starting param id run for rank = 12 process
+starting param id run for rank = 18 process
+starting param id run for rank = 7 process
+starting param id run for rank = 30 process
+starting param id run for rank = 25 process
+starting param id run for rank = 14 process
 starting param id run for rank = 0 process
 Running genetic algorithm with a population size of 744,
 and a maximum number of generations of 1
 generation num: 1
-starting param id run for rank = 2 process
 population per processor is
-[186 186 186 186]
- this generation is 1% done
- this generation is 1% done
+[24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24 24
+ 24 24 24 24 24 24 24]
+starting param id run for rank = 16 process
+starting param id run for rank = 13 process
+starting param id run for rank = 11 process
+starting param id run for rank = 4 process
+starting param id run for rank = 21 process
+starting param id run for rank = 26 process
+starting param id run for rank = 8 process
+starting param id run for rank = 15 process
+starting param id run for rank = 2 process
+starting param id run for rank = 29 process
+starting param id run for rank = 3 process
+starting param id run for rank = 9 process
+starting param id run for rank = 17 process
+starting param id run for rank = 28 process
+starting param id run for rank = 10 process
+starting param id run for rank = 23 process
+starting param id run for rank = 1 process
+starting param id run for rank = 19 process
+starting param id run for rank = 22 process
+starting param id run for rank = 6 process
+starting param id run for rank = 27 process
+starting param id run for rank = 24 process
+starting param id run for rank = 5 process

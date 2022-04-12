@@ -486,7 +486,7 @@
 </component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="heart">
-   <variable name="rho" public_interface="in" units="kg_per_m3"/>
+   <variable name="rho" public_interface="in" units="Js2_per_m5"/>
    <variable name="T" public_interface="in" units="second"/>
    <variable name="mt" public_interface="in" units="second"/>
    <variable name="u_ra" public_interface="in" units="J_per_m3"/>

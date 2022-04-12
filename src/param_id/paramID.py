@@ -245,7 +245,7 @@ class CVS0DParamID():
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
-                    if self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
+                    elif self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
                         conversion = no_conv
                         axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$m/s$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
@@ -1566,7 +1566,7 @@ class OpencorMCMC():
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         # TODO load this from file. Make the user define the priors
-        self.param_prior_dists = ['uniform', 'uniform', 'exponential']
+        self.param_prior_dists = None# ['uniform', 'uniform', 'exponential']
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
@@ -1675,9 +1675,13 @@ class OpencorMCMC():
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
         for idx, param_val in enumerate(param_vals):
-            prior_dist = self.param_prior_dists[idx]
+            # TODO input param_prior_dists
+            if self.param_prior_dists:
+                prior_dist = self.param_prior_dists[idx]
+            else:
+                prior_dist = None
 
-            if prior_dist == 'uniform':
+            if not prior_dist or prior_dist == 'uniform':
                 if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
                     return -np.inf
                 else:

@@ -3134,7 +3134,7 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="0.00069934" name="q_lv" units="m3"/>
+        <variable initial_value="2.0913e-03" name="q_lv" units="m3"/>
         <variable initial_value="1e-05" name="q_rv" units="m3"/>
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
@@ -4388,7 +4388,7 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="0.00069934" name="q_lv" units="m3"/>
+        <variable initial_value="2.0913e-03" name="q_lv" units="m3"/>
         <variable initial_value="1e-05" name="q_rv" units="m3"/>
         <variable initial_value="4e-06" name="q_la" units="m3"/>
         <variable initial_value="4e-06" name="q_ra" units="m3"/>
