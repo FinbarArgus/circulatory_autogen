@@ -416,11 +416,11 @@
     ]
   },
   {
-    "vessel_type":"heart",
+    "vessel_type":"heart_new_valve",
     "BC_type":"vp",
     "module_format":"cellml",
     "module_file":"BG_modules.cellml",
-    "module_type":"heart_simple",
+    "module_type":"heart_new_valve",
     "entrance_ports":
     [
       {
@@ -513,6 +513,106 @@
       ["Rmod_valve_puv", "dimensionless", "access", "constant"],
       ["Rmod_valve_aov", "dimensionless", "access", "constant"],
       ["Rmod_valve_miv", "dimensionless", "access", "constant"],
+      ["A_nn_trv", "m2", "access", "constant"],
+      ["A_nn_puv", "m2", "access", "constant"],
+      ["A_nn_miv", "m2", "access", "constant"],
+      ["A_nn_aov", "m2", "access", "constant"],
+      ["A_eff_trv", "m2", "access", "variable"],
+      ["A_eff_puv", "m2", "access", "variable"],
+      ["A_eff_miv", "m2", "access", "variable"],
+      ["A_eff_aov", "m2", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"heart",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"heart_simple",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_ivc","u_ra"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_svc","u_ra"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_pvn","u_la"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_aov","u_root"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_puv","u_par"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["rho", "kg_per_m3", "access", "constant"],
+      ["T", "second", "access", "constant"],
+      ["mt", "second", "access", "variable"],
+      ["u_ra", "J_per_m3", "access", "variable"],
+      ["u_rv", "J_per_m3", "access", "variable"],
+      ["u_la", "J_per_m3", "access", "variable"],
+      ["u_lv", "J_per_m3", "access", "variable"],
+      ["q_ra", "m3", "access", "variable"],
+      ["q_rv", "m3", "access", "variable"],
+      ["q_la", "m3", "access", "variable"],
+      ["q_lv", "m3", "access", "variable"],
+      ["q_ra_0", "m3", "access", "constant"],
+      ["q_rv_0", "m3", "access", "constant"],
+      ["q_la_0", "m3", "access", "constant"],
+      ["q_lv_0", "m3", "access", "constant"],
+      ["T_ac", "second", "access", "constant"],
+      ["T_ar", "second", "access", "constant"],
+      ["t_astart", "second", "access", "constant"],
+      ["t_astart_norm", "second", "access", "variable"],
+      ["chi_a", "dimensionless", "access", "variable"],
+      ["chi_afloor", "dimensionless", "access", "variable"],
+      ["T_vc", "second", "access", "constant"],
+      ["T_vr", "second", "access", "constant"],
+      ["t_vstart", "second", "access", "constant"],
+      ["t_vstart_norm", "second", "access", "variable"],
+      ["E_ra_A", "J_per_m6", "access", "constant"],
+      ["E_ra_B", "J_per_m6", "access", "constant"],
+      ["E_rv_A", "J_per_m6", "access", "constant"],
+      ["E_rv_B", "J_per_m6", "access", "constant"],
+      ["E_la_A", "J_per_m6", "access", "constant"],
+      ["E_la_B", "J_per_m6", "access", "constant"],
+      ["E_lv_A", "J_per_m6", "access", "constant"],
+      ["E_lv_B", "J_per_m6", "access", "constant"],
+      ["e_a", "dimensionless", "access", "variable"],
+      ["e_v", "dimensionless", "access", "variable"],
+      ["v_trv", "m3_per_s", "access", "variable"],
+      ["v_puv", "m3_per_s", "access", "variable"],
+      ["v_miv", "m3_per_s", "access", "variable"],
+      ["v_aov", "m3_per_s", "access", "variable"],
+      ["K_vo_trv", "m3_per_Js", "access", "constant"],
+      ["K_vo_puv", "m3_per_Js", "access", "constant"],
+      ["K_vo_miv", "m3_per_Js", "access", "constant"],
+      ["K_vo_aov", "m3_per_Js", "access", "constant"],
+      ["K_vc_trv", "m3_per_Js", "access", "constant"],
+      ["K_vc_puv", "m3_per_Js", "access", "constant"],
+      ["K_vc_miv", "m3_per_Js", "access", "constant"],
+      ["K_vc_aov", "m3_per_Js", "access", "constant"],
+      ["M_rg_trv", "dimensionless", "access", "constant"],
+      ["M_rg_puv", "dimensionless", "access", "constant"],
+      ["M_rg_miv", "dimensionless", "access", "constant"],
+      ["M_rg_aov", "dimensionless", "access", "constant"],
+      ["M_st_trv", "dimensionless", "access", "constant"],
+      ["M_st_puv", "dimensionless", "access", "constant"],
+      ["M_st_miv", "dimensionless", "access", "constant"],
+      ["M_st_aov", "dimensionless", "access", "constant"],
+      ["l_eff", "metre", "access", "constant"],
       ["A_nn_trv", "m2", "access", "constant"],
       ["A_nn_puv", "m2", "access", "constant"],
       ["A_nn_miv", "m2", "access", "constant"],
