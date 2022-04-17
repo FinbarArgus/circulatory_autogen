@@ -356,10 +356,17 @@ class CVS0DParamID():
         # samples = samples[::thin, :, :]
         # discarding samples isnt needed because we start an "optimal" point
         # TODO include a user defined burn in if we aren't starting from 
-        # an optimal point.
+        #  an optimal point.
         flat_samples = samples.reshape(-1, num_params)
+        means = np.zeros((num_params))
+        conf_ivals = np.zeros((num_params, 2))
 
-        # TODO do this in plotting function instead
+        for param_idx in range(num_params):
+            means[param_idx] = np.mean(flat_samples[:, param_idx])
+            conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 95])
+
+        print(conf_ivals)
+
         fig, axes = plt.subplots(num_params, figsize=(10, 7), sharex=True)
         for i in range(num_params):
             ax = axes[i]
@@ -373,7 +380,7 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
-        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5,
+        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.95),
                             labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
@@ -1679,7 +1686,10 @@ class OpencorMCMC():
             if self.param_prior_dists:
                 prior_dist = self.param_prior_dists[idx]
             else:
-                prior_dist = None
+                if self.param_names.startswith('C'): # TODO this is temporary until we input priors
+                    prior_dist = 'exponential'
+                else:
+                    prior_dist = None
 
             if not prior_dist or prior_dist == 'uniform':
                 if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:

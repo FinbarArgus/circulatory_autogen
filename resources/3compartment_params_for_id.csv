@@ -1,4 +1,4 @@
 vessel_name,                  param_name,       param_type,  min,        max
-heart,                        q_lv,             state,       600e-6,     1800e-6 
-systemic_T,                   R_T,              const,       1e8,        7e8
+heart,                        q_lv,             state,       200e-6,     3000e-6 
+systemic_T,                   R_T,              const,       1e7,        1e9
 venous_svc,                   C,                const,       1e-7,       20e-7
