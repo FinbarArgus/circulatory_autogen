@@ -973,10 +973,16 @@ class OpencorParamID():
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
         elif self.param_id_method == 'genetic_algorithm':
-            num_elite = 12
-            num_survivors = 48
-            num_mutations_per_survivor = 12
-            num_cross_breed = 120
+            if self.DEBUG:
+                num_elite = 1
+                num_survivors = 2
+                num_mutations_per_survivor = 2
+                num_cross_breed = 0
+            else:
+                num_elite = 12
+                num_survivors = 48
+                num_mutations_per_survivor = 12
+                num_cross_breed = 120
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
             if self.n_calls < num_pop:
@@ -1686,7 +1692,7 @@ class OpencorMCMC():
             if self.param_prior_dists:
                 prior_dist = self.param_prior_dists[idx]
             else:
-                if self.param_names.startswith('C'): # TODO this is temporary until we input priors
+                if np.any([param_name.endswith('C') for param_name in self.param_names[idx]]) : # TODO this is temporary until we input priors
                     prior_dist = 'exponential'
                 else:
                     prior_dist = None
