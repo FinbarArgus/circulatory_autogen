@@ -1706,7 +1706,7 @@ class OpencorMCMC():
             
             elif prior_dist == 'exponential':
                 lamb = 1.0 # TODO make this user modifiable
-                if param_val < self.param_mins[idx]:
+                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
                     return -np.inf
                 else:
                     # the normalisation isnt needed here but might be nice to
