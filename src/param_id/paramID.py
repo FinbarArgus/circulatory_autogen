@@ -359,12 +359,13 @@ class CVS0DParamID():
         #  an optimal point.
         flat_samples = samples.reshape(-1, num_params)
         means = np.zeros((num_params))
-        conf_ivals = np.zeros((num_params, 2))
+        conf_ivals = np.zeros((num_params, 3))
 
         for param_idx in range(num_params):
             means[param_idx] = np.mean(flat_samples[:, param_idx])
-            conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 95])
+            conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 50, 95])
 
+        print('5th, 50th, and 95th percentile parameter values are:')
         print(conf_ivals)
 
         fig, axes = plt.subplots(num_params, figsize=(10, 7), sharex=True)
@@ -380,7 +381,7 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
-        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.95),
+        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                             labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
