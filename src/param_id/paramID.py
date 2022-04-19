@@ -1212,7 +1212,6 @@ class OpencorParamID():
             comm.Bcast(best_cost_in_array, root=0)
             self.best_cost = best_cost_in_array[0]
             comm.Bcast(self.best_param_vals, root=0)
-            print(f'rank = {rank}, best_cost = {self.best_cost}, best_param_vals = {self.best_param_vals}')
 
 
 
@@ -1621,7 +1620,6 @@ class OpencorMCMC():
 
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
-        print(f'2 rank = {MPI.COMM_WORLD.Get_rank()}, self.best_param_vals = {self.best_param_vals}')
 
     def run(self):
         comm = MPI.COMM_WORLD
@@ -1637,7 +1635,6 @@ class OpencorMCMC():
 
             num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
-            print(f'rank = {rank}, self.best_param_vals = {self.best_param_vals}')
             if rank == 0:
                 if self.best_param_vals is not None:
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
