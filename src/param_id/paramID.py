@@ -185,9 +185,9 @@ class CVS0DParamID():
     
     def set_best_param_vals(self, best_param_vals):
         if self.mcmc_instead:
-            mcmc_object.set_best_param_vals = best_param_vals
+            mcmc_object.set_best_param_vals(best_param_vals)
         else:
-            self.param_id.set_best_param_vals = best_param_vals
+            self.param_id.set_best_param_vals(best_param_vals)
 
     def plot_outputs(self):
         if not self.best_output_calculated:
@@ -1203,7 +1203,17 @@ class OpencorParamID():
 
             if rank == 0:
                 self.best_cost = cost[0]
+                best_cost_in_array = np.array([self.best_cost])
                 self.best_param_vals = param_vals[:, 0]
+            else:
+                best_cost_in_array = np.empty(1, dtype=float)
+                self.best_param_vals = np.empty(self.num_params, dtype=float)
+
+            comm.Bcast(best_cost_in_array, root=0)
+            self.best_cost = best_cost_in_array[0]
+            comm.Bcast(self.best_param_vals, root=0)
+            print(f'rank = {rank}, best_cost = {self.best_cost}, best_param_vals = {self.best_param_vals}')
+
 
 
         else:
@@ -1611,6 +1621,7 @@ class OpencorMCMC():
 
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
+        print(f'2 rank = {MPI.COMM_WORLD.Get_rank()}, self.best_param_vals = {self.best_param_vals}')
 
     def run(self):
         comm = MPI.COMM_WORLD
@@ -1626,8 +1637,9 @@ class OpencorMCMC():
 
             num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
+            print(f'rank = {rank}, self.best_param_vals = {self.best_param_vals}')
             if rank == 0:
-                if self.best_param_vals:
+                if self.best_param_vals is not None:
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                     # create initial params in gaussian ball around best_param_vals estimate
                     init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
