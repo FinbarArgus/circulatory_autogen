@@ -19,9 +19,9 @@ num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=10000
+num_calls_to_function=3000
 num_param_id_runs=1 # this allows multiple runs of the param_id to check uniqueness. 
-run_sensitivity=False
+run_sensitivity=True
 
 ## mcmc inputs
 do_mcmc=True

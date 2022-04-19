@@ -68,7 +68,7 @@ if __name__ == '__main__':
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
         if file_name_prefix == '3compartment' or 'FTU_wCVS':
-            pre_time = 16.0
+            pre_time = 20.0
         else: 
             pre_time = 20.0
         sim_time = 2.0

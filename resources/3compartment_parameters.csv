@@ -58,5 +58,5 @@ C_T_systemic,m6_per_J,systemic,1e-10,small_chosen
 alpha_systemic,dimensionless,systemic,1.0,not_used
 v_nom_systemic,m3_per_s,systemic,0.0,not_used
 R_venous_svc,Js_per_m6,systemic,1114600.0,small_chosen
-C_venous_svc,m6_per_J,systemic,3.6803e-08,to_be_identified
+C_venous_svc,m6_per_J,systemic,1e-6,to_be_identified
 I_venous_svc,Js2_per_m6,systemic,1.0e-3,small_chosen
