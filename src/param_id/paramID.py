@@ -1600,7 +1600,7 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        self.num_steps = 400
+        self.num_steps = 600
 
         self.DEBUG = DEBUG
 
@@ -1647,7 +1647,7 @@ class OpencorMCMC():
                                                          pool=pool)
 
                 start_time = time.time()
-                self.sampler.run_mcmc(init_param_vals.T, self.num_steps, progress=True)
+                self.sampler.run_mcmc(init_param_vals.T, self.num_steps, progress=True, tune=True)
                 print(f'mcmc time = {time.time() - start_time}')
             except:
                 if rank == 0:
