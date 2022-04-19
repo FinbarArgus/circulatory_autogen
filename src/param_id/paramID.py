@@ -350,6 +350,8 @@ class CVS0DParamID():
         num_steps = samples.shape[0] 
         num_walkers = samples.shape[1] 
         num_params = samples.shape[2] # TODO check this is the same as objects num_params
+        if num_params != self.param_id.num_params:
+            print('num params in mcmc chain doesn\'t equal param_id number of params')
         # discard first num_steps/10 samples
         # samples = samples[samples.shape[0]//10:, :, :]
         # thin = 10
@@ -1750,9 +1752,9 @@ class OpencorMCMC():
         pred_obs_consts_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
-        cost = self.lnlikelihood_calc(pred_obs_consts_vec, pred_obs_series_array)
+        lnlikelihood = self.lnlikelihood_calc(pred_obs_consts_vec, pred_obs_series_array)
 
-        return cost
+        return lnlikelihood
 
 
     def lnlikelihood_calc(self, prediction_consts, prediction_series=None):
