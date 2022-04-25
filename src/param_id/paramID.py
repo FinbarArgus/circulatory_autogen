@@ -1270,10 +1270,10 @@ class OpencorParamID():
 
         for obs_idx in range(self.num_obs):
             #ignore series data for now
-            if self.obs_types[obs_idx]!="series":
+            if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
-                #gt_scalefactor.append(self.weight_const_vec[x_index]/self.ground_truth_consts[x_index])
-                gt_scalefactor.append(1/self.ground_truth_consts[x_index])
+                gt_scalefactor.append(self.weight_const_vec[x_index]/self.ground_truth_consts[x_index])
+                # gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 objs_index.append(x_index)
                 x_index = x_index + 1
 
@@ -1284,10 +1284,12 @@ class OpencorParamID():
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
             # FA: It might be worth testing this out with a value smaller than 0.01 here
-            param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.001
-            param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
-            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
-            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
+            # param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
+            # param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
+            # param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
+            # param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
+            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]]*1.1
+            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]]*0.9
             up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
                                                                                  param_vec_up, self.obs_names,
                                                                                  absolute=True)
@@ -1301,7 +1303,7 @@ class OpencorParamID():
                 #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
                     dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
-                    dObs_param = dObs_param*param_vec_range*gt_scalefactor[objs_index[j]]
+                    dObs_param = dObs_param*master_param_values[sensitivity_index[i]]*gt_scalefactor[objs_index[j]]
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i,j] = dObs_param
