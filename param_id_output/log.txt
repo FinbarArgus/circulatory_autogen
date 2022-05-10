@@ -1,406 +1,61 @@
-starting script for rank = 31
-starting script for rank = 5
-starting script for rank = 24
-starting script for rank = 26
-starting script for rank = 8
-starting script for rank = 16
-starting script for rank = 25
-starting script for rank = 11
-starting script for rank = 29
-starting script for rank = 18
-starting script for rank = 20
-starting script for rank = 2
-starting script for rank = 23
-starting script for rank = 10
-starting script for rank = 14
-starting script for rank = 9
-starting script for rank = 21
-starting script for rank = 30
-starting script for rank = 6
-starting script for rank = 12
-starting script for rank = 7
-starting script for rank = 1
 starting script for rank = 0
-starting script for rank = 4
-starting script for rank = 15
-starting script for rank = 19
-starting script for rank = 22
-starting script for rank = 3
-starting script for rank = 28
-starting script for rank = 13
-starting script for rank = 27
-starting script for rank = 17
-starting param id run for rank = 9 process
-starting param id run for rank = 18 process
-starting param id run for rank = 26 process
-starting param id run for rank = 27 process
-starting param id run for rank = 19 process
-starting param id run for rank = 16 process
-starting param id run for rank = 7 process
-starting param id run for rank = 6 process
-starting param id run for rank = 10 process
-starting param id run for rank = 23 process
-starting param id run for rank = 4 process
-starting param id run for rank = 24 process
-starting param id run for rank = 17 process
-starting param id run for rank = 8 process
-starting param id run for rank = 13 process
-starting param id run for rank = 12 process
-starting param id run for rank = 14 process
-starting param id run for rank = 28 process
-starting param id run for rank = 5 process
-starting param id run for rank = 11 process
-starting param id run for rank = 22 process
-starting param id run for rank = 2 process
-starting param id run for rank = 30 process
-starting param id run for rank = 15 process
-starting param id run for rank = 3 process
-starting param id run for rank = 29 process
-starting param id run for rank = 21 process
-starting param id run for rank = 25 process
-starting param id run for rank = 31 process
-starting param id run for rank = 20 process
+starting script for rank = 1
+starting script for rank = 2
+starting param id run for rank = 1 process
 starting param id run for rank = 0 process
-Running genetic algorithm with a population size of 744,
-and a maximum number of generations of 4
+Running genetic algorithm with a population size of 6,
+and a maximum number of generations of 1
 generation num: 1
 population per processor is
-[24 24 24 24 24 24 24 24 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23
- 23 23 23 23 23 23 23 23]
-starting param id run for rank = 1 process
- this generation is 4% done
- this generation is 8% done
- this generation is 12% done
- this generation is 17% done
- this generation is 21% done
- this generation is 25% done
- this generation is 29% done
- this generation is 33% done
- this generation is 38% done
- this generation is 42% done
- this generation is 46% done
+[2 2 2]
+starting param id run for rank = 2 process
  this generation is 50% done
- this generation is 54% done
- this generation is 58% done
- this generation is 62% done
- this generation is 67% done
- this generation is 71% done
- this generation is 75% done
- this generation is 79% done
- this generation is 83% done
- this generation is 88% done
- this generation is 92% done
- this generation is 96% done
-Cost of first 10 of population : [0.05597807 0.11751068 0.12656798 0.13870815 0.14328843 0.14554065
- 0.17112248 0.17410874 0.17887015 0.17936631]
-worst survivor params normed : [0.71426963 0.46108443 0.33390881 0.67291787 0.77437618]
-best params normed : [0.82834541 0.24168269 0.11693512 0.73933036 0.17834444]
-generation num: 2
- this generation is 4% done
- this generation is 8% done
- this generation is 12% done
- this generation is 17% done
- this generation is 21% done
- this generation is 25% done
- this generation is 29% done
- this generation is 33% done
- this generation is 38% done
- this generation is 42% done
- this generation is 46% done
- this generation is 50% done
- this generation is 54% done
- this generation is 58% done
- this generation is 62% done
- this generation is 67% done
- this generation is 71% done
- this generation is 75% done
- this generation is 79% done
- this generation is 83% done
- this generation is 88% done
- this generation is 92% done
- this generation is 96% done
-Cost of first 10 of population : [0.03693559 0.04546762 0.04823318 0.05566381 0.05597807 0.05835678
- 0.06574246 0.06762326 0.07547744 0.07620427]
-worst survivor params normed : [0.81592102 0.28767022 0.29253471 0.48538901 0.35817946]
-best params normed : [0.86885207 0.19768116 0.10326944 0.77719966 0.17824199]
-generation num: 3
- this generation is 4% done
- this generation is 8% done
- this generation is 12% done
- this generation is 17% done
- this generation is 21% done
- this generation is 25% done
- this generation is 29% done
- this generation is 33% done
- this generation is 38% done
- this generation is 42% done
- this generation is 46% done
- this generation is 50% done
- this generation is 54% done
- this generation is 58% done
- this generation is 62% done
- this generation is 67% done
- this generation is 71% done
- this generation is 75% done
- this generation is 79% done
- this generation is 83% done
- this generation is 88% done
- this generation is 92% done
- this generation is 96% done
-Cost of first 10 of population : [0.03523323 0.03640423 0.03693559 0.03876884 0.04047682 0.04146372
- 0.04226209 0.04236293 0.04478064 0.04546762]
-worst survivor params normed : [0.96579091 0.16967229 0.22450426 0.76250448 0.08806714]
-best params normed : [0.86110761 0.20361453 0.10375305 0.88443385 0.19980454]
-generation num: 4
- this generation is 4% done
- this generation is 8% done
- this generation is 12% done
- this generation is 17% done
- this generation is 21% done
- this generation is 25% done
- this generation is 29% done
- this generation is 33% done
- this generation is 38% done
- this generation is 42% done
- this generation is 46% done
- this generation is 50% done
- this generation is 54% done
- this generation is 58% done
- this generation is 62% done
- this generation is 67% done
- this generation is 71% done
- this generation is 75% done
- this generation is 79% done
- this generation is 83% done
- this generation is 88% done
- this generation is 92% done
- this generation is 96% done
-Cost of first 10 of population : [0.03523323 0.03581441 0.03586254 0.03640423 0.03693559 0.03730152
- 0.03738815 0.03817437 0.03841826 0.03876884]
-worst survivor params normed : [0.86768636 0.19124795 0.09234294 0.74483659 0.23458842]
-best params normed : [0.86110761 0.20361453 0.10375305 0.88443385 0.19980454]
-rank = 0, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
+ this generation is 100% done
+Cost of first 10 of population : [0.20258097 0.24722307 0.55543789 2.01962635 2.04563601 2.45338283]
+worst survivor params normed : [0.41484324 0.31283671 0.10741849 0.07495896 0.66874635 0.69548539]
+best params normed : [0.98254021 0.34783474 0.77274277 0.06639103 0.82356329 0.51326685]
 
 parameter identification is complete
-init params     : [[0.0011649], [321560000.0], [1.2028e-08], [3000.0], [10664000.0]]
-best fit params : [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-best cost       : 0.035233233659558195
-rank = 6, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 13, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 15, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 2, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 12, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 16, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 4, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 11, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 3, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 14, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 1, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 19, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 21, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 7, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 8, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 20, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 9, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 26, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 25, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 23, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 18, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 22, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 29, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 31, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 27, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 5, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 30, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 28, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 17, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 10, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 24, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 24, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 23, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 31, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 0, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
+init params     : [[0.0011649], [321560000.0], [1.2028e-08], [1.7983e-06], [3000.0], [10664000.0]]
+best fit params : [1.57555630e-03 3.48486905e+08 7.77287915e-08 7.57271188e-07
+ 8.41206965e+03 1.63714717e+07]
+best cost       : 0.20258097096562558
+running sensitivity analysis
+sensitivity analysis complete
+The model is NOT identifiable with 6 parameters
+determining which parameters to remove from identifying set
 Running mcmc
-2 rank = 3, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 30, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 10, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 7, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 13, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 11, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 15, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 9, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 6, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 17, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 4, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 18, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 19, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 25, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 0, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 5, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 26, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 13, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 31, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 27, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 7, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 30, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 23, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 3, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 29, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 24, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 2, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 10, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 22, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 20, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 8, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 1, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 21, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 6, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 9, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 15, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 11, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 16, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 18, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 25, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 4, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 26, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 5, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 17, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 19, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 14, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 27, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 28, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 12, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 29, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 8, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 22, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 2, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 20, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 21, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 1, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 16, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 14, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 28, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 12, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-mcmc time = 6158.356217384338
-acceptance fraction was [0.36333333 0.36833333 0.38166667 0.45166667 0.41166667 0.335
- 0.37833333 0.365      0.39333333 0.39833333 0.40166667 0.34833333
- 0.35833333 0.41166667 0.39333333 0.36666667 0.40166667 0.39166667
- 0.36       0.44166667 0.4        0.36833333 0.41666667 0.39833333
- 0.37166667 0.41       0.445      0.41166667 0.35833333 0.415
- 0.44       0.40166667 0.425      0.455      0.37333333 0.41333333
- 0.365      0.34833333 0.395      0.38333333 0.355      0.34833333
- 0.38833333 0.4        0.375      0.37333333 0.42       0.41166667
- 0.41666667 0.32166667 0.33833333 0.355      0.37166667 0.43333333
- 0.38166667 0.37666667 0.43333333 0.37666667 0.33166667 0.40833333
- 0.38166667 0.38       0.44166667 0.35166667 0.34       0.395
- 0.36833333 0.37833333 0.37333333 0.31666667 0.34833333 0.36166667
- 0.45166667 0.33166667 0.41833333 0.355      0.32666667 0.34166667
- 0.34       0.37166667 0.31333333 0.38833333 0.43       0.37
- 0.37833333 0.4        0.405      0.34166667 0.31833333 0.40666667
- 0.40333333 0.34       0.42166667 0.35333333 0.31166667 0.37333333
- 0.33333333 0.38       0.34333333 0.45333333 0.35       0.4
- 0.29833333 0.35166667 0.35833333 0.33666667 0.42166667 0.38
- 0.365      0.35333333 0.395      0.4        0.36833333 0.42666667
- 0.335      0.39666667 0.35833333 0.42166667 0.43666667 0.40666667
- 0.42333333 0.36166667 0.40666667 0.39166667 0.465      0.365
- 0.41       0.38      ]
-autocorrelation time was <bound method EnsembleSampler.get_autocorr_time of <emcee.ensemble.EnsembleSampler object at 0x7ff9ca670750>>
+mcmc time = 1363.0649070739746
+acceptance fraction was [0.6 0.5 0.6 0.7 0.9 0.7 0.6 0.3 0.5 0.8 0.8 0.6 0.8 0.7 0.6 0.4 0.6 0.7
+ 0.4 0.5 0.5 0.3 0.8 0.1 1.  0.2 0.3 0.6 0.6 0.5 0.8 0.2 0.3 0.5 0.4 0.2
+ 0.3 0.2 0.6 0.6 0.2 0.4 0.4 0.5 0.2 0.5 0.5 0.7 0.7 0.7 0.8 0.5 0.2 0.6
+ 0.9 0.9 0.2 0.5 0.6 0.6 0.4 0.6 0.9 0.4 0.4 0.5 0.5 0.7 0.7 0.7 0.2 0.1
+ 0.8 0.5 0.5 0.6 0.5 0.7 0.4 0.6 0.6 0.5 0.7 0.5 0.6 0.6 0.2 0.3 0.4 0.4
+ 0.5 0.7 0.7 0.7 0.6 0.4 0.6 0.2 0.8 0.5 0.7 0.6 0.7 0.2 0.7 0.2 0.9 0.8
+ 0.2 0.5 0.2 0.8 0.6 0.7 0.5 0.3 0.7 0.5 0.9 0.8 0.2 0.4 0.3 0.7 0.5 0.5
+ 0.4 0.5]
+autocorrelation time was <bound method EnsembleSampler.get_autocorr_time of <emcee.ensemble.EnsembleSampler object at 0x7f7596962bd0>>
 mcmc complete
 mcmc chain saved in ../src/scripts/../../src/param_id/../../param_id_output/genetic_algorithm_3compartment_observables_biobeat_BB128/mcmc_chain.npy
+plotting mcmc results
+5th, 50th, and 95th percentile parameter values are:
+[[1.47135161e-03 1.57660760e-03 1.59872868e-03]
+ [2.73675610e+08 3.47787106e+08 4.29854952e+08]
+ [7.08027631e-08 7.77299980e-08 8.31441713e-08]
+ [2.52396246e-07 7.65978131e-07 1.44454571e-06]
+ [7.92282690e+03 8.39794301e+03 8.88517159e+03]
+ [1.42048777e+07 1.63536355e+07 1.81191842e+07]]
+plotting mcmc results
+Traceback (most recent call last):
+  File "../src/scripts/sequential_param_id_run_script.py", line 85, in <module>
+    seq_param_id.run()
+  File "../src/scripts/../../src/param_id/sequential_paramID.py", line 122, in run
+    mcmc.calculate_mcmc_identifiability(second_deriv_threshold=self.second_deriv_threshold)
+  File "../src/scripts/../../src/param_id/paramID.py", line 460, in calculate_mcmc_identifiability
+    dist_params, _ = curve_fit(dist_func, bin_means_norm, total_in_each_bin, maxfev=2000)
+  File "/opt/OpenCOR-2021-10-05-Linux/python/lib/python3.7/site-packages/scipy/optimize/minpack.py", line 794, in curve_fit
+    raise RuntimeError("Optimal parameters not found: " + errmsg)
+RuntimeError: Optimal parameters not found: Number of calls to function has reached maxfev = 2000.
+
+Usage: parameter_id_method file_name_prefix num_calls_to_function path_to_obs_file.json
+e.g. genetic_algorithm simple_physiological 10 path/to/circulatory_autogen/resources/simple_physiological_obs_data.json
