@@ -1,65 +1,65 @@
-starting script for rank = 31
-starting script for rank = 5
-starting script for rank = 24
-starting script for rank = 26
-starting script for rank = 8
-starting script for rank = 16
-starting script for rank = 25
-starting script for rank = 11
-starting script for rank = 29
-starting script for rank = 18
-starting script for rank = 20
-starting script for rank = 2
-starting script for rank = 23
-starting script for rank = 10
-starting script for rank = 14
-starting script for rank = 9
-starting script for rank = 21
-starting script for rank = 30
-starting script for rank = 6
-starting script for rank = 12
-starting script for rank = 7
-starting script for rank = 1
-starting script for rank = 0
-starting script for rank = 4
-starting script for rank = 15
-starting script for rank = 19
-starting script for rank = 22
-starting script for rank = 3
-starting script for rank = 28
-starting script for rank = 13
-starting script for rank = 27
 starting script for rank = 17
-starting param id run for rank = 9 process
+starting script for rank = 7
+starting script for rank = 14
+starting script for rank = 10
+starting script for rank = 23
+starting script for rank = 19
+starting script for rank = 1
+starting script for rank = 3
+starting script for rank = 6
+starting script for rank = 8
+starting script for rank = 9
+starting script for rank = 11
+starting script for rank = 15
+starting script for rank = 24
+starting script for rank = 25
+starting script for rank = 26
+starting script for rank = 28
+starting script for rank = 29
+starting script for rank = 30
+starting script for rank = 22
+starting script for rank = 13
+starting script for rank = 21
+starting script for rank = 27
+starting script for rank = 20
+starting script for rank = 5
+starting script for rank = 18
+starting script for rank = 4
+starting script for rank = 2
+starting script for rank = 0
+starting script for rank = 31
+starting script for rank = 12
+starting script for rank = 16
 starting param id run for rank = 18 process
-starting param id run for rank = 26 process
-starting param id run for rank = 27 process
-starting param id run for rank = 19 process
-starting param id run for rank = 16 process
-starting param id run for rank = 7 process
 starting param id run for rank = 6 process
-starting param id run for rank = 10 process
-starting param id run for rank = 23 process
-starting param id run for rank = 4 process
-starting param id run for rank = 24 process
-starting param id run for rank = 17 process
+starting param id run for rank = 14 process
 starting param id run for rank = 8 process
 starting param id run for rank = 13 process
 starting param id run for rank = 12 process
-starting param id run for rank = 14 process
-starting param id run for rank = 28 process
-starting param id run for rank = 5 process
-starting param id run for rank = 11 process
-starting param id run for rank = 22 process
-starting param id run for rank = 2 process
-starting param id run for rank = 30 process
-starting param id run for rank = 15 process
-starting param id run for rank = 3 process
-starting param id run for rank = 29 process
-starting param id run for rank = 21 process
 starting param id run for rank = 25 process
-starting param id run for rank = 31 process
+starting param id run for rank = 23 process
+starting param id run for rank = 7 process
+starting param id run for rank = 10 process
+starting param id run for rank = 15 process
+starting param id run for rank = 2 process
+starting param id run for rank = 1 process
 starting param id run for rank = 20 process
+starting param id run for rank = 26 process
+starting param id run for rank = 17 process
+starting param id run for rank = 22 process
+starting param id run for rank = 11 process
+starting param id run for rank = 30 process
+starting param id run for rank = 5 process
+starting param id run for rank = 31 process
+starting param id run for rank = 4 process
+starting param id run for rank = 28 process
+starting param id run for rank = 16 process
+starting param id run for rank = 21 process
+starting param id run for rank = 27 process
+starting param id run for rank = 9 process
+starting param id run for rank = 3 process
+starting param id run for rank = 19 process
+starting param id run for rank = 29 process
 starting param id run for rank = 0 process
 Running genetic algorithm with a population size of 744,
 and a maximum number of generations of 4
@@ -67,7 +67,7 @@ generation num: 1
 population per processor is
 [24 24 24 24 24 24 24 24 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23
  23 23 23 23 23 23 23 23]
-starting param id run for rank = 1 process
+starting param id run for rank = 24 process
  this generation is 4% done
  this generation is 8% done
  this generation is 12% done
@@ -91,10 +91,10 @@ starting param id run for rank = 1 process
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.05597807 0.11751068 0.12656798 0.13870815 0.14328843 0.14554065
- 0.17112248 0.17410874 0.17887015 0.17936631]
-worst survivor params normed : [0.71426963 0.46108443 0.33390881 0.67291787 0.77437618]
-best params normed : [0.82834541 0.24168269 0.11693512 0.73933036 0.17834444]
+Cost of first 10 of population : [0.12777227 0.14016759 0.17667749 0.17847126 0.17910965 0.18471363
+ 0.19018994 0.19146077 0.2013302  0.21186175]
+worst survivor params normed : [0.709205   0.7075636  0.66901938 0.24061058 0.0549135 ]
+best params normed : [0.4773387  0.44519614 0.07896441 0.47818226 0.17333677]
 generation num: 2
  this generation is 4% done
  this generation is 8% done
@@ -119,10 +119,10 @@ generation num: 2
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.03693559 0.04546762 0.04823318 0.05566381 0.05597807 0.05835678
- 0.06574246 0.06762326 0.07547744 0.07620427]
-worst survivor params normed : [0.81592102 0.28767022 0.29253471 0.48538901 0.35817946]
-best params normed : [0.86885207 0.19768116 0.10326944 0.77719966 0.17824199]
+Cost of first 10 of population : [0.07889451 0.09498918 0.09530675 0.10209898 0.10865743 0.11395109
+ 0.11404579 0.11597674 0.1177706  0.11844341]
+worst survivor params normed : [0.52289688 0.59671595 0.04023283 0.6491814  0.51206892]
+best params normed : [0.97567513 0.21177791 0.29663356 0.68361002 0.12318699]
 generation num: 3
  this generation is 4% done
  this generation is 8% done
@@ -147,10 +147,10 @@ generation num: 3
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.03523323 0.03640423 0.03693559 0.03876884 0.04047682 0.04146372
- 0.04226209 0.04236293 0.04478064 0.04546762]
-worst survivor params normed : [0.96579091 0.16967229 0.22450426 0.76250448 0.08806714]
-best params normed : [0.86110761 0.20361453 0.10375305 0.88443385 0.19980454]
+Cost of first 10 of population : [0.05882549 0.06201327 0.06697022 0.06957125 0.07269737 0.07338934
+ 0.07359077 0.0754036  0.07633551 0.07779874]
+worst survivor params normed : [0.90941288 0.1813989  0.04998854 1.         0.4181628 ]
+best params normed : [1.         0.19671612 0.17209014 0.93228081 0.28552426]
 generation num: 4
  this generation is 4% done
  this generation is 8% done
@@ -175,232 +175,164 @@ generation num: 4
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.03523323 0.03581441 0.03586254 0.03640423 0.03693559 0.03730152
- 0.03738815 0.03817437 0.03841826 0.03876884]
-worst survivor params normed : [0.86768636 0.19124795 0.09234294 0.74483659 0.23458842]
-best params normed : [0.86110761 0.20361453 0.10375305 0.88443385 0.19980454]
-rank = 0, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
+Cost of first 10 of population : [0.05075347 0.05440594 0.05662731 0.05702971 0.05818481 0.05826171
+ 0.05882549 0.06201327 0.06303927 0.06304712]
+worst survivor params normed : [0.90916213 0.21837624 0.2771938  0.70675765 0.17278152]
+best params normed : [0.98731757 0.18023395 0.18944257 0.82450554 0.16563635]
 
 parameter identification is complete
 init params     : [[0.0011649], [321560000.0], [1.2028e-08], [3000.0], [10664000.0]]
-best fit params : [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-best cost       : 0.035233233659558195
-rank = 6, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 13, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 15, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 2, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 12, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 16, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 4, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 11, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 3, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 14, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 1, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 19, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 21, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 7, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 8, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 20, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 9, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 26, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 25, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 23, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 18, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 22, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 29, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 31, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 27, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 5, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 30, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 28, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]rank = 17, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-
-rank = 10, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 24, best_cost = 0.035233233659558195, best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 24, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 23, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 31, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 0, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
+best fit params : [1.58224460e-03 1.81053719e+08 2.05653718e-08 8.42054988e+03
+ 6.63781788e+06]
+best cost       : 0.05075346805684886
 Running mcmc
-2 rank = 3, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 30, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 10, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 7, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 13, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 11, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 15, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 9, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 6, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 17, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 4, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 18, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 19, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 25, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 0, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 5, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 26, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 13, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 31, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 27, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 7, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 30, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 23, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 3, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 29, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 24, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 2, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 10, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 22, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 20, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 8, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 1, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 21, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 6, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 9, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 15, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 11, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 16, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 18, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 25, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 4, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 26, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 5, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 17, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 19, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 14, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 27, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 28, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-2 rank = 12, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 29, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 8, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 22, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 2, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 20, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 21, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 1, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 16, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 14, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 28, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-rank = 12, self.best_param_vals = [1.40555066e-03 2.04410919e+08 1.21677984e-08 8.95990464e+03
- 7.59452699e+06]
-mcmc time = 6158.356217384338
-acceptance fraction was [0.36333333 0.36833333 0.38166667 0.45166667 0.41166667 0.335
- 0.37833333 0.365      0.39333333 0.39833333 0.40166667 0.34833333
- 0.35833333 0.41166667 0.39333333 0.36666667 0.40166667 0.39166667
- 0.36       0.44166667 0.4        0.36833333 0.41666667 0.39833333
- 0.37166667 0.41       0.445      0.41166667 0.35833333 0.415
- 0.44       0.40166667 0.425      0.455      0.37333333 0.41333333
- 0.365      0.34833333 0.395      0.38333333 0.355      0.34833333
- 0.38833333 0.4        0.375      0.37333333 0.42       0.41166667
- 0.41666667 0.32166667 0.33833333 0.355      0.37166667 0.43333333
- 0.38166667 0.37666667 0.43333333 0.37666667 0.33166667 0.40833333
- 0.38166667 0.38       0.44166667 0.35166667 0.34       0.395
- 0.36833333 0.37833333 0.37333333 0.31666667 0.34833333 0.36166667
- 0.45166667 0.33166667 0.41833333 0.355      0.32666667 0.34166667
- 0.34       0.37166667 0.31333333 0.38833333 0.43       0.37
- 0.37833333 0.4        0.405      0.34166667 0.31833333 0.40666667
- 0.40333333 0.34       0.42166667 0.35333333 0.31166667 0.37333333
- 0.33333333 0.38       0.34333333 0.45333333 0.35       0.4
- 0.29833333 0.35166667 0.35833333 0.33666667 0.42166667 0.38
- 0.365      0.35333333 0.395      0.4        0.36833333 0.42666667
- 0.335      0.39666667 0.35833333 0.42166667 0.43666667 0.40666667
- 0.42333333 0.36166667 0.40666667 0.39166667 0.465      0.365
- 0.41       0.38      ]
-autocorrelation time was <bound method EnsembleSampler.get_autocorr_time of <emcee.ensemble.EnsembleSampler object at 0x7ff9ca670750>>
-mcmc complete
-mcmc chain saved in ../src/scripts/../../src/param_id/../../param_id_output/genetic_algorithm_3compartment_observables_biobeat_BB128/mcmc_chain.npy
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.62433257e-03 -6.07716812e+07 -2.26991707e-09  8.67790907e+03
+  1.01812375e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.63937008e-03 -1.58282954e+07 -3.02664979e-09  8.90931261e+03
+  1.03322316e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.50992370e-03  2.89062321e+08 -1.73148435e-08  3.85109694e+03
+  1.06071315e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.31206687e-03 -1.08818607e+07 -1.70027517e-09  5.26542730e+03
+  2.37351075e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.64179207e-03 -3.94102296e+07 -2.74979454e-09  8.87903606e+03
+  9.96827917e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.42822597e-03 -4.29356672e+06  2.87284524e-09  5.90295376e+03
+  4.83004759e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.52893305e-03  1.95814202e+08 -6.84678774e-09  7.12347580e+03
+  7.43942174e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.38638708e-03 -9.38526347e+07 -7.38469410e-09  4.67542552e+03
+  4.60971845e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.71684901e-03 -1.04015377e+07  4.81612948e-09  8.62180925e+03
+  5.77339583e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.47079795e-03  1.95784906e+08 -1.94535235e-09  5.78115588e+03
+  9.39500477e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.88049804e-03  2.77177243e+08 -3.02856874e-09  6.80330672e+03
+  1.22012909e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.87565455e-03  1.68150529e+08 -5.83561214e-08  1.40893763e+04
+  5.94099919e+04]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.22495021e-03  2.12719434e+08 -2.03495469e-08  9.28381199e+03
+  3.32981390e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.48386176e-03  2.30684042e+08 -8.14082798e-10  7.74089078e+03
+  5.28075350e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.07590955e-03  3.52694325e+08 -4.18465413e-08  7.55201936e+03
+ -1.14728762e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.61534343e-03 -2.99692203e+06  2.10990164e-08  8.11143832e+03
+  4.23816011e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 9.38741321e-04  9.65654236e+07 -2.41287859e-09  4.43624562e+03
+ -7.76820998e+05]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.45735367e-03 -9.99488952e+06 -1.00560629e-10  6.04847276e+03
+  4.20817563e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.08532374e-03  1.96396805e+08  3.51489002e-09 -6.63081316e+03
+  1.49817270e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.50344253e-03 -3.03783914e+06  7.88208896e-09  5.81865018e+03
+  3.65613423e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.98033775e-03  1.87610641e+08 -8.24332837e-09  6.96935832e+03
+  4.51188834e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 2.10251409e-03 -2.48950505e+08 -1.31213534e-08  1.16640775e+04
+ -1.23449382e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.61415212e-03  2.85818852e+07 -1.93393319e-08  7.92824766e+03
+ -6.09653135e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.48325618e-03  1.58119091e+08 -8.63003731e-09  1.11028089e+04
+  2.99917826e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 2.00333335e-03  7.50557370e+07 -1.37470684e-08  8.10323469e+03
+  1.19882656e+05]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.31218800e-03  1.78778284e+08 -7.81279279e-10  8.60949124e+03
+  7.37466009e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.90506192e-03  1.98295362e+08 -6.19799778e-09  7.42074026e+03
+  9.36245201e+06]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.73710622e-03  2.91172798e+08 -5.05999658e-11  8.30572171e+03
+  1.07545465e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.56835440e-03  3.45009346e+08 -4.59574884e-09  5.10637159e+03
+  2.86396065e+07]
+Failed to converge
+restarting simulation object
+simulation failed with params...
+[ 1.48081779e-03  6.19551503e+07 -2.95027516e-09  1.03156460e+04
+  8.36975887e+06]

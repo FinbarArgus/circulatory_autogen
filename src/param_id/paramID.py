@@ -1724,6 +1724,7 @@ class OpencorMCMC():
                     # the normalisation isnt needed here but might be nice to
                     # make sure prior for each param is between 0 and 1
                     lnprior += -lamb*param_val/self.param_maxs[idx]
+
         return lnprior
 
     def get_lnlikelihood_from_params(self, param_vals, reset=True, param_vals_are_normalised=False):
