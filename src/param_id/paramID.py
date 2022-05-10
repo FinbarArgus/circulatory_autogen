@@ -423,7 +423,7 @@ class CVS0DParamID():
             conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 50, 95])
 
         # collect bins of data
-        fig, axes = plt.subplots(num_params, figsize=(num_params*3, 7))
+        fig, axes = plt.subplots(num_params, figsize=(7, num_params*3))
         num_bins = 20
         bin_edges = np.linspace(conf_ivals[:,0], conf_ivals[:, 2], num_bins + 1)
         bin_edges_norm = np.linspace(0, 1, num_bins + 1)
@@ -439,17 +439,41 @@ class CVS0DParamID():
             # now we fit statistical distribution curve to the mcmc results,
             # so that we can get the 2nd derivative and determine
             # whether each parameter is identifiable.
+            distribution_test_list = [stat_distributions.gaussian,
+                                      stat_distributions.uniform,
+                                      stat_distributions.log_normal]
+            distribution_d2_dx2_list = [stat_distributions.gaussian_d2_dx2,
+                                      stat_distributions.uniform_d2_dx2,
+                                      stat_distributions.log_normal_d2_dx2]
 
-            p_opt, _ = curve_fit(stat_distributions.gaussian, bin_means_norm, total_in_each_bin)
-            y_opt = stat_distributions.gaussian(x_for_smooth_plot, *p_opt)
+            dist_params_list = []
+            err_list = []
+            for dist_func in distribution_test_list:
+                dist_params, _ = curve_fit(dist_func, bin_means_norm, total_in_each_bin, maxfev=2000)
+                dist_params_list.append(dist_params)
+                y_fit = dist_func(bin_means_norm, *dist_params)
+                err_list.append(np.sum((y_fit-total_in_each_bin)**2))
+            best_dist_idx = np.argmin(err_list)
+            best_dist_func = distribution_test_list[best_dist_idx]
+            best_dist_d2_dx2 = distribution_d2_dx2_list[best_dist_idx]
+            p_opt = dist_params_list[best_dist_idx]
+            y_opt = best_dist_func(x_for_smooth_plot, *p_opt)
+
+
             ax.plot(x_for_smooth_plot, y_opt, color='b', label='curve fit')
             MLE_idx = np.argmax(y_opt)
             MLE_x_normed = x_for_smooth_plot[MLE_idx]
-            second_deriv[idx] = stat_distributions.gaussian_d2_dx2(MLE_x_normed, *p_opt)
-            if second_deriv[idx] < self.second_deriv_threshold:
-                ax.plot(MLE_x_normed, y_opt, color='b', linestyle='None', marker='o', label='identifiable MLE')
+            second_deriv[idx] = best_dist_d2_dx2(MLE_x_normed, *p_opt)
+            if second_deriv[idx] < second_deriv_threshold:
+                ax.plot([-999], [0.0], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
+                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='^', label='identifiable MLE')
             else:
-                ax.plot(MLE_x_normed, y_opt, color='b', linestyle='None', marker='x', label='non-identifiable MLE')
+                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
+                ax.plot([-999], [0.0], color='b', linestyle='None', marker='^', label='identifiable MLE')
+
+            ax.set_xlim(0.0, 1.0)
+            ax.set_xlabel(self.param_names[idx])
+            ax.set_ylabel('freq')
 
         print(second_deriv)
         ax.legend()
@@ -1697,7 +1721,7 @@ class OpencorMCMC():
         if DEBUG:
             self.num_steps = 10
         else:
-            self.num_steps = 600
+            self.num_steps = 100 # TODO change back to 600
 
         self.DEBUG = DEBUG
 

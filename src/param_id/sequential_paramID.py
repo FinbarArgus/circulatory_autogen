@@ -42,7 +42,7 @@ class SequentialParamID:
         self.keep_threshold_param_importance = 0.8
         self.threshold_collinearity = 20
         self.threshold_collinearity_pairs = 10
-        self.second_deriv_threshold = -500
+        self.second_deriv_threshold = -1000
 
     def run(self):
         identifiable = False
