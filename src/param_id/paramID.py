@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import paperPlotSetup
+import stat_distributions
 from utilities import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from opencor_helper import SimulationHelper
@@ -36,6 +37,7 @@ import json
 import copy
 import math
 import scipy.linalg as la
+from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
@@ -350,7 +352,7 @@ class CVS0DParamID():
         num_steps = samples.shape[0] 
         num_walkers = samples.shape[1] 
         num_params = samples.shape[2] # TODO check this is the same as objects num_params
-        if num_params != self.param_id.num_params:
+        if num_params != mcmc_object.num_params:
             print('num params in mcmc chain doesn\'t equal param_id number of params')
         # discard first num_steps/10 samples
         # samples = samples[samples.shape[0]//10:, :, :]
@@ -384,12 +386,100 @@ class CVS0DParamID():
         plt.close()
 
         fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
-                            labels=self.param_names, truths=self.param_id.best_param_vals)
+                            labels=self.param_names, truths=mcmc_object.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
         plt.close()
+
+    def calculate_mcmc_identifiability(self, second_deriv_threshold=-300):
+        mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
+
+        if not os.path.exists(mcmc_chain_path):
+            print('No mcmc results to plot')
+            return
+
+        print('plotting mcmc results')
+        samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
+        num_steps = samples.shape[0]
+        num_walkers = samples.shape[1]
+        num_params = samples.shape[2]  # TODO check this is the same as objects num_params
+        if num_params != mcmc_object.num_params:
+                print('num params in mcmc chain doesn\'t equal param_id number of params')
+        # discard first num_steps/10 samples
+        # samples = samples[samples.shape[0]//10:, :, :]
+        # thin = 10
+        # samples = samples[::thin, :, :]
+        # discarding samples isnt needed because we start an "optimal" point
+        # TODO include a user defined burn in if we aren't starting from
+        #  an optimal point.
+        flat_samples = samples.reshape(-1, num_params)
+        means = np.zeros((num_params))
+        conf_ivals = np.zeros((num_params, 3))
+
+        for param_idx in range(num_params):
+            means[param_idx] = np.mean(flat_samples[:, param_idx])
+            conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 50, 95])
+
+        # collect bins of data
+        fig, axes = plt.subplots(num_params, figsize=(7, num_params*3))
+        num_bins = 20
+        bin_edges = np.linspace(conf_ivals[:,0], conf_ivals[:, 2], num_bins + 1)
+        bin_edges_norm = np.linspace(0, 1, num_bins + 1)
+        bin_means = np.array([(bin_edges[II, :] + bin_edges[II+1, :])/2 for II in range(num_bins)])
+        bin_means_norm = np.array([(bin_edges_norm[II] + bin_edges_norm[II+1])/2 for II in range(num_bins)])
+        x_for_smooth_plot = np.linspace(0, 1, 1000)
+        second_deriv = np.zeros((num_params,))
+
+        for idx, ax in enumerate(axes):
+            samples_in_bin = np.digitize(flat_samples[:, idx], bin_edges[:, idx])
+            total_in_each_bin = [np.sum(samples_in_bin == II) for II in range(num_bins)]
+            ax.plot(bin_means_norm, total_in_each_bin, color='r', linestyle='None', marker='x', label='post_dist')
+            # now we fit statistical distribution curve to the mcmc results,
+            # so that we can get the 2nd derivative and determine
+            # whether each parameter is identifiable.
+            distribution_test_list = [stat_distributions.gaussian,
+                                      stat_distributions.uniform,
+                                      stat_distributions.log_normal]
+            distribution_d2_dx2_list = [stat_distributions.gaussian_d2_dx2,
+                                      stat_distributions.uniform_d2_dx2,
+                                      stat_distributions.log_normal_d2_dx2]
+
+            dist_params_list = []
+            err_list = []
+            for dist_func in distribution_test_list:
+                dist_params, _ = curve_fit(dist_func, bin_means_norm, total_in_each_bin, maxfev=2000)
+                dist_params_list.append(dist_params)
+                y_fit = dist_func(bin_means_norm, *dist_params)
+                err_list.append(np.sum((y_fit-total_in_each_bin)**2))
+            best_dist_idx = np.argmin(err_list)
+            best_dist_func = distribution_test_list[best_dist_idx]
+            best_dist_d2_dx2 = distribution_d2_dx2_list[best_dist_idx]
+            p_opt = dist_params_list[best_dist_idx]
+            y_opt = best_dist_func(x_for_smooth_plot, *p_opt)
+
+
+            ax.plot(x_for_smooth_plot, y_opt, color='b', label='curve fit')
+            MLE_idx = np.argmax(y_opt)
+            MLE_x_normed = x_for_smooth_plot[MLE_idx]
+            second_deriv[idx] = best_dist_d2_dx2(MLE_x_normed, *p_opt)
+            if second_deriv[idx] < second_deriv_threshold:
+                ax.plot([-999], [0.0], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
+                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='^', label='identifiable MLE')
+            else:
+                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
+                ax.plot([-999], [0.0], color='b', linestyle='None', marker='^', label='identifiable MLE')
+
+            ax.set_xlim(0.0, 1.0)
+            ax.set_xlabel(self.param_names[idx])
+            ax.set_ylabel('freq')
+
+        print(second_deriv)
+        ax.legend()
+        plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_2nd_deriv_plot.pdf'))
+
+
 
     def run_sensitivity(self, param_id_output_paths):
         print('running sensitivity analysis')
@@ -421,14 +511,15 @@ class CVS0DParamID():
             sample_path = sample_path_list[i]
             normalised_jacobian = np.load(os.path.join(sample_path, 'normalised_jacobian_matrix.npy'))
             parameter_importance = np.load(os.path.join(sample_path, 'parameter_importance.npy'))
-            collinearity_index = np.load(os.path.join(sample_path, 'collinearity_index.npy'))
+            collinearity_index_i = np.load(os.path.join(sample_path, 'collinearity_index.npy'))
             if i == 0:
                 normalised_jacobian_average = np.zeros(normalised_jacobian.shape)
                 parameter_importance_average = np.zeros(parameter_importance.shape)
-                collinearity_index_average = np.zeros(collinearity_index.shape)
+                collinearity_index_average = np.zeros(collinearity_index_i.shape)
             normalised_jacobian_average = normalised_jacobian_average + normalised_jacobian/number_samples
             parameter_importance_average = parameter_importance_average + parameter_importance/number_samples
-            collinearity_index_average = collinearity_index_average + collinearity_index/number_samples
+            collinearity_index_average = collinearity_index_average + collinearity_index_i/number_samples
+            self.collinearity_index = collinearity_index_average
 
         collinearity_max = collinearity_index_average.max()
 
@@ -460,11 +551,12 @@ class CVS0DParamID():
         #find maximum average value and average values for collinearity index
         for i in range(number_samples):
             sample_path = sample_path_list[i]
-            collinearity_index_pairs = np.load(
+            collinearity_index_pairs_i = np.load(
                 os.path.join(sample_path, 'collinearity_pairs.npy'))
             if i==0:
-                collinearity_index_pairs_average = np.zeros(collinearity_index_pairs.shape)
-            collinearity_index_pairs_average = collinearity_index_pairs_average + collinearity_index_pairs/number_samples
+                collinearity_index_pairs_average = np.zeros(collinearity_index_pairs_i.shape)
+            collinearity_index_pairs_average = collinearity_index_pairs_average + collinearity_index_pairs_i/number_samples
+            self.collinearity_index_pairs = collinearity_index_pairs_average
 
         if collinearity_index_pairs_average.max() > collinearity_max:
             collinearity_max = collinearity_index_pairs_average.max()
@@ -778,7 +870,17 @@ class CVS0DParamID():
     def get_best_param_vals(self):
         return self.param_id.best_param_vals
 
+    def get_param_names(self):
+        return self.param_id.param_names
 
+    def get_param_importance(self):
+        return self.param_id.param_importance
+
+    def get_collinearity_index(self):
+        return self.param_id.collinearity_index
+
+    def get_collinearity_index_pairs(self):
+        return self.param_id.collinearity_index_pairs
 
 class OpencorParamID():
     """
@@ -835,6 +937,11 @@ class OpencorParamID():
         self.n_initial_points = 5
         self.acq_func_kwargs = {}
         self.random_state = 1234 # random seed
+
+        # sensitivity
+        self.param_importance = None
+        self.collinearity_index = None
+        self.collinearity_index_pairs = None
 
         # mcmc
         self.sampler = None
@@ -1270,10 +1377,10 @@ class OpencorParamID():
 
         for obs_idx in range(self.num_obs):
             #ignore series data for now
-            if self.obs_types[obs_idx]!="series":
+            if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
-                #gt_scalefactor.append(self.weight_const_vec[x_index]/self.ground_truth_consts[x_index])
-                gt_scalefactor.append(1/self.ground_truth_consts[x_index])
+                gt_scalefactor.append(self.weight_const_vec[x_index]/self.ground_truth_consts[x_index])
+                # gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 objs_index.append(x_index)
                 x_index = x_index + 1
 
@@ -1284,10 +1391,12 @@ class OpencorParamID():
             param_vec_up = copy.deepcopy(master_param_values)
             param_vec_down = copy.deepcopy(master_param_values)
             # FA: It might be worth testing this out with a value smaller than 0.01 here
-            param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.001
-            param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
-            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
-            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
+            # param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
+            # param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
+            # param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
+            # param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
+            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]]*1.1
+            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]]*0.9
             up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
                                                                                  param_vec_up, self.obs_names,
                                                                                  absolute=True)
@@ -1301,7 +1410,7 @@ class OpencorParamID():
                 #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
                     dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
-                    dObs_param = dObs_param*param_vec_range*gt_scalefactor[objs_index[j]]
+                    dObs_param = dObs_param*master_param_values[sensitivity_index[i]]*gt_scalefactor[objs_index[j]]
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i,j] = dObs_param
@@ -1309,21 +1418,21 @@ class OpencorParamID():
         np.save(os.path.join(output_path, 'normalised_jacobian_matrix.npy'), jacobian_sensitivity)
 
         #calculate parameter importance
-        param_importance = np.zeros(num_sensitivity_params)
+        self.param_importance = np.zeros(num_sensitivity_params)
         for param_idx in range(num_sensitivity_params):
             sensitivity = 0
             for objs in range(self.num_obs):
                 sensitivity = sensitivity + jacobian_sensitivity[param_idx][objs] * jacobian_sensitivity[param_idx][objs]
             sensitivity = math.sqrt(sensitivity / self.num_obs)
-            param_importance[param_idx] = sensitivity
-        np.save(os.path.join(output_path, 'parameter_importance.npy'), param_importance)
+            self.param_importance[param_idx] = sensitivity
+        np.save(os.path.join(output_path, 'parameter_importance.npy'), self.param_importance)
 
         #calculate S-norm
         S_norm = np.zeros((num_sensitivity_params,self.num_obs))
         for param_idx in range(num_sensitivity_params):
             for objs_idx in range(self.num_obs):
                 S_norm[param_idx][objs_idx] = jacobian_sensitivity[param_idx][objs_idx]/\
-                                             (param_importance[param_idx]*math.sqrt(self.num_obs))
+                                             (self.param_importance[param_idx]*math.sqrt(self.num_obs))
 
         collinearity_eigvals = []
         for i in range(num_sensitivity_params):
@@ -1333,14 +1442,14 @@ class OpencorParamID():
             real_eigvals = eigvals.real
             collinearity_eigvals.append(min(real_eigvals))
         #calculate collinearity
-        collinearity_index = np.zeros(len(collinearity_eigvals))
+        self.collinearity_index = np.zeros(len(collinearity_eigvals))
         for i in range(len(collinearity_eigvals)):
-            collinearity_index[i] = 1/math.sqrt(collinearity_eigvals[i])
+            self.collinearity_index[i] = 1/math.sqrt(collinearity_eigvals[i])
 
-        np.save(os.path.join(output_path, 'collinearity_index.npy'), collinearity_index)
+        np.save(os.path.join(output_path, 'collinearity_index.npy'), self.collinearity_index)
 
 
-        collinearity_index_pairs = np.zeros((num_sensitivity_params,num_sensitivity_params))
+        self.collinearity_index_pairs = np.zeros((num_sensitivity_params,num_sensitivity_params))
         for i in range(num_sensitivity_params):
             for j in range(num_sensitivity_params):
                 if i!=j:
@@ -1348,11 +1457,11 @@ class OpencorParamID():
                     Sll = Sl@Sl.T
                     eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                     real_eigvals_pairs = eigvals_pairs.real
-                    collinearity_index_pairs[i][j] = 1/math.sqrt(min(real_eigvals_pairs))
+                    self.collinearity_index_pairs[i][j] = 1/math.sqrt(min(real_eigvals_pairs))
                 else:
-                    collinearity_index_pairs[i][j] = 0
+                    self.collinearity_index_pairs[i][j] = 0
 
-        np.save(os.path.join(output_path, 'collinearity_pairs.npy'), collinearity_index_pairs)
+        np.save(os.path.join(output_path, 'collinearity_pairs.npy'), self.collinearity_index_pairs)
 
         if do_triples_and_quads:
             collinearity_index_triple = np.zeros((num_sensitivity_params, num_sensitivity_params))
@@ -1609,7 +1718,10 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        self.num_steps = 600
+        if DEBUG:
+            self.num_steps = 10
+        else:
+            self.num_steps = 100 # TODO change back to 600
 
         self.DEBUG = DEBUG
 
@@ -1668,7 +1780,7 @@ class OpencorMCMC():
         else:
             num_walkers = 2*self.num_params
 
-            if self.best_param_vals:
+            if self.best_param_vals is not None:
                 best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                 init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                    0.01*np.random.randn(self.num_params, num_walkers)
