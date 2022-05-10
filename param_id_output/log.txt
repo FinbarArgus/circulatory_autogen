@@ -1,73 +1,73 @@
-starting script for rank = 17
-starting script for rank = 7
-starting script for rank = 14
-starting script for rank = 10
-starting script for rank = 23
-starting script for rank = 19
-starting script for rank = 1
-starting script for rank = 3
-starting script for rank = 6
-starting script for rank = 8
 starting script for rank = 9
-starting script for rank = 11
 starting script for rank = 15
-starting script for rank = 24
-starting script for rank = 25
-starting script for rank = 26
-starting script for rank = 28
+starting script for rank = 6
+starting script for rank = 14
+starting script for rank = 23
 starting script for rank = 29
-starting script for rank = 30
+starting script for rank = 1
+starting script for rank = 7
 starting script for rank = 22
-starting script for rank = 13
-starting script for rank = 21
-starting script for rank = 27
-starting script for rank = 20
-starting script for rank = 5
-starting script for rank = 18
-starting script for rank = 4
-starting script for rank = 2
 starting script for rank = 0
-starting script for rank = 31
-starting script for rank = 12
+starting script for rank = 3
+starting script for rank = 5
+starting script for rank = 19
+starting script for rank = 4
+starting script for rank = 18
+starting script for rank = 20
+starting script for rank = 28
+starting script for rank = 26
+starting script for rank = 17
+starting script for rank = 2
+starting script for rank = 8
+starting script for rank = 21
+starting script for rank = 11
+starting script for rank = 30
+starting script for rank = 12starting script for rank = 13
+starting script for rank = 27
+
 starting script for rank = 16
-starting param id run for rank = 18 process
-starting param id run for rank = 6 process
-starting param id run for rank = 14 process
-starting param id run for rank = 8 process
+starting script for rank = 24starting script for rank = 25
+
+starting script for rank = 31
+starting script for rank = 10
+starting param id run for rank = 17 process
+starting param id run for rank = 26 process
 starting param id run for rank = 13 process
-starting param id run for rank = 12 process
-starting param id run for rank = 25 process
+starting param id run for rank = 30 process
+starting param id run for rank = 3 process
 starting param id run for rank = 23 process
 starting param id run for rank = 7 process
-starting param id run for rank = 10 process
-starting param id run for rank = 15 process
-starting param id run for rank = 2 process
-starting param id run for rank = 1 process
-starting param id run for rank = 20 process
-starting param id run for rank = 26 process
-starting param id run for rank = 17 process
-starting param id run for rank = 22 process
-starting param id run for rank = 11 process
-starting param id run for rank = 30 process
-starting param id run for rank = 5 process
-starting param id run for rank = 31 process
-starting param id run for rank = 4 process
+starting param id run for rank = 8 process
+starting param id run for rank = 9 process
 starting param id run for rank = 28 process
-starting param id run for rank = 16 process
 starting param id run for rank = 21 process
 starting param id run for rank = 27 process
-starting param id run for rank = 9 process
-starting param id run for rank = 3 process
+starting param id run for rank = 1 process
+starting param id run for rank = 4 process
+starting param id run for rank = 2 process
+starting param id run for rank = 24 process
+starting param id run for rank = 10 process
+starting param id run for rank = 25 process
+starting param id run for rank = 11 process
 starting param id run for rank = 19 process
+starting param id run for rank = 18 process
+starting param id run for rank = 15 process
+starting param id run for rank = 6 process
+starting param id run for rank = 14 process
 starting param id run for rank = 29 process
+starting param id run for rank = 31 process
+starting param id run for rank = 20 process
+starting param id run for rank = 22 process
+starting param id run for rank = 12 process
+starting param id run for rank = 5 process
+starting param id run for rank = 16 process
 starting param id run for rank = 0 process
 Running genetic algorithm with a population size of 744,
-and a maximum number of generations of 4
+and a maximum number of generations of 26
 generation num: 1
 population per processor is
 [24 24 24 24 24 24 24 24 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23 23
  23 23 23 23 23 23 23 23]
-starting param id run for rank = 24 process
  this generation is 4% done
  this generation is 8% done
  this generation is 12% done
@@ -91,10 +91,10 @@ starting param id run for rank = 24 process
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.12777227 0.14016759 0.17667749 0.17847126 0.17910965 0.18471363
- 0.19018994 0.19146077 0.2013302  0.21186175]
-worst survivor params normed : [0.709205   0.7075636  0.66901938 0.24061058 0.0549135 ]
-best params normed : [0.4773387  0.44519614 0.07896441 0.47818226 0.17333677]
+Cost of first 10 of population : [0.13041473 0.15770712 0.17124454 0.19307892 0.20696012 0.20712517
+ 0.22984004 0.23183753 0.23709656 0.25013356]
+worst survivor params normed : [0.84805136 0.94787346 0.81182443 0.14411744 0.64926291 0.02775465]
+best params normed : [0.77787765 0.29624946 0.11761139 0.26406647 0.4495879  0.08877383]
 generation num: 2
  this generation is 4% done
  this generation is 8% done
@@ -119,10 +119,10 @@ generation num: 2
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.07889451 0.09498918 0.09530675 0.10209898 0.10865743 0.11395109
- 0.11404579 0.11597674 0.1177706  0.11844341]
-worst survivor params normed : [0.52289688 0.59671595 0.04023283 0.6491814  0.51206892]
-best params normed : [0.97567513 0.21177791 0.29663356 0.68361002 0.12318699]
+Cost of first 10 of population : [0.10296054 0.104539   0.10676341 0.11389916 0.11526913 0.12036109
+ 0.12398691 0.13041473 0.13048762 0.13208259]
+worst survivor params normed : [0.68224414 0.43624801 0.66847064 0.02407439 0.32830541 0.50351355]
+best params normed : [0.98062449 0.29883047 0.19781648 0.24724903 0.77294767 0.17675567]
 generation num: 3
  this generation is 4% done
  this generation is 8% done
@@ -147,10 +147,10 @@ generation num: 3
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.05882549 0.06201327 0.06697022 0.06957125 0.07269737 0.07338934
- 0.07359077 0.0754036  0.07633551 0.07779874]
-worst survivor params normed : [0.90941288 0.1813989  0.04998854 1.         0.4181628 ]
-best params normed : [1.         0.19671612 0.17209014 0.93228081 0.28552426]
+Cost of first 10 of population : [0.07888255 0.07972094 0.08679619 0.08995588 0.09426361 0.09592473
+ 0.0962269  0.09851535 0.09872794 0.09873071]
+worst survivor params normed : [0.93962318 0.27348702 0.21095035 0.25819684 0.89532294 0.15890366]
+best params normed : [0.93222773 0.23156199 0.26110923 0.15491315 0.81034932 0.20260931]
 generation num: 4
  this generation is 4% done
  this generation is 8% done
@@ -175,164 +175,694 @@ generation num: 4
  this generation is 88% done
  this generation is 92% done
  this generation is 96% done
-Cost of first 10 of population : [0.05075347 0.05440594 0.05662731 0.05702971 0.05818481 0.05826171
- 0.05882549 0.06201327 0.06303927 0.06304712]
-worst survivor params normed : [0.90916213 0.21837624 0.2771938  0.70675765 0.17278152]
-best params normed : [0.98731757 0.18023395 0.18944257 0.82450554 0.16563635]
+Cost of first 10 of population : [0.04397149 0.06244605 0.06474033 0.06614371 0.06651968 0.06678586
+ 0.06792478 0.07026772 0.07136048 0.0754109 ]
+worst survivor params normed : [0.81440064 0.28598472 0.17927902 0.2058676  0.86696903 0.17829412]
+best params normed : [0.87159097 0.23805158 0.09272265 0.18300442 0.81107214 0.25195154]
+generation num: 5
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.04108113 0.04397149 0.04586012 0.04910488 0.04934688 0.05106632
+ 0.05165326 0.05325194 0.05361538 0.053767  ]
+worst survivor params normed : [1.         0.18916033 0.18418079 0.15757242 0.90079382 0.17447938]
+best params normed : [1.         0.19748    0.13592772 0.20694361 1.         0.1703539 ]
+generation num: 6
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.03300537 0.03858062 0.03986015 0.04108113 0.04113613 0.04397149
+ 0.04586012 0.04606817 0.04624601 0.04648537]
+worst survivor params normed : [0.74648653 0.24687406 0.07598181 0.16606955 0.48148004 0.18223858]
+best params normed : [1.         0.19730957 0.11705011 0.19649648 0.99423695 0.18539249]
+generation num: 7
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.03300537 0.03390277 0.0339941  0.03402724 0.03429149 0.03572174
+ 0.03579674 0.03667403 0.03858062 0.0394508 ]
+worst survivor params normed : [0.83508169 0.22549944 0.11557278 0.18610071 0.73206528 0.15115137]
+best params normed : [1.         0.19730957 0.11705011 0.19649648 0.99423695 0.18539249]
+generation num: 8
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.03149849 0.03191248 0.03201244 0.03211637 0.03239046 0.03300537
+ 0.03320554 0.03354295 0.03390277 0.0339941 ]
+worst survivor params normed : [0.92819263 0.15962765 0.16304383 0.16589627 0.86681553 0.2810126 ]
+best params normed : [0.97793568 0.19348153 0.11061719 0.19116594 1.         0.17757766]
+generation num: 9
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02985478 0.03028104 0.03029252 0.03091533 0.03102204 0.03141568
+ 0.03149581 0.03149849 0.03191248 0.03201244]
+worst survivor params normed : [0.669157   0.26183909 0.15714517 0.13167081 0.70800841 0.10867957]
+best params normed : [0.95765658 0.18345022 0.09032589 0.18468391 1.         0.18770156]
+generation num: 10
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02985478 0.02990182 0.03003597 0.03012117 0.03028104 0.03029252
+ 0.03091533 0.03102204 0.03121177 0.03141568]
+worst survivor params normed : [0.70545513 0.22335936 0.02783537 0.17934229 0.88911623 0.20122803]
+best params normed : [0.95765658 0.18345022 0.09032589 0.18468391 1.         0.18770156]
+generation num: 11
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.0296409  0.02985478 0.02990182 0.02992899 0.03001088 0.03003597
+ 0.03012117 0.0301304  0.03028104 0.03029252]
+worst survivor params normed : [0.79599229 0.19580488 0.09025924 0.14939114 1.         0.17411046]
+best params normed : [0.93482272 0.18828279 0.09002577 0.18986353 1.         0.17060056]
+generation num: 12
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02908461 0.02913231 0.02958434 0.0296409  0.02985478 0.02990182
+ 0.02992899 0.03001088 0.03003597 0.03012117]
+worst survivor params normed : [0.8669601  0.25863901 0.0618785  0.19945638 0.80713693 0.27017309]
+best params normed : [0.85043027 0.1935441  0.07818445 0.17691733 1.         0.16244011]
+generation num: 13
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02908461 0.02913231 0.02915591 0.02931563 0.02950704 0.02958434
+ 0.0296409  0.02985478 0.02990182 0.02992899]
+worst survivor params normed : [0.93012388 0.18816634 0.1062163  0.18681416 0.96936055 0.15049901]
+best params normed : [0.85043027 0.1935441  0.07818445 0.17691733 1.         0.16244011]
+generation num: 14
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02908461 0.02913231 0.02915591 0.02929599 0.02931563 0.02950704
+ 0.02958434 0.0296409  0.02975153 0.02976322]
+worst survivor params normed : [0.86519439 0.1847594  0.08943259 0.20584    1.         0.14106167]
+best params normed : [0.85043027 0.1935441  0.07818445 0.17691733 1.         0.16244011]
+generation num: 15
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02880458 0.0289374  0.02908461 0.02913231 0.02915591 0.02929599
+ 0.02931563 0.02950704 0.02958434 0.02961236]
+worst survivor params normed : [0.81877765 0.11923628 0.05731486 0.10680803 0.91085054 0.0624086 ]
+best params normed : [1.         0.18980447 0.08604546 0.20367389 1.         0.17876613]
+generation num: 16
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02880458 0.0289374  0.02908461 0.02913231 0.02915591 0.02929599
+ 0.02931563 0.02950704 0.02958434 0.02961236]
+worst survivor params normed : [1.         0.16603754 0.09938437 0.18484397 0.9454775  0.18178136]
+best params normed : [1.         0.18980447 0.08604546 0.20367389 1.         0.17876613]
+generation num: 17
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02880458 0.0289374  0.02900868 0.02908461 0.02913231 0.02915591
+ 0.02929599 0.02931563 0.02943194 0.02950704]
+worst survivor params normed : [1.         0.19231814 0.0918458  0.19600171 0.9618635  0.18020882]
+best params normed : [1.         0.18980447 0.08604546 0.20367389 1.         0.17876613]
+generation num: 18
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02880458 0.02889296 0.0289374  0.02900868 0.02908461 0.02913231
+ 0.02915591 0.02927624 0.02928476 0.02929599]
+worst survivor params normed : [0.80840944 0.19317161 0.07738704 0.16097192 0.97961544 0.19868632]
+best params normed : [1.         0.18980447 0.08604546 0.20367389 1.         0.17876613]
+generation num: 19
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02880458 0.02889296 0.0289374  0.02900868 0.02908461 0.02913231
+ 0.02915591 0.02927624 0.02927979 0.02928476]
+worst survivor params normed : [0.85490507 0.18119432 0.07418652 0.17551175 0.96049067 0.1780249 ]
+best params normed : [1.         0.18980447 0.08604546 0.20367389 1.         0.17876613]
+generation num: 20
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.0287989  0.02880458 0.02889296 0.0289374  0.02900868 0.02908461
+ 0.02913231 0.02915591 0.02927624 0.02927979]
+worst survivor params normed : [0.78203221 0.19721281 0.09112529 0.13965466 1.         0.17821878]
+best params normed : [0.79839357 0.19817169 0.08425211 0.15939793 1.         0.17670732]
+generation num: 21
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.0287989  0.02880458 0.02889296 0.0289374  0.02900868 0.02908461
+ 0.02913231 0.02915591 0.02927624 0.02927979]
+worst survivor params normed : [1.         0.19637574 0.11532401 0.19324705 0.81432002 0.19586369]
+best params normed : [0.79839357 0.19817169 0.08425211 0.15939793 1.         0.17670732]
+generation num: 22
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02879129 0.0287989  0.02880458 0.02888386 0.02889296 0.0289374
+ 0.02900868 0.02904562 0.02908461 0.02913231]
+worst survivor params normed : [0.805969   0.21740175 0.08599128 0.14647047 0.99250789 0.14165919]
+best params normed : [0.9041985  0.19520501 0.07411375 0.18778621 0.99382405 0.17257041]
+generation num: 23
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02879129 0.0287989  0.02880458 0.02888386 0.02889296 0.0289374
+ 0.02900868 0.02904562 0.02908461 0.02911615]
+worst survivor params normed : [0.83859218 0.21554995 0.07515211 0.20782303 0.85949694 0.2378415 ]
+best params normed : [0.9041985  0.19520501 0.07411375 0.18778621 0.99382405 0.17257041]
+generation num: 24
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02870721 0.02879129 0.0287989  0.02880458 0.02888386 0.02889296
+ 0.0289374  0.02900868 0.02904562 0.02908461]
+worst survivor params normed : [0.8260968  0.19440291 0.08437217 0.15469924 0.78940557 0.16701749]
+best params normed : [0.9184602  0.18681513 0.07890421 0.18628189 1.         0.16585752]
+generation num: 25
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02870721 0.02879129 0.0287989  0.02880458 0.02888386 0.02889296
+ 0.0289374  0.02900868 0.02904562 0.02908461]
+worst survivor params normed : [0.91207976 0.22115434 0.05259754 0.22479458 0.88676815 0.10667501]
+best params normed : [0.9184602  0.18681513 0.07890421 0.18628189 1.         0.16585752]
+generation num: 26
+ this generation is 4% done
+ this generation is 8% done
+ this generation is 12% done
+ this generation is 17% done
+ this generation is 21% done
+ this generation is 25% done
+ this generation is 29% done
+ this generation is 33% done
+ this generation is 38% done
+ this generation is 42% done
+ this generation is 46% done
+ this generation is 50% done
+ this generation is 54% done
+ this generation is 58% done
+ this generation is 62% done
+ this generation is 67% done
+ this generation is 71% done
+ this generation is 75% done
+ this generation is 79% done
+ this generation is 83% done
+ this generation is 88% done
+ this generation is 92% done
+ this generation is 96% done
+Cost of first 10 of population : [0.02857658 0.02865849 0.02870721 0.02879129 0.0287989  0.02880458
+ 0.02888386 0.02889296 0.0289374  0.02900868]
+worst survivor params normed : [0.82879953 0.21443973 0.07790446 0.16741804 0.98260698 0.1620412 ]
+best params normed : [0.98191334 0.19402207 0.08097686 0.20256654 1.         0.17307201]
 
 parameter identification is complete
-init params     : [[0.0011649], [321560000.0], [1.2028e-08], [3000.0], [10664000.0]]
-best fit params : [1.58224460e-03 1.81053719e+08 2.05653718e-08 8.42054988e+03
- 6.63781788e+06]
-best cost       : 0.05075346805684886
-Running mcmc
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.62433257e-03 -6.07716812e+07 -2.26991707e-09  8.67790907e+03
-  1.01812375e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.63937008e-03 -1.58282954e+07 -3.02664979e-09  8.90931261e+03
-  1.03322316e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.50992370e-03  2.89062321e+08 -1.73148435e-08  3.85109694e+03
-  1.06071315e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.31206687e-03 -1.08818607e+07 -1.70027517e-09  5.26542730e+03
-  2.37351075e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.64179207e-03 -3.94102296e+07 -2.74979454e-09  8.87903606e+03
-  9.96827917e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.42822597e-03 -4.29356672e+06  2.87284524e-09  5.90295376e+03
-  4.83004759e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.52893305e-03  1.95814202e+08 -6.84678774e-09  7.12347580e+03
-  7.43942174e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.38638708e-03 -9.38526347e+07 -7.38469410e-09  4.67542552e+03
-  4.60971845e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.71684901e-03 -1.04015377e+07  4.81612948e-09  8.62180925e+03
-  5.77339583e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.47079795e-03  1.95784906e+08 -1.94535235e-09  5.78115588e+03
-  9.39500477e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.88049804e-03  2.77177243e+08 -3.02856874e-09  6.80330672e+03
-  1.22012909e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.87565455e-03  1.68150529e+08 -5.83561214e-08  1.40893763e+04
-  5.94099919e+04]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.22495021e-03  2.12719434e+08 -2.03495469e-08  9.28381199e+03
-  3.32981390e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.48386176e-03  2.30684042e+08 -8.14082798e-10  7.74089078e+03
-  5.28075350e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.07590955e-03  3.52694325e+08 -4.18465413e-08  7.55201936e+03
- -1.14728762e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.61534343e-03 -2.99692203e+06  2.10990164e-08  8.11143832e+03
-  4.23816011e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 9.38741321e-04  9.65654236e+07 -2.41287859e-09  4.43624562e+03
- -7.76820998e+05]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.45735367e-03 -9.99488952e+06 -1.00560629e-10  6.04847276e+03
-  4.20817563e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.08532374e-03  1.96396805e+08  3.51489002e-09 -6.63081316e+03
-  1.49817270e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.50344253e-03 -3.03783914e+06  7.88208896e-09  5.81865018e+03
-  3.65613423e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.98033775e-03  1.87610641e+08 -8.24332837e-09  6.96935832e+03
-  4.51188834e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 2.10251409e-03 -2.48950505e+08 -1.31213534e-08  1.16640775e+04
- -1.23449382e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.61415212e-03  2.85818852e+07 -1.93393319e-08  7.92824766e+03
- -6.09653135e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.48325618e-03  1.58119091e+08 -8.63003731e-09  1.11028089e+04
-  2.99917826e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 2.00333335e-03  7.50557370e+07 -1.37470684e-08  8.10323469e+03
-  1.19882656e+05]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.31218800e-03  1.78778284e+08 -7.81279279e-10  8.60949124e+03
-  7.37466009e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.90506192e-03  1.98295362e+08 -6.19799778e-09  7.42074026e+03
-  9.36245201e+06]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.73710622e-03  2.91172798e+08 -5.05999658e-11  8.30572171e+03
-  1.07545465e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.56835440e-03  3.45009346e+08 -4.59574884e-09  5.10637159e+03
-  2.86396065e+07]
-Failed to converge
-restarting simulation object
-simulation failed with params...
-[ 1.48081779e-03  6.19551503e+07 -2.95027516e-09  1.03156460e+04
-  8.36975887e+06]
+init params     : [[0.0011649], [321560000.0], [1.2028e-08], [1.7983e-06], [3000.0], [10664000.0]]
+best fit params : [1.57467867e-03 1.94828047e+08 9.93573246e-09 2.10540877e-06
+ 1.00000000e+04 6.84601620e+06]
+best cost       : 0.02857658494488514
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysisrunning sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+running sensitivity analysis
+Traceback (most recent call last):
+  File "../src/scripts/sequential_param_id_run_script.py", line 85, in <module>
+    seq_param_id.run()
+  File "../src/scripts/../../src/param_id/sequential_paramID.py", line 51, in run
+    self.param_id.run_sensitivity(None)
+  File "../src/scripts/../../src/param_id/paramID.py", line 487, in run_sensitivity
+    sample_path_list = [self.output_dir]
+AttributeError: 'CVS0DParamID' object has no attribute 'output_dir'
+
+Usage: parameter_id_method file_name_prefix num_calls_to_function path_to_obs_file.json
+e.g. genetic_algorithm simple_physiological 10 path/to/circulatory_autogen/resources/simple_physiological_obs_data.json
+Traceback (most recent call last):
+  File "../src/scripts/sequential_param_id_run_script.py", line 85, in <module>
+    seq_param_id.run()
+  File "../src/scripts/../../src/param_id/sequential_paramID.py", line 51, in run
+    self.param_id.run_sensitivity(None)
+  File "../src/scripts/../../src/param_id/paramID.py", line 487, in run_sensitivity
+    sample_path_list = [self.output_dir]
+AttributeError: 'CVS0DParamID' object has no attribute 'output_dir'
+
+Usage: parameter_id_method file_name_prefix num_calls_to_function path_to_obs_file.json
+e.g. genetic_algorithm simple_physiological 10 path/to/circulatory_autogen/resources/simple_physiological_obs_data.json
+Traceback (most recent call last):
+  File "../src/scripts/sequential_param_id_run_script.py", line 85, in <module>
+    seq_param_id.run()
+  File "../src/scripts/../../src/param_id/sequential_paramID.py", line 51, in run
+    self.param_id.run_sensitivity(None)
+  File "../src/scripts/../../src/param_id/paramID.py", line 487, in run_sensitivity
+    sample_path_list = [self.output_dir]
+AttributeError: 'CVS0DParamID' object has no attribute 'output_dir'
+
+Usage: parameter_id_method file_name_prefix num_calls_to_function path_to_obs_file.json
+e.g. genetic_algorithm simple_physiological 10 path/to/circulatory_autogen/resources/simple_physiological_obs_data.json

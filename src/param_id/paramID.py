@@ -1721,7 +1721,7 @@ class OpencorMCMC():
         if DEBUG:
             self.num_steps = 10
         else:
-            self.num_steps = 100 # TODO change back to 600
+            self.num_steps = 600 
 
         self.DEBUG = DEBUG
 
