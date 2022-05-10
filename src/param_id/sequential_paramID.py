@@ -1,5 +1,6 @@
 import numpy as np
 from param_id.paramID import CVS0DParamID
+from mpi4py import MPI
 
 class SequentialParamID:
     """
@@ -44,53 +45,64 @@ class SequentialParamID:
         self.threshold_collinearity_pairs = 10
         self.second_deriv_threshold = -1000
 
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.num_procs = self.comm.Get_size()
+
     def run(self):
-        identifiable = False
+
+        buff = np.array([False])
+        identifiable = buff[0]
         while not identifiable:
+
             self.param_id.run()
-            self.param_id.run_sensitivity(None)
+            if self.rank == 0:
+                self.param_id.run_sensitivity(None)
 
-            self.best_param_vals = self.param_id.get_best_param_vals()
-            self.param_names = self.param_id.get_param_names()
+                self.best_param_vals = self.param_id.get_best_param_vals()
+                self.param_names = self.param_id.get_param_names()
 
-            param_importance = self.param_id.get_param_importance()
-            collinearity_index = self.param_id.get_collinearity_index()
-            collinearity_index_pairs = self.param_id.get_collinearity_index_pairs()
+                param_importance = self.param_id.get_param_importance()
+                collinearity_index = self.param_id.get_collinearity_index()
+                collinearity_index_pairs = self.param_id.get_collinearity_index_pairs()
 
-            if min(param_importance) > self.threshold_param_importance and \
-                        max(collinearity_index) < self.threshold_collinearity:
-                print(f'The model is identifiable with {len(self.param_names)} parameters:')
-                print(self.param_names)
-                identifiable = True
-            else:
-                # remove parameters that aren't identifiable
-                # and update param_id object
-                print(f'The model is NOT identifiable with {len(self.param_names)} parameters')
-                print(f'determining which parameters to remove from identifying set')
-                param_idxs_to_remove = []
-                for II in range(len(self.param_names)):
-                    param_name = self.param_names[II]
-                    if param_importance[II] < self.threshold_param_importance:
-                        param_idxs_to_remove.append(II)
+                if min(param_importance) > self.threshold_param_importance and \
+                            max(collinearity_index) < self.threshold_collinearity:
+                    print(f'The model is identifiable with {len(self.param_names)} parameters:')
+                    print(self.param_names)
+                    identifiable = True
+                else:
+                    # remove parameters that aren't identifiable
+                    # and update param_id object
+                    print(f'The model is NOT identifiable with {len(self.param_names)} parameters')
+                    print(f'determining which parameters to remove from identifying set')
+                    param_idxs_to_remove = []
+                    for II in range(len(self.param_names)):
+                        param_name = self.param_names[II]
+                        if param_importance[II] < self.threshold_param_importance:
+                            param_idxs_to_remove.append(II)
 
-                    for JJ in range(len(self.param_names)):
-                        if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
-                            if param_importance[II] < param_importance[JJ]:
-                                param_idxs_to_remove.append(II)
+                        for JJ in range(len(self.param_names)):
+                            if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
+                                if param_importance[II] < param_importance[JJ]:
+                                    param_idxs_to_remove.append(II)
 
-                if len(param_idxs_to_remove) > 1:
-                    # make sure we aren't removing important parameters
-                    # it is better to remove too few than too many
-                    for idx in param_idxs_to_remove:
-                        # TODO this doesn't allow us to remove linearly related params if they are both important
-                        #  Fix this!
-                        if param_importance[idx] > self.keep_threshold_param_importance:
-                            param_idxs_to_remove.remove(idx)
+                    if len(param_idxs_to_remove) > 1:
+                        # make sure we aren't removing important parameters
+                        # it is better to remove too few than too many
+                        for idx in param_idxs_to_remove:
+                            # TODO this doesn't allow us to remove linearly related params if they are both important
+                            #  Fix this!
+                            if param_importance[idx] > self.keep_threshold_param_importance:
+                                param_idxs_to_remove.remove(idx)
 
-                # TODO future work: if we are reformulating the equations we will need to create and run a
-                #  CVS0DCellMLGenerator object.
+                    # TODO future work: if we are reformulating the equations we will need to create and run a
+                    #  CVS0DCellMLGenerator object.
             # TODO remove this break
             break
+            buff[0] = identifiable
+            self.comm.Bcast(buff, root=0)
+            identifiable = buff[0]
 
         best_param_vals = self.param_id.get_best_param_vals()
         self.param_id.close_simulation()

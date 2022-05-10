@@ -177,6 +177,8 @@ class CVS0DParamID():
                     self.sensitivity_param_maxs[JJ] = max
 
     def set_output_dir(self, path):
+        if self.rank != 0:
+            return
         self.output_dir = path
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
@@ -340,7 +342,10 @@ class CVS0DParamID():
                 pass
 
     def plot_mcmc(self):
-    
+
+        if self.rank != 0:
+            return
+
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
         if not os.path.exists(mcmc_chain_path): 
@@ -394,6 +399,9 @@ class CVS0DParamID():
         plt.close()
 
     def calculate_mcmc_identifiability(self, second_deriv_threshold=-300):
+        if self.rank !=0:
+            return
+
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
         if not os.path.exists(mcmc_chain_path):
@@ -482,6 +490,9 @@ class CVS0DParamID():
 
 
     def run_sensitivity(self, param_id_output_paths):
+        if self.rank !=0:
+            return
+
         print('running sensitivity analysis')
         if param_id_output_paths == None:
             sample_path_list = [self.output_dir]
@@ -705,6 +716,8 @@ class CVS0DParamID():
 
 
     def save_prediction_data(self):
+        if self.rank !=0:
+            return
         pred_variables_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
         if os.path.exists(pred_variables_path):
             print('Saving prediction data')
