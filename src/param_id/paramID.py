@@ -34,7 +34,6 @@ from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
-import copy
 import math
 import scipy.linalg as la
 from scipy.optimize import curve_fit
@@ -145,6 +144,13 @@ class CVS0DParamID():
         self.best_output_calculated = False
         self.sensitivity_calculated = False
 
+        self.second_deriv_threshold = -1000 
+
+    def temp_test(self):
+        self.param_id.temp_test()
+    def temp_test2(self):
+        self.param_id.temp_test2()
+
     def run(self):
         self.param_id.run()
 
@@ -153,10 +159,6 @@ class CVS0DParamID():
 
     def run_single_sensitivity(self,sensitivity_output_path):
         self.param_id.run_single_sensitivity(sensitivity_output_path)
-
-    def run_sensitivity(self,param_id_output_paths):
-        self.param_id.run_sensitivity(param_id_output_paths)
-        self.sensitivity_calculated = True
 
     def simulate_with_best_param_vals(self):
         self.param_id.simulate_with_best_param_vals()
@@ -187,6 +189,14 @@ class CVS0DParamID():
         else:
             self.param_id.set_output_dir(self.output_dir)
     
+    def set_param_names(self, param_names):
+        if self.mcmc_instead:
+            mcmc_object.set_param_names(param_names)
+        else:
+            self.param_id.set_param_names(param_names)
+
+        # TODO have to save param names as in __set_and_save_param_names!!
+
     def set_best_param_vals(self, best_param_vals):
         if self.mcmc_instead:
             mcmc_object.set_best_param_vals(best_param_vals)
@@ -398,7 +408,7 @@ class CVS0DParamID():
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
         plt.close()
 
-    def calculate_mcmc_identifiability(self, second_deriv_threshold=-300):
+    def calculate_mcmc_identifiability(self):
         if self.rank !=0:
             return
 
@@ -472,7 +482,7 @@ class CVS0DParamID():
             MLE_idx = np.argmax(y_opt)
             MLE_x_normed = x_for_smooth_plot[MLE_idx]
             second_deriv[idx] = best_dist_d2_dx2(MLE_x_normed, *p_opt)
-            if second_deriv[idx] < second_deriv_threshold:
+            if second_deriv[idx] < self.second_deriv_threshold:
                 ax.plot([-999], [0.0], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
                 ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='^', label='identifiable MLE')
             else:
@@ -486,10 +496,12 @@ class CVS0DParamID():
         print(second_deriv)
         ax.legend()
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_2nd_deriv_plot.pdf'))
-
-
+    
+    def run_single_sensitivity(self, do_triples_and_quads):
+        self.param_id.run_single_sensitivity(self.output_dir, do_triples_and_quads)
 
     def run_sensitivity(self, param_id_output_paths):
+        # TODO change this function to plot_sensitivity
         if self.rank !=0:
             return
 
@@ -508,6 +520,8 @@ class CVS0DParamID():
 
         for i in range(len(sample_path_list)):
             self.param_id.run_single_sensitivity(sample_path_list[i], do_triples_and_quads)
+
+
         # FA: Eventually we will automate the multiple runs of param_id and store the outputs in indexed
         # FA: directories that can all be accessed automatically by this function without defining input paths.
         m3_to_cm3 = 1e6
@@ -516,7 +530,6 @@ class CVS0DParamID():
         x_values = []
         for i in range(len(self.sensitivity_param_names)):
             x_values.append(self.sensitivity_param_names[i][0])
-
 
         for i in range(number_samples):
             sample_path = sample_path_list[i]
@@ -658,7 +671,6 @@ class CVS0DParamID():
                                      f'reconstruct_{self.param_id_method}_'
                                      f'{self.file_name_prefix}_collinearity_pairs_average.pdf'))
 
-
         if do_triples_and_quads:
             #plot collinearity triples average
             for i in range(len(x_values)):
@@ -712,6 +724,7 @@ class CVS0DParamID():
                                                      j) + '.pdf'))
                     plt.close()
 
+        self.sensitivity_calculated = True
         print('sensitivity analysis complete')
 
 
@@ -965,6 +978,61 @@ class OpencorParamID():
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 maximumNumberofSteps=100000000,
                                 maximumStep=self.maximumStep, pre_time=self.pre_time)
+    
+    def set_best_param_vals(self, best_param_vals):
+        self.best_param_vals = best_param_vals
+    
+    def set_param_names(self, param_names):
+        self.param_names = param_names
+        self.num_params = len(self.param_names)
+
+    def temp_test(self):
+        self.param_init = self.sim_helper.get_init_param_vals(self.param_names)
+        b = self.param_init*1.1
+        self.sim_helper.set_param_vals(self.param_names, b)
+        success = self.sim_helper.run()
+        pred_obs = self.sim_helper.get_results(self.obs_names)
+        self.sim_helper.reset_and_clear()
+    def temp_test2(self):
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        num_procs = comm.Get_size()
+        #
+        self.param_init = self.sim_helper.get_init_param_vals(self.param_names)
+        param_vals_norm = np.random.rand(self.num_params, 3)
+        param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
+
+        # send_buf = param_vals.T.copy()
+
+        # ave, res = divmod(param_vals.shape[1], num_procs)
+        ave = 3
+        aaa = 3
+
+        # pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
+
+
+        foo = np.array([ave for i in range(1)]) # This causes the fail at run
+        # foo = [ave for i in range(1)] # This causes the fail at run
+        # foo = np.array([aaa for i in range(1)]) # This causes the fail at run
+        # foo = np.array([ave for ave in range(1)]) # no fail
+        # foo = np.array([ave]) # no fail
+        # foo = np.array([0 if True else 1 for p in range(num_procs)]) # This doesn't cause a failure
+        
+        # comm.Bcast(pop_per_proc, root=0)
+
+        # recv_buf = np.zeros((pop_per_proc[rank], self.num_params))
+        # comm.Scatterv([send_buf, pop_per_proc*self.num_params, None, MPI.DOUBLE],
+        #                       recv_buf, root=0)
+
+        # param_vals_proc1 = recv_buf.T.copy()
+        param_vals_proc2 = param_vals.copy()
+
+        self.sim_helper.set_param_vals(self.param_names, param_vals_proc2[:, 0])
+        
+        success = self.sim_helper.run() ## FAILS HERE
+        
+        # self.sim_helper.set_param_vals(self.param_names, param_vals_proc1[:, 0])
+        # success = self.sim_helper.run()
 
     def run(self):
         comm = MPI.COMM_WORLD
@@ -1171,7 +1239,16 @@ class OpencorParamID():
                     # count number of columns for each proc
                     # count: the size of each sub-task
                     ave, res = divmod(param_vals.shape[1], num_procs)
-                    pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
+                    # pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
+                    # IMPORTANT: the above type of list comprehension breaks opencor if the opencor object
+                    # has already been called in another function
+                    pop_per_proc = np.zeros(num_procs, dtype=int)
+                    for II in range(num_procs):
+                        if II < res:
+                            pop_per_proc[II] = ave + 1
+                        else:
+                            pop_per_proc[II] = ave
+                    
                 else:
                     pop_per_proc = np.empty(num_procs, dtype=int)
                     send_buf = None
@@ -1383,6 +1460,8 @@ class OpencorParamID():
                 master_param_names.append(self.param_names[i])
                 master_param_values.append(self.best_param_vals[i])
 
+        master_param_values = np.array(master_param_values)
+
         num_sensitivity_params = len(self.sensitivity_param_names)
         gt_scalefactor = []
         x_index = 0
@@ -1401,8 +1480,8 @@ class OpencorParamID():
 
         for i in range(num_sensitivity_params):
             #central difference calculation of derivative
-            param_vec_up = copy.deepcopy(master_param_values)
-            param_vec_down = copy.deepcopy(master_param_values)
+            param_vec_up = master_param_values.copy()
+            param_vec_down = master_param_values.copy()
             # FA: It might be worth testing this out with a value smaller than 0.01 here
             # param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
             # param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
@@ -1410,12 +1489,16 @@ class OpencorParamID():
             # param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
             param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]]*1.1
             param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]]*0.9
-            up_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
-                                                                                 param_vec_up, self.obs_names,
-                                                                                 absolute=True)
-            down_pred_obs = self.sim_helper.modify_params_and_run_and_get_results(master_param_names,
-                                                                                 param_vec_down, self.obs_names,
-                                                                                 absolute=True)
+            
+            self.sim_helper.set_param_vals(master_param_names, param_vec_up)
+            success = self.sim_helper.run()
+            up_pred_obs = self.sim_helper.get_results(self.obs_names)
+            self.sim_helper.reset_and_clear()
+
+            self.sim_helper.set_param_vals(master_param_names, param_vec_down)
+            success = self.sim_helper.run()
+            down_pred_obs = self.sim_helper.get_results(self.obs_names)
+            self.sim_helper.reset_and_clear()
 
             up_pred_obs_consts_vec, up_pred_obs_series_array = self.get_pred_obs_vec_and_array(up_pred_obs)
             down_pred_obs_consts_vec, down_pred_obs_series_array = self.get_pred_obs_vec_and_array(down_pred_obs)
@@ -1746,6 +1829,10 @@ class OpencorMCMC():
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
 
+    def set_param_names(self, param_names):
+        self.param_names = param_names
+        self.num_params = len(self.param_names)
+
     def run(self):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -1829,10 +1916,10 @@ class OpencorMCMC():
             if self.param_prior_dists:
                 prior_dist = self.param_prior_dists[idx]
             else:
-                if np.any([param_name.endswith('C') for param_name in self.param_names[idx]]) : # TODO this is temporary until we input priors
-                    prior_dist = 'exponential'
-                else:
-                    prior_dist = None
+                # if np.any([param_name.endswith('C') for param_name in self.param_names[idx]]) : # TODO this is temporary until we input priors
+                #     prior_dist = 'exponential'
+                # else:
+                prior_dist = None
 
             if not prior_dist or prior_dist == 'uniform':
                 if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:

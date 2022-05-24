@@ -85,6 +85,9 @@ you must do the following...
 ### Required packages for parameter identification
 mpi4py
 scikit-optimize
+emcee
+corner
+schwimmbad
 
 ### Required packages for autogeneration
 pandas
@@ -95,11 +98,11 @@ IMPORTANT If installing on CENTOS, if you get an SSL error you must do the follo
 export LD_LIBRARY_PATH=[OpenCOR]/lib
 ```
 
-so that libcrypto.so.1.1 could be
-found. I don't understand why this :is necessary, but it is
+so that libcrypto.so.3 can be
+found to load the ssl module.
 
-IMPORTANT intalling mpi4py may require the following line 
-to install the mpi software on your computer
+IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following line 
+may be required to install the mpi software on your computer
 
 ```bash
 sudo apt install libopenmpi-dev
