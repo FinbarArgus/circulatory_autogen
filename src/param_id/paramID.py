@@ -1443,24 +1443,26 @@ class OpencorParamID():
         master_param_values = []
         sensitivity_index = []
 
-        for i in range(len(self.sensitivity_param_names)):
-            master_param_names.append(self.sensitivity_param_names[i])
-            master_param_values.append(param_vec_init[i])
-            sensitivity_index.append(i)
+        # for i in range(len(self.sensitivity_param_names)):
+        #     master_param_names.append(self.sensitivity_param_names[i])
+        #     master_param_values.append(param_vec_init[i])
+        #     sensitivity_index.append(i)
+        #
+        # for i in range(len(self.param_names)):
+        #     element_index = -1
+        #     for j in range(len(master_param_names)):
+        #         if master_param_names[j]==self.param_names[i]:
+        #             element_index = j
+        #             break
+        #     if element_index >= 0:
+        #         master_param_values[element_index] = self.best_param_vals[i]
+        #     else:
+        #         master_param_names.append(self.param_names[i])
+        #         master_param_values.append(self.best_param_vals[i])
 
-        for i in range(len(self.param_names)):
-            element_index = -1
-            for j in range(len(master_param_names)):
-                if master_param_names[j]==self.param_names[i]:
-                    element_index = j
-                    break
-            if element_index >= 0:
-                master_param_values[element_index] = self.best_param_vals[i]
-            else:
-                master_param_names.append(self.param_names[i])
-                master_param_values.append(self.best_param_vals[i])
-
-        master_param_values = np.array(master_param_values)
+        # TODO allow sensitivity params to be different to the identified params
+        master_param_names = self.param_names
+        master_param_values = self.best_param_vals
 
         num_sensitivity_params = len(self.sensitivity_param_names)
         gt_scalefactor = []

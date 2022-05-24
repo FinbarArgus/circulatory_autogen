@@ -1,14 +1,14 @@
 ## general inputs
 # file_prefix=FTU_wCVS
-file_prefix=3compartment
+# file_prefix=3compartment
 # file_prefix=simple_physiological
 # file_prefix=neonatal
-# file_prefix=physiological
+file_prefix=physiological
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
-input_param_file=3compartment_parameters.csv # this must be stored in resources.
+# input_param_file=3compartment_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
-# input_param_file=physiological_parameters.csv # this must be stored in resources.
+input_param_file=physiological_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
                                      # parameters file will be generated with 
@@ -19,7 +19,7 @@ num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=3000
+num_calls_to_function=6000
 num_param_id_runs=1 # this allows multiple runs of the param_id to check uniqueness. 
 run_sensitivity=True
 
@@ -42,7 +42,6 @@ param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_
 
 ## paths
 ## the below for my hpc
-# opencor_pythonshell_path=/hpc/farg967/OpenCOR-2021-07-04-Linux/pythonshell
 opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 ## the below for my local
 # opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell

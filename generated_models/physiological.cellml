@@ -5,6 +5,7 @@
         <units name="m3" units_ref="m3"/>
         <units name="m3_per_s" units_ref="m3_per_s"/>
         <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m_per_s" units_ref="m_per_s"/>
         <units name="m6_per_J" units_ref="m6_per_J"/>
         <units name="per_m" units_ref="per_m"/>
         <units name="J_per_m3" units_ref="J_per_m3"/>
@@ -893,7 +894,7 @@
 </component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="heart">
-   <variable name="rho" public_interface="in" units="kg_per_m3"/>
+   <variable name="rho" public_interface="in" units="Js2_per_m5"/>
    <variable name="T" public_interface="in" units="second"/>
    <variable name="mt" public_interface="in" units="second"/>
    <variable name="u_ra" public_interface="in" units="J_per_m3"/>

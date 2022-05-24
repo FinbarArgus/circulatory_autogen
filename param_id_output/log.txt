@@ -1,3 +1,25 @@
-> /people/farg967/Documents/git_projects/circulatory_autogen/src/scripts/sequential_param_id_run_script.py(5)<module>()
--> '''
+starting script for rank = 0
+WARNING Running in serial, are you sure you want to be a snail?
+starting param id run for rank = 0 process
+> /people/farg967/Documents/git_projects/circulatory_autogen/src/utilities/opencor_helper.py(104)get_init_param_vals()
+-> return np.array(param_init)
 (Pdb) 
+Traceback (most recent call last):
+  File "../src/scripts/param_id_run_script.py", line 135, in <module>
+    param_id.run()
+  File "../src/scripts/../../src/param_id/paramID.py", line 155, in run
+    self.param_id.run()
+  File "../src/scripts/../../src/param_id/paramID.py", line 1054, in run
+    self.param_init = self.sim_helper.get_init_param_vals(self.param_names)
+  File "../src/scripts/../../src/param_id/../utilities/opencor_helper.py", line 104, in get_init_param_vals
+    return np.array(param_init)
+  File "../src/scripts/../../src/param_id/../utilities/opencor_helper.py", line 104, in get_init_param_vals
+    return np.array(param_init)
+  File "/hpc/farg967/OpenCOR-2022-05-23-Linux/python/lib/python3.7/bdb.py", line 88, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/hpc/farg967/OpenCOR-2022-05-23-Linux/python/lib/python3.7/bdb.py", line 113, in dispatch_line
+    if self.quitting: raise BdbQuit
+bdb.BdbQuit
+
+Usage: parameter_id_method file_name_prefix num_calls_to_function path_to_obs_file.json do_mcmc
+e.g. genetic_algorithm simple_physiological 10 path/to/circulatory_autogen/resources/simple_physiological_obs_data.json True

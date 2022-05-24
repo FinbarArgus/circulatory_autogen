@@ -100,7 +100,7 @@ class SimulationHelper():
                     print([name for name in self.data.constants()])
                     exit()
 
-        return np.array(param_init)
+        return param_init
 
     def set_param_vals(self, param_names, param_vals):
         # ensure param_vals stores state values first, then constant values
