@@ -1,0 +1,11 @@
+E_lv_A
+E_rv_A
+R_par
+R_T_leg_L,R_T_leg_R
+R_T_arm_L,R_T_arm_R
+R_T_anterior_cerebral_L,R_T_anterior_cerebral_R
+R_T_external_carotid_L,R_T_external_carotid_R
+R_T_middle_cerebral_L,R_T_middle_cerebral_R
+R_T_posterior_cerebral_L,R_T_posterior_cerebral_R
+R_T_trunk_C
+C_venous_lb,C_venous_ub,C_venous_ivc,C_venous_svc
