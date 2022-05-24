@@ -15,7 +15,7 @@ input_param_file=physiological_parameters.csv # this must be stored in resources
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=3
+num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
@@ -30,7 +30,7 @@ do_mcmc=True
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables.json
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
-param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
+# param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 
 # This for simple_physiological (doesn't use experimental data)
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
@@ -39,6 +39,7 @@ param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_
 # This for physiological
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
+param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 
 ## paths
 ## the below for my hpc
