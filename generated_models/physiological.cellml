@@ -5,6 +5,7 @@
         <units name="m3" units_ref="m3"/>
         <units name="m3_per_s" units_ref="m3_per_s"/>
         <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m_per_s" units_ref="m_per_s"/>
         <units name="m6_per_J" units_ref="m6_per_J"/>
         <units name="per_m" units_ref="per_m"/>
         <units name="J_per_m3" units_ref="J_per_m3"/>
@@ -144,6 +145,9 @@
     <component component_ref="pp_type" name="anterior_communicating_C44_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="vertebral_L1_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
     <component component_ref="pp_type" name="vertebral_L2_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
@@ -156,10 +160,31 @@
     <component component_ref="pv_type" name="brachial_R34_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
-    <component component_ref="pp_type" name="vertebral_R272_module"/>
+    <component component_ref="pv_split_type" name="vertebral_R1_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
-    <component component_ref="vv_2in2out_type" name="basilar_C4_module"/>
+    <component component_ref="pp_type" name="vertebral_R2_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pp_type" name="anterior_spinal_L_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pp_type" name="anterior_spinal_R_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="vv_merge_type" name="anterior_spinal_C_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="anterior_spinal_C_T_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="vv_2in2out_type" name="basilar_C1_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="superior_cerebellar_C_T_module"/>
+</import>
+<import xlink:href="physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="basilar_C2_module"/>
 </import>
 <import xlink:href="physiological_modules.cellml">
     <component component_ref="pp_type" name="posterior_cerebral_pre_L6_module"/>
@@ -361,7 +386,7 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="subclavian_L66_module" component_2="vertebral_L2_module"/>
+   <map_components component_1="subclavian_L66_module" component_2="vertebral_L1_module"/>
    <map_variables variable_1="v_out_2" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
@@ -541,7 +566,17 @@
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
 <connection>
-   <map_components component_1="vertebral_L2_module" component_2="basilar_C4_module"/>
+   <map_components component_1="vertebral_L1_module" component_2="vertebral_L2_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="vertebral_L1_module" component_2="anterior_spinal_L_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="vertebral_L2_module" component_2="basilar_C1_module"/>
    <map_variables variable_1="v_d" variable_2="v_in_2"/>
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
@@ -551,7 +586,7 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="subclavian_R28_module" component_2="vertebral_R272_module"/>
+   <map_components component_1="subclavian_R28_module" component_2="vertebral_R1_module"/>
    <map_variables variable_1="v_out_2" variable_2="v"/>
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
@@ -566,19 +601,62 @@
    <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="vertebral_R272_module" component_2="basilar_C4_module"/>
+   <map_components component_1="vertebral_R1_module" component_2="vertebral_R2_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="vertebral_R1_module" component_2="anterior_spinal_R_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="vertebral_R2_module" component_2="basilar_C1_module"/>
    <map_variables variable_1="v_d" variable_2="v_in_1"/>
    <map_variables variable_1="u_out" variable_2="u"/>
 </connection>
 <connection>
-   <map_components component_1="basilar_C4_module" component_2="posterior_cerebral_pre_L6_module"/>
+   <map_components component_1="anterior_spinal_L_module" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="v_d" variable_2="v_in_1"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_R_module" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="v_d" variable_2="v_in_2"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_C_module" component_2="anterior_spinal_C_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u_d" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_C_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="basilar_C1_module" component_2="basilar_C2_module"/>
    <map_variables variable_1="v_out_1" variable_2="v"/>
    <map_variables variable_1="u_d" variable_2="u_in"/>
 </connection>
 <connection>
-   <map_components component_1="basilar_C4_module" component_2="posterior_cerebral_pre_R204_module"/>
+   <map_components component_1="basilar_C1_module" component_2="superior_cerebellar_C_T_module"/>
    <map_variables variable_1="v_out_2" variable_2="v"/>
    <map_variables variable_1="u_d" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="superior_cerebellar_C_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="basilar_C2_module" component_2="posterior_cerebral_pre_L6_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="basilar_C2_module" component_2="posterior_cerebral_pre_R204_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
 </connection>
 <connection>
    <map_components component_1="posterior_cerebral_pre_L6_module" component_2="posterior_cerebral_post_L12_module"/>
@@ -784,6 +862,14 @@
 </connection>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;terminal venous connection&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <connection>
+   <map_components component_1="anterior_spinal_C_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_anterior_spinal_C_T"/>
+</connection>
+<connection>
+   <map_components component_1="superior_cerebellar_C_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_superior_cerebellar_C_T"/>
+</connection>
+<connection>
    <map_components component_1="posterior_cerebral_L_T_module" component_2="terminal_venous_connection"/>
    <map_variables variable_1="v_T" variable_2="v_posterior_cerebral_L_T"/>
 </connection>
@@ -848,6 +934,8 @@
 <variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/>
 <variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/>
 <variable name="v_venous_lb" public_interface="out" units="m3_per_s"/>
+<variable name="v_anterior_spinal_C_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_superior_cerebellar_C_T" public_interface="in" units="m3_per_s"/>
 <variable name="v_posterior_cerebral_L_T" public_interface="in" units="m3_per_s"/>
 <variable name="v_posterior_cerebral_R_T" public_interface="in" units="m3_per_s"/>
 <variable name="v_external_carotid_L_T" public_interface="in" units="m3_per_s"/>
@@ -877,6 +965,8 @@
        <ci>v_venous_ub</ci>
        <apply>
            <plus/>
+            <ci>v_anterior_spinal_C_T</ci>
+            <ci>v_superior_cerebellar_C_T</ci>
             <ci>v_posterior_cerebral_L_T</ci>
             <ci>v_posterior_cerebral_R_T</ci>
             <ci>v_external_carotid_L_T</ci>
@@ -893,7 +983,7 @@
 </component>
 <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
 <component name="heart">
-   <variable name="rho" public_interface="in" units="kg_per_m3"/>
+   <variable name="rho" public_interface="in" units="Js2_per_m5"/>
    <variable name="T" public_interface="in" units="second"/>
    <variable name="mt" public_interface="in" units="second"/>
    <variable name="u_ra" public_interface="in" units="J_per_m3"/>
@@ -1143,6 +1233,11 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
 </component>
+<component name="vertebral_L1">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
 <component name="vertebral_L2">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
@@ -1163,12 +1258,53 @@
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
 </component>
-<component name="vertebral_R272">
+<component name="vertebral_R1">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
 </component>
-<component name="basilar_C4">
+<component name="vertebral_R2">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="anterior_spinal_L">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="anterior_spinal_R">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="anterior_spinal_C">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="anterior_spinal_C_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="alpha" public_interface="in" units="dimensionless"/>
+</component>
+<component name="basilar_C1">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="superior_cerebellar_C_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="alpha" public_interface="in" units="dimensionless"/>
+</component>
+<component name="basilar_C2">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
    <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -1720,6 +1856,12 @@
    <map_variables variable_1="E" variable_2="E"/>
 </connection>
 <connection>
+   <map_components component_1="vertebral_L1" component_2="vertebral_L1_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
    <map_components component_1="vertebral_L2" component_2="vertebral_L2_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
@@ -1744,13 +1886,61 @@
    <map_variables variable_1="E" variable_2="E"/>
 </connection>
 <connection>
-   <map_components component_1="vertebral_R272" component_2="vertebral_R272_module"/>
+   <map_components component_1="vertebral_R1" component_2="vertebral_R1_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
    <map_variables variable_1="E" variable_2="E"/>
 </connection>
 <connection>
-   <map_components component_1="basilar_C4" component_2="basilar_C4_module"/>
+   <map_components component_1="vertebral_R2" component_2="vertebral_R2_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_L" component_2="anterior_spinal_L_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_R" component_2="anterior_spinal_R_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_C" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="anterior_spinal_C_T" component_2="anterior_spinal_C_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="alpha" variable_2="alpha"/>
+</connection>
+<connection>
+   <map_components component_1="basilar_C1" component_2="basilar_C1_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="superior_cerebellar_C_T" component_2="superior_cerebellar_C_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="alpha" variable_2="alpha"/>
+</connection>
+<connection>
+   <map_components component_1="basilar_C2" component_2="basilar_C2_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
    <map_variables variable_1="E" variable_2="E"/>
@@ -2508,6 +2698,17 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
+   <map_components component_1="parameters" component_2="vertebral_L1_module"/>
+   <map_variables variable_1="E_vertebral_L1" variable_2="E"/>
+   <map_variables variable_1="l_vertebral_L1" variable_2="l"/>
+   <map_variables variable_1="r_vertebral_L1" variable_2="r"/>
+   <map_variables variable_1="theta_vertebral_L1" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="vertebral_L1_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
    <map_components component_1="parameters" component_2="vertebral_L2_module"/>
    <map_variables variable_1="E_vertebral_L2" variable_2="E"/>
    <map_variables variable_1="l_vertebral_L2" variable_2="l"/>
@@ -2552,25 +2753,102 @@
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters" component_2="vertebral_R272_module"/>
-   <map_variables variable_1="E_vertebral_R272" variable_2="E"/>
-   <map_variables variable_1="l_vertebral_R272" variable_2="l"/>
-   <map_variables variable_1="r_vertebral_R272" variable_2="r"/>
-   <map_variables variable_1="theta_vertebral_R272" variable_2="theta"/>
+   <map_components component_1="parameters" component_2="vertebral_R1_module"/>
+   <map_variables variable_1="E_vertebral_R1" variable_2="E"/>
+   <map_variables variable_1="l_vertebral_R1" variable_2="l"/>
+   <map_variables variable_1="r_vertebral_R1" variable_2="r"/>
+   <map_variables variable_1="theta_vertebral_R1" variable_2="theta"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="vertebral_R272_module"/>
+   <map_components component_1="environment" component_2="vertebral_R1_module"/>
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
-   <map_components component_1="parameters" component_2="basilar_C4_module"/>
-   <map_variables variable_1="E_basilar_C4" variable_2="E"/>
-   <map_variables variable_1="l_basilar_C4" variable_2="l"/>
-   <map_variables variable_1="r_basilar_C4" variable_2="r"/>
-   <map_variables variable_1="theta_basilar_C4" variable_2="theta"/>
+   <map_components component_1="parameters" component_2="vertebral_R2_module"/>
+   <map_variables variable_1="E_vertebral_R2" variable_2="E"/>
+   <map_variables variable_1="l_vertebral_R2" variable_2="l"/>
+   <map_variables variable_1="r_vertebral_R2" variable_2="r"/>
+   <map_variables variable_1="theta_vertebral_R2" variable_2="theta"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="basilar_C4_module"/>
+   <map_components component_1="environment" component_2="vertebral_R2_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="anterior_spinal_L_module"/>
+   <map_variables variable_1="E_anterior_spinal_L" variable_2="E"/>
+   <map_variables variable_1="l_anterior_spinal_L" variable_2="l"/>
+   <map_variables variable_1="r_anterior_spinal_L" variable_2="r"/>
+   <map_variables variable_1="theta_anterior_spinal_L" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_L_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="anterior_spinal_R_module"/>
+   <map_variables variable_1="E_anterior_spinal_R" variable_2="E"/>
+   <map_variables variable_1="l_anterior_spinal_R" variable_2="l"/>
+   <map_variables variable_1="r_anterior_spinal_R" variable_2="r"/>
+   <map_variables variable_1="theta_anterior_spinal_R" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_R_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="E_anterior_spinal_C" variable_2="E"/>
+   <map_variables variable_1="l_anterior_spinal_C" variable_2="l"/>
+   <map_variables variable_1="r_anterior_spinal_C" variable_2="r"/>
+   <map_variables variable_1="theta_anterior_spinal_C" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="anterior_spinal_C_T_module"/>
+   <map_variables variable_1="R_T_anterior_spinal_C" variable_2="R_T"/>
+   <map_variables variable_1="C_T_anterior_spinal_C" variable_2="C_T"/>
+   <map_variables variable_1="alpha_anterior_spinal_C" variable_2="alpha"/>
+   <map_variables variable_1="v_nom_anterior_spinal_C" variable_2="v_nom"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_C_T_module"/>
+   <map_variables variable_1="gain_int" variable_2="gain_int"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="basilar_C1_module"/>
+   <map_variables variable_1="E_basilar_C1" variable_2="E"/>
+   <map_variables variable_1="l_basilar_C1" variable_2="l"/>
+   <map_variables variable_1="r_basilar_C1" variable_2="r"/>
+   <map_variables variable_1="theta_basilar_C1" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="basilar_C1_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="superior_cerebellar_C_T_module"/>
+   <map_variables variable_1="R_T_superior_cerebellar_C" variable_2="R_T"/>
+   <map_variables variable_1="C_T_superior_cerebellar_C" variable_2="C_T"/>
+   <map_variables variable_1="alpha_superior_cerebellar_C" variable_2="alpha"/>
+   <map_variables variable_1="v_nom_superior_cerebellar_C" variable_2="v_nom"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="superior_cerebellar_C_T_module"/>
+   <map_variables variable_1="gain_int" variable_2="gain_int"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="basilar_C2_module"/>
+   <map_variables variable_1="E_basilar_C2" variable_2="E"/>
+   <map_variables variable_1="l_basilar_C2" variable_2="l"/>
+   <map_variables variable_1="r_basilar_C2" variable_2="r"/>
+   <map_variables variable_1="theta_basilar_C2" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="basilar_C2_module"/>
    <map_variables variable_1="beta_g" variable_2="beta_g"/>
 </connection>
 <connection>
@@ -3166,6 +3444,10 @@
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
+   <map_components component_1="environment" component_2="vertebral_L1_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
    <map_components component_1="environment" component_2="vertebral_L2_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
@@ -3182,11 +3464,39 @@
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="vertebral_R272_module"/>
+   <map_components component_1="environment" component_2="vertebral_R1_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
-   <map_components component_1="environment" component_2="basilar_C4_module"/>
+   <map_components component_1="environment" component_2="vertebral_R2_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_L_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_R_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_C_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="anterior_spinal_C_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="basilar_C1_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="superior_cerebellar_C_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="basilar_C2_module"/>
    <map_variables variable_1="time" variable_2="t"/>
 </connection>
 <connection>
