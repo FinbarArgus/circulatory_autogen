@@ -55,16 +55,19 @@ class SequentialParamID:
         identifiable = buff[0]
         while not identifiable:
 
+            # self.param_id.temp_test()
+            # self.param_id.temp_test2()
+
             self.param_id.run()
             if self.rank == 0:
-                self.param_id.run_sensitivity(None)
+                self.param_id.run_single_sensitivity(None)
 
-                self.best_param_vals = self.param_id.get_best_param_vals()
-                self.param_names = self.param_id.get_param_names()
+                self.best_param_vals = self.param_id.get_best_param_vals().copy()
+                self.param_names = self.param_id.get_param_names().copy()
 
-                param_importance = self.param_id.get_param_importance()
-                collinearity_index = self.param_id.get_collinearity_index()
-                collinearity_index_pairs = self.param_id.get_collinearity_index_pairs()
+                param_importance = self.param_id.get_param_importance().copy()
+                collinearity_index = self.param_id.get_collinearity_index().copy()
+                collinearity_index_pairs = self.param_id.get_collinearity_index_pairs().copy()
 
                 if min(param_importance) > self.threshold_param_importance and \
                             max(collinearity_index) < self.threshold_collinearity:
@@ -104,7 +107,7 @@ class SequentialParamID:
             self.comm.Bcast(buff, root=0)
             identifiable = buff[0]
 
-        best_param_vals = self.param_id.get_best_param_vals()
+        self.best_param_vals = self.param_id.get_best_param_vals().copy()
         self.param_id.close_simulation()
 
         # Now run mcmc to check practical identifiability
@@ -116,7 +119,7 @@ class SequentialParamID:
                                  sim_time=self.sim_time, pre_time=self.pre_time, maximumStep=self.maximumStep,
                                  DEBUG=self.DEBUG)
 
-        mcmc.set_best_param_vals(best_param_vals)
+        mcmc.set_best_param_vals(self.best_param_vals)
         mcmc.run_mcmc()
         mcmc.plot_mcmc()
         mcmc.calculate_mcmc_identifiability(second_deriv_threshold=self.second_deriv_threshold)
