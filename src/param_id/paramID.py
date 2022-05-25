@@ -1432,39 +1432,9 @@ class OpencorParamID():
         else:
             output_path = sensitivity_output_path
 
-        self.param_init = self.sim_helper.get_init_param_vals(self.sensitivity_param_names)
-        param_vec_init = np.array(self.param_init).flatten()
         self.best_param_vals = np.load(os.path.join(output_path, 'best_param_vals.npy'))
 
-        # print(self.best_param_vals)
-
-        #merge best found and initial values
-        master_param_names = []
-        master_param_values = []
-        sensitivity_index = []
-
-        # for i in range(len(self.sensitivity_param_names)):
-        #     master_param_names.append(self.sensitivity_param_names[i])
-        #     master_param_values.append(param_vec_init[i])
-        #     sensitivity_index.append(i)
-        #
-        # for i in range(len(self.param_names)):
-        #     element_index = -1
-        #     for j in range(len(master_param_names)):
-        #         if master_param_names[j]==self.param_names[i]:
-        #             element_index = j
-        #             break
-        #     if element_index >= 0:
-        #         master_param_values[element_index] = self.best_param_vals[i]
-        #     else:
-        #         master_param_names.append(self.param_names[i])
-        #         master_param_values.append(self.best_param_vals[i])
-
-        # TODO allow sensitivity params to be different to the identified params
-        master_param_names = self.param_names
-        master_param_values = self.best_param_vals
-
-        num_sensitivity_params = len(self.sensitivity_param_names)
+        num_sensitivity_params = self.num_params
         gt_scalefactor = []
         x_index = 0
         objs_index = []
@@ -1482,22 +1452,22 @@ class OpencorParamID():
 
         for i in range(num_sensitivity_params):
             #central difference calculation of derivative
-            param_vec_up = master_param_values.copy()
-            param_vec_down = master_param_values.copy()
+            param_vec_up = self.best_param_vals.copy()
+            param_vec_down = self.best_param_vals.copy()
             # FA: It might be worth testing this out with a value smaller than 0.01 here
             # param_vec_diff = (self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i])*0.01
             # param_vec_range = self.sensitivity_param_maxs[i] - self.sensitivity_param_mins[i]
             # param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]] + param_vec_diff
             # param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]] - param_vec_diff
-            param_vec_up[sensitivity_index[i]] = param_vec_up[sensitivity_index[i]]*1.1
-            param_vec_down[sensitivity_index[i]] = param_vec_down[sensitivity_index[i]]*0.9
+            param_vec_up[i] = param_vec_up[i]*1.1
+            param_vec_down[i] = param_vec_down[i]*0.9
             
-            self.sim_helper.set_param_vals(master_param_names, param_vec_up)
+            self.sim_helper.set_param_vals(self.param_names, param_vec_up)
             success = self.sim_helper.run()
             up_pred_obs = self.sim_helper.get_results(self.obs_names)
             self.sim_helper.reset_and_clear()
 
-            self.sim_helper.set_param_vals(master_param_names, param_vec_down)
+            self.sim_helper.set_param_vals(self.param_names, param_vec_down)
             success = self.sim_helper.run()
             down_pred_obs = self.sim_helper.get_results(self.obs_names)
             self.sim_helper.reset_and_clear()
@@ -1507,8 +1477,8 @@ class OpencorParamID():
             for j in range(len(up_pred_obs_consts_vec)+len(up_pred_obs_series_array)):
                 #normalise derivative
                 if j < len(up_pred_obs_consts_vec):
-                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[sensitivity_index[i]]-param_vec_down[sensitivity_index[i]])
-                    dObs_param = dObs_param*master_param_values[sensitivity_index[i]]*gt_scalefactor[objs_index[j]]
+                    dObs_param = (up_pred_obs_consts_vec[j]-down_pred_obs_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    dObs_param = dObs_param*self.best_param_vals[i]*gt_scalefactor[objs_index[j]]
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i,j] = dObs_param

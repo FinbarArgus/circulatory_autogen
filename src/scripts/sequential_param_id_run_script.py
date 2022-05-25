@@ -78,7 +78,7 @@ if __name__ == '__main__':
                                 sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.00003, DEBUG=DEBUG)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
 
 
