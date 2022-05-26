@@ -53,6 +53,7 @@ class SequentialParamID:
 
         buff = np.array([False])
         identifiable = buff[0]
+        num_params_to_remove_buff = np.array([0])
         while not identifiable:
 
             # self.param_id.temp_test()
@@ -84,11 +85,16 @@ class SequentialParamID:
                         param_name = self.param_names[II]
                         if param_importance[II] < self.threshold_param_importance:
                             param_idxs_to_remove.append(II)
-
-                        for JJ in range(len(self.param_names)):
-                            if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
-                                if param_importance[II] < param_importance[JJ]:
-                                    param_idxs_to_remove.append(II)
+                            identifiable = False
+                        else:
+                            for JJ in range(len(self.param_names)):
+                                if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
+                                    if param_importance[II] < param_importance[JJ]:
+                                        param_idxs_to_remove.append(II)
+                                        identifiable = False
+                        if identifiable:
+                            print('error, not identifiable, but no params to remove added.')
+                            exit()
 
                     if len(param_idxs_to_remove) > 1:
                         # TODO make sure we aren't removing important parameters
@@ -105,6 +111,15 @@ class SequentialParamID:
             buff[0] = identifiable
             self.comm.Bcast(buff, root=0)
             identifiable = buff[0]
+            self.comm.Bcast(num_params_to_remove_buff, root=0)
+            if rank == 0:
+                param_idxs_to_remove_array = np.array(param_idxs_to_remove)
+            else:
+                param_idxs_to_remove_array = np.empty(num_params_to_remove_buff[0], dtype=int)
+
+            param_id.remove_params_from_idx(param_idxs_to_remove_array)
+
+
 
         self.best_param_vals = self.param_id.get_best_param_vals().copy()
         self.param_id.close_simulation()
