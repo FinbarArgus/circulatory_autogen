@@ -1,8 +1,8 @@
 vessel_name,                  param_name,       param_type, min,        max
-heart,                        q_lv,             state,      4e-4,       16e-4 
-heart,                        E_lv_A,           const,      3e8,        5e8
+heart,                        q_lv,             state,      3e-4,       16e-4 
+heart,                        E_lv_A,           const,      2e8,        5e8
 heart,                        E_rv_A,           const,      2e7,        5e7
-par,                          R,                const,      1e5,        1e6
+par,                          R,                const,      1e5,        1e7
 leg_L_T leg_R_T,              R_T,              const,      1e7,        4e9
 arm_L_T arm_R_T,              R_T,              const,      1e7,        1e10
 anterior_cerebral_L_T anterior_cerebral_R_T,R_T,const,      1e7,        1e10

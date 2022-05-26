@@ -88,6 +88,7 @@ scikit-optimize
 emcee
 corner
 schwimmbad
+tqdm
 
 ### Required packages for autogeneration
 pandas

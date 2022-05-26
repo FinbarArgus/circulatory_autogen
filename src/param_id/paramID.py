@@ -355,10 +355,10 @@ class CVS0DParamID():
         num_steps = samples.shape[0] 
         num_walkers = samples.shape[1] 
         num_params = samples.shape[2] # TODO check this is the same as objects num_params
-        if num_params != mcmc_object.num_params:
+        if num_params != self.param_id.num_params:
             print('num params in mcmc chain doesn\'t equal param_id number of params')
-        # discard first num_steps/10 samples
-        # samples = samples[samples.shape[0]//10:, :, :]
+        # discard first num_steps/2 samples
+        samples = samples[samples.shape[0]//2:, :, :]
         # thin = 10
         # samples = samples[::thin, :, :]
         # discarding samples isnt needed because we start an "optimal" point
@@ -389,7 +389,7 @@ class CVS0DParamID():
         plt.close()
 
         fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
-                            labels=self.param_names, truths=mcmc_object.best_param_vals)
+                            labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
@@ -411,7 +411,7 @@ class CVS0DParamID():
         num_steps = samples.shape[0]
         num_walkers = samples.shape[1]
         num_params = samples.shape[2]  # TODO check this is the same as objects num_params
-        if num_params != mcmc_object.num_params:
+        if num_params != self.param_id.num_params:
                 print('num params in mcmc chain doesn\'t equal param_id number of params')
         # discard first num_steps/10 samples
         # samples = samples[samples.shape[0]//10:, :, :]
@@ -926,9 +926,6 @@ class OpencorParamID():
         self.param_importance = None
         self.collinearity_index = None
         self.collinearity_index_pairs = None
-
-        # mcmc
-        self.sampler = None
 
         self.DEBUG = DEBUG
 
@@ -1728,7 +1725,7 @@ class OpencorMCMC():
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                     # create initial params in gaussian ball around best_param_vals estimate
                     init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                                       0.01*np.random.randn(self.num_params, num_walkers)
+                                       0.1*np.random.randn(self.num_params, num_walkers)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                 else:
                     init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
@@ -1799,7 +1796,7 @@ class OpencorMCMC():
 
             if not prior_dist or prior_dist == 'uniform':
                 if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
-                    return -np.inf
+                    pass # temporarily remove limits
                 else:
                     #prior += 0
                     pass
