@@ -496,6 +496,7 @@ class CVS0DParamID():
         print(second_deriv)
         ax.legend()
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_2nd_deriv_plot.pdf'))
+        return second_deriv, second_deriv >= self.second_deriv_threshold
     
     def run_single_sensitivity(self, do_triples_and_quads):
         self.param_id.run_single_sensitivity(self.output_dir, do_triples_and_quads)
@@ -1789,7 +1790,7 @@ class OpencorMCMC():
         if DEBUG:
             self.num_steps = 10
         else:
-            self.num_steps = 600 
+            self.num_steps = 200 
 
         self.DEBUG = DEBUG
 

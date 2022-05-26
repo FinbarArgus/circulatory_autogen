@@ -39,7 +39,7 @@ class SequentialParamID:
         self.best_param_names = None
 
         # thresholds for identifiability TODO optimise these
-        self.threshold_param_importance = 0.01
+        self.threshold_param_importance = 0.1
         self.keep_threshold_param_importance = 0.8
         self.threshold_collinearity = 20
         self.threshold_collinearity_pairs = 10
@@ -70,7 +70,7 @@ class SequentialParamID:
                 collinearity_index_pairs = self.param_id.get_collinearity_index_pairs().copy()
 
                 if min(param_importance) > self.threshold_param_importance and \
-                            max(collinearity_index) < self.threshold_collinearity:
+                            max(collinearity_index_pairs) < self.threshold_collinearity_pairs:
                     print(f'The model is identifiable with {len(self.param_names)} parameters:')
                     print(self.param_names)
                     identifiable = True
@@ -91,40 +91,55 @@ class SequentialParamID:
                                     param_idxs_to_remove.append(II)
 
                     if len(param_idxs_to_remove) > 1:
-                        # make sure we aren't removing important parameters
+                        # TODO make sure we aren't removing important parameters
                         # it is better to remove too few than too many
-                        for idx in param_idxs_to_remove:
-                            # TODO this doesn't allow us to remove linearly related params if they are both important
-                            #  Fix this!
-                            if param_importance[idx] > self.keep_threshold_param_importance:
-                                param_idxs_to_remove.remove(idx)
+                        # for idx in param_idxs_to_remove:
+                        #     # TODO this doesn't allow us to remove linearly related params if they are both important
+                        #     #  Fix this!
+                        #     if param_importance[idx] > self.keep_threshold_param_importance:
+                        #         param_idxs_to_remove.remove(idx)
+                        pass
 
                     # TODO future work: if we are reformulating the equations we will need to create and run a
                     #  CVS0DCellMLGenerator object.
-            # TODO remove this break
-            break
             buff[0] = identifiable
             self.comm.Bcast(buff, root=0)
             identifiable = buff[0]
 
         self.best_param_vals = self.param_id.get_best_param_vals().copy()
         self.param_id.close_simulation()
+        
+        buff = np.array([False])
+        identifiable = buff[0]
+        while not identifiable:
 
-        # Now run mcmc to check practical identifiability
-        mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
-                                 self.file_name_prefix,
-                                 input_params_path=self.input_params_path,
-                                 sensitivity_params_path=self.sensitivity_params_path,
-                                 param_id_obs_path=self.param_id_obs_path,
-                                 sim_time=self.sim_time, pre_time=self.pre_time, maximumStep=self.maximumStep,
-                                 DEBUG=self.DEBUG)
+            # Now run mcmc to check practical identifiability
+            mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
+                                     self.file_name_prefix,
+                                     input_params_path=self.input_params_path,
+                                     sensitivity_params_path=self.sensitivity_params_path,
+                                     param_id_obs_path=self.param_id_obs_path,
+                                     sim_time=self.sim_time, pre_time=self.pre_time, maximumStep=self.maximumStep,
+                                     DEBUG=self.DEBUG)
 
-        mcmc.set_best_param_vals(self.best_param_vals)
-        mcmc.run_mcmc()
-        mcmc.plot_mcmc()
-        mcmc.calculate_mcmc_identifiability(second_deriv_threshold=self.second_deriv_threshold)
+            mcmc.set_best_param_vals(self.best_param_vals)
+            mcmc.run_mcmc()
+            mcmc.plot_mcmc()
+            second_deriv, identifiable_param_array = mcmc.calculate_mcmc_identifiability(second_deriv_threshold=self.second_deriv_threshold)
+            if np.any(identifiable_param_array):
+                remove_idx = np.argmin(second_deriv)
+                identifiable = False
+            else:
+                identifiable = True
 
-        # smooth mcmc
+            buff[0] = identifiable
+            self.comm.Bcast(buff, root=0)
+            identifiable = buff[0]
+
+    print('parameter identification complete. Model parameters are identifiable')
+    print('plotting core predictions distribution to check uncertainty on predictions')
+    # TODO sample param distribution to get distribution of core
+    # prediction. Use prediction_variables.csv for this
 
     def get_best_param_names(self):
         return self.best_param_names
