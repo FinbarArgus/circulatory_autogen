@@ -70,7 +70,7 @@ if __name__ == '__main__':
         if file_name_prefix == '3compartment' or 'FTU_wCVS':
             pre_time = 20.0
         else: 
-            pre_time = 20.0
+            pre_time = 16.0
         sim_time = 2.0
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
