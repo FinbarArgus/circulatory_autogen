@@ -39,7 +39,7 @@ if __name__ == '__main__':
         if mpi_debug:
             import pydevd_pycharm
 
-            port_mapping = [37979, 34075]
+            port_mapping = [39917, 36067]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
         if len(sys.argv) != 5:
@@ -55,9 +55,6 @@ if __name__ == '__main__':
         if not os.path.exists(input_params_path):
             print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
             exit()
-        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-        if not os.path.exists(sensitivity_params_path):
-            sensitivity_params_path = input_params_path
 
         param_id_obs_path = sys.argv[4]
         if not os.path.exists(param_id_obs_path):
@@ -75,19 +72,17 @@ if __name__ == '__main__':
         num_calls_to_function = int(sys.argv[3])
         seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path,
-                                sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
 
 
-        seq_param_id.run()
+        # seq_param_id.run()
+        seq_param_id.plot_mcmc_and_predictions()
 
         best_param_vals = seq_param_id.param_id.get_best_param_vals()
         best_param_names = seq_param_id.get_best_param_names()
-        # seq_param_id.param_id.close_simulation() TODO this gives a seg fault.
-
 
     except:
         print(traceback.format_exc())

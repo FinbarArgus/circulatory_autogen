@@ -23,7 +23,7 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = False
+        DEBUG = True
         mpi_debug = False
 
         comm = MPI.COMM_WORLD
@@ -56,9 +56,6 @@ if __name__ == '__main__':
         if not os.path.exists(input_params_path):
             print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
             exit()
-        sensitivity_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_sensitivity.csv')
-        if not os.path.exists(sensitivity_params_path):
-            sensitivity_params_path = input_params_path
 
         param_id_obs_path = sys.argv[4]
         if not os.path.exists(param_id_obs_path):
@@ -75,7 +72,6 @@ if __name__ == '__main__':
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
-                                sensitivity_params_path=sensitivity_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
@@ -102,7 +98,6 @@ if __name__ == '__main__':
         if do_mcmc:
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
                                     input_params_path=input_params_path,
-                                    sensitivity_params_path=sensitivity_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)

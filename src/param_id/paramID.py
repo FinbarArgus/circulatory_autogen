@@ -99,12 +99,12 @@ class CVS0DParamID():
         self.weight_series_vec = None
         self.param_names = None
         self.num_obs = None
-        self.num_resistance_params = None
         self.gt_df = None
+        self.input_params_path = input_params_path
         if param_id_obs_path:
             self.__set_obs_names_and_df(param_id_obs_path)
-        if input_params_path:
-            self.__set_and_save_param_names(input_params_path=input_params_path)
+        if self.input_params_path:
+            self.__set_and_save_param_names()
 
         # ground truth values
         self.ground_truth_consts, self.ground_truth_series = self.__get_ground_truth_values()
@@ -128,7 +128,7 @@ class CVS0DParamID():
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types,
                                                self.weight_const_vec, self.weight_series_vec,
-                                               self.param_names, self.param_names,
+                                               self.param_names,
                                                self.ground_truth_consts, self.ground_truth_series,
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
@@ -139,7 +139,8 @@ class CVS0DParamID():
         self.best_output_calculated = False
         self.sensitivity_calculated = False
 
-        self.second_deriv_threshold = -1000 
+        self.pred_var_names = None
+        self.__set_prediction_var()
 
     def temp_test(self):
         self.param_id.temp_test()
@@ -338,33 +339,38 @@ class CVS0DParamID():
             if self.gt_df.iloc[II]["data_type"] == "series":
                 # TODO
                 pass
-
-    def plot_mcmc(self):
-
-        if self.rank != 0:
-            return
-
+    def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
-        if not os.path.exists(mcmc_chain_path): 
-            print('No mcmc results to plot')
+        if not os.path.exists(mcmc_chain_path):
+            print('No mcmc results to get chain')
             return
-        
-        print('plotting mcmc results')
+
         samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
-        num_steps = samples.shape[0] 
-        num_walkers = samples.shape[1] 
-        num_params = samples.shape[2] # TODO check this is the same as objects num_params
-        if num_params != self.param_id.num_params:
-            print('num params in mcmc chain doesn\'t equal param_id number of params')
+        num_steps = samples.shape[0]
+        num_walkers = samples.shape[1]
+        num_params = samples.shape[2]  #
+        if self.mcmc_instead:
+            if num_params != mcmc_object.num_params:
+                print('num params in mcmc chain doesn\'t equal mcmc_object number of params')
+        else:
+            if num_params != self.param_id.num_params:
+                print('num params in mcmc chain doesn\'t equal param_id number of params')
         # discard first num_steps/2 samples
+        # TODO include a user defined burn in if we aren't starting from
         samples = samples[samples.shape[0]//2:, :, :]
         # thin = 10
         # samples = samples[::thin, :, :]
-        # discarding samples isnt needed because we start an "optimal" point
-        # TODO include a user defined burn in if we aren't starting from 
-        #  an optimal point.
         flat_samples = samples.reshape(-1, num_params)
+
+        return flat_samples, samples, num_params
+
+    def plot_mcmc(self):
+
+        flat_samples, samples, num_params = self.get_mcmc_samples()
+        if self.rank != 0:
+            return
+
         means = np.zeros((num_params))
         conf_ivals = np.zeros((num_params, 3))
 
@@ -388,15 +394,19 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
-        fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
-                            labels=self.param_names, truths=self.param_id.best_param_vals)
+        if self.mcmc_instead:
+            fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=self.param_names, truths=mcmc_object.best_param_vals)
+        else:
+            fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=self.param_names, truths=self.param_id.best_param_vals)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
         plt.close()
 
-    def calculate_mcmc_identifiability(self):
+    def calculate_mcmc_identifiability(self, second_deriv_threshold=-1000):
         if self.rank !=0:
             return
 
@@ -411,7 +421,11 @@ class CVS0DParamID():
         num_steps = samples.shape[0]
         num_walkers = samples.shape[1]
         num_params = samples.shape[2]  # TODO check this is the same as objects num_params
-        if num_params != self.param_id.num_params:
+        if self.mcmc_instead:
+            if num_params != mcmc_object.num_params:
+                print('num params in mcmc chain doesn\'t equal param_id number of params')
+        else:
+            if num_params != self.param_id.num_params:
                 print('num params in mcmc chain doesn\'t equal param_id number of params')
         # discard first num_steps/10 samples
         # samples = samples[samples.shape[0]//10:, :, :]
@@ -470,7 +484,7 @@ class CVS0DParamID():
             MLE_idx = np.argmax(y_opt)
             MLE_x_normed = x_for_smooth_plot[MLE_idx]
             second_deriv[idx] = best_dist_d2_dx2(MLE_x_normed, *p_opt)
-            if second_deriv[idx] < self.second_deriv_threshold:
+            if second_deriv[idx] < second_deriv_threshold:
                 ax.plot([-999], [0.0], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
                 ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='^', label='identifiable MLE')
             else:
@@ -484,7 +498,7 @@ class CVS0DParamID():
         print(second_deriv)
         ax.legend()
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_2nd_deriv_plot.pdf'))
-        return second_deriv, second_deriv >= self.second_deriv_threshold
+        return second_deriv, second_deriv >= second_deriv_threshold
     
     def run_single_sensitivity(self, do_triples_and_quads):
         self.param_id.run_single_sensitivity(self.output_dir, do_triples_and_quads)
@@ -716,20 +730,21 @@ class CVS0DParamID():
         self.sensitivity_calculated = True
         print('sensitivity analysis complete')
 
+    def __get_prediction_data(self):
+        if self.rank !=0:
+            return
+
+            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
+            pred_output = self.param_id.sim_helper.get_results(pred_var_names)
+            time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
 
     def save_prediction_data(self):
         if self.rank !=0:
             return
-        pred_variables_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
-        if os.path.exists(pred_variables_path):
+        if self.pred_var_names is not None:
             print('Saving prediction data')
-            pred_variables_names = genfromtxt(pred_variables_path,
-                                      delimiter=',', dtype=None, encoding='UTF-8').flatten()
-            pred_variables_names = np.array([pred_variables_names[II].strip()
-                                             for II in range(pred_variables_names.shape[0])])
-
             tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_output = self.param_id.sim_helper.get_results(pred_variables_names)
+            pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
             time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
 
             #save the prediction output
@@ -737,8 +752,9 @@ class CVS0DParamID():
             print('Prediction data saved')
 
         else:
+            pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
             print(f'prediction variables have not been defined, if you want to save predicition variables,',
-                  f'create a file {pred_variables_path}, with the names of the desired prediction variables')
+                  f'create a file {pred_var_path}, with the names of the desired prediction variables')
 
         return
 
@@ -750,7 +766,10 @@ class CVS0DParamID():
                                               acq_func_kwargs=acq_func_kwargs)
 
     def close_simulation(self):
-        self.param_id.close_simulation()
+        if self.mcmc_instead:
+            mcmc_object.close_simulation()
+        else:
+            self.param_id.close_simulation()
 
     def __set_obs_names_and_df(self, param_id_obs_path):
         with open(param_id_obs_path, encoding='utf-8-sig') as rf:
@@ -774,17 +793,20 @@ class CVS0DParamID():
 
         return
 
-    def __set_and_save_param_names(self, input_params_path=None):
+    def __set_and_save_param_names(self, idxs_to_ignore=None):
 
         # Each entry in param_names is a name or list of names that gets modified by one parameter
-        if input_params_path:
+        if self.input_params_path:
             csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_multistrings(input_params_path)
+            input_params = csv_parser.get_data_as_dataframe_multistrings(self.input_params_path)
             self.param_names = []
             param_names_for_gen = []
             param_state_names_for_gen = []
             param_const_names_for_gen = []
             for II in range(input_params.shape[0]):
+                if idxs_to_ignore is not None:
+                    if II in idxs_to_ignore:
+                        continue
                 self.param_names.append([input_params["vessel_name"][II][JJ] + '/' +
                                                input_params["param_name"][II]for JJ in
                                                range(len(input_params["vessel_name"][II]))])
@@ -815,8 +837,14 @@ class CVS0DParamID():
 
 
             # set param ranges from file
-            self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
-            self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
+            if idxs_to_ignore is not None:
+                self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])
+                                            if JJ not in idxs_to_ignore])
+                self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])
+                                            if JJ not in idxs_to_ignore])
+            else:
+                self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
+                self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
         else:
             print(f'input_params_path cannot be None, exiting')
 
@@ -854,10 +882,16 @@ class CVS0DParamID():
         return ground_truth_consts, ground_truth_series
     
     def get_best_param_vals(self):
-        return self.param_id.best_param_vals
+        if self.mcmc_instead:
+            return mcmc_object.best_param_vals
+        else:
+            return self.param_id.best_param_vals
 
     def get_param_names(self):
-        return self.param_id.param_names
+        if self.mcmc_instead:
+            return mcmc_object.param_names
+        else:
+            return self.param_id.param_names
 
     def get_param_importance(self):
         return self.param_id.param_importance
@@ -868,7 +902,66 @@ class CVS0DParamID():
     def get_collinearity_index_pairs(self):
         return self.param_id.collinearity_index_pairs
 
-    def remove_params_from_idx(self, param_idxs_to_remove):
+    def remove_params_by_idx(self, param_idxs_to_remove):
+        self.__set_and_save_param_names(idxs_to_ignore=param_idxs_to_remove)
+        if self.mcmc_instead:
+            mcmc_object.remove_params_by_idx(param_idxs_to_remove)
+        else:
+            self.param_id.remove_params_by_idx(param_idxs_to_remove)
+
+    def remove_params_by_name(self, param_names_to_remove):
+        param_idxs_to_remove = []
+        if self.mcmc_instead:
+            num_params = mcmc_object.num_params
+        else:
+            num_params = self.param_id.num_params
+
+        for II in range(num_params):
+            if self.param_names[II] in param_names_to_remove:
+                param_idxs_to_remove.append(II)
+
+        self.remove_params_by_idx(param_idxs_to_remove)
+
+    def __set_prediction_var(self):
+        # prediction variables
+        pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
+        if os.path.exists(pred_var_path):
+            self.pred_var_names = genfromtxt(pred_var_path,
+                                                   delimiter=',', dtype=None, encoding='UTF-8').flatten()
+            self.pred_var_names = np.array([self.pred_var_names[II].strip()
+                                                  for II in range(self.pred_var_names.shape[0])])
+        else:
+            self.pred_var_names = None
+
+    def postprocess_predictions(self):
+        flat_samples, _, _ = self.get_mcmc_samples()
+        # this array is of size (num_pred_var, num_samples,
+        pred_array = mcmc_object.calculate_var_from_posterior_samples(self.pred_var_names, flat_samples)
+        if self.mcmc_instead:
+            tSim = mcmc_object.sim_helper.tSim - mcmc_object.pre_time
+        else:
+            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
+
+        fig, axs = plt.subplots(len(self.pred_var_names))
+        if len(self.pred_var_names) == 1:
+            axs = [axs]
+
+        for pred_idx in range(len(self.pred_var_names)):
+            #TODO conversion
+            conversion = 1.0
+            # TODO put units in prediction file and use it here
+            axs[pred_idx].set_xlabel('Time [$s$]', fontsize=14)
+            axs[pred_idx].set_ylabel(f'{self.pred_var_names[pred_idx]}', fontsize=14)
+            for sample_idx in range(pred_array.shape[1]):
+                axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx,sample_idx, :], 'k')
+
+
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'prediction_'
+                                 f'{self.file_name_prefix}_sensitivity_average.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'reconstruct_{self.param_id_method}_'
+                                 f'{self.file_name_prefix}_sensitivity_average.pdf'))
 
 class OpencorParamID():
     """
@@ -897,7 +990,6 @@ class OpencorParamID():
         self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
-        self.param_norm_obj = None
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         # set up opencor simulation
@@ -940,6 +1032,16 @@ class OpencorParamID():
     def set_param_names(self, param_names):
         self.param_names = param_names
         self.num_params = len(self.param_names)
+
+    def remove_params_by_idx(self, param_idxs_to_remove):
+        self.param_names = [self.param_names[II] for II in range(self.num_params) if II not in param_idxs_to_remove]
+        self.num_params = len(self.param_names)
+        if self.best_param_vals is not None:
+            self.best_param_vals = np.delete(self.best_param_vals, param_idxs_to_remove)
+        self.param_mins = np.delete(self.param_mins, param_idxs_to_remove)
+        self.param_maxs = np.delete(self.param_maxs, param_idxs_to_remove)
+        self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
+        self.param_init = None
 
     def run(self):
         comm = MPI.COMM_WORLD
@@ -1325,7 +1427,7 @@ class OpencorParamID():
 
         if rank == 0:
             print('')
-            print('parameter identification is complete')
+            print(f'{self.param_id_method} is complete')
             # print init params and final params
             print('init params     : {}'.format(self.param_init))
             print('best fit params : {}'.format(self.best_param_vals))
@@ -1665,7 +1767,6 @@ class OpencorMCMC():
         self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
-        self.param_norm_obj = None
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
 
         # TODO load this from file. Make the user define the priors
@@ -1688,7 +1789,7 @@ class OpencorMCMC():
         # mcmc
         self.sampler = None
         if DEBUG:
-            self.num_steps = 10
+            self.num_steps = 6
         else:
             self.num_steps = 200 
 
@@ -1706,6 +1807,16 @@ class OpencorMCMC():
         self.param_names = param_names
         self.num_params = len(self.param_names)
 
+    def remove_params_by_idx(self, param_idxs_to_remove):
+        self.param_names = [self.param_names[II] for II in range(self.num_params) if II not in param_idxs_to_remove]
+        self.num_params = len(self.param_names)
+        if self.best_param_vals is not None:
+            self.best_param_vals = np.delete(self.best_param_vals, param_idxs_to_remove)
+        self.param_mins = np.delete(self.param_mins, param_idxs_to_remove)
+        self.param_maxs = np.delete(self.param_maxs, param_idxs_to_remove)
+        self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
+        self.param_init = None
+
     def run(self):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -1718,7 +1829,10 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
+            if self.DEBUG:
+                num_walkers = 32
+            else:
+                num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals is not None:
@@ -1795,8 +1909,10 @@ class OpencorMCMC():
                 prior_dist = None
 
             if not prior_dist or prior_dist == 'uniform':
-                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
-                    pass # temporarily remove limits
+                if param_val < 0.0:
+                    return -np.inf
+                # if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
+                #     return -np.inf # temporarily remove limits
                 else:
                     #prior += 0
                     pass
@@ -1889,6 +2005,21 @@ class OpencorMCMC():
     
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
+
+    def calculate_var_from_posterior_samples(self, var_names, flat_samples, n_sims=10):
+        var_array = np.zeros((len(var_names), n_sims, self.n_steps + 1))
+        for II in range(n_sims):
+            rand_idx = np.random.randint(0, len(flat_samples)-1)
+            sample_param_vals = flat_samples[rand_idx, :]
+            self.sim_helper.set_param_vals(self.param_names, sample_param_vals)
+            success = self.sim_helper.run()
+            if success:
+                var_array[:, II, :] = self.sim_helper.get_results(var_names)
+            else:
+                print
+
+        return var_array
+
 
 class ProgressBar(object):
     """
