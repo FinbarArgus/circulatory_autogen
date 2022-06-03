@@ -7,6 +7,8 @@ Created on 26/04/2022
 import sys
 import os
 from mpi4py import MPI
+import time
+import numpy as np
 from distutils import util, dir_util
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
@@ -29,6 +31,8 @@ if __name__ == '__main__':
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
         print(f'starting script for rank = {rank}')
+
+        start_time = time.time()
 
         # FOR MPI DEBUG WITH PYCHARM
         # set mpi_debug to True
@@ -83,6 +87,11 @@ if __name__ == '__main__':
 
         best_param_vals = seq_param_id.param_id.get_best_param_vals()
         best_param_names = seq_param_id.get_best_param_names()
+
+        if rank == 0:
+            wall_time = time.time() - start_time
+            print(f'wall time = {wall_time}')
+            np.save(os.path.join(seq_param_id.param_id.output_dir, 'wall_time.npy'), wall_time)
 
     except:
         print(traceback.format_exc())
