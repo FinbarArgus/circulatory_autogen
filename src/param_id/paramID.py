@@ -2006,7 +2006,7 @@ class OpencorMCMC():
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
 
-    def calculate_var_from_posterior_samples(self, var_names, flat_samples, n_sims=10):
+    def calculate_var_from_posterior_samples(self, var_names, flat_samples, n_sims=100):
         var_array = np.zeros((len(var_names), n_sims, self.n_steps + 1))
         for II in range(n_sims):
             rand_idx = np.random.randint(0, len(flat_samples)-1)

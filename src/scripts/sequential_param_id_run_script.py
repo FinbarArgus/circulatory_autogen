@@ -24,7 +24,7 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = True
+        DEBUG = False
         mpi_debug = False
 
         comm = MPI.COMM_WORLD
@@ -82,8 +82,8 @@ if __name__ == '__main__':
 
 
 
-        # seq_param_id.run()
-        seq_param_id.plot_mcmc_and_predictions()
+        seq_param_id.run()
+        # seq_param_id.plot_mcmc_and_predictions()
 
         best_param_vals = seq_param_id.param_id.get_best_param_vals()
         best_param_names = seq_param_id.get_best_param_names()
