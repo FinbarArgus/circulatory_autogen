@@ -1,2 +1,8 @@
 E_lv_A
+R_T_leg_L,R_T_leg_R
+R_T_arm_L,R_T_arm_R
+R_T_anterior_cerebral_L,R_T_anterior_cerebral_R
+R_T_external_carotid_L,R_T_external_carotid_R
+R_T_middle_cerebral_L,R_T_middle_cerebral_R
+R_T_posterior_cerebral_L,R_T_posterior_cerebral_R
 R_T_trunk_C
