@@ -24,8 +24,9 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = True
+        DEBUG = False
         mpi_debug = False
+        plot_only = True
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -81,8 +82,8 @@ if __name__ == '__main__':
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
 
-        plot_only = True
         if plot_only:
+
             seq_param_id.plot_mcmc_and_predictions()
             print('finished plotting mcmc predictions')
         else:
