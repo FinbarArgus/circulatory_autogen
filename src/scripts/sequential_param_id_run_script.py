@@ -71,7 +71,7 @@ if __name__ == '__main__':
             pre_time = 20.0
         else:
             pre_time = 20.0
-        sim_time = 2.0
+        sim_time = 1.0
 
         num_calls_to_function = int(sys.argv[3])
         seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
@@ -81,17 +81,20 @@ if __name__ == '__main__':
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
 
+        plot_only = False
+        if plot_only:
+            seq_param_id.plot_mcmc_and_predictions()
+            print('finished plotting mcmc predictions')
+        else:
+            seq_param_id.run()
 
-        seq_param_id.run()
-        # seq_param_id.plot_mcmc_and_predictions()
+            best_param_vals = seq_param_id.param_id.get_best_param_vals()
+            best_param_names = seq_param_id.get_best_param_names()
 
-        best_param_vals = seq_param_id.param_id.get_best_param_vals()
-        best_param_names = seq_param_id.get_best_param_names()
-
-        if rank == 0:
-            wall_time = time.time() - start_time
-            print(f'wall time = {wall_time}')
-            np.save(os.path.join(seq_param_id.param_id.output_dir, 'wall_time.npy'), wall_time)
+            if rank == 0:
+                wall_time = time.time() - start_time
+                print(f'wall time = {wall_time}')
+                np.save(os.path.join(seq_param_id.param_id.output_dir, 'wall_time.npy'), wall_time)
 
     except:
         print(traceback.format_exc())

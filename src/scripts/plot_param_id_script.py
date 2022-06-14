@@ -46,8 +46,8 @@ if __name__ == '__main__':
         if file_name_prefix == '3compartment':
             pre_time = 20.0
         else: 
-            pre_time = 16.0
-        sim_time = 2.0
+            pre_time = 20.0
+        sim_time = 1.0
 
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
@@ -56,6 +56,8 @@ if __name__ == '__main__':
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
 
         # print(obj_to_string(param_id))
+        # TODO I need to remove params here if there are params to remove from sequential_param_id
+
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         param_id.plot_mcmc()

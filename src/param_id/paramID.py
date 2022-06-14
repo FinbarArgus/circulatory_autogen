@@ -97,6 +97,8 @@ class CVS0DParamID():
         self.obs_types = None
         self.weight_const_vec = None
         self.weight_series_vec = None
+        self.std_const_vec = None
+        self.std_series_vec = None
         self.param_names = None
         self.num_obs = None
         self.gt_df = None
@@ -118,7 +120,8 @@ class CVS0DParamID():
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types,
                                            self.weight_const_vec, self.weight_series_vec,
-                                           self.param_names, 
+                                           self.std_const_vec, self.std_series_vec,
+                                           self.param_names,
                                            self.ground_truth_consts, self.ground_truth_series,
                                            self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
@@ -128,6 +131,7 @@ class CVS0DParamID():
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types,
                                                self.weight_const_vec, self.weight_series_vec,
+                                               self.std_const_vec, self.std_series_vec,
                                                self.param_names,
                                                self.ground_truth_consts, self.ground_truth_series,
                                                self.param_mins, self.param_maxs,
@@ -791,6 +795,13 @@ class CVS0DParamID():
         self.weight_series_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "series"])
 
+        # The std for the different observables
+        self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+                                          if self.gt_df.iloc[II]["data_type"] == "constant"])
+
+        self.std_series_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+                                           if self.gt_df.iloc[II]["data_type"] == "series"])
+
         return
 
     def __set_and_save_param_names(self, idxs_to_ignore=None):
@@ -949,11 +960,20 @@ class CVS0DParamID():
         for pred_idx in range(len(self.pred_var_names)):
             #TODO conversion
             conversion = 1.0
+            # calculate mean and std of
+            pred_mean = np.mean(pred_array[pred_idx, :, :], axis=0)
+            pred_std = np.std(pred_array[pred_idx, :, :], axis=0)
+
+            idxs_to_plot_std = [self.n_steps//6*(II+1) for II in range(5)]
             # TODO put units in prediction file and use it here
             axs[pred_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[pred_idx].set_ylabel(f'{self.pred_var_names[pred_idx]}', fontsize=14)
             for sample_idx in range(pred_array.shape[1]):
-                axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx,sample_idx, :], 'k')
+                axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx, sample_idx, :], 'k')
+            axs[pred_idx].plot(tSim, conversion*pred_mean, 'b')
+            axs[pred_idx].errorbar(tSim[idxs_to_plot_std], conversion*pred_mean[idxs_to_plot_std],
+                                   yerr=pred_std[idxs_to_plot_std], ecolor='b', fmt='o', capsize=4)
+
 
 
         plt.savefig(os.path.join(self.plot_dir,
@@ -968,7 +988,7 @@ class OpencorParamID():
     Class for doing parameter identification on opencor models
     """
     def __init__(self, model_path, param_id_method,
-                 obs_names, obs_types, weight_const_vec, weight_series_vec,
+                 obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
@@ -983,6 +1003,8 @@ class OpencorParamID():
         self.obs_types = obs_types
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
+        self.std_const_vec = std_const_vec
+        self.std_series_vec = std_series_vec
         self.param_names = param_names
         self.num_obs = len(self.obs_names)
         self.num_params = len(self.param_names)
@@ -1451,7 +1473,7 @@ class OpencorParamID():
             #ignore series data for now
             if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
-                gt_scalefactor.append(self.weight_const_vec[x_index]/self.ground_truth_consts[x_index])
+                gt_scalefactor.append(self.weight_const_vec[x_index]/self.std_const_vec[x_index])
                 # gt_scalefactor.append(1/self.ground_truth_consts[x_index])
                 objs_index.append(x_index)
                 x_index = x_index + 1
@@ -1629,7 +1651,7 @@ class OpencorParamID():
         #                        self.ground_truth_consts)/np.minimum(prediction_consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
-                               self.ground_truth_consts)/self.ground_truth_consts, 2))/(self.num_obs)
+                               self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
         # if prediction_series:
             # TODO Have not included cost from series error yet
             # cost +=
@@ -1746,7 +1768,7 @@ class OpencorMCMC():
     """
 
     def __init__(self, model_path,
-                 obs_names, obs_types, weight_const_vec, weight_series_vec,
+                 obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
@@ -1760,6 +1782,8 @@ class OpencorMCMC():
         self.obs_types = obs_types
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
+        self.std_const_vec = std_const_vec
+        self.std_series_vec = std_series_vec
         self.param_names = param_names
         self.num_obs = len(self.obs_names)
         self.num_params = len(self.param_names)
@@ -1840,6 +1864,7 @@ class OpencorMCMC():
                     # create initial params in gaussian ball around best_param_vals estimate
                     init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                        0.1*np.random.randn(self.num_params, num_walkers)
+                    init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                 else:
                     init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
@@ -1871,6 +1896,7 @@ class OpencorMCMC():
                 best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                 init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
                                    0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
             else:
                 init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
@@ -1971,7 +1997,7 @@ class OpencorMCMC():
         #                        self.ground_truth_consts)/np.minimum(prediction_consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(prediction_consts -
-                               self.ground_truth_consts)/self.ground_truth_consts, 2))
+                               self.ground_truth_consts)/self.std_const_vec, 2))
         # if prediction_series:
             # TODO Have not included cost from series error yet
             # cost +=
