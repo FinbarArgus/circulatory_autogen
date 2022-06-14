@@ -55,6 +55,14 @@ if __name__ == '__main__':
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
 
+        with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
+            param_names_to_remove = []
+            for row in r:
+                name_list = row.split(',')
+                name_list = [name.strip() for name in name_list]
+                param_names_to_remove.append(name_list)
+        param_id.remove_params_by_name(param_names_to_remove)
+
         # print(obj_to_string(param_id))
         # TODO I need to remove params here if there are params to remove from sequential_param_id
 
@@ -65,7 +73,6 @@ if __name__ == '__main__':
         if run_sensitivity:
             param_id.run_sensitivity(None)
         param_id.close_simulation()
-
 
     except:
         print(traceback.format_exc())

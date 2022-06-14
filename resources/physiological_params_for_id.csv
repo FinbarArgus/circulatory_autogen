@@ -1,13 +1,13 @@
-vessel_name,                  param_name,       param_type, min,        max
-heart,                        q_lv,             state,      3e-4,       16e-4 
-heart,                        E_lv_A,           const,      2e8,        5e8
-heart,                        E_rv_A,           const,      2e7,        5e7
-par,                          R,                const,      1e5,        1e7
-leg_L_T leg_R_T,              R_T,              const,      1e8,        4e9
-arm_L_T arm_R_T,              R_T,              const,      1e8,        1e10
-anterior_cerebral_L_T anterior_cerebral_R_T,R_T,const,      1e8,        1e10
-external_carotid_L_T external_carotid_R_T,R_T,  const,      1e8,        1e10
-middle_cerebral_L_T middle_cerebral_R_T,R_T,    const,      1e8,        1e10
-posterior_cerebral_L_T posterior_cerebral_R_T,R_T,const,    1e8,        5e10
-trunk_C_T,                    R_T,              const,      5e7,        1e9
-venous_lb venous_ub venous_ivc venous_svc, C,   const,      1e-10,      1e-07
+vessel_name,                  param_name,       param_type, min,        max,    name_for_plotting
+heart,                        q_lv,             state,      3e-4,       16e-4,  q_{sbv}
+heart,                        E_lv_A,           const,      2e8,        5e8,    E_{lvA}
+heart,                        E_rv_A,           const,      2e7,        5e7,    E_{rvA}
+par,                          R,                const,      1e5,        1e7,    R_{par}
+leg_L_T leg_R_T,              R_T,              const,      1e8,        4e9,    R_{LE_T}
+arm_L_T arm_R_T,              R_T,              const,      1e8,        1e10,   R_{LE_T}
+anterior_cerebral_L_T anterior_cerebral_R_T,R_T,const,      1e8,        1e10,   R_{AC_T}
+external_carotid_L_T external_carotid_R_T,R_T,  const,      1e8,        1e10,   R_{EX_T}
+middle_cerebral_L_T middle_cerebral_R_T,R_T,    const,      1e8,        1e10,   R_{MC_T}
+posterior_cerebral_L_T posterior_cerebral_R_T,R_T,const,    1e8,        5e10,   R_{PC_T}
+trunk_C_T,                    R_T,              const,      5e7,        1e9,    R_{TR_T}
+venous_lb venous_ub venous_ivc venous_svc, C,   const,      1e-10,      1e-07,  C_{VE}

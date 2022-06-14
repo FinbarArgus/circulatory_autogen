@@ -19,7 +19,7 @@ num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=5000
+num_calls_to_function=8000
 run_sensitivity=True
 
 ## mcmc inputs

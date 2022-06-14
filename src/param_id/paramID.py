@@ -100,6 +100,9 @@ class CVS0DParamID():
         self.std_const_vec = None
         self.std_series_vec = None
         self.param_names = None
+        self.param_mins = None
+        self.param_maxs = None
+        self.param_names_for_plotting = None
         self.num_obs = None
         self.gt_df = None
         self.input_params_path = input_params_path
@@ -232,7 +235,6 @@ class CVS0DParamID():
 
         for unique_obs_count in range(len(obs_names_unique)):
             this_obs_waveform_plotted = False
-            obs_name_for_plot = obs_names_unique[unique_obs_count].replace('/', '_')
             consts_idx = -1
             series_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
@@ -249,37 +251,38 @@ class CVS0DParamID():
                                 self.obs_types[II] == self.gt_df.iloc[JJ]['obs_type']:
                             break
 
+                    obs_name_for_plot = self.gt_df.iloc[JJ]["name_for_plotting"]
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3/s$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3/s$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
                         conversion = no_conv
-                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$m/s$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$m/s$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$cm^3$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3$]', fontsize=14)
                     elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
-                        axs[row_idx, col_idx].set_ylabel(f'{obs_name_for_plot} [$kPa$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$kPa$]', fontsize=14)
                     else:
                         print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
                               f'for plotting')
                         exit()
                     if not this_obs_waveform_plotted:
-                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='bf')
+                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='$f(p)$')
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'b--', label='gt mean')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'b', label='bf mean')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'b--', label='mean $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'b', label='mean $f(p)$')
                     elif self.obs_types[II] == 'max':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'r--', label='gt max')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'r', label='bf max')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'r--', label='max $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'r', label='max $f(p)$')
                     elif self.obs_types[II] == 'min':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='gt min')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='bf min')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='min $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
                     elif self.obs_types[II] == 'series':
-                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='gt')
+                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -390,7 +393,7 @@ class CVS0DParamID():
             ax = axes[i]
             ax.plot(samples[:, :, i], "k", alpha=0.3)
             ax.set_xlim(0, len(samples))
-            ax.set_ylabel(self.param_names[i])
+            ax.set_ylabel(f'${self.param_names_for_plotting[i]}$')
             ax.yaxis.set_label_coords(-0.1, 0.5)
 
         axes[-1].set_xlabel("step number")
@@ -398,12 +401,22 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
 
+        label_list = [f'${self.param_names_for_plotting[II]}$' for II in range(len(self.param_names_for_plotting))]
+        if mcmc_object.best_param_vals is None:
+            best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+            mcmc_object.set_best_param_vals(best_param_vals)
+        # TODO remove the below
+        overwrite_params_to_plot_idxs = [0,1, 6, 8]
         if self.mcmc_instead:
-            fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
-                                labels=self.param_names, truths=mcmc_object.best_param_vals)
+            fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
+                                truths=mcmc_object.best_param_vals[overwrite_params_to_plot_idxs],
+                                fontsize=20)
         else:
-            fig = corner.corner(flat_samples, bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
-                                labels=self.param_names, truths=self.param_id.best_param_vals)
+            fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
+                                truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
+                                fontsize=20)
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
@@ -496,7 +509,7 @@ class CVS0DParamID():
                 ax.plot([-999], [0.0], color='b', linestyle='None', marker='^', label='identifiable MLE')
 
             ax.set_xlim(0.0, 1.0)
-            ax.set_xlabel(self.param_names[idx])
+            ax.set_xlabel(f'${self.param_names_for_plotting[idx]}$')
             ax.set_ylabel('freq')
 
         print(second_deriv)
@@ -611,7 +624,7 @@ class CVS0DParamID():
             y_values = []
             for obs_idx in range(len(x_labels)):
                 y_values.append(abs((normalised_jacobian_average[param_idx][subset[obs_idx]])))
-            axs.plot(x_labels, y_values, label=self.param_names[param_idx][0])
+            axs.plot(x_labels, y_values, label=f'${self.param_names_for_plotting[param_idx][0]}$')
         axs.set_yscale('log')
         axs.legend(loc='lower left', fontsize=6)
         plt.savefig(os.path.join(self.plot_dir,
@@ -739,17 +752,16 @@ class CVS0DParamID():
             return
 
             tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_output = self.param_id.sim_helper.get_results(pred_var_names)
+            pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
             time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
+            return time_and_pred
 
     def save_prediction_data(self):
         if self.rank !=0:
             return
         if self.pred_var_names is not None:
             print('Saving prediction data')
-            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
-            time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
+            time_and_pred = self.__get_prediction_data()
 
             #save the prediction output
             np.save(os.path.join(self.output_dir, 'prediction_variable_data'), time_and_pred)
@@ -847,15 +859,21 @@ class CVS0DParamID():
                                                       if input_params["param_type"][II] == 'const'])
 
 
-            # set param ranges from file
+            # set param ranges from file and strings for plotting parameter names
             if idxs_to_ignore is not None:
                 self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])
                                             if JJ not in idxs_to_ignore])
                 self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])
                                             if JJ not in idxs_to_ignore])
+                self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
+                                                          for JJ in range(input_params.shape[0])
+                                                          if JJ not in idxs_to_ignore])
             else:
                 self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
                 self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
+                self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
+                                                          for JJ in range(input_params.shape[0])])
+
         else:
             print(f'input_params_path cannot be None, exiting')
 
@@ -937,17 +955,32 @@ class CVS0DParamID():
         # prediction variables
         pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
         if os.path.exists(pred_var_path):
-            self.pred_var_names = genfromtxt(pred_var_path,
-                                                   delimiter=',', dtype=None, encoding='UTF-8').flatten()
-            self.pred_var_names = np.array([self.pred_var_names[II].strip()
-                                                  for II in range(self.pred_var_names.shape[0])])
+            # TODO change this to loading with parser
+            csv_parser = CSVFileParser()
+            self.pred_var_df = csv_parser.get_data_as_dataframe_multistrings(pred_var_path)
+            self.pred_var_names = np.array([self.pred_var_df["name"][II].strip()
+                                            for II in range(self.pred_var_df.shape[0])])
+            self.pred_var_units = np.array([self.pred_var_df["unit"][II].strip()
+                                            for II in range(self.pred_var_df.shape[0])])
+            self.pred_var_names_for_plotting = np.array([self.pred_var_df["name_for_plotting"][II].strip()
+                                            for II in range(self.pred_var_df.shape[0])])
         else:
             self.pred_var_names = None
+            self.pred_var_units = None
+            self.pred_var_names_for_plotting = None
 
     def postprocess_predictions(self):
+        m3_to_cm3 = 1e6
+        Pa_to_kPa = 1e-3
+
         flat_samples, _, _ = self.get_mcmc_samples()
         # this array is of size (num_pred_var, num_samples,
-        pred_array = mcmc_object.calculate_var_from_posterior_samples(self.pred_var_names, flat_samples)
+        if self.DEBUG:
+            n_sims = 6
+        else:
+            n_sims = 100
+
+        pred_array = mcmc_object.calculate_var_from_posterior_samples(self.pred_var_names, flat_samples, n_sims=n_sims)
         if self.mcmc_instead:
             tSim = mcmc_object.sim_helper.tSim - mcmc_object.pre_time
         else:
@@ -959,22 +992,46 @@ class CVS0DParamID():
 
         for pred_idx in range(len(self.pred_var_names)):
             #TODO conversion
-            conversion = 1.0
-            # calculate mean and std of
+            if self.pred_var_units[pred_idx] == 'm3_per_s':
+                conversion = m3_to_cm3
+                unit_for_plot = '$cm^3/s$'
+            elif self.pred_var_units[pred_idx] == 'm_per_s':
+                conversion = 1.0
+                unit_for_plot = '$m/s$'
+            elif self.pred_var_units[pred_idx] == 'm3':
+                conversion = m3_to_cm3
+                unit_for_plot = '$cm^3$'
+            elif self.pred_var_units[pred_idx] == 'J_per_m3':
+                conversion = Pa_to_kPa
+                unit_for_plot = '$kPa$'
+            else:
+                print(f'unit of {self.pred_var_units} not yet implemented for prediction variables plotting.')
+                exit()
+            # calculate mean and std of the ensemble
             pred_mean = np.mean(pred_array[pred_idx, :, :], axis=0)
             pred_std = np.std(pred_array[pred_idx, :, :], axis=0)
 
-            idxs_to_plot_std = [self.n_steps//6*(II+1) for II in range(5)]
+            # get idxs of max min and mean prediction to plot std bars
+            idxs_to_plot_std = [np.argmax(pred_mean), np.argmin(pred_mean),
+                                np.argmin(np.abs(pred_mean - np.mean(pred_mean)))]
+            # idxs_to_plot_std = [self.n_steps//5*(II) for II in range(6)]
             # TODO put units in prediction file and use it here
             axs[pred_idx].set_xlabel('Time [$s$]', fontsize=14)
-            axs[pred_idx].set_ylabel(f'{self.pred_var_names[pred_idx]}', fontsize=14)
+            axs[pred_idx].set_ylabel(f'${self.pred_var_names_for_plotting[pred_idx]}$ [{unit_for_plot}]', fontsize=14)
             for sample_idx in range(pred_array.shape[1]):
                 axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx, sample_idx, :], 'k')
-            axs[pred_idx].plot(tSim, conversion*pred_mean, 'b')
+
+            axs[pred_idx].plot(tSim, conversion*pred_mean, 'b', label='mean', linewidth=1.5)
             axs[pred_idx].errorbar(tSim[idxs_to_plot_std], conversion*pred_mean[idxs_to_plot_std],
-                                   yerr=pred_std[idxs_to_plot_std], ecolor='b', fmt='o', capsize=4)
-
-
+                                   yerr=conversion*pred_std[idxs_to_plot_std], ecolor='b', fmt='^', capsize=6, zorder=3)
+            # z_star = 1.96 for 95% confidence interval. margin_of_error=z_star*std
+            z_star = 1.96
+            margin_of_error = z_star * pred_std
+            conf_ival_up = pred_mean + margin_of_error
+            conf_ival_down = pred_mean - margin_of_error
+            axs[pred_idx].plot(tSim, conversion*conf_ival_up, 'r--', label='95% CI', linewidth=1.2)
+            axs[pred_idx].plot(tSim, conversion*conf_ival_down, 'r--', linewidth=1.2)
+            axs[pred_idx].legend()
 
         plt.savefig(os.path.join(self.plot_dir,
                                  f'prediction_'
@@ -1027,7 +1084,7 @@ class OpencorParamID():
         # initialise
         self.param_init = None
         self.best_param_vals = None
-        self.best_cost = 999999
+        self.best_cost = np.inf
 
         # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
         self.n_calls = 10000
@@ -1228,7 +1285,7 @@ class OpencorParamID():
                 param_vals = None
 
             cost = np.zeros(num_pop)
-            cost[0] = 9999
+            cost[0] = np.inf
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
                 if gen_count > 30:
@@ -1334,7 +1391,7 @@ class OpencorParamID():
                             print(param_vals_proc[:, II])
                             print('... choosing a new random point')
                             param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
-                            cost_proc[II] = 9999
+                            cost_proc[II] = np.inf
                             break
 
                         simulated_bools[II] = True
@@ -1633,7 +1690,7 @@ class OpencorParamID():
             # simulation set cost to large,
             print('simulation failed with params...')
             print(param_vals)
-            cost = 9999
+            cost = np.inf
 
         return cost, pred_obs
 
@@ -1686,11 +1743,13 @@ class OpencorParamID():
             print('simulate once should only be done on one rank')
             exit()
         if self.best_param_vals is None:
-            self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
         else:
             # The sim object has already been opened so the best cost doesn't need to be opened
             pass
+
+        if not np.isfinite(self.best_cost):
+            self.best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
 
         # ___________ Run model with new parameters ________________
 
@@ -1808,7 +1867,7 @@ class OpencorMCMC():
         # initialise
         self.param_init = None
         self.best_param_vals = None
-        self.best_cost = 999999
+        self.best_cost = np.inf
 
         # mcmc
         self.sampler = None
@@ -2039,8 +2098,10 @@ class OpencorMCMC():
             success = self.sim_helper.run()
             if success:
                 var_array[:, II, :] = self.sim_helper.get_results(var_names)
+                self.sim_helper.reset_and_clear()
             else:
-                print
+                print("sim_helper failed when running sample, this shouldn't happen, exiting")
+                exit()
 
         return var_array
 
