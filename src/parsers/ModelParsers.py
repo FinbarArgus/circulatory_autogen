@@ -89,7 +89,7 @@ class CSV0DModelParser(object):
                 str_addon = ''
                 module = 'heart'
             elif vessel_tup.vessel_type == 'terminal':
-                str_addon = re.sub('_T', '', f'_{vessel_tup.name}')
+                str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
                 module = 'systemic'
             else:
                 str_addon = f'_{vessel_tup.name}'

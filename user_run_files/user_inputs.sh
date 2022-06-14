@@ -1,14 +1,14 @@
 ## general inputs
 # file_prefix=FTU_wCVS
 # file_prefix=3compartment
-file_prefix=simple_physiological
+#file_prefix=simple_physiological
 # file_prefix=neonatal
-# file_prefix=physiological
+file_prefix=FinalModel
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
-input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
+#input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
-# input_param_file=physiological_parameters.csv # this must be stored in resources.
+input_param_file=FinalModel_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
                                      # parameters file will be generated with 
@@ -34,15 +34,15 @@ do_mcmc=False
 
 # This for simple_physiological (doesn't use experimental data)
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
-param_id_obs_path=/people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
+#param_id_obs_path=/people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 
 # This for physiological
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
-# param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
+#param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
 
 ## paths
 ## the below for my hpc
-opencor_pythonshell_path=/hpc/farg967/OpenCOR-2021-07-04-Linux/pythonshell
+opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 ## the below for my local
 # opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
