@@ -295,7 +295,7 @@ class CVS0DParamID():
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
-            # axs[col_idx, row_idx].set_ylim(0.0, 20.0)
+            axs[row_idx, col_idx].set_ylim(ymin=0.0)
             # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
 
             plot_saved = False
@@ -402,11 +402,17 @@ class CVS0DParamID():
         plt.close()
 
         label_list = [f'${self.param_names_for_plotting[II]}$' for II in range(len(self.param_names_for_plotting))]
-        if mcmc_object.best_param_vals is None:
-            best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
-            mcmc_object.set_best_param_vals(best_param_vals)
-        # TODO remove the below
-        overwrite_params_to_plot_idxs = [0,1, 6, 8]
+        if self.mcmc_instead:
+            if mcmc_object.best_param_vals is None:
+                best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+                mcmc_object.set_best_param_vals(best_param_vals)
+        else:
+            if self.param_id.best_param_vals is None:
+                best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
+                self.param_id.set_best_param_vals(best_param_vals)
+
+        # overwrite_params_to_plot_idxs = [0,1, 6, 8] # This chooses a subset of params to plot
+        overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
@@ -990,6 +996,7 @@ class CVS0DParamID():
         if len(self.pred_var_names) == 1:
             axs = [axs]
 
+        save_list = []
         for pred_idx in range(len(self.pred_var_names)):
             #TODO conversion
             if self.pred_var_units[pred_idx] == 'm3_per_s':
@@ -1024,6 +1031,8 @@ class CVS0DParamID():
             axs[pred_idx].plot(tSim, conversion*pred_mean, 'b', label='mean', linewidth=1.5)
             axs[pred_idx].errorbar(tSim[idxs_to_plot_std], conversion*pred_mean[idxs_to_plot_std],
                                    yerr=conversion*pred_std[idxs_to_plot_std], ecolor='b', fmt='^', capsize=6, zorder=3)
+            axs[pred_idx].set_xlim(0.0, 1.0)
+            axs[pred_idx].set_ylim(ymin=0.0)
             # z_star = 1.96 for 95% confidence interval. margin_of_error=z_star*std
             z_star = 1.96
             margin_of_error = z_star * pred_std
@@ -1032,6 +1041,16 @@ class CVS0DParamID():
             axs[pred_idx].plot(tSim, conversion*conf_ival_up, 'r--', label='95% CI', linewidth=1.2)
             axs[pred_idx].plot(tSim, conversion*conf_ival_down, 'r--', linewidth=1.2)
             axs[pred_idx].legend()
+            # save prediction value, std, and CI of for max, min, and mean
+            for idx in idxs_to_plot_std:
+                save_list.append(pred_mean[idx])
+                save_list.append(pred_std[idx])
+                save_list.append(conf_ival_up[idx])
+                save_list.append(conf_ival_down[idx])
+
+        # save prediction value, std, and CI of for max, min, and mean
+        pred_save_array = conversion*np.array(save_list)
+        np.save(os.path.join(self.output_dir, 'prediction_vals_std_ci.npy'), pred_save_array)
 
         plt.savefig(os.path.join(self.plot_dir,
                                  f'prediction_'
@@ -1039,6 +1058,14 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                  f'reconstruct_{self.param_id_method}_'
                                  f'{self.file_name_prefix}_sensitivity_average.pdf'))
+
+
+
+        # save param standard deviations
+        param_std = np.std(flat_samples, axis=0)
+        print(param_std)
+        np.save(os.path.join(self.output_dir, 'params_std.npy'), param_std)
+
 
 class OpencorParamID():
     """
