@@ -48,6 +48,9 @@ param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_
 # This is for fitting to ADAVN
 # param_id_obs_path=/people/farg967/Documents/data/ADAVN_data.json
 
+# This is for ADAVN
+# param_id_obs_path=/home/finbar/Documents/data/ADAVN/data_13_06_2022/ADAVN_data.json 
+
 ## paths
 ## the below for my hpc
 opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
