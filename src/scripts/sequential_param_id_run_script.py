@@ -26,7 +26,7 @@ if __name__ == '__main__':
     try:
         DEBUG = True
         mpi_debug = False
-        plot_only = False
+        plot_only = True
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
