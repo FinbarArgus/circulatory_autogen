@@ -4,9 +4,9 @@ heart,                        E_lv_A,           const,      2e8,        5e8,    
 heart,                        E_rv_A,           const,      2e7,        9e7,    E_{rvA}
 par,                          R,                const,      1e5,        1.2e7,  R_{par}
 leg_L_T leg_R_T,              R_T,              const,      4e7,        4e9,    R_{LE_T}
-arm_L_T arm_R_T,              R_T,              const,      1e8,        1e10,   R_{LE_T}
+arm_L_T arm_R_T,              R_T,              const,      1e8,        1e10,   R_{BR_T}
 anterior_cerebral_L_T anterior_cerebral_R_T,R_T,const,      1e8,        1e10,   R_{AC_T}
-external_carotid_L_T external_carotid_R_T,R_T,  const,      1e8,        1e10,   R_{EX_T}
+external_carotid_L_T external_carotid_R_T,R_T,  const,      1e8,        1e10,   R_{EC_T}
 middle_cerebral_L_T middle_cerebral_R_T,R_T,    const,      1e8,        1e10,   R_{MC_T}
 posterior_cerebral_L_T posterior_cerebral_R_T,R_T,const,    1e8,        5e10,   R_{PC_T}
 trunk_C_T,                    R_T,              const,      5e7,        1e10,   R_{TR_T}

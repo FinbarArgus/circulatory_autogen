@@ -306,7 +306,7 @@ class CVS0DParamID():
                 if row_idx%subplot_width == 0:
                     for JJ in range(subplot_width):
                         fig.align_ylabels(axs[:, JJ])
-                    axs[0, 0].legend(loc='lower right', fontsize=6)
+                    axs[1, 1].legend(loc='lower right', fontsize=6)
                     plt.tight_layout()
                     plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.param_id_method}_'
@@ -411,8 +411,8 @@ class CVS0DParamID():
                 best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
                 self.param_id.set_best_param_vals(best_param_vals)
 
-        # overwrite_params_to_plot_idxs = [0,1, 6, 8] # This chooses a subset of params to plot
-        overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
+        overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
+        # overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
