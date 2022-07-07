@@ -22,7 +22,7 @@ num_procs=32
 param_id_method=genetic_algorithm
 # num_procs=3
 num_calls_to_function=16000
-run_sensitivity=True
+run_sensitivity=False
 
 ## mcmc inputs
 do_mcmc=True
@@ -52,7 +52,7 @@ do_mcmc=True
 # param_id_obs_path=/home/finbar/Documents/data/ADAVN/data_13_06_2022/ADAVN_data.json 
 
 # This is for neonatal
-param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
+param_id_obs_path=/people/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
 
 ## paths
 ## the below for my hpc
