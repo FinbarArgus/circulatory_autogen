@@ -53,22 +53,24 @@ if __name__ == '__main__':
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001)
 
-        with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
-            param_names_to_remove = []
-            for row in r:
-                name_list = row.split(',')
-                name_list = [name.strip() for name in name_list]
-                param_names_to_remove.append(name_list)
-        param_id.remove_params_by_name(param_names_to_remove)
+        if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
+            with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
+                param_names_to_remove = []
+                for row in r:
+                    name_list = row.split(',')
+                    name_list = [name.strip() for name in name_list]
+                    param_names_to_remove.append(name_list)
+            param_id.remove_params_by_name(param_names_to_remove)
 
         # print(obj_to_string(param_id))
         # TODO I need to remove params here if there are params to remove from sequential_param_id
 
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
-        param_id.plot_mcmc()
+        if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
+            param_id.plot_mcmc()
         param_id.save_prediction_data()
         if run_sensitivity:
             param_id.run_sensitivity(None)

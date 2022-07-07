@@ -251,7 +251,11 @@ class CVS0DParamID():
                                 self.obs_types[II] == self.gt_df.iloc[JJ]['obs_type']:
                             break
 
-                    obs_name_for_plot = self.gt_df.iloc[JJ]["name_for_plotting"]
+                    if "name_for_plotting" in self.gt_df.iloc[JJ].keys():
+                        obs_name_for_plot = self.gt_df.iloc[JJ]["name_for_plotting"]
+                    else:
+                        obs_name_for_plot = self.obs_names[II]
+
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
                         axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3/s$]', fontsize=14)
@@ -871,14 +875,23 @@ class CVS0DParamID():
                                             if JJ not in idxs_to_ignore])
                 self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])
                                             if JJ not in idxs_to_ignore])
-                self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
-                                                          for JJ in range(input_params.shape[0])
-                                                          if JJ not in idxs_to_ignore])
+                if "name_for_plotting" in input_params.columns:
+                    self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
+                                                            for JJ in range(input_params.shape[0])
+                                                            if JJ not in idxs_to_ignore])
+                else:
+                    self.param_names_for_plotting = np.array([self.param_names[JJ][0]
+                                                            for JJ in range(len(self.param_names))
+                                                            if JJ not in idxs_to_ignore])
             else:
                 self.param_mins = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
                 self.param_maxs = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
-                self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
-                                                          for JJ in range(input_params.shape[0])])
+                if "name_for_plotting" in input_params.columns:
+                    self.param_names_for_plotting = np.array([input_params["name_for_plotting"][JJ]
+                                                            for JJ in range(input_params.shape[0])])
+                else:
+                    self.param_names_for_plotting = np.array([param_name[0] for param_name in self.param_names])
+
 
         else:
             print(f'input_params_path cannot be None, exiting')

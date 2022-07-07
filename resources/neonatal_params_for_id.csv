@@ -1,0 +1,11 @@
+vessel_name,                  param_name,       param_type, min,        max, name_for_plotting
+heart,                        q_lv,             state,  0.50E-04,   2.00E-04,  q_{sbv}
+aortic_root,                  C,                const,  1.00E-10,   1.00E-07,  C_{AO}
+leg_L_T leg_R_T,              R_T,              const,  1.00E+07,   1.00E+10,  R_{LE_T}
+arm_L_T arm_R_T,              R_T,              const,  1.00E+07,   1.00E+10,  R_{AR_T}
+head_L_T head_R_T ,           R_T,              const,  1.00E+07,   1.00E+10,  R_{HE_T}
+abdomen_T,                    R_T,              const,  1.00E+07,   1.00E+10,  R_{AB_T}
+pvn,                          C,                const,  1.11E-10,   1.11E-07,  C_{pvn}
+venous_ivc venous_svc ,       C,                const,  1.00E-8,    1.00E-06,  C_(VE}
+heart,                        E_lv_A,           const,  1.00E+08,   1.00E+10,  E_{lv_A}
+heart,                        E_lv_B,           const,  1.00E+07,   1.00E+08,  E_{lv_B}
