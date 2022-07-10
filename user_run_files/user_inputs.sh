@@ -22,7 +22,7 @@ num_procs=3
 param_id_method=genetic_algorithm
 # num_procs=3
 num_calls_to_function=100
-run_sensitivity=True
+run_sensitivity=False
 
 ## mcmc inputs
 do_mcmc=True
@@ -43,15 +43,19 @@ do_mcmc=True
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-# param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
+param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
-param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
+# param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
 
 # This is for fitting to ADAVN
 # param_id_obs_path=/people/farg967/Documents/data/ADAVN_data.json
 
 # This is for ADAVN
 # param_id_obs_path=/home/finbar/Documents/data/ADAVN/data_13_06_2022/ADAVN_data.json 
+
+# This is for neonatal
+# param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
+
 
 ## paths
 ## the below for my hpc

@@ -251,8 +251,8 @@ class CVS0DParamID():
                                 self.obs_types[II] == self.gt_df.iloc[JJ]['obs_type']:
                             break
 
-                    if "name_for_plotting" in self.gt_df.iloc[JJ].keys():
-                        obs_name_for_plot = self.gt_df.iloc[JJ]["name_for_plotting"]
+                    if "name_for_plotting" in self.gt_df.iloc[II].keys():
+                        obs_name_for_plot = self.gt_df.iloc[II]["name_for_plotting"]
                     else:
                         obs_name_for_plot = self.obs_names[II]
 
@@ -342,6 +342,38 @@ class CVS0DParamID():
                                      f'{self.file_name_prefix}_{plot_idx}.pdf'))
             plt.close()
 
+        # Make a bar plot with all percentage errors.
+        fig, axs = plt.subplots()
+        obs_names_for_plot_list = []
+        # calculate coefficient of variation
+        gt_coefficient_of_variation = 100*self.std_const_vec/self.ground_truth_consts
+        bf_percent_error = 100*(best_fit_obs_consts - self.ground_truth_consts)/self.ground_truth_consts
+
+        for II in range(self.num_obs):
+            if "name_for_plotting" in self.gt_df.iloc[0].keys():
+                obs_names_for_plot_list.append(f'${self.gt_df.iloc[II]["name_for_plotting"]}\,{self.gt_df.iloc[II]["obs_type"]}$')
+            else:
+                obs_names_for_plot_list.append(self.obs_names[II])
+        obs_names_for_plot = np.array(obs_names_for_plot_list)
+
+        axs.bar(obs_names_for_plot, bf_percent_error, label='% error', width=1.0, color='b', edgecolor='black')
+        axs.bar(obs_names_for_plot, gt_coefficient_of_variation, width=1.0, alpha=0.5, label='CV',
+                edgecolor='black', color='None')
+        axs.bar(obs_names_for_plot, -1*gt_coefficient_of_variation, width=1.0, alpha=0.5,
+                edgecolor='black', color='None')
+        axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
+
+        axs.legend()
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'error_bars_{self.param_id_method}_'
+                                 f'{self.file_name_prefix}.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'error_bars_{self.param_id_method}_'
+                                 f'{self.file_name_prefix}.pdf'))
+        plt.close()
+
         print('______observable errors______')
         for obs_idx in range(self.num_obs):
             if self.gt_df.iloc[obs_idx]["data_type"] == "constant":
@@ -350,6 +382,7 @@ class CVS0DParamID():
             if self.gt_df.iloc[II]["data_type"] == "series":
                 # TODO
                 pass
+
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
