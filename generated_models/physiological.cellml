@@ -1200,6 +1200,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="posterior_cerebral_R_T">
@@ -1208,6 +1209,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="external_carotid_L_T">
@@ -1216,6 +1218,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="external_carotid_R_T">
@@ -1224,6 +1227,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_L_T">
@@ -1232,6 +1236,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_R_T">
@@ -1240,6 +1245,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_cerebral_L_T">
@@ -1248,6 +1254,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_cerebral_R_T">
@@ -1256,6 +1263,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="arm_L_T">
@@ -1264,6 +1272,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="arm_R_T">
@@ -1272,6 +1281,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="aortic_arch_C94">
@@ -1315,6 +1325,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="abdominal_aorta_C136">
@@ -1378,6 +1389,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="leg_R_T">
@@ -1386,6 +1398,7 @@
    <variable name="v_T" public_interface="in" units="m3_per_s"/>
    <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
    <variable name="alpha" public_interface="in" units="dimensionless"/>
 </component>
 <component name="venous_lb">
@@ -1419,6 +1432,7 @@
 <component name="par">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="q_C" public_interface="in" units="m3"/>
    <variable name="R" public_interface="in" units="Js_per_m6"/>
    <variable name="C" public_interface="in" units="m6_per_J"/>
    <variable name="I" public_interface="in" units="Js2_per_m6"/>
@@ -1426,6 +1440,7 @@
 <component name="pvn">
    <variable name="u" public_interface="in" units="J_per_m3"/>
    <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="q_C" public_interface="in" units="m3"/>
    <variable name="R" public_interface="in" units="Js_per_m6"/>
    <variable name="C" public_interface="in" units="m6_per_J"/>
    <variable name="I" public_interface="in" units="Js2_per_m6"/>
@@ -1787,6 +1802,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1796,6 +1812,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1805,6 +1822,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1814,6 +1832,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1823,6 +1842,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1832,6 +1852,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1841,6 +1862,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1850,6 +1872,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1859,6 +1882,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1868,6 +1892,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1919,6 +1944,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -1994,6 +2020,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -2003,6 +2030,7 @@
    <map_variables variable_1="v_T" variable_2="v_T"/>
    <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
    <map_variables variable_1="alpha" variable_2="alpha"/>
 </connection>
 <connection>
@@ -2041,6 +2069,7 @@
    <map_components component_1="par" component_2="par_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="q_C" variable_2="q_C"/>
    <map_variables variable_1="R" variable_2="R"/>
    <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="I" variable_2="I"/>
@@ -2049,6 +2078,7 @@
    <map_components component_1="pvn" component_2="pvn_module"/>
    <map_variables variable_1="u" variable_2="u"/>
    <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="q_C" variable_2="q_C"/>
    <map_variables variable_1="R" variable_2="R"/>
    <map_variables variable_1="C" variable_2="C"/>
    <map_variables variable_1="I" variable_2="I"/>

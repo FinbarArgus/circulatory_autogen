@@ -1914,7 +1914,7 @@ class OpencorMCMC():
         if DEBUG:
             self.num_steps = 6
         else:
-            self.num_steps = 200 
+            self.num_steps = 1000 
 
         self.DEBUG = DEBUG
 
@@ -1955,7 +1955,7 @@ class OpencorMCMC():
             if self.DEBUG:
                 num_walkers = 32
             else:
-                num_walkers = 128 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
+                num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
             if rank == 0:
                 if self.best_param_vals is not None:

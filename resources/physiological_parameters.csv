@@ -350,11 +350,11 @@ r_femoral_R222,metre,systemic,3.17347e-03,ADAN_86
 l_femoral_R222,metre,systemic,31.5982e-03,ADAN_86
 theta_femoral_R222,dimensionless,systemic,180,defined_by_user
 E_femoral_R222,J_per_m3,systemic,0.8e+6,ADAN_86
-R_T_leg_L,Js_per_m6,systemic,0.28e+9,to_be_identified
+R_T_leg_L,Js_per_m6,systemic,1.9e+9,to_be_identified
 C_T_leg_L,m6_per_J,systemic,400e-12,to_be_identified
 alpha_leg_L,dimensionless,systemic,1.0,ANS_control_param
 v_nom_leg_L,m3_per_s,systemic,7.327e-6,ADAN_218
-R_T_leg_R,Js_per_m6,systemic,0.28e+9,to_be_identified
+R_T_leg_R,Js_per_m6,systemic,1.9e+9,to_be_identified
 C_T_leg_R,m6_per_J,systemic,400e-12,to_be_identified
 alpha_leg_R,dimensionless,systemic,1.0,ANS_control_param
 v_nom_leg_R,m3_per_s,systemic,7.291e-6,ADAN_218
