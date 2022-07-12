@@ -73,7 +73,7 @@ if __name__ == '__main__':
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001, DEBUG=DEBUG)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
         if rank == 0:
             os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
@@ -102,7 +102,7 @@ if __name__ == '__main__':
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
-                                    sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001, DEBUG=DEBUG)
+                                    sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)
             # mcmc.set_mcmc_parameters() TODO
             mcmc.run_mcmc()

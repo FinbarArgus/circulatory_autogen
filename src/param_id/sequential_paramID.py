@@ -58,6 +58,9 @@ class SequentialParamID:
         identifiable = buf[0]
         num_params_to_remove_buf = np.array([0])
         param_names_to_remove_all_iterations = []
+        # delete the params_to_remove file
+        if self.rank == 0:
+            os.remove(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv'))
         # create dictionary with original param idxs for each name
         # only use first name of each list of names that relates to one parameter.
         self.param_names = self.param_id.get_param_names()
@@ -139,6 +142,12 @@ class SequentialParamID:
                     print('removing the following parameter idxs:')
                     print(param_idxs_to_remove_array)
                 self.param_id.remove_params_by_idx(param_idxs_to_remove_array)
+
+                # save param_names to remove
+                if self.rank == 0:
+                    with open(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv'), 'w') as f:
+                        wr = csv.writer(f)
+                        wr.writerows(param_names_to_remove_all_iterations)
                 if self.rank == 0:
                     print('These params have been removed from the original parameter set')
                     print(param_names_to_remove_all_iterations)

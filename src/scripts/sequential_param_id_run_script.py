@@ -26,7 +26,7 @@ if __name__ == '__main__':
     try:
         DEBUG = False
         mpi_debug = False
-        plot_only = True
+        plot_only = False
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001, DEBUG=DEBUG)
+                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
         if plot_only:
 
