@@ -23,7 +23,7 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = False
+        DEBUG = True
         mpi_debug = False
 
         comm = MPI.COMM_WORLD
@@ -74,6 +74,9 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.0001, DEBUG=DEBUG)
+
+        if rank == 0:
+            os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
 
         num_calls_to_function = int(sys.argv[3])
         if param_id_method == 'genetic_algorithm':

@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import paperPlotSetup
 import stat_distributions
+import utilities
 from utilities import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from opencor_helper import SimulationHelper
@@ -357,13 +358,12 @@ class CVS0DParamID():
         obs_names_for_plot = np.array(obs_names_for_plot_list)
 
         axs.bar(obs_names_for_plot, bf_percent_error, label='% error', width=1.0, color='b', edgecolor='black')
-        axs.bar(obs_names_for_plot, gt_coefficient_of_variation, width=1.0, alpha=0.5, label='CV',
-                edgecolor='black', color='None')
-        axs.bar(obs_names_for_plot, -1*gt_coefficient_of_variation, width=1.0, alpha=0.5,
-                edgecolor='black', color='None')
+        # axs.bar(obs_names_for_plot, gt_coefficient_of_variation, width=1.0, alpha=0.5, label='CV',
+        #         edgecolor='black', color='None')
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
-        axs.legend()
+        # axs.legend()
+        axs.set_ylabel('% Error')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -371,6 +371,24 @@ class CVS0DParamID():
                                  f'{self.file_name_prefix}.eps'))
         plt.savefig(os.path.join(self.plot_dir,
                                  f'error_bars_{self.param_id_method}_'
+                                 f'{self.file_name_prefix}.pdf'))
+        plt.close()
+
+        #plot error as number of standard deviations of
+        fig, axs = plt.subplots()
+        bf_std_error = (best_fit_obs_consts - self.ground_truth_consts)/self.std_const_vec
+        axs.bar(obs_names_for_plot, bf_std_error, label='% error', width=1.0, color='b', edgecolor='black')
+        axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
+
+        # axs.legend()
+        axs.set_ylabel('Error std norm')
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'std_error_bars_{self.param_id_method}_'
+                                 f'{self.file_name_prefix}.eps'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'std_error_bars_{self.param_id_method}_'
                                  f'{self.file_name_prefix}.pdf'))
         plt.close()
 
@@ -465,6 +483,14 @@ class CVS0DParamID():
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
         # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
         plt.close()
+
+        # Also check autocorrelation times for mcmc chain
+        tau = self.calculate_autocorrelation_time(samples)
+
+    def calculate_autocorrelation_time(self, samples):
+        
+
+        return None
 
     def calculate_mcmc_identifiability(self, second_deriv_threshold=-1000):
         if self.rank !=0:
@@ -1071,8 +1097,8 @@ class CVS0DParamID():
             # TODO put units in prediction file and use it here
             axs[pred_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[pred_idx].set_ylabel(f'${self.pred_var_names_for_plotting[pred_idx]}$ [{unit_for_plot}]', fontsize=14)
-            for sample_idx in range(pred_array.shape[1]):
-                axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx, sample_idx, :], 'k')
+            # for sample_idx in range(pred_array.shape[1]):
+            #     axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx, sample_idx, :], 'k')
 
             axs[pred_idx].plot(tSim, conversion*pred_mean, 'b', label='mean', linewidth=1.5)
             axs[pred_idx].errorbar(tSim[idxs_to_plot_std], conversion*pred_mean[idxs_to_plot_std],
@@ -1104,8 +1130,6 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                  f'reconstruct_{self.param_id_method}_'
                                  f'{self.file_name_prefix}_sensitivity_average.pdf'))
-
-
 
         # save param standard deviations
         param_std = np.std(flat_samples, axis=0)
@@ -1811,10 +1835,11 @@ class OpencorParamID():
                 pass
         return pred_obs_consts_vec, pred_obs_series_array
 
-    def simulate_with_best_param_vals(self):
+    def simulate_with_best_param_vals(self, use_mcmc_chain=False):
         if MPI.COMM_WORLD.Get_rank() != 0:
             print('simulate once should only be done on one rank')
             exit()
+
         if self.best_param_vals is None:
             self.best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
         else:
@@ -1834,6 +1859,7 @@ class OpencorParamID():
 
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
+
 
         print(f'final obs values :')
         print(pred_obs_constants_vec)
@@ -2054,6 +2080,24 @@ class OpencorMCMC():
             print('mcmc complete')
             print(f'mcmc chain saved in {mcmc_chain_path}')
 
+            # save best param bals and best cost from mcmc mean
+            samples = samples[samples.shape[0]//2:, :, :]
+            # thin = 10
+            # samples = samples[::thin, :, :]
+            flat_samples = samples.reshape(-1, self.num_params)
+            means = np.zeros((self.num_params))
+            for param_idx in range(self.num_params):
+                means[param_idx] = np.mean(flat_samples[:, param_idx])
+
+            # rerun with mcmc optimal param vals
+            self.best_param_vals = means
+            self.best_cost, pred_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+            print('cost from mcmc mean param vals is {}'.format(self.best_cost))
+            print('resaving best_param_vals and best_cost from mcmc means')
+
+            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
         for idx, param_val in enumerate(param_vals):
@@ -2136,7 +2180,51 @@ class OpencorMCMC():
             # pass
 
         return lnlikelihood
-    
+
+    def get_cost_and_obs_from_params(self, param_vals, reset=True):
+        # set params for this case
+        self.sim_helper.set_param_vals(self.param_names, param_vals)
+
+        success = self.sim_helper.run()
+        if success:
+            pred_obs = self.sim_helper.get_results(self.obs_names)
+
+            cost = self.get_cost_from_obs(pred_obs)
+
+            # reset params
+            if reset:
+                self.sim_helper.reset_and_clear()
+
+        else:
+            # simulation set cost to large,
+            print('simulation failed with params...')
+            print(param_vals)
+            cost = np.inf
+
+        return cost, pred_obs
+
+    def get_cost_from_obs(self, pred_obs):
+
+        pred_obs_consts_vec, pred_obs_series_array = self.get_pred_obs_vec_and_array(pred_obs)
+        # calculate error between the observables of this set of parameters
+        # and the ground truth
+        cost = self.cost_calc(pred_obs_consts_vec, pred_obs_series_array)
+
+        return cost
+
+    def cost_calc(self, prediction_consts, prediction_series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+        #                        self.ground_truth_consts)/np.minimum(prediction_consts,
+        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
+        cost = np.sum(np.power(self.weight_const_vec*(prediction_consts -
+                                                      self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
+        # if prediction_series:
+        # TODO Have not included cost from series error yet
+        # cost +=
+        # pass
+
+        return cost
+
     def get_pred_obs_vec_and_array(self, pred_obs):
 
         pred_obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))

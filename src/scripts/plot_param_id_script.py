@@ -67,6 +67,8 @@ if __name__ == '__main__':
         # print(obj_to_string(param_id))
         # TODO I need to remove params here if there are params to remove from sequential_param_id
 
+        if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
+            pass
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
