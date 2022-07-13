@@ -80,17 +80,17 @@ def auto_window(taus, c):
 
 # Following the suggestion from Goodman & Weare (2010)
 def autocorr_gw2010(y, c=5.0):
-    f = autocorr_func_1d(np.mean(y, axis=0))
+    f = autocorr_func_1d(np.mean(y, axis=1))
     taus = 2.0 * np.cumsum(f) - 1.0
     window = auto_window(taus, c)
     return taus[window]
 
 
 def autocorr_new(y, c=5.0):
-    f = np.zeros(y.shape[1])
-    for yy in y:
-        f += autocorr_func_1d(yy)
-    f /= len(y)
+    f = np.zeros(y.shape[0])
+    for II in range(y.shape[1]):
+        f += autocorr_func_1d(y[:,II])
+    f /= y.shape[1]
     taus = 2.0 * np.cumsum(f) - 1.0
     window = auto_window(taus, c)
     return taus[window]

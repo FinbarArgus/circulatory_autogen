@@ -26,7 +26,6 @@ if __name__ == '__main__':
     try:
         DEBUG = False
         mpi_debug = False
-        plot_only = False
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -81,20 +80,15 @@ if __name__ == '__main__':
                                 num_calls_to_function=num_calls_to_function,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
 
-        if plot_only:
+        seq_param_id.run()
 
-            seq_param_id.plot_mcmc_and_predictions()
-            print('finished plotting mcmc predictions')
-        else:
-            seq_param_id.run()
+        best_param_vals = seq_param_id.param_id.get_best_param_vals()
+        best_param_names = seq_param_id.get_best_param_names()
 
-            best_param_vals = seq_param_id.param_id.get_best_param_vals()
-            best_param_names = seq_param_id.get_best_param_names()
-
-            if rank == 0:
-                wall_time = time.time() - start_time
-                print(f'wall time = {wall_time}')
-                np.save(os.path.join(seq_param_id.param_id.output_dir, 'wall_time.npy'), wall_time)
+        if rank == 0:
+            wall_time = time.time() - start_time
+            print(f'wall time = {wall_time}')
+            np.save(os.path.join(seq_param_id.param_id.output_dir, 'wall_time.npy'), wall_time)
 
     except:
         print(traceback.format_exc())
