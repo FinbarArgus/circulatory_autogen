@@ -17,11 +17,11 @@ input_param_file=physiological_parameters.csv # this must be stored in resources
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=3
+num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=100
+num_calls_to_function=10000
 run_sensitivity=False
 
 ## mcmc inputs
@@ -41,9 +41,9 @@ do_mcmc=True
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables_with_ADAN_flows.json
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
-# param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
+param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
+# param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
 
@@ -59,8 +59,8 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observab
 
 ## paths
 ## the below for my hpc
-# opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
+opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 ## the below for my local
-opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
+# opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 
