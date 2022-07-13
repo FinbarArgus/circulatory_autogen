@@ -363,7 +363,7 @@ class CVS0DParamID():
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
         # axs.legend()
-        axs.set_ylabel('% Error')
+        axs.set_ylabel('E$_%$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -381,7 +381,7 @@ class CVS0DParamID():
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
         # axs.legend()
-        axs.set_ylabel('Error std norm')
+        axs.set_ylabel('E$_std$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -485,12 +485,22 @@ class CVS0DParamID():
         plt.close()
 
         # Also check autocorrelation times for mcmc chain
-        tau = self.calculate_autocorrelation_time(samples)
+        tau, tau_new = self.calculate_autocorrelation_time(samples)
+        print('autocorrelation time for each parameter is')
+        print(tau)
+        print(tau_new)
 
     def calculate_autocorrelation_time(self, samples):
-        
+        num_steps = samples.shape[0]
+        num_walkers = samples.shape[1]
+        num_params = samples.shape[2]  #
+        tau = np.zeros(num_params)
+        tau_new = np.zeros(num_params)
+        for II in range(num_params):
+            tau[II] = utilities.autocorr_gw2010(samples[:,:,II])
+            tau_new[II] = utilities.autocorr_new(samples[:,:,II])
 
-        return None
+        return tau, tau_new
 
     def calculate_mcmc_identifiability(self, second_deriv_threshold=-1000):
         if self.rank !=0:
@@ -2073,7 +2083,6 @@ class OpencorMCMC():
             # TODO save chains
             if mcmc_lib == 'emcee':
                 print(f'acceptance fraction was {self.sampler.acceptance_fraction}')
-                print(f'autocorrelation time was {self.sampler.get_autocorr_time}')
             samples = self.sampler.get_chain()
             mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
             np.save(mcmc_chain_path, samples)

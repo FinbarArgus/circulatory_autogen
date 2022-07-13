@@ -17,6 +17,7 @@ param_id_dir_path = os.path.join(root_dir_path, 'src/param_id')
 generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
 
 from param_id.paramID import CVS0DParamID
+from param_id.sequential_paramID import SequentialParamID
 from utilities import obj_to_string
 import traceback
 from distutils import util
@@ -24,6 +25,8 @@ from distutils import util
 if __name__ == '__main__':
 
     try:
+
+        plot_predictions = True
 
         if len(sys.argv) != 5:
             print(f'incorrect number of inputs to plot_param_id.py script')
@@ -64,19 +67,27 @@ if __name__ == '__main__':
                     param_names_to_remove.append(name_list)
             param_id.remove_params_by_name(param_names_to_remove)
 
-        # print(obj_to_string(param_id))
-        # TODO I need to remove params here if there are params to remove from sequential_param_id
 
         if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
             pass
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
         if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
-            param_id.plot_mcmc()
+            if not plot_predictions:
+                param_id.plot_mcmc()
         param_id.save_prediction_data()
         if run_sensitivity:
             param_id.run_sensitivity(None)
         param_id.close_simulation()
+
+        if plot_predictions:
+            seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+                                             input_params_path=input_params_path,
+                                             param_id_obs_path=param_id_obs_path,
+                                             num_calls_to_function=1,
+                                             sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=False)
+
+            seq_param_id.plot_mcmc_and_predictions()
 
     except:
         print(traceback.format_exc())
