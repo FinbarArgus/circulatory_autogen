@@ -1,4 +1,2 @@
 name,                   unit,   name_for_plotting
 middle_cerebral_R52/u,  J_per_m3, p_{MC}
-basilar_C4/u,  J_per_m3,          p_{BA}
-heart/u_lv,  J_per_m3,            p_{LV}

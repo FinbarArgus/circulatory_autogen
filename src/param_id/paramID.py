@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import paperPlotSetup
 import stat_distributions
+import diagnostics
 import utilities
 from utilities import Normalise_class
 paperPlotSetup.Setup_Plot(3)
@@ -363,7 +364,7 @@ class CVS0DParamID():
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
         # axs.legend()
-        axs.set_ylabel('E$_%$')
+        axs.set_ylabel('E$_\%$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -421,7 +422,7 @@ class CVS0DParamID():
         # discard first num_steps/2 samples
         # TODO include a user defined burn in if we aren't starting from
         samples = samples[samples.shape[0]//2:, :, :]
-        # thin = 10
+        # thin = 5
         # samples = samples[::thin, :, :]
         flat_samples = samples.reshape(-1, num_params)
 
@@ -485,24 +486,29 @@ class CVS0DParamID():
         plt.close()
 
         # Also check autocorrelation times for mcmc chain
-        tau, tau_new = self.calculate_autocorrelation_time(samples)
+        tau = self.calculate_autocorrelation_time(samples)
         print('autocorrelation time for each parameter is')
         print(tau)
-        print(tau_new)
+
+        # check geweke convergence
+        acceptable = self.calculate_geweke_convergence(samples)
+        if acceptable:
+            print('chain passed geweke diagnostic with p>0.05')
+        else:
+            print('chain failed geweke diagnostic with p<0.05, USE CHAIN RESULTS WITH CARE')
 
     def calculate_autocorrelation_time(self, samples):
-        num_steps = samples.shape[0]
-        num_walkers = samples.shape[1]
-        num_params = samples.shape[2]  #
-        tau = np.zeros(num_params)
-        tau_new = np.zeros(num_params)
-        for II in range(num_params):
-            tau[II] = utilities.autocorr_gw2010(samples[:,:,II])
-            tau_new[II] = utilities.autocorr_new(samples[:,:,II])
+        tau = emcee.autocorr.integrated_time(samples, quiet=True)
+        return tau
 
-        return tau, tau_new
+    def calculate_geweke_convergence(self, samples):
+        d = diagnostics.Diagnostics()
+        acceptable = d.geweke(samples)
+        return acceptable
+
 
     def calculate_mcmc_identifiability(self, second_deriv_threshold=-1000):
+        """THIS FUNCTION IS OBSOLETE REMOVE IT."""
         if self.rank !=0:
             return
 
@@ -1114,7 +1120,6 @@ class CVS0DParamID():
             axs[pred_idx].errorbar(tSim[idxs_to_plot_std], conversion*pred_mean[idxs_to_plot_std],
                                    yerr=conversion*pred_std[idxs_to_plot_std], ecolor='b', fmt='^', capsize=6, zorder=3)
             axs[pred_idx].set_xlim(0.0, 1.0)
-            axs[pred_idx].set_ylim(ymin=0.0)
             # z_star = 1.96 for 95% confidence interval. margin_of_error=z_star*std
             z_star = 1.96
             margin_of_error = z_star * pred_std
@@ -1123,6 +1128,8 @@ class CVS0DParamID():
             axs[pred_idx].plot(tSim, conversion*conf_ival_up, 'r--', label='95% CI', linewidth=1.2)
             axs[pred_idx].plot(tSim, conversion*conf_ival_down, 'r--', linewidth=1.2)
             axs[pred_idx].legend()
+            y_max = 10*math.ceil(max(conversion*conf_ival_up)/10)
+            axs[pred_idx].set_ylim(ymin=0.0, ymax=y_max)
             # save prediction value, std, and CI of for max, min, and mean
             for idx in idxs_to_plot_std:
                 save_list.append(pred_mean[idx])
