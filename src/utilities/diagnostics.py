@@ -91,14 +91,20 @@ class Diagnostics(object):
         n_start = int(np.floor(first * num_steps))
         n_end = int(np.floor((1 - last) * num_steps))
         mean_start = np.array([np.mean(chain[:n_start, II, JJ]) for II in range(num_walkers) for JJ in range(num_params)])
-        var_start = np.array([self._spec(chain[:n_start, II, JJ]) / chain[:n_start, II, JJ].size for II in range(num_walkers)
-                              for JJ in range(num_params)])
+        # TODO change back to the oneline
+        var_start = []
+        for II in range(num_walkers):
+            for JJ in range(num_params):
+                var_start.append(self._spec(chain[:n_start, II, JJ])/chain[:n_start, II, JJ].size)
+        var_start = np.array(var_start)
+        # var_start = np.array([self._spec(chain[:n_start, II, JJ]) / chain[:n_start, II, JJ].size for II in range(num_walkers)
+        #                       for JJ in range(num_params)])
         mean_end = np.array([np.mean(chain[n_end:, II, JJ]) for II in range(num_walkers) for JJ in range(num_params)])
         var_end = np.array([self._spec(chain[n_end:, II, JJ]) / chain[n_end:, II, JJ].size for II in range(num_walkers)
                             for JJ in range(num_params)])
         zs = (mean_start - mean_end) / (np.sqrt(var_start + var_end))
         _, pvalue = normaltest(zs)
-        print("Gweke Statistic for chain has p-value %e" % (pvalue))
+        print("Geweke Statistic for chain has p-value %e" % (pvalue))
         return pvalue > threshold
 
     # Method of estimating spectral density following PyMC.

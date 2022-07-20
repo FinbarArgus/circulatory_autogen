@@ -382,7 +382,7 @@ class CVS0DParamID():
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
         # axs.legend()
-        axs.set_ylabel('E$_std$')
+        axs.set_ylabel('E$_{std}$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -419,6 +419,24 @@ class CVS0DParamID():
         else:
             if num_params != self.param_id.num_params:
                 print('num params in mcmc chain doesn\'t equal param_id number of params')
+
+        # TODO fix the below
+        # for some reason some chains get stuck for long times, remove the chains that get stuck
+        walkers_to_remove = []
+        for walker_idx in range(num_walkers):
+            for param_idx in range(num_params):
+                block_size = 40
+                for step_block_idx in range(num_steps//block_size):
+                    # get std of the block and remove that chain it if is zero
+                    block_std = np.std(samples[step_block_idx*block_size:(step_block_idx+1)*block_size, walker_idx, param_idx])
+                    if block_std == 0:
+                        walkers_to_remove.append(walker_idx)
+
+        walkers_to_remove = list(set(walkers_to_remove))
+        print('There is a bug where chains can get stuck, removing walkers with stuck parameters. removed walker idxs:')
+        print(walkers_to_remove)
+        samples = np.delete(samples, walkers_to_remove, axis=1)
+
         # discard first num_steps/2 samples
         # TODO include a user defined burn in if we aren't starting from
         samples = samples[samples.shape[0]//2:, :, :]
@@ -467,8 +485,8 @@ class CVS0DParamID():
                 best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
                 self.param_id.set_best_param_vals(best_param_vals)
 
-        overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
-        # overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
+        # overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
+        overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
@@ -487,8 +505,6 @@ class CVS0DParamID():
 
         # Also check autocorrelation times for mcmc chain
         tau = self.calculate_autocorrelation_time(samples)
-        print('autocorrelation time for each parameter is')
-        print(tau)
 
         # check geweke convergence
         acceptable = self.calculate_geweke_convergence(samples)
@@ -503,7 +519,7 @@ class CVS0DParamID():
 
     def calculate_geweke_convergence(self, samples):
         d = diagnostics.Diagnostics()
-        acceptable = d.geweke(samples)
+        acceptable = d.geweke(samples, first=0.3, last=0.5)
         return acceptable
 
 
@@ -850,7 +866,7 @@ class CVS0DParamID():
 
             #save the prediction output
             np.save(os.path.join(self.output_dir, 'prediction_variable_data'), time_and_pred)
-            print('Prediction data saved')
+            print('single prediction data saved')
 
         else:
             pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
@@ -1143,10 +1159,10 @@ class CVS0DParamID():
 
         plt.savefig(os.path.join(self.plot_dir,
                                  f'prediction_'
-                                 f'{self.file_name_prefix}_sensitivity_average.eps'))
+                                 f'{self.file_name_prefix}.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'reconstruct_{self.param_id_method}_'
-                                 f'{self.file_name_prefix}_sensitivity_average.pdf'))
+                                 f'prediction_'
+                                 f'{self.file_name_prefix}.pdf'))
 
         # save param standard deviations
         param_std = np.std(flat_samples, axis=0)
