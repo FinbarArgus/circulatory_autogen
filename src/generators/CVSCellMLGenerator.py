@@ -29,8 +29,9 @@ class CVS0DCellMLGenerator(object):
         self.filename_prefix = filename_prefix
         self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
         self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
-        self.modules_script = os.path.join(generators_dir_path, 'resources/BG_modules.cellml')
-        self.heart_modules_script = os.path.join(generators_dir_path, 'resources/heart_modules.cellml')
+        self.module_scripts = [os.path.join(generators_dir_path, 'resources', filename) for filename in
+                               os.listdir(os.path.join(generators_dir_path, 'resources'))
+                               if filename.endswith('modules.cellml')]
         self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
 
     def generate_files(self):
@@ -95,10 +96,10 @@ class CVS0DCellMLGenerator(object):
                 self.__write_section_break(wf, 'imports')
                 self.__write_imports(wf, self.model.vessels_df)
     
-                # define mapping between vessels
+                # define mapping between modules
                 print('writing vessel mappings')
                 self.__write_section_break(wf, 'vessel mappings')
-                self.__write_vessel_mappings(wf, self.model.vessels_df)
+                self.__write_module_mappings(wf, self.model.vessels_df)
 
                 # create computation environment to sum flows from terminals
                 # to have a total flow input into each first venous component.
@@ -142,25 +143,20 @@ class CVS0DCellMLGenerator(object):
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
                      '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
     
-            heart_params_array = self.model.parameters_array[np.where(self.model.parameters_array["comp_env"] ==
-                                                                      'heart')]
-            pulmonary_params_array = self.model.parameters_array[np.where(self.model.parameters_array["comp_env"] ==
-                                                                          'pulmonary')]
-            systemic_params_array = self.model.parameters_array[np.where(self.model.parameters_array["comp_env"] ==
-                                                                         'systemic')]
+            global_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
+                                                                      'global_constant')]
+            module_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
+                                                                         'constant')]
 
-            wf.write('<component name="parameters_heart">\n')
-            self.__write_constant_declarations(wf, heart_params_array["variable_name"],
-                                        heart_params_array["units"],
-                                        heart_params_array["value"])
+            wf.write('<component name="parameters_global">\n')
+            self.__write_constant_declarations(wf, global_params_array["variable_name"],
+                                        global_params_array["units"],
+                                        global_params_array["value"])
             wf.write('</component>\n')
             wf.write('<component name="parameters">\n')
-            self.__write_constant_declarations(wf, systemic_params_array["variable_name"],
-                                        systemic_params_array["units"],
-                                        systemic_params_array["value"])
-            self.__write_constant_declarations(wf, pulmonary_params_array["variable_name"],
-                                               pulmonary_params_array["units"],
-                                               pulmonary_params_array["value"])
+            self.__write_constant_declarations(wf, module_params_array["variable_name"],
+                                        module_params_array["units"],
+                                        module_params_array["value"])
             wf.write('</component>\n')
             wf.write('</model>\n')
 
@@ -189,6 +185,7 @@ class CVS0DCellMLGenerator(object):
                   f'the "_unfinished" ending of the file name, then rerun the model generation \n'
                   f'with the new parameters file as input.\n')
         df = pd.DataFrame(self.model.parameters_array)
+        df = df.drop(columns=["const_type"])
         df.to_csv(file_to_create, index=None, header=True)
     
     def __generate_units_file(self):
@@ -206,32 +203,42 @@ class CVS0DCellMLGenerator(object):
             state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
-            with open(self.modules_script, 'r') as rf:
-                # skip last line so enddef; doesn't get written till the end.
-                lines = rf.readlines()[:-1]
-                for line in lines:
-                    wf.write(line)
-            with open(self.heart_modules_script, 'r') as rf:
-                # skip first two lines
-                lines = rf.readlines()[2:]
-                for line in lines:
-                    if self.model.param_id_states:
-                        for idx, (state_name, val) in enumerate(self.model.param_id_states):
-                            if state_name in line and 'initial_value' in line:
-                                inp_string = f'initial_value="{val:.4e}"'
-                                line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
-                                state_modified[idx] = True
-                    wf.write(line)
+            for II, module_file_path in enumerate(self.module_scripts):
+                with open(module_file_path, 'r') as rf:
+                    if II == 0:
+                        # skip last line so enddef; doesn't get written till the end.
+                        lines = rf.readlines()[:-1]
+                    elif II == len(self.module_scripts) - 1:
+                        # skip first two lines
+                        lines = rf.readlines()[2:]
+                    else:
+                        # skip last line so enddef; doesn't get written till the end.
+                        # skip first two lines
+                        lines = rf.readlines()[2:-1]
 
-                    # check if each state was modified
-                if self.model.param_id_states:
-                    if any(state_modified) == False:
-                        false_states = [self.model.param_id_states[JJ][0] for JJ in range(len(state_modified)) if
-                                        state_modified[JJ] == False]
-                        print(f'The parameter id states {false_states} \n'
-                              f'were not found in the cellml script, check the parameter id state names and the '
-                              f'base_script.cellml file')
-                        exit()
+
+                    if module_file_path.endswith('heart_modules.cellml'):
+                        for line in lines:
+                            if self.model.param_id_states:
+                                for idx, (state_name, val) in enumerate(self.model.param_id_states):
+                                    if state_name in line and 'initial_value' in line:
+                                        inp_string = f'initial_value="{val:.4e}"'
+                                        line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
+                                        state_modified[idx] = True
+                            wf.write(line)
+
+                            # check if each state was modified
+                        if self.model.param_id_states:
+                            if any(state_modified) == False:
+                                false_states = [self.model.param_id_states[JJ][0] for JJ in range(len(state_modified)) if
+                                                state_modified[JJ] == False]
+                                print(f'The parameter id states {false_states} \n'
+                                      f'were not found in the cellml script, check the parameter id state names and the '
+                                      f'base_script.cellml file')
+                                exit()
+                    else:
+                        for line in lines:
+                            wf.write(line)
 
     def __write_section_break(self, wf, text):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
@@ -251,80 +258,168 @@ class CVS0DCellMLGenerator(object):
             print('either venous_ivc, or venous_svc, or both must be inputs to the heart, exiting')
             exit()
 
-    def __write_vessel_mappings(self, wf, vessel_df):
-        vessel_df.apply(self.__write_vessel_mapping_for_row, args=(vessel_df, wf), axis=1)
+    def __write_module_mappings(self, wf, module_df):
+        """This function maps between ports of the modules in a module dataframe."""
+        module_df.apply(self.__write_module_mapping_for_row, args=(module_df, wf), axis=1)
 
-    def __write_vessel_mapping_for_row(self, vessel_row, vessel_df, wf):
-        # input and output vessels
-        main_vessel = vessel_row["name"]
-        main_vessel_BC_type = vessel_row["BC_type"]
-        main_vessel_type = vessel_row["vessel_type"]
+    def __write_module_mapping_for_row(self, module_row, module_df, wf):
+        """This function maps between ports of the modules in a one row of a module dataframe."""
+        # input and output modules
+        main_module = module_row["name"]
+        main_module_BC_type = module_row["BC_type"]
+        main_module_type = module_row["module_type"]
 
-        for out_vessel_idx, out_vessel in enumerate(vessel_row["out_vessels"]):
-            if not (vessel_df["name"] == out_vessel).any():
-                print(f'the output vessel of {out_vessel} is not defined')
+        # create a list of dicts that stores info for the exit ports of this main module
+        port_types = []
+        for out_port_idx in range(len(module_row["exit_ports"])):
+            port_type = module_row["exit_ports"][out_port_idx]["port_type"]
+            if port_type in [port_types[II]["port_type"] for II in range(len(port_types))]:
+                port_type_idx = [port_types[II]["port_type"] for II
+                                 in range(len(port_types))].index(port_type)
+                port_types[port_type_idx]["out_port_idxs"].append(out_port_idx)
+                port_types[port_type_idx]["port_type_count"] += 1
+                port_types[port_type_idx]["connected"].append(False)
+
+            else:
+                port_types.append({"port_type": module_row["exit_ports"][out_port_idx]["port_type"],
+                                   "out_port_idxs": [out_port_idx],
+                                   "port_type_count": 1,
+                                   "connected": [False]}) # whether this exit port has been connected
+
+        for out_module_idx, out_module in enumerate(module_row["out_vessels"]):
+            if not (module_df["name"] == out_module).any():
+                print(f'the output module of {out_module} is not defined')
                 exit()
-            out_vessel_row = vessel_df.loc[vessel_df["name"] == out_vessel].squeeze()
-            out_vessel_BC_type = out_vessel_row["BC_type"]
-            out_vessel_type = out_vessel_row["vessel_type"]
+            out_module_row = module_df.loc[module_df["name"] == out_module].squeeze()
+            out_module_BC_type = out_module_row["BC_type"]
+            out_module_type = out_module_row["module_type"]
 
-            # check that input and output vessels are defined as connection variables
-            # for that vessel and they have corresponding BCs
-            self.__check_input_output_vessels(vessel_df, main_vessel, out_vessel,
-                                              main_vessel_BC_type, out_vessel_BC_type,
-                                              main_vessel_type, out_vessel_type)
+            # check that input and output modules are defined as connection variables
+            # for that module and they have corresponding BCs
+            self.__check_input_output_modules(module_df, main_module, out_module,
+                                              main_module_BC_type, out_module_BC_type,
+                                              main_module_type, out_module_type)
 
-            # ___ get variables to map ___ #
-
-            # get the entrance port idx for the output vessel
-            inp_port_idx = -1
-            for II in range(len(out_vessel_row["inp_vessels"])):
-                if out_vessel_row["inp_vessels"][II] == main_vessel:
-                    inp_port_idx = II
-                    break
-            if main_vessel_type == 'terminal':
-                if inp_port_idx == -1:
-                    # TODO For now we allow the first venous sections to not define all input terminals
-                    #  but this should be deprecated
-                    pass
-                elif inp_port_idx == 0:
-                    pass
+            # create a list of dicts that stores info for the entrance ports of this output module
+            entrance_port_types = []
+            for entrance_port_idx in range(len(out_module_row["entrance_ports"])):
+                port_type = out_module_row["entrance_ports"][entrance_port_idx]["port_type"]
+                if port_type in [entrance_port_types[II]["port_type"] for II in range(len(entrance_port_types))]:
+                    port_type_idx = [entrance_port_types[II]["port_type"] for II
+                                     in range(len(entrance_port_types))].index(port_type)
+                    entrance_port_types[port_type_idx]["entrance_port_idxs"].append(entrance_port_idx)
+                    entrance_port_types[port_type_idx]["port_type_count"] += 1
                 else:
-                    # TODO create a module called venous_multi_input, to take in multiple terminals
-                    inp_port_idx = 0
+                    entrance_port_types.append({"port_type": out_module_row["entrance_ports"][entrance_port_idx]["port_type"],
+                                       "entrance_port_idxs": [entrance_port_idx],
+                                       "port_type_count": 1})
 
-            # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
-            #  heart module?
-            if out_vessel == 'heart':
-                if len(out_vessel_row["inp_vessels"]) == 2:
-                    # this is the case if there is only one vc and one pulmonary
-                    # We map the ivc to a zero flow mapping
-                    if inp_port_idx == 0:
-                        self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
-                    # if only two inputs are defined, then that means there is one vc and one pulmonary vein
-                    # we increase the inp_port_idx by 1 to ignore the ivc port of the heart. The vc defined in
-                    # the vessel array will be connected to the svc entrance port, which is equivalent to connecting
-                    # it to the ivc port. the ivc, is the 0'th inp_port_idx, so adding one avoids it.
-                    inp_port_idx += 1
+            for port_type_idx in range(len(port_types)):
+                for II in range(len(entrance_port_types)):
+                    entrance_port_type_idx = -1
+                    if entrance_port_types[II]["port_type"] == port_types[port_type_idx]["port_type"]:
+                        entrance_port_type_idx = II
+                        break
+                if entrance_port_type_idx == -1:
+                    # this port type isnt used, continue to next one
+                    continue
 
-            variables_1 = vessel_row["exit_ports"][out_vessel_idx]['variables']
-            variables_2 = out_vessel_row["entrance_ports"][inp_port_idx]['variables']
+                if port_types[port_type_idx]["port_type"] == "vessel_port":
+                    for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
+                        if not port_types[port_type_idx]["connected"][this_type_port_idx]:
+                            out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
+                            break
+                    # get the entrance port idx for the output module
+                    entrance_port_idx = -1
+                    for II in range(len(out_module_row["inp_vessels"])):
+                        # check that the entrance port corresponds to the main_vessel
+                        if out_module_row["inp_vessels"][II] == main_module:
+                            entrance_port_idx = entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
+                            break
 
-            main_vessel_module = main_vessel + '_module'
-            out_vessel_module = out_vessel + '_module'
+                    # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
+                    #  heart module?
+                    if out_module == 'heart':
+                        if len(out_module_row["inp_vessels"]) == 2:
+                            # this is the case if there is only one vc and one pulmonary
+                            # We map the ivc to a zero flow mapping
+                            if entrance_port_idx == 0:
+                                self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
+                            # if only two inputs are defined, then that means there is one vc and one pulmonary vein
+                            # we increase the entrance_port_idx by 1 to ignore the ivc port of the heart. The vc defined in
+                            # the module array will be connected to the svc entrance port, which is equivalent to connecting
+                            # it to the ivc port. the ivc, is the 0'th entrance_port_idx, so adding one avoids it.
+                            entrance_port_idx += 1
+                            # TODO the above isnt robust
+                    variables_1 = module_row["exit_ports"][out_port_idx]['variables']
+                    variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
 
-            self.__write_mapping(wf, main_vessel_module, out_vessel_module, variables_1, variables_2)
+                    main_module_module = main_module + '_module'
+                    out_module_module = out_module + '_module'
+
+                    self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+                    port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                else:
+                    this_type_entrance_port_idx = 0
+                    for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
+                        if not port_types[port_type_idx]["connected"][this_type_port_idx]:
+                            out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
+                            # get the entrance port idx for the output module
+                            entrance_port_idx = -1
+                            if main_module_type == 'tissue_GE_simple_type' and out_module_type == "gas_transport_simple_type":
+                                # this connection is done through the terminal_venous_connection
+                                break
+                            # TODO the below if isnt general. Figure out how to generalise this.
+                            if out_module_type == 'flow_sum_2_type':
+                                for II in range(len(out_module_row["inp_vessels"])):
+                                    # check that the entrance port corresponds to the main_vessel
+                                    if out_module_row["inp_vessels"][II] == main_module:
+                                        entrance_port_idx = \
+                                            entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
+                                        break
+                            else:
+                                entrance_port_idx = \
+                                    entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][this_type_port_idx]
+                                if this_type_port_idx > 1:
+                                    print('making multiple of the same port types might cause issues. This hasnt been'
+                                          'generalised. It has been hard coded to work with vessel_port and '
+                                          'for the flow_sum_2 vessel type only. Proceed with care')
+
+                            variables_1 = module_row["exit_ports"][out_port_idx]['variables']
+                            variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
+
+                            main_module_module = main_module + '_module'
+                            out_module_module = out_module + '_module'
+
+                            self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+
+                            # only assign connected if the port doesnt have a multi_ports flag
+                            if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
+                                if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:
+                                    pass
+                                else:
+                                    port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                            else:
+                                port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                            this_type_entrance_port_idx += 1
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
         first_venous_names = [] # stores name of venous compartments that take flow from terminals
+        tissue_GE_names = [] # stores name of venous compartments that take flow from terminals
         for vessel_tup in vessel_df.itertuples():
-            # first map variables between connection and the venous sections
             if vessel_tup.vessel_type == 'terminal':
                 vessel_name = vessel_tup.name
                 out_vessel_name = vessel_tup.out_vessels[0]
+                # first map pressure between terminal and first venous compartment
+                u_1 = 'u_out'
+                u_2 = 'u'
+                self.__write_mapping(wf, vessel_name+'_module', out_vessel_name+'_module',
+                                     [u_1], [u_2])
+
+                # then map variables between connection and the venous sections
                 v_1 = 'v_T'
                 v_2 = f'v_{vessel_name}'
-    
+
                 self.__write_mapping(wf, vessel_name+'_module','terminal_venous_connection',
                               [v_1], [v_2])
 
@@ -335,30 +430,62 @@ class CVS0DCellMLGenerator(object):
                 vessel_name = vessel_tup.name
                 first_venous_names.append(vessel_name)
                 vessel_BC_type = vessel_tup.BC_type
-                v_1 = f'v_{vessel_name}'
+                v_1 = [f'v_{vessel_name}']
                 if vessel_BC_type == 'vp':
-                    v_2 = 'v_in'
+                    v_2 = ['v_in']
                 else:
                     print(f'first venous vessel BC type of {vessel_BC_type} has not'
                           f'been implemented')
-    
+
+
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
-                              [v_1], [v_2])
-    
+                              v_1, v_2)
+
+            if vessel_tup.vessel_type == 'gas_transport_simple' and \
+                    vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
+                                  ]['vessel_type'].str.contains('tissue_GE_simple').any():
+                vessel_name = vessel_tup.name
+
+                vars_1 = ['v_venous_total', f'C_O2_p_venous_ave', f'C_CO2_p_venous_ave']
+                vars_2 = ['v', 'C_O2_in', 'C_CO2_in']
+                self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
+                                     vars_1, vars_2)
+
+
+            if vessel_tup.vessel_type == 'tissue_GE_simple':
+                vessel_name = vessel_tup.name
+                tissue_GE_names.append(vessel_name)
+
+                C_1 = [f'C_O2_p_{vessel_name}', f'C_CO2_p_{vessel_name}']
+                C_2 = ['C_O2_p', 'C_CO2_p']
+
+                self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
+                                     C_1, C_2)
+
+
+
         # loop through vessels to get the terminals to add up for each first venous section
         terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
+        GE_names_for_first_venous = [[] for i in range(len(first_venous_names))]
+        terminal_names_with_GE = [[] for i in range(len(first_venous_names))]
         for vessel_tup in vessel_df.itertuples():
             if vessel_tup.vessel_type == 'terminal':
                 vessel_name = vessel_tup.name
                 for idx, venous_name in enumerate(first_venous_names):
-                    if vessel_tup.out_vessels[0] == venous_name:
-                        if vessel_name not in vessel_df.loc[vessel_df["name"] == venous_name].squeeze()["inp_vessels"]:
-                            print(f'venous input of {venous_name} does not include the terminal vessel '
-                                  f'{vessel_name} as an inp_vessel in {self.filename_prefix}_vessel_array. '
-                                  f'not including terminal names as input has been deprecated')
-                            exit()
-                        terminal_names_for_first_venous[idx].append(vessel_name)
-    
+                    for II in range(len(vessel_tup.out_vessels)):
+                        if vessel_tup.out_vessels[II] == venous_name:
+                            if vessel_name not in vessel_df.loc[vessel_df["name"] == venous_name].squeeze()["inp_vessels"]:
+                                print(f'venous input of {venous_name} does not include the terminal vessel '
+                                      f'{vessel_name} as an inp_vessel in {self.filename_prefix}_vessel_array. '
+                                      f'not including terminal names as input has been deprecated')
+                                exit()
+                            terminal_names_for_first_venous[idx].append(vessel_name)
+                for idx, tissue_GE_name in enumerate(tissue_GE_names):
+                    for II in range(len(vessel_tup.out_vessels)):
+                        if vessel_tup.out_vessels[II] == tissue_GE_name:
+                            GE_names_for_first_venous[idx].append(tissue_GE_name)
+                            terminal_names_with_GE[idx].append(vessel_name)
+
         # create computation environment for connection and write the
         # variable definition and calculation of flow to each first venous module.
         wf.write(f'<component name="terminal_venous_connection">\n')
@@ -370,19 +497,62 @@ class CVS0DCellMLGenerator(object):
                 variables.append(f'v_{terminal_name}')
                 units.append('m3_per_s')
                 in_outs.append('in')
-    
+
             variables.append(f'v_{venous_name}')
             units.append('m3_per_s')
             in_outs.append('out')
-    
+
+        for idx, tissue_GE_name in enumerate(tissue_GE_names):
+            for GE_name in GE_names_for_first_venous[idx]:
+                variables.append(f'C_O2_p_{GE_name}')
+                variables.append(f'C_CO2_p_{GE_name}')
+                units.append('dimensionless')
+                units.append('dimensionless')
+                in_outs.append('in')
+                in_outs.append('in')
+
+        variables.append(f'C_O2_p_venous_ave')
+        variables.append(f'C_CO2_p_venous_ave')
+        units.append('dimensionless')
+        units.append('dimensionless')
+        in_outs.append('out')
+        in_outs.append('out')
+
+        variables.append(f'v_venous_total')
+        units.append('m3_per_s')
+        in_outs.append('out')
+
         self.__write_variable_declarations(wf, variables, units, in_outs)
         for idx, venous_name in enumerate(first_venous_names):
             rhs_variables = []
             lhs_variable = f'v_{venous_name}'
             for terminal_name in terminal_names_for_first_venous[idx]:
                 rhs_variables.append(f'v_{terminal_name}')
-    
+
             self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+
+        # sum all venous components to get a total flow to use for gas transport
+        lhs_variable = 'v_venous_total'
+        rhs_variables = []
+        for idx, venous_name in enumerate(first_venous_names):
+            rhs_variables.append(f'v_{venous_name}')
+        self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+
+        rhs_variables_to_average = []
+        rhs_variables_weightings = []
+        rhs_variables_to_average_CO2 = []
+        lhs_variable = f'C_O2_p_venous_ave'
+        lhs_variable_CO2 = f'C_CO2_p_venous_ave'
+        for idx in range(len(first_venous_names)):
+            for terminal_name, GE_name in zip(terminal_names_with_GE[idx], GE_names_for_first_venous[idx]):
+                rhs_variables_to_average.append(f'C_O2_p_{GE_name}')
+                rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
+                rhs_variables_weightings.append(f'v_{terminal_name}')
+
+        self.__write_variable_average(wf, lhs_variable, rhs_variables_to_average, rhs_variables_weightings)
+        self.__write_variable_average(wf, lhs_variable_CO2, rhs_variables_to_average_CO2, rhs_variables_weightings)
+
+
         wf.write('</component>\n')
 
     def __write_access_variables(self, wf, vessel_df):
@@ -415,14 +585,12 @@ class CVS0DCellMLGenerator(object):
     def __write_param_mappings_for_row(self, vessel_row, wf, params_array=None):
         vessel_name = vessel_row["name"]
         module_addon = '_module'
-        if vessel_row["vessel_type"].startswith('heart'):
-            global_variable_addon = ''
-            param_file_name = 'parameters_heart'
-        else:
-            global_variable_addon = f'_{vessel_name}'
-            if vessel_row["vessel_type"] == 'terminal':
-                global_variable_addon = re.sub('_T$', '', global_variable_addon)
-            param_file_name = 'parameters'
+
+        global_variable_addon = f'_{vessel_name}'
+        if vessel_row["vessel_type"] == 'terminal':
+            global_variable_addon = re.sub('_T$', '', global_variable_addon)
+        params_with_addon_heading = 'parameters'
+        params_without_addon_heading = 'parameters_global'
 
         vars = [vessel_row["variables_and_units"][i][0] for
                        i in range(len(vessel_row["variables_and_units"])) if
@@ -441,10 +609,10 @@ class CVS0DCellMLGenerator(object):
                     print(f'variable {variable_name} is not in the parameter '
                           f'dataframe/csv file')
                     exit()
-        self.__write_mapping(wf, param_file_name, vessel_name + module_addon,
+        self.__write_mapping(wf, params_with_addon_heading, vessel_name + module_addon,
                              module_vars, vars)
 
-        self.__write_mapping(wf, 'environment', vessel_name + module_addon,
+        self.__write_mapping(wf, params_without_addon_heading, vessel_name + module_addon,
                              global_vars, global_vars)
 
     def __write_time_mappings(self, wf, vessel_df):
@@ -469,16 +637,16 @@ class CVS0DCellMLGenerator(object):
         module_type = vessel_tup.module_type
 
         str_addon = '_module'
-    
+
         wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
         f'    <component component_ref="{module_type}" name="{vessel_tup.name+str_addon}"/>\n',
         '</import>\n'])
 
-    def __check_input_output_vessels(self, vessel_df, main_vessel, out_vessel,
+    def __check_input_output_modules(self, vessel_df, main_vessel, out_vessel,
                                    main_vessel_BC_type, out_vessel_BC_type,
                                    main_vessel_type, out_vessel_type):
         if not out_vessel:
-            print(f'connection vessels incorrectly defined for {main_vessel}')
+            print(f'connection modules incorrectly defined for {main_vessel}')
             exit()
         if main_vessel_type == 'terminal':
             pass
@@ -486,7 +654,9 @@ class CVS0DCellMLGenerator(object):
             print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '
                   f'check that they have eachother as output/input')
             exit()
-    
+        if out_vessel_BC_type == '':
+            return
+
         if main_vessel_BC_type.endswith('v'):
             if not out_vessel_BC_type.startswith('p'):
                 print(f'"{main_vessel}" output BC is v, the input BC of "{out_vessel}"',
@@ -509,7 +679,7 @@ class CVS0DCellMLGenerator(object):
     def __write_variable_declarations(self, wf, variables, units, in_outs):
         for variable, unit, in_out in zip(variables, units, in_outs):
             wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>\n')
-    
+
     def __write_constant_declarations(self, wf, variable_names, units, values):
         for variable, unit, value in zip(variable_names, units, values):
             wf.write(f'<variable initial_value="{value}" name="{variable}" '
@@ -528,6 +698,52 @@ class CVS0DCellMLGenerator(object):
             wf.write('       </apply>\n')
         else:
             wf.write(f'            <ci>{rhs_variables[0]}</ci>\n')
-    
+
+        wf.write('   </apply>\n')
+        wf.write('</math>\n')
+
+    def __write_variable_average(self, wf, lhs_variable, rhs_variables_to_average, rhs_variables_weighting):
+        """ writes the cellml code for averaging variables with weighting. Designed for getting an equivalent
+        concentration
+
+        C = (C_1*v_1 + C_2*v_2)/(v_1 + v_2)
+        """
+        if len(rhs_variables_to_average) != len(rhs_variables_weighting):
+            print('rhs_variables_to_average and rhs_variables_weighting must be the same length, exiting')
+            exit()
+
+        wf.writelines('<math xmlns="http://www.w3.org/1998/Math/MathML">\n'
+                      '   <apply>\n'
+                      '       <eq/>\n'
+                      f'       <ci>{lhs_variable}</ci>\n')
+        if len(rhs_variables_to_average) > 1:
+            wf.write('      <apply>\n')
+            wf.write('          <divide/>\n')
+            wf.write('          <apply>\n')
+            wf.write('              <plus/>\n')
+            for variable, weight in zip(rhs_variables_to_average, rhs_variables_weighting):
+                wf.write('          <apply>\n')
+                wf.write('              <times/>\n')
+                wf.write(f'             <ci>{variable}</ci>\n')
+                wf.write(f'             <ci>{weight}</ci>\n')
+                wf.write('          </apply>\n')
+            wf.write('          </apply>\n')
+            wf.write('          <apply>\n')
+            wf.write('              <plus/>\n')
+            wf.write('              <apply>\n')
+            wf.write('                  <abs/>\n')
+            wf.write('                  <apply>\n')
+            wf.write('                      <plus/>\n')
+            for weight in rhs_variables_weighting:
+                wf.write(f'                     <ci>{weight}</ci>\n')
+            wf.write('                  </apply>\n')
+            wf.write('              </apply>\n')
+            wf.write('              <cn cellml:units="m3_per_s" type="e-notation">1<sep/>-10</cn>\n')
+            wf.write('          </apply>\n')
+            wf.write('      </apply>\n')
+
+        else:
+            wf.write(f'            <ci>{rhs_variables_to_average[0]}</ci>\n')
+
         wf.write('   </apply>\n')
         wf.write('</math>\n')

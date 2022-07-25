@@ -24,9 +24,8 @@ class CVS0DModel(object):
 
         # possible vessel and BC attributes of the model
         # TODO get these names from the modules_config.json file
-        self.possible_vessel_types = ['heart', 'heart_new_valve', 'heart_LVprop', 'arterial', 'arterial_simple', 'split_junction', 'merge_junction',
-                                      '2in2out_junction', 'terminal', 'venous']
-        self.possible_BC_types = ['pp', 'vv', 'pv', 'vp']
+        self.possible_vessel_types = list(set(self.vessels_df["vessel_type"].to_list()))
+        self.possible_BC_types = list(set(self.vessels_df["BC_type"].to_list()))
 
     
     

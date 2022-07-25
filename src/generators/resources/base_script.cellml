@@ -8,7 +8,11 @@
         <units name="m_per_s" units_ref="m_per_s"/>
         <units name="m6_per_J" units_ref="m6_per_J"/>
         <units name="per_m" units_ref="per_m"/>
+        <units name="per_s" units_ref="per_s"/>
         <units name="J_per_m3" units_ref="J_per_m3"/>
+        <units name="J_per_m3s" units_ref="J_per_m3s"/>
+        <units name="m3_per_J" units_ref="m3_per_J"/>
+        <units name="J2_per_m6" units_ref="J2_per_m6"/>
         <units name="Js_per_m6" units_ref="Js_per_m6"/>
         <units name="Js2_per_m6" units_ref="Js2_per_m6"/>
         <units name="Js2_per_m5" units_ref="Js2_per_m5"/>
@@ -21,12 +25,10 @@
     </import>
     <import xlink:href="parameters_autogen.cellml">
         <component component_ref="parameters" name="parameters"/>
-        <component component_ref="parameters_heart" name="parameters_heart"/>
+        <component component_ref="parameters_global" name="parameters_global"/>
     </import>
     <component name="environment">
         <variable name="time" public_interface="out" units="second"/>
-        <variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.0" name="gain_int" public_interface="out" units="J_per_m9"/>
     </component>
     <!--#STARTGENBELOW-->
 </model>

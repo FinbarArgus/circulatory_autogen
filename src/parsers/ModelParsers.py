@@ -46,6 +46,7 @@ class CSV0DModelParser(object):
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, self.module_config_path)
 
+        # TODO change to using a pandas dataframe
         parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename,True)
         # Reduce parameters_array so that it only includes the required parameters for
         # this vessel_array.
@@ -85,20 +86,22 @@ class CSV0DModelParser(object):
         # Add pulmonary parameters # TODO put this into the for loop when pulmonary vessels are modules
         # TODO include units and model_environment in the appended item so they can be included
         for vessel_tup in vessels_df.itertuples():
-            if vessel_tup.vessel_type.startswith('heart'):
-                str_addon = ''
-                module = 'heart'
-            elif vessel_tup.vessel_type == 'terminal':
+            if vessel_tup.vessel_type == 'terminal':
                 str_addon = re.sub('_T', '', f'_{vessel_tup.name}')
-                module = 'systemic'
             else:
                 str_addon = f'_{vessel_tup.name}'
-                module = 'systemic'
 
+            # add str_addon to param name from module_config if constant
             required_params += [(vessel_tup.variables_and_units[i][0] + str_addon,
-                                 vessel_tup.variables_and_units[i][1], module)  for
+                                 vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
                                    i in range(len(vessel_tup.variables_and_units)) if
-                                   vessel_tup.variables_and_units[i][3] == 'constant']
+                                   vessel_tup.variables_and_units[i][3] in ['constant']]
+
+            # dont add str_addon if global_constant
+            required_params += [(vessel_tup.variables_and_units[i][0],
+                                 vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
+                                i in range(len(vessel_tup.variables_and_units)) if
+                                vessel_tup.variables_and_units[i][3] in ['global_constant']]
             # new_global_params = [(vessel_tup.variables_and_units[i][0],
             #                      vessel_tup.variables_and_units[i][1], module)  for
             #                      i in range(len(vessel_tup.variables_and_units)) if
@@ -111,27 +114,45 @@ class CSV0DModelParser(object):
         # required_params.append([f'gain_int', 'dimensionless', 'systemic'])
         # num_params += 2
 
-        required_params = np.array(required_params)
+        required_params_unique = []
+        for entry in required_params:
+            if entry not in required_params_unique:
+                required_params_unique.append(entry)
+        required_params = np.array(required_params_unique)
 
         all_parameters_defined = True
-        parameters_array = np.empty([len(required_params), ],
-                                    dtype=parameters_array_orig.dtype)
+
+        parameters_list = []
 
         for idx, param_tuple in enumerate(required_params):
             try:
-                parameters_array[idx] = parameters_array_orig[np.where(parameters_array_orig["variable_name"] ==
-                                                                       param_tuple[0])]
+                new_entry = parameters_array_orig[np.where(parameters_array_orig["variable_name"] ==
+                                                                       param_tuple[0])][0]
+                new_entry = [item for item in new_entry]
+                if new_entry[1] != param_tuple[1]:
+                    print('units in parameters.csv file does not match with units in module_config.json file'
+                          f'for param {new_entry[0]}, exiting')
+                    exit()
+
+                new_entry.insert(2, param_tuple[2])
+                parameters_list.append(new_entry)
+                # overwrite 2 index with local or global, it doesn't matter where the
             except:
                 # the other entries apart from name in this row are left empty
-                parameters_array[idx][0] = param_tuple[0]
-                parameters_array[idx][1] = param_tuple[1]
-                parameters_array[idx][2] = param_tuple[2]
-                parameters_array[idx][3] = 'EMPTY_MUST_BE_FILLED'
-                parameters_array[idx][4] = 'EMPTY_MUST_BE_FILLED'
+                new_entry = ([param_tuple[0], param_tuple[1], param_tuple[2],
+                                     'EMPTY_MUST_BE_FILLED', 'EMPTY_MUST_BE_FILLED'])
+                parameters_list.append(new_entry)
 
                 all_parameters_defined = False
 
-
+        parameters_array = np.empty((len(parameters_list)),
+                                    dtype=[('variable_name', 'U64'), ('units', 'U64'),('const_type', 'U64'),
+                                           ('value', 'U64'), ('data_reference', 'U64')])
+        parameters_array['variable_name'] = np.array(parameters_list)[:,0]
+        parameters_array['units'] = np.array(parameters_list)[:,1]
+        parameters_array['const_type'] = np.array(parameters_list)[:,2]
+        parameters_array['value'] = np.array(parameters_list)[:,3]
+        parameters_array['data_reference'] = np.array(parameters_list)[:,4]
         return parameters_array, all_parameters_defined
 
 

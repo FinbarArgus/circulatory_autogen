@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="Vessel_BG_Modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////// non-BC Vessel ////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
     <component name="pv_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -23,10 +23,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
@@ -45,24 +45,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -258,9 +258,9 @@
     <component name="vp_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -275,10 +275,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -297,24 +297,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -511,9 +511,9 @@
     <component name="pp_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -528,10 +528,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
@@ -551,24 +551,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -805,9 +805,9 @@
     <component name="vv_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -822,10 +822,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -846,24 +846,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -1561,153 +1561,10 @@
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////// output-BC Vessel ///////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <component name="vp_T_type">
-        <variable name="t" public_interface="in" units="second"/>
-        <!-- Constitutive parameters-->
-        <variable name="I_T" public_interface="out" units="Js2_per_m6"/>
-        <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_T" public_interface="in" units="Js_per_m6"/>
-        <variable name="C_T" public_interface="in" units="m6_per_J"/>
-        <!-- State Variables-->
-        <variable name="v_in" public_interface="in" units="m3_per_s"/>
-        <variable name="u_C" public_interface="out" units="J_per_m3"/>
-        <variable name="u" public_interface="out" units="J_per_m3"/>
-        <!-- v_T is the output flow to the venous side-->
-        <variable initial_value="0.0" name="v_T" public_interface="out" units="m3_per_s"/>
-        <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_T" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="int_control_sum" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="gain_int" public_interface="in" units="J_per_m9"/>
-        <variable name="v_nom" public_interface="in" units="m3_per_s"/>
-        <variable name="alpha" public_interface="in" units="dimensionless"/>
-        <!-- TODO should I_T be identified?-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>I_T</ci>
-                <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>-6</cn>
-            </apply>
-            <!-- Is this R_v accurate?-->
-            <apply>
-                <eq/>
-                <ci>R_v</ci>
-                <apply>
-                    <divide/>
-                    <cn cellml:units="second">0.01</cn>
-                    <ci>C_T</ci>
-                </apply>
-            </apply>
-            <!-- Conservation Laws-->
-            <!-- For now terminals don't have a gravity effect, change this for leg terminals-->
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>q_T</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <ci>v_in</ci>
-                    <ci>v_T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u_C</ci>
-                <apply>
-                    <divide/>
-                    <ci>q_T</ci>
-                    <ci>C_T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>u</ci>
-                <apply>
-                    <plus/>
-                    <ci>u_C</ci>
-                    <apply>
-                        <times/>
-                        <ci>R_v</ci>
-                        <apply>
-                            <minus/>
-                            <ci>v_in</ci>
-                            <ci>v_T</ci>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- I don't think this inertia equation is needed, since we have small I_T, we can remove it and have this as an
- algebraic equation, should still give an ODE.-->
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>v_T</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>u</ci>
-                            <ci>u_out</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>R_T_wCont</ci>
-                            <ci>v_T</ci>
-                        </apply>
-                    </apply>
-                    <ci>I_T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>int_control_sum</ci>
-                </apply>
-                <apply>
-                    <times/>
-                    <ci>gain_int</ci>
-                    <apply>
-                        <minus/>
-                        <ci>v_in</ci>
-                        <ci>v_nom</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_T_wCont</ci>
-                <apply>
-                    <times/>
-                    <ci>alpha</ci>
-                    <apply>
-                        <plus/>
-                        <ci>R_T</ci>
-                        <ci>int_control_sum</ci>
-                    </apply>
-                </apply>
-            </apply>
-        </math>
-    </component>
     <component name="pp_T_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable name="I_T" public_interface="out" units="Js2_per_m6"/>
+        <variable name="I_T" public_interface="in" units="Js2_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T" public_interface="in" units="Js_per_m6"/>
         <variable name="C_T" public_interface="in" units="m6_per_J"/>
@@ -1720,19 +1577,9 @@
         <variable initial_value="0.0" name="v_T" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_T" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="int_control_sum" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="gain_int" public_interface="in" units="J_per_m9"/>
-        <variable name="v_nom" public_interface="in" units="m3_per_s"/>
-        <variable name="alpha" public_interface="in" units="dimensionless"/>
-        <!-- TODO should I_T be identified?-->
+        <!-- Improve this R_v estimate?-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>I_T</ci>
-                <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>-6</cn>
-            </apply>
-            <!-- Is this R_v accurate?-->
             <apply>
                 <eq/>
                 <ci>R_v</ci>
@@ -1807,8 +1654,8 @@
                             <divide/>
                             <apply>
                                 <times/>
-                                <ci>R_T_wCont</ci>
                                 <ci>v</ci>
+                                <ci>R_T_wCont</ci>
                             </apply>
                             <cn cellml:units="dimensionless">2</cn>
                         </apply>
@@ -1838,8 +1685,8 @@
                             <divide/>
                             <apply>
                                 <times/>
-                                <ci>R_T_wCont</ci>
                                 <ci>v_T</ci>
+                                <ci>R_T_wCont</ci>
                             </apply>
                             <cn cellml:units="dimensionless">2</cn>
                         </apply>
@@ -1849,35 +1696,8 @@
             </apply>
             <apply>
                 <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>int_control_sum</ci>
-                </apply>
-                <apply>
-                    <times/>
-                    <ci>gain_int</ci>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_nom</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
                 <ci>R_T_wCont</ci>
-                <apply>
-                    <times/>
-                    <ci>alpha</ci>
-                    <apply>
-                        <plus/>
-                        <ci>R_T</ci>
-                        <ci>int_control_sum</ci>
-                    </apply>
-                </apply>
+                <ci>R_T</ci>
             </apply>
         </math>
     </component>
@@ -1888,9 +1708,9 @@
     <component name="pv_split_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -1905,15 +1725,16 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="du_C_dt" public_interface="out" units="J_per_m3s"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
         <!-- Constitutive Relations-->
@@ -1928,24 +1749,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -2100,13 +1921,7 @@
             </apply>
             <apply>
                 <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>u_C</ci>
-                </apply>
+                <ci>du_C_dt</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -2120,6 +1935,17 @@
                     </apply>
                     <ci>C</ci>
                 </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>u_C</ci>
+                </apply>
+                <ci>du_C_dt</ci>
             </apply>
             <apply>
                 <eq/>
@@ -2150,9 +1976,9 @@
     <component name="vv_2in2out_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -2167,10 +1993,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
@@ -2193,24 +2019,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -2467,9 +2293,9 @@
     <component name="vv_merge_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -2484,10 +2310,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
@@ -2509,24 +2335,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -2775,9 +2601,9 @@
     <component name="vp_merge_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable initial_value="0.004" name="mu" units="Js_per_m3"/>
-        <variable initial_value="1050" name="rho" units="Js2_per_m5"/>
-        <variable initial_value="9.81" name="g" units="m_per_s2"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+        <variable name="g" public_interface="in" units="m_per_s2"/>
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
@@ -2792,10 +2618,10 @@
         <variable name="C" public_interface="out" units="m6_per_J"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable initial_value="0.2802" name="a" units="dimensionless"/>
-        <variable initial_value="-505.3" name="b" units="per_m"/>
-        <variable initial_value="0.1324" name="c" units="dimensionless"/>
-        <variable initial_value="-11.14" name="d" units="per_m"/>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
@@ -2815,24 +2641,24 @@
                         <plus/>
                         <apply>
                             <times/>
-                            <ci>a</ci>
+                            <ci>a_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>b</ci>
+                                    <ci>b_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
                         </apply>
                         <apply>
                             <times/>
-                            <ci>c</ci>
+                            <ci>c_vessel</ci>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <times/>
-                                    <ci>d</ci>
+                                    <ci>d_vessel</ci>
                                     <ci>r</ci>
                                 </apply>
                             </apply>
@@ -3038,6 +2864,23 @@
                 <eq/>
                 <ci>v_zero</ci>
                 <cn cellml:units="m3_per_s">0</cn>
+            </apply>
+        </math>
+    </component>
+    <component name="flow_sum_2_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="v_1" public_interface="in" units="m3_per_s"/>
+        <variable name="v_2" public_interface="in" units="m3_per_s"/>
+        <variable name="v_total" public_interface="out" units="m3_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>v_total</ci>
+                <apply>
+                    <plus/>
+                    <ci>v_1</ci>
+                    <ci>v_2</ci>
+                </apply>
             </apply>
         </math>
     </component>
