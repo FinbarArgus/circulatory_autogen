@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
-<component name="parameters_heart">
+<component name="parameters_global">
 <variable initial_value="1050" name="rho" public_interface="out" units="Js2_per_m5"/>
 <variable initial_value="1.0" name="T" public_interface="out" units="second"/>
 <variable initial_value="4.0e-6" name="q_ra_0" public_interface="out" units="m3"/>
@@ -42,6 +42,13 @@
 <variable initial_value="0.00071" name="A_nn_puv" public_interface="out" units="m2"/>
 <variable initial_value="0.00077" name="A_nn_miv" public_interface="out" units="m2"/>
 <variable initial_value="0.00068" name="A_nn_aov" public_interface="out" units="m2"/>
+<variable initial_value="0.0" name="beta_g" public_interface="out" units="dimensionless"/>
+<variable initial_value="0.004" name="mu" public_interface="out" units="Js_per_m3"/>
+<variable initial_value="9.81" name="g" public_interface="out" units="m_per_s2"/>
+<variable initial_value="0.2802" name="a_vessel" public_interface="out" units="dimensionless"/>
+<variable initial_value="-505.3" name="b_vessel" public_interface="out" units="per_m"/>
+<variable initial_value="0.1324" name="c_vessel" public_interface="out" units="dimensionless"/>
+<variable initial_value="-11.14" name="d_vessel" public_interface="out" units="per_m"/>
 </component>
 <component name="parameters">
 <variable initial_value="0.4e+6" name="E_ascending_aorta_A" public_interface="out" units="J_per_m3"/>
@@ -234,44 +241,34 @@
 <variable initial_value="90" name="theta_posterior_cerebral_post_R208" public_interface="out" units="dimensionless"/>
 <variable initial_value="1.9757e+10" name="R_T_posterior_cerebral_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_posterior_cerebral_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_posterior_cerebral_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="0.564e-6" name="v_nom_posterior_cerebral_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_posterior_cerebral_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="1.9757e+10" name="R_T_posterior_cerebral_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_posterior_cerebral_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_posterior_cerebral_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="0.564e-6" name="v_nom_posterior_cerebral_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_posterior_cerebral_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="4.3302e+09" name="R_T_external_carotid_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="60.105e-12" name="C_T_external_carotid_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_external_carotid_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="2.77364146e-6" name="v_nom_external_carotid_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_external_carotid_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="4.3302e+09" name="R_T_external_carotid_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="60.317e-12" name="C_T_external_carotid_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_external_carotid_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="2.74259877e-6" name="v_nom_external_carotid_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_external_carotid_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="4.6467e+09" name="R_T_middle_cerebral_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_middle_cerebral_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_middle_cerebral_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="2.455e-6" name="v_nom_middle_cerebral_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_middle_cerebral_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="4.6467e+09" name="R_T_middle_cerebral_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_middle_cerebral_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_middle_cerebral_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="2.456e-6" name="v_nom_middle_cerebral_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_middle_cerebral_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="7.2273e+09" name="R_T_anterior_cerebral_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_anterior_cerebral_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_anterior_cerebral_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="1.550e-6" name="v_nom_anterior_cerebral_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_anterior_cerebral_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="7.2273e+09" name="R_T_anterior_cerebral_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="10e-12" name="C_T_anterior_cerebral_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_anterior_cerebral_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="1.550e-6" name="v_nom_anterior_cerebral_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_anterior_cerebral_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="7.3699e+09" name="R_T_arm_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="100e-12" name="C_T_arm_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_arm_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="1.565e-6" name="v_nom_arm_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_arm_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="7.3699e+09" name="R_T_arm_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="100e-12" name="C_T_arm_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_arm_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="1.548e-6" name="v_nom_arm_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_arm_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="0.4e+6" name="E_aortic_arch_C94" public_interface="out" units="J_per_m3"/>
 <variable initial_value="43.2111e-03" name="l_aortic_arch_C94" public_interface="out" units="metre"/>
 <variable initial_value="11.7401e-03" name="r_aortic_arch_C94" public_interface="out" units="metre"/>
@@ -302,8 +299,7 @@
 <variable initial_value="180" name="theta_abdominal_aorta_C114" public_interface="out" units="dimensionless"/>
 <variable initial_value="8.7875e+08" name="R_T_trunk_C" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="4e-9" name="C_T_trunk_C" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_trunk_C" public_interface="out" units="dimensionless"/>
-<variable initial_value="37.28e-6" name="v_nom_trunk_C" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_trunk_C" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="0.4e+6" name="E_abdominal_aorta_C136" public_interface="out" units="J_per_m3"/>
 <variable initial_value="13.9886e-03" name="l_abdominal_aorta_C136" public_interface="out" units="metre"/>
 <variable initial_value="7.42666e-03" name="r_abdominal_aorta_C136" public_interface="out" units="metre"/>
@@ -350,12 +346,10 @@
 <variable initial_value="180" name="theta_femoral_R222" public_interface="out" units="dimensionless"/>
 <variable initial_value="1.9e+9" name="R_T_leg_L" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="400e-12" name="C_T_leg_L" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_leg_L" public_interface="out" units="dimensionless"/>
-<variable initial_value="7.327e-6" name="v_nom_leg_L" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_leg_L" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="1.9e+9" name="R_T_leg_R" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="400e-12" name="C_T_leg_R" public_interface="out" units="m6_per_J"/>
-<variable initial_value="1.0" name="alpha_leg_R" public_interface="out" units="dimensionless"/>
-<variable initial_value="7.291e-6" name="v_nom_leg_R" public_interface="out" units="m3_per_s"/>
+<variable initial_value="1e-6" name="I_T_leg_R" public_interface="out" units="Js2_per_m6"/>
 <variable initial_value="0.1e-6" name="R_venous_lb" public_interface="out" units="Js_per_m6"/>
 <variable initial_value="5.0e-7" name="C_venous_lb" public_interface="out" units="m6_per_J"/>
 <variable initial_value="0.1e-6" name="I_venous_lb" public_interface="out" units="Js2_per_m6"/>

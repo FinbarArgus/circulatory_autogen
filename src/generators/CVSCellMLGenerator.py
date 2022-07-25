@@ -511,16 +511,17 @@ class CVS0DCellMLGenerator(object):
                 in_outs.append('in')
                 in_outs.append('in')
 
-        variables.append(f'C_O2_p_venous_ave')
-        variables.append(f'C_CO2_p_venous_ave')
-        units.append('dimensionless')
-        units.append('dimensionless')
-        in_outs.append('out')
-        in_outs.append('out')
+        if len(tissue_GE_names) > 0:
+            variables.append(f'C_O2_p_venous_ave')
+            variables.append(f'C_CO2_p_venous_ave')
+            units.append('dimensionless')
+            units.append('dimensionless')
+            in_outs.append('out')
+            in_outs.append('out')
 
-        variables.append(f'v_venous_total')
-        units.append('m3_per_s')
-        in_outs.append('out')
+            variables.append(f'v_venous_total')
+            units.append('m3_per_s')
+            in_outs.append('out')
 
         self.__write_variable_declarations(wf, variables, units, in_outs)
         for idx, venous_name in enumerate(first_venous_names):
@@ -531,26 +532,27 @@ class CVS0DCellMLGenerator(object):
 
             self.__write_variable_sum(wf, lhs_variable, rhs_variables)
 
-        # sum all venous components to get a total flow to use for gas transport
-        lhs_variable = 'v_venous_total'
-        rhs_variables = []
-        for idx, venous_name in enumerate(first_venous_names):
-            rhs_variables.append(f'v_{venous_name}')
-        self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+        if len(tissue_GE_names) > 0:
+            # sum all venous components to get a total flow to use for gas transport
+            lhs_variable = 'v_venous_total'
+            rhs_variables = []
+            for idx, venous_name in enumerate(first_venous_names):
+                rhs_variables.append(f'v_{venous_name}')
+            self.__write_variable_sum(wf, lhs_variable, rhs_variables)
 
-        rhs_variables_to_average = []
-        rhs_variables_weightings = []
-        rhs_variables_to_average_CO2 = []
-        lhs_variable = f'C_O2_p_venous_ave'
-        lhs_variable_CO2 = f'C_CO2_p_venous_ave'
-        for idx in range(len(first_venous_names)):
-            for terminal_name, GE_name in zip(terminal_names_with_GE[idx], GE_names_for_first_venous[idx]):
-                rhs_variables_to_average.append(f'C_O2_p_{GE_name}')
-                rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
-                rhs_variables_weightings.append(f'v_{terminal_name}')
+            rhs_variables_to_average = []
+            rhs_variables_weightings = []
+            rhs_variables_to_average_CO2 = []
+            lhs_variable = f'C_O2_p_venous_ave'
+            lhs_variable_CO2 = f'C_CO2_p_venous_ave'
+            for idx in range(len(first_venous_names)):
+                for terminal_name, GE_name in zip(terminal_names_with_GE[idx], GE_names_for_first_venous[idx]):
+                    rhs_variables_to_average.append(f'C_O2_p_{GE_name}')
+                    rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
+                    rhs_variables_weightings.append(f'v_{terminal_name}')
 
-        self.__write_variable_average(wf, lhs_variable, rhs_variables_to_average, rhs_variables_weightings)
-        self.__write_variable_average(wf, lhs_variable_CO2, rhs_variables_to_average_CO2, rhs_variables_weightings)
+            self.__write_variable_average(wf, lhs_variable, rhs_variables_to_average, rhs_variables_weightings)
+            self.__write_variable_average(wf, lhs_variable_CO2, rhs_variables_to_average_CO2, rhs_variables_weightings)
 
 
         wf.write('</component>\n')
