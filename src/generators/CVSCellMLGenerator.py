@@ -65,7 +65,9 @@ class CVS0DCellMLGenerator(object):
                 print('Model generation has been successful.')
             else:
                 if self.model.all_parameters_defined:
-                    print('The OpenCOR model is not yet working, The reason for this is unknown.\n')
+                    print('The OpenCOR model is not yet working, The reason for this is unknown. \n'
+                          'Open the model in OpenCor and check the error in the simulation environment \n'
+                          'for further error info. \n')
                 else:
                     print('The OpenCOR model is not yet working because all parameters have not been given values, \n'
                           f'Enter the values in '
@@ -285,6 +287,18 @@ class CVS0DCellMLGenerator(object):
                                    "out_port_idxs": [out_port_idx],
                                    "port_type_count": 1,
                                    "connected": [False]}) # whether this exit port has been connected
+        # check inp vessels are all connected # TODO this should be done in the model parsing stage
+        for inp_module_idx, inp_module in enumerate(module_row["inp_vessels"]):
+            if not (module_df["name"] == inp_module).any():
+                print(f'the input module of {inp_module} is not defined')
+                exit()
+            inp_module_row = module_df.loc[module_df["name"] == inp_module].squeeze()
+            inp_module_BC_type = inp_module_row["BC_type"]
+            inp_module_type = inp_module_row["module_type"]
+
+            self.__check_input_output_modules(module_df, inp_module, main_module,
+                                              inp_module_BC_type, main_module_BC_type,
+                                              inp_module_type, main_module_type)
 
         for out_module_idx, out_module in enumerate(module_row["out_vessels"]):
             if not (module_df["name"] == out_module).any():
@@ -295,7 +309,7 @@ class CVS0DCellMLGenerator(object):
             out_module_type = out_module_row["module_type"]
 
             # check that input and output modules are defined as connection variables
-            # for that module and they have corresponding BCs
+            # for that module and they have corresponding BCs # TODO this should be done in the model parsing stage
             self.__check_input_output_modules(module_df, main_module, out_module,
                                               main_module_BC_type, out_module_BC_type,
                                               main_module_type, out_module_type)
@@ -466,8 +480,7 @@ class CVS0DCellMLGenerator(object):
 
         # loop through vessels to get the terminals to add up for each first venous section
         terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
-        GE_names_for_first_venous = [[] for i in range(len(first_venous_names))]
-        terminal_names_with_GE = [[] for i in range(len(first_venous_names))]
+        terminal_names_with_GE = []
         for vessel_tup in vessel_df.itertuples():
             if vessel_tup.vessel_type == 'terminal':
                 vessel_name = vessel_tup.name
@@ -483,8 +496,7 @@ class CVS0DCellMLGenerator(object):
                 for idx, tissue_GE_name in enumerate(tissue_GE_names):
                     for II in range(len(vessel_tup.out_vessels)):
                         if vessel_tup.out_vessels[II] == tissue_GE_name:
-                            GE_names_for_first_venous[idx].append(tissue_GE_name)
-                            terminal_names_with_GE[idx].append(vessel_name)
+                            terminal_names_with_GE.append(vessel_name)
 
         # create computation environment for connection and write the
         # variable definition and calculation of flow to each first venous module.
@@ -502,14 +514,13 @@ class CVS0DCellMLGenerator(object):
             units.append('m3_per_s')
             in_outs.append('out')
 
-        for idx, tissue_GE_name in enumerate(tissue_GE_names):
-            for GE_name in GE_names_for_first_venous[idx]:
-                variables.append(f'C_O2_p_{GE_name}')
-                variables.append(f'C_CO2_p_{GE_name}')
-                units.append('dimensionless')
-                units.append('dimensionless')
-                in_outs.append('in')
-                in_outs.append('in')
+        for GE_name in tissue_GE_names:
+            variables.append(f'C_O2_p_{GE_name}')
+            variables.append(f'C_CO2_p_{GE_name}')
+            units.append('dimensionless')
+            units.append('dimensionless')
+            in_outs.append('in')
+            in_outs.append('in')
 
         if len(tissue_GE_names) > 0:
             variables.append(f'C_O2_p_venous_ave')
@@ -545,11 +556,10 @@ class CVS0DCellMLGenerator(object):
             rhs_variables_to_average_CO2 = []
             lhs_variable = f'C_O2_p_venous_ave'
             lhs_variable_CO2 = f'C_CO2_p_venous_ave'
-            for idx in range(len(first_venous_names)):
-                for terminal_name, GE_name in zip(terminal_names_with_GE[idx], GE_names_for_first_venous[idx]):
-                    rhs_variables_to_average.append(f'C_O2_p_{GE_name}')
-                    rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
-                    rhs_variables_weightings.append(f'v_{terminal_name}')
+            for terminal_name, GE_name in zip(terminal_names_with_GE, tissue_GE_names):
+                rhs_variables_to_average.append(f'C_O2_p_{GE_name}')
+                rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
+                rhs_variables_weightings.append(f'v_{terminal_name}')
 
             self.__write_variable_average(wf, lhs_variable, rhs_variables_to_average, rhs_variables_weightings)
             self.__write_variable_average(wf, lhs_variable_CO2, rhs_variables_to_average_CO2, rhs_variables_weightings)
@@ -656,15 +666,26 @@ class CVS0DCellMLGenerator(object):
             print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '
                   f'check that they have eachother as output/input')
             exit()
-        if out_vessel_BC_type == '':
+        elif out_vessel not in vessel_df.loc[vessel_df["name"] == main_vessel].out_vessels.values[0]:
+            print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '
+                  f'check that they have eachother as output/input')
+            exit()
+        if out_vessel_BC_type.startswith('nn'):
+            return
+        if main_vessel_BC_type.startswith('nn'):
             return
 
-        if main_vessel_BC_type.endswith('v'):
+        if len(main_vessel_BC_type) > 2:
+            temp_main_vessel_BC_type = main_vessel_BC_type[:2]
+        else:
+            temp_main_vessel_BC_type = main_vessel_BC_type
+
+        if temp_main_vessel_BC_type.endswith('v'):
             if not out_vessel_BC_type.startswith('p'):
                 print(f'"{main_vessel}" output BC is v, the input BC of "{out_vessel}"',
                       ' should be p')
                 exit()
-        if main_vessel_BC_type.endswith('p'):
+        if temp_main_vessel_BC_type.endswith('p'):
             if not out_vessel_BC_type.startswith('v'):
                 print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                       ' should be v')
