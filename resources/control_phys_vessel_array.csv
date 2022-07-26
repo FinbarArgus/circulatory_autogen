@@ -51,14 +51,14 @@ posterior_cerebral_pre_L6,pp,arterial,           basilar_C4            ,        
 posterior_cerebral_post_L12,vv,merge_junction,   posterior_cerebral_pre_L6 posterior_communicating_L8,              posterior_cerebral_L_T    
 posterior_cerebral_pre_R204,pp,arterial,         basilar_C4            ,             posterior_cerebral_post_R208 
 posterior_cerebral_post_R208,vv,merge_junction,  posterior_cerebral_pre_R204  posterior_communicating_R206,              posterior_cerebral_R_T    
-posterior_cerebral_L_T,  pp, terminal,           posterior_cerebral_post_L12 posterior_cerebral_L_LC ,      venous_ub posterior_cerebral_L_GE                      
-posterior_cerebral_R_T,  pp, terminal,           posterior_cerebral_post_R208 posterior_cerebral_R_LC  ,     venous_ub posterior_cerebral_R_GE                      
-external_carotid_L_T,    pp, terminal,           external_carotid_L62 external_carotid_L_LC  ,             venous_ub external_carotid_L_GE                      
-external_carotid_R_T,    pp, terminal,           external_carotid_R26 external_carotid_R_LC  ,            venous_ub external_carotid_R_GE                     
-middle_cerebral_L_T,     pp, terminal,           middle_cerebral_L114 middle_cerebral_L_LC  ,             venous_ub middle_cerebral_L_GE           
-middle_cerebral_R_T,     pp, terminal,           middle_cerebral_R52 middle_cerebral_R_LC   ,             venous_ub middle_cerebral_R_GE           
-anterior_cerebral_L_T,   pp, terminal,           anterior_cerebral_L42 anterior_cerebral_L_LC ,            venous_ub anterior_cerebral_L_GE                     
-anterior_cerebral_R_T,   pp, terminal,           anterior_cerebral_R238 anterior_cerebral_R_LC  ,           venous_ub anterior_cerebral_R_GE                      
+posterior_cerebral_L_T,  pp_wLocal, terminal,           posterior_cerebral_post_L12 posterior_cerebral_L_LC ,      venous_ub posterior_cerebral_L_GE                      
+posterior_cerebral_R_T,  pp_wLocal, terminal,           posterior_cerebral_post_R208 posterior_cerebral_R_LC  ,     venous_ub posterior_cerebral_R_GE                      
+external_carotid_L_T,    pp_wLocal, terminal,           external_carotid_L62 external_carotid_L_LC  ,             venous_ub external_carotid_L_GE                      
+external_carotid_R_T,    pp_wLocal, terminal,           external_carotid_R26 external_carotid_R_LC  ,            venous_ub external_carotid_R_GE                     
+middle_cerebral_L_T,     pp_wLocal, terminal,           middle_cerebral_L114 middle_cerebral_L_LC  ,             venous_ub middle_cerebral_L_GE           
+middle_cerebral_R_T,     pp_wLocal, terminal,           middle_cerebral_R52 middle_cerebral_R_LC   ,             venous_ub middle_cerebral_R_GE           
+anterior_cerebral_L_T,   pp_wLocal, terminal,           anterior_cerebral_L42 anterior_cerebral_L_LC ,            venous_ub anterior_cerebral_L_GE                     
+anterior_cerebral_R_T,   pp_wLocal, terminal,           anterior_cerebral_R238 anterior_cerebral_R_LC  ,           venous_ub anterior_cerebral_R_GE                      
 arm_L_T,                 pp_wCont, terminal,           brachial_L82 arm_leg_resistance_effector arm_L_LC,             venous_ub arm_L_GE           
 arm_R_T,                 pp_wCont, terminal,           brachial_R34 arm_leg_resistance_effector arm_R_LC,             venous_ub arm_R_GE                      
 aortic_arch_C94,         pv, arterial,           aortic_arch_C64       ,             thoracic_aorta_C96   
@@ -116,11 +116,11 @@ arm_L_LC,               nn,local_flow_control_muscle, arm_L_GE arterial_gas_tran
 arm_R_LC,               nn,local_flow_control_muscle, arm_R_GE arterial_gas_transport, arm_R_T
 leg_L_LC,               nn,local_flow_control_muscle, leg_L_GE arterial_gas_transport, leg_L_T
 leg_R_LC,               nn,local_flow_control_muscle, leg_R_GE arterial_gas_transport, leg_R_T
-middle_cerebral_L_LC,   nn,local_flow_control_muscle, middle_cerebral_L_GE arterial_gas_transport, middle_cerebral_L_T
-middle_cerebral_R_LC,   nn,local_flow_control_muscle, middle_cerebral_R_GE arterial_gas_transport, middle_cerebral_R_T
-anterior_cerebral_L_LC, nn,local_flow_control_muscle, anterior_cerebral_L_GE arterial_gas_transport, anterior_cerebral_L_T
-anterior_cerebral_R_LC, nn,local_flow_control_muscle, anterior_cerebral_R_GE arterial_gas_transport, anterior_cerebral_R_T
-posterior_cerebral_L_LC,nn,local_flow_control_muscle, posterior_cerebral_L_GE arterial_gas_transport, posterior_cerebral_L_T
-posterior_cerebral_R_LC,nn,local_flow_control_muscle, posterior_cerebral_R_GE arterial_gas_transport, posterior_cerebral_R_T
-external_carotid_L_LC,  nn,local_flow_control_muscle, external_carotid_L_GE arterial_gas_transport, external_carotid_L_T
-external_carotid_R_LC,  nn,local_flow_control_muscle, external_carotid_R_GE arterial_gas_transport, external_carotid_R_T
+middle_cerebral_L_LC,   nn,local_flow_control_brain, middle_cerebral_L_GE arterial_gas_transport, middle_cerebral_L_T
+middle_cerebral_R_LC,   nn,local_flow_control_brain, middle_cerebral_R_GE arterial_gas_transport, middle_cerebral_R_T
+anterior_cerebral_L_LC, nn,local_flow_control_brain, anterior_cerebral_L_GE arterial_gas_transport, anterior_cerebral_L_T
+anterior_cerebral_R_LC, nn,local_flow_control_brain, anterior_cerebral_R_GE arterial_gas_transport, anterior_cerebral_R_T
+posterior_cerebral_L_LC,nn,local_flow_control_brain, posterior_cerebral_L_GE arterial_gas_transport, posterior_cerebral_L_T
+posterior_cerebral_R_LC,nn,local_flow_control_brain, posterior_cerebral_R_GE arterial_gas_transport, posterior_cerebral_R_T
+external_carotid_L_LC,  nn,local_flow_control_brain, external_carotid_L_GE arterial_gas_transport, external_carotid_L_T
+external_carotid_R_LC,  nn,local_flow_control_brain, external_carotid_R_GE arterial_gas_transport, external_carotid_R_T

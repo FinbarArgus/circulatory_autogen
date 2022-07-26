@@ -383,6 +383,52 @@
   },
   {
     "vessel_type":"terminal",
+    "BC_type":"pp_wLocal",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_T_wCont_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      },
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["Delta_R"]
+      },
+      {
+        "port_type":"resistance_multiplier_port",
+        "variables":["R_local_multiplier"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"UNUSED_HARDCODED_pressure_port",
+        "variables":["u_out"]
+      },
+      {
+        "port_type":"flow_port",
+        "variables":["v_T"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_T", "m3_per_s", "access", "variable"],
+      ["R_T", "Js_per_m6", "access", "constant"],
+      ["R_T_wCont", "Js_per_m6", "access", "variable"],
+      ["C_T", "m6_per_J", "access", "constant"],
+      ["I_T", "Js2_per_m6", "access", "constant"],
+      ["q_T", "m3", "access", "variable"],
+      ["Delta_R", "Js_per_m6", "access", "constant"],
+      ["R_local_multiplier", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"terminal",
     "BC_type":"pp_wCont_no_local",
     "module_format":"cellml",
     "module_file":"BG_modules.cellml",
@@ -745,7 +791,7 @@
     ],
     "variables_and_units":
     [
-      ["rho", "Js2_per_m3", "access", "global_constant"],
+      ["rho", "Js2_per_m5", "access", "global_constant"],
       ["T", "second", "access", "global_constant"],
       ["mt", "second", "access", "variable"],
       ["u_ra", "J_per_m3", "access", "variable"],
@@ -1718,6 +1764,10 @@
       ["tau_O2", "second", "access", "global_constant"],
       ["tau_CO2", "second", "access", "global_constant"],
       ["g_O2_b", "dimensionless", "access", "global_constant"],
+      ["A_b_lc", "dimensionless", "access", "global_constant"],
+      ["B_b_lc", "dimensionless", "access", "global_constant"],
+      ["C_b_lc", "dimensionless", "access", "global_constant"],
+      ["D_b_lc", "dimensionless", "access", "global_constant"],
       ["x_O2", "dimensionless", "access", "variable"],
       ["x_CO2", "dimensionless", "access", "variable"],
       ["P_CO2_a", "J_per_m3", "access", "variable"],
