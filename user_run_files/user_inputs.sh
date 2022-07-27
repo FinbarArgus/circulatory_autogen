@@ -5,6 +5,7 @@
 # file_prefix=neonatal
 # file_prefix=physiological
 file_prefix=control_phys
+# file_prefix=FinalModel
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
@@ -12,6 +13,7 @@ file_prefix=control_phys
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 input_param_file=control_phys_parameters.csv # this must be stored in resources.
+# input_param_file=FinalModel_parameters.csv # this must be stored in resources.
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
@@ -37,6 +39,7 @@ do_mcmc=True
 
 # This for simple_physiological (doesn't use experimental data)
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
+
 # param_id_obs_path=/people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 
 # This for physiological
@@ -62,6 +65,7 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observab
 ## paths
 ## the below for my hpc
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
+
 ## the below for my local
 opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
