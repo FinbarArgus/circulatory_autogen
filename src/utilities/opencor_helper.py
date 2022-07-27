@@ -141,9 +141,11 @@ class SimulationHelper():
             init_param_vals = self.get_init_param_vals(param_names)
             new_param_vals = [a*b for a, b in zip(init_param_vals, mod_factors)]
 
+        print(new_param_vals)
         self.set_param_vals(param_names, new_param_vals)
 
         success = self.run()
+        print('here')
         if success:
             pred_obs_new = self.get_results(obs_names)
             # reset params
