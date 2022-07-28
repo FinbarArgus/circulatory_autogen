@@ -37,18 +37,19 @@ class CSVFileParser(object):
             for column_name in csv_dataframe.columns:
                 entry = csv_dataframe[column_name][II]
                 if type(entry) is not str:
-                    new_entry = []
+                    sub_entries = []
                 else:
                     sub_entries = entry.split()
 
                 if column_name in ['vessel_name', 'inp_vessels', 'out_vessels']:
-                    if new_entry == []:
+                    if sub_entries == []:
+                        new_entry = []
                         pass
                     else:
                         new_entry = [sub_entry.strip() for sub_entry in sub_entries]
                 else:
                     if sub_entries == []:
-                        new_entry = ''
+                        new_entry = []
                     else:
                         new_entry = sub_entries[0].strip()
 
