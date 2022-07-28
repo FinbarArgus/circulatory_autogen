@@ -151,6 +151,7 @@ class CSV0DModelParser(object):
 
         if len(set([len(a) for a in parameters_list])) != 1:
             print('parameters rows are of non consistent length, exiting')
+            exit()
         parameters_array = np.empty((len(parameters_list)),
                                     dtype=[('variable_name', 'U80'), ('units', 'U80'),('const_type', 'U80'),
                                            ('value', 'U80'), ('data_reference', 'U80')])

@@ -67,6 +67,7 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observab
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 
 ## the below for my local
-opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
+opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
+# opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 

@@ -71,7 +71,7 @@ The generated models will be saved in `generated_models/`
 
 ## Creating your own modules.
 
-This software is designed so the user can easily make their own modules and couple them with existing modules. The steps are as follows.
+This software is designed so the user can easily make their own modules and couple them with existing modules. The steps are as follows...
 
 1: Either choose an existing '{module\_category}\_modules.cellml' file to write your module, or if it is a new category of module, create a '{module\_category}\_modules.cellml' file in 'src/generators/resources/'
 
@@ -114,7 +114,7 @@ tqdm
 ### Required packages for autogeneration
 pandas
 
-IMPORTANT If installing on CENTOS, if you get an SSL error you must do the following before the pip install
+IMPORTANT if you get an SSL error you must do the following before the pip install
 
 ```bash
 export LD_LIBRARY_PATH=[OpenCOR]/lib
