@@ -4,24 +4,24 @@
 # file_prefix=simple_physiological
 # file_prefix=neonatal
 # file_prefix=physiological
-<<<<<<< HEAD
+
 file_prefix=elic
-=======
-file_prefix=control_phys
+
+#file_prefix=control_phys
 # file_prefix=FinalModel
->>>>>>> 403508d74057d6e2ec149ca623b40384e047041e
+
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
-<<<<<<< HEAD
+
 input_param_file=elic_parameters.csv # this must be stored in resources.
-=======
-input_param_file=control_phys_parameters.csv # this must be stored in resources.
+
+#input_param_file=control_phys_parameters.csv # this must be stored in resources.
 # input_param_file=FinalModel_parameters.csv # this must be stored in resources.
->>>>>>> 403508d74057d6e2ec149ca623b40384e047041e
+
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
