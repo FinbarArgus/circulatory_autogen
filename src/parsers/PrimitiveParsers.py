@@ -90,7 +90,7 @@ class CSVFileParser(object):
         csv_np_array = csv_dataframe.to_numpy()
         dtypes = []
         for column in list(csv_dataframe.columns):
-            dtypes.append((column,'<U64'))
+            dtypes.append((column,'<U80'))
             
         csv_np_array = np.array(list(zip(*csv_np_array.T)), dtype=dtypes)
     
