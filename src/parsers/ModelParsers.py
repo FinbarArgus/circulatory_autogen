@@ -169,11 +169,7 @@ class CSV0DModelParser(object):
             parameters_array['data_reference'][i] = (parameters_list[i])[3]
         print(parameters_array)   
 
-        parameters_array['variable_name'] = np.array(parameters_list)[:,0]
-        parameters_array['units'] = np.array(parameters_list)[:,1]
-        parameters_array['const_type'] = np.array(parameters_list)[:,2]
-        parameters_array['value'] = np.array(parameters_list)[:,3]
-        parameters_array['data_reference'] = np.array(parameters_list)[:,4]
+        
 
         return parameters_array, all_parameters_defined
 
