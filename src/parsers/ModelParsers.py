@@ -86,12 +86,17 @@ class CSV0DModelParser(object):
         # Add pulmonary parameters # TODO put this into the for loop when pulmonary vessels are modules
         # TODO include units and model_environment in the appended item so they can be included
         for vessel_tup in vessels_df.itertuples():
+<<<<<<< HEAD
+            if vessel_tup.vessel_type == 'terminal' or vessel_tup.vessel_type == 'controllable_terminal':
+                str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
+=======
             if vessel_tup.vessel_type.startswith('heart'):
                 str_addon = ''
                 module = 'heart'
             elif vessel_tup.vessel_type == 'terminal':
                 str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
                 module = 'systemic'
+>>>>>>> 403508d74057d6e2ec149ca623b40384e047041e
             else:
                 str_addon = f'_{vessel_tup.name}'
 
@@ -154,11 +159,22 @@ class CSV0DModelParser(object):
         parameters_array = np.empty((len(parameters_list)),
                                     dtype=[('variable_name', 'U80'), ('units', 'U80'),('const_type', 'U80'),
                                            ('value', 'U80'), ('data_reference', 'U80')])
+<<<<<<< HEAD
+        
+        for i in range(len(parameters_list)):                                   
+            parameters_array['variable_name'][i] = (parameters_list[i])[0]
+            parameters_array['units'][i] = (parameters_list[i])[1]
+            parameters_array['const_type'][i] = (parameters_list[i])[2]
+            parameters_array['value'][i] = (parameters_list[i])[4]
+            parameters_array['data_reference'][i] = (parameters_list[i])[3]
+        print(parameters_array)   
+=======
         parameters_array['variable_name'] = np.array(parameters_list)[:,0]
         parameters_array['units'] = np.array(parameters_list)[:,1]
         parameters_array['const_type'] = np.array(parameters_list)[:,2]
         parameters_array['value'] = np.array(parameters_list)[:,3]
         parameters_array['data_reference'] = np.array(parameters_list)[:,4]
+>>>>>>> 403508d74057d6e2ec149ca623b40384e047041e
         return parameters_array, all_parameters_defined
 
 
