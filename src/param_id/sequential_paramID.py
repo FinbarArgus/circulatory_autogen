@@ -60,7 +60,8 @@ class SequentialParamID:
         param_names_to_remove_all_iterations = []
         # delete the params_to_remove file
         if self.rank == 0:
-            os.remove(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv'))
+            if os.path.exists(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv')):
+                os.remove(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv'))
         # create dictionary with original param idxs for each name
         # only use first name of each list of names that relates to one parameter.
         self.param_names = self.param_id.get_param_names()
@@ -80,6 +81,9 @@ class SequentialParamID:
                 param_importance = self.param_id.get_param_importance()
                 # collinearity_index = self.param_id.get_collinearity_index()
                 collinearity_index_pairs = self.param_id.get_collinearity_index_pairs()
+                pred_param_importance = self.param_id.get_pred_param_importance()
+                # collinearity_index = self.param_id.get_collinearity_index()
+                pred_collinearity_index_pairs = self.param_id.get_pred_collinearity_index_pairs()
 
                 if np.min(param_importance) > self.threshold_param_importance and \
                             np.max(collinearity_index_pairs) < self.threshold_collinearity_pairs:
@@ -95,18 +99,49 @@ class SequentialParamID:
                     for II in range(len(self.param_names)):
                         param_name = self.param_names[II]
                         if param_importance[II] < self.threshold_param_importance:
-                            param_idxs_to_remove.append(II)
-                            param_names_to_remove_all_iterations.append(param_name)
-                            identifiable = False
+                            print(f'parameter importance of {param_name} is below threshold, '
+                                  f'checking param importance with respect to predictions.')
+                            if pred_param_importance[II] < self.threshold_param_importance:
+                                print(f'{param_name} pred param importance is {pred_param_importance[II]}, '
+                                      f'which is below threshold of {self.threshold_param_importance}'
+                                      f', so param will be removed.')
+                                param_idxs_to_remove.append(II)
+                                param_names_to_remove_all_iterations.append(param_name)
+                                identifiable = False
+                            else:
+                                print(f'{param_name} pred param importance is {pred_param_importance[II]}, '
+                                      f'which is above threshold of {self.threshold_param_importance}'
+                                      f', so param will not be removed.')
+                                # set param_importance for this parameter to a high value
+                                param_importance[II] = 999
+                                identifiable = False
                         else:
                             for JJ in range(len(self.param_names)):
                                 if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
                                     if param_importance[II] < param_importance[JJ]:
-                                        param_idxs_to_remove.append(II)
-                                        param_names_to_remove_all_iterations.append(param_name)
-                                        identifiable = False
-                                        break
-
+                                        print(f'collinearity of {self.param_names[II]}, {self.param_names[JJ]} '
+                                              f'is above threshold, '
+                                              f'checking collinearity with respect to predictions.')
+                                        if pred_collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
+                                            print(f'{self.param_names[II]}, {self.param_names[JJ]} '
+                                                  f'pred collinearity is '
+                                                  f'{pred_collinearity_index_pairs[II, JJ]}, '
+                                                  f'which is above threshold of {self.threshold_collinearity_pairs}'
+                                                  f', so param can be removed.')
+                                            param_idxs_to_remove.append(II)
+                                            param_names_to_remove_all_iterations.append(param_name)
+                                            identifiable = False
+                                            break
+                                        else:
+                                            print(f'{self.param_names[II]}, {self.param_names[JJ]} '
+                                                  f'pred collinearity is '
+                                                  f'{pred_collinearity_index_pairs[II, JJ]}, '
+                                                  f'which is below threshold of {self.threshold_collinearity_pairs}'
+                                                  f', so param will not be removed.')
+                                            # set collinearity pair to a small value so it isn't removed
+                                            pred_collinearity_index_pairs[II, JJ] = 0
+                                            pred_collinearity_index_pairs[JJ, II] = 0
+                                            identifiable = False
                         if identifiable:
                             print('error, not identifiable, but no params to remove added.')
                             exit()

@@ -1,12 +1,12 @@
-This project allows the generation and calibration of cellml circulatory system models from an array of vessel names and connections. 
+This project allows the generation and calibration of cellml (and soon to be more) circulatory system models from an array of vessel names and connections. 
 This array is written in a csv file such as `test_vessel_array.csv` where the entries are detailed as...
 
 ```
 [vessel_name,
 
-BC_type             ('vv', 'vp', 'pv', 'pp'),
+BC_type             ('vv', 'vp', 'pv', 'pp', pp_wCont, pp_wLocal, nn),
 
-vessel_type         ('heart', 'arterial', 'arterial_simple', 'venous', 'terminal', 'split_junction', 'merge_junction', 2in2out_junction),
+vessel_type         ('heart', 'arterial', 'arterial_simple', 'venous', 'terminal', 'split_junction', 'merge_junction', 2in2out_junction, gas_transport_simple, pulomonary_GE, baroreceptor, chemoreceptor),
 
 inp_vessels         (name of the input vessels.)
 
@@ -22,7 +22,7 @@ out_vessels: 1:aorta, 2:pulmonary artery.
 
 If the pulmonary vessels aren't included, a simple 2 vessel pulmonary system will be used.
 
-NOTE: currently the terminal vessels should only have 'pp' type boundary conditions
+NOTE: currently the terminal vessels should only have a BC starting with 'pp' 
 
 ## Process for generating a model and running the parameter identification
 
@@ -61,13 +61,35 @@ create a json file with the ground truth data. See `resources/simple_physiologic
 ./run_param_id.sh
 ```
 
-Following a succesfull parameter id process the model with updated parameters can be generated with
+Following a successful parameter id process the model with updated parameters can be generated with
 ```bash
 ./run_autogeneration_with_id_params.sh
 ```
 
 The generated models will be saved in `generated_models/`
 
+
+## Creating your own modules.
+
+This software is designed so the user can easily make their own modules and couple them with existing modules. The steps are as follows...
+
+1: Either choose an existing '{module\_category}\_modules.cellml' file to write your module, or if it is a new category of module, create a '{module\_category}\_modules.cellml' file in 'src/generators/resources/'
+
+2: Put you cellml model into the '{module\_category}\_modules.cellml' file.
+
+3: create a corresponding module configuration entry into 'module\_config.json'. These module declarations detail the variables that can be accessed, the constants that must be defined and the available ports of the module.
+    
+4: include your new module into the vessel array file. IMPORTANT: modules that are connected as eachothers inputs and outputs will be coupled together with any ports with corresponding name. i.eif VesselOne has an entrance 'vessel\_port' and VesselTwo has in entrance 'vessel\_port', they will be coupled with the variables declared in their corresponding 'vessel\_port'. One must be careful, when making a new module, that the modules it couples to only has matching port types for the ones that are necessary for coupling. 
+
+## CHANGES TO BE MADE
+
+Currently "vessels" is used interchangeabley with "modules". This will be changes to use "modules" in all instances, as the project now allows all types of modules, not just vessels.
+
+The connections between terminals and the venous system is hardcoded, as a terminal_venous_connection has to be made to sum up the flows and get an avergae concentration. This needs to be improved.
+
+## Tests!! 
+
+There is now a test for the autogeneration running. To run the test navigate to user_run_files and do ./run_test_autogeneration.sh
 
 ## requirements  
 
@@ -92,7 +114,7 @@ tqdm
 ### Required packages for autogeneration
 pandas
 
-IMPORTANT If installing on CENTOS, if you get an SSL error you must do the following before the pip install
+IMPORTANT if you get an SSL error you must do the following before the pip install
 
 ```bash
 export LD_LIBRARY_PATH=[OpenCOR]/lib

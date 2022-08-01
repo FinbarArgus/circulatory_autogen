@@ -36,11 +36,22 @@ class CSVFileParser(object):
         for II in range(csv_dataframe.shape[0]):
             for column_name in csv_dataframe.columns:
                 entry = csv_dataframe[column_name][II]
-                sub_entries = entry.split()
-                if column_name in ['vessel_name', 'inp_vessels', 'out_vessels']:
-                    new_entry = [sub_entry.strip() for sub_entry in sub_entries]
+                if type(entry) is not str:
+                    sub_entries = []
                 else:
-                    new_entry = sub_entries[0].strip()
+                    sub_entries = entry.split()
+
+                if column_name in ['vessel_name', 'inp_vessels', 'out_vessels']:
+                    if sub_entries == []:
+                        new_entry = []
+                        pass
+                    else:
+                        new_entry = [sub_entry.strip() for sub_entry in sub_entries]
+                else:
+                    if sub_entries == []:
+                        new_entry = []
+                    else:
+                        new_entry = sub_entries[0].strip()
 
                 csv_dataframe[column_name][II] = new_entry
 
@@ -79,7 +90,7 @@ class CSVFileParser(object):
         csv_np_array = csv_dataframe.to_numpy()
         dtypes = []
         for column in list(csv_dataframe.columns):
-            dtypes.append((column,'<U64'))
+            dtypes.append((column,'<U80'))
             
         csv_np_array = np.array(list(zip(*csv_np_array.T)), dtype=dtypes)
     
@@ -169,6 +180,9 @@ class JSONFileParser(object):
         for vessel_tup in vessel_df.itertuples():
             vessel_type = vessel_tup.vessel_type
             BC_type = vessel_tup.BC_type
+            if len(BC_type) <1 or len(vessel_type) <1:
+                print('You have an empty entry in your vessel array, exiting')
+                exit()
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
             for column in add_on_lists:
