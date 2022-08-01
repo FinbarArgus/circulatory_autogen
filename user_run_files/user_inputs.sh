@@ -5,7 +5,7 @@
 # file_prefix=neonatal
 # file_prefix=physiological
 
-file_prefix=FinalModel
+file_prefix=elic
 
 #file_prefix=control_phys
 # file_prefix=FinalModel
@@ -17,7 +17,7 @@ file_prefix=FinalModel
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 
-input_param_file=FinalModel_parameters.csv # this must be stored in resources.
+input_param_file=elic_parameters.csv # this must be stored in resources.
 
 #input_param_file=control_phys_parameters.csv # this must be stored in resources.
 # input_param_file=FinalModel_parameters.csv # this must be stored in resources.
