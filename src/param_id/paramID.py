@@ -1693,18 +1693,32 @@ class OpencorParamID():
                 up_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
-                print('sim failed on sensitivity run, exiting')
-                exit()
+                print('sim failed on sensitivity run, reseting to new param_vec_up')
+                while not success:
+                    # keep slightly increasing param_vec_up until simulation runs
+                    param_vec_up[i] = param_vec_up[i]*1.01
+                    self.sim_helper.set_param_vals(self.param_names, param_vec_up)
+                    success = self.sim_helper.run()
+                up_obs = self.sim_helper.get_results(self.obs_names)
+                up_preds = self.sim_helper.get_results(self.pred_var_names)
+                self.sim_helper.reset_and_clear()
 
+            self.sim_helper.set_param_vals(self.param_names, param_vec_down)
+            success = self.sim_helper.run()
             if success:
-                self.sim_helper.set_param_vals(self.param_names, param_vec_down)
-                success = self.sim_helper.run()
                 down_obs = self.sim_helper.get_results(self.obs_names)
                 down_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
-                print('sim failed on sensitivity run, exiting')
-                exit()
+                print('sim failed on sensitivity run, reseting to new param_vec_down')
+                while not success:
+                    # keep slightly decreasing param_vec_down until simulation runs
+                    param_vec_up[i] = param_vec_down[i]*0.99
+                    self.sim_helper.set_param_vals(self.param_names, param_vec_down)
+                    success = self.sim_helper.run()
+                down_obs = self.sim_helper.get_results(self.obs_names)
+                down_preds = self.sim_helper.get_results(self.pred_var_names)
+                self.sim_helper.reset_and_clear()
 
             up_obs_consts_vec, up_obs_series_array = self.get_obs_vec_and_array(up_obs)
             down_obs_consts_vec, down_obs_series_array = self.get_obs_vec_and_array(down_obs)
