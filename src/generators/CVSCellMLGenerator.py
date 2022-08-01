@@ -599,7 +599,7 @@ class CVS0DCellMLGenerator(object):
         module_addon = '_module'
 
         global_variable_addon = f'_{vessel_name}'
-        if vessel_row["vessel_type"] == 'terminal'or vessel_row["vessel_type"] == 'controllable_terminal':
+        if vessel_row["vessel_type"] == 'terminal':
             global_variable_addon = re.sub('_T$', '', global_variable_addon)
         params_with_addon_heading = 'parameters'
         params_without_addon_heading = 'parameters_global'
