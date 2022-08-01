@@ -209,13 +209,13 @@
                 <apply>
                     <divide/>
                     <apply>
-                        <times/>
-                        <ci>dot_C_CO2_a</ci>
+                        <minus/>
                         <apply>
-                            <minus/>
+                            <times/>
+                            <ci>dot_C_CO2_a</ci>
                             <ci>tau_CO2_cc_dyn</ci>
-                            <ci>phi_CO2_dyn</ci>
                         </apply>
+                        <ci>phi_CO2_dyn</ci>
                     </apply>
                     <ci>tau_cap</ci>
                 </apply>

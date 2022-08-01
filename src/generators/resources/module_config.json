@@ -208,7 +208,7 @@
       },
       {
         "port_type":"flow_feedback_port",
-        "variables":["v",""]
+        "variables":["v"]
       }
     ],
     "variables_and_units":
@@ -502,12 +502,12 @@
       
       {
         "port_type":"pressure_feedback_port",
-        "variables":["","u"]
+        "variables":["u"]
       },
       
       {
         "port_type":"flow_feedback_port",
-        "variables":["v",""]
+        "variables":["v"]
       }
       
       
@@ -643,7 +643,7 @@
       },
       {
         "port_type":"flow_feedback_port",
-        "variables":["v",""]
+        "variables":["v"]
       }
     ],
     "variables_and_units":
@@ -1822,18 +1822,18 @@
       
       {
         "port_type":"pressure_feed_port",
-        "variables":["","u_a"]
+        "variables":["u_a"]
       },
       {
         "port_type":"flow_feed_port",
-        "variables":["v_a",""]
+        "variables":["v_a"]
       }
     ],
     "exit_ports":
     [
       {
         "port_type":"multi_portgjsfglj",
-        "variables":["","u"]
+        "variables":["u"]
       }
     ],
     "variables_and_units":
@@ -1860,7 +1860,7 @@
      
       {
         "port_type":"pressure_feedback_port",
-        "variables":["","u"]
+        "variables":["u"]
       }
     ],
     "exit_ports":
@@ -1868,7 +1868,7 @@
       
       {
         "port_type":"pressure_feed_port",
-        "variables":["","u"],
+        "variables":["u"],
         "multi_port":"True"
       }
     ],
@@ -1888,7 +1888,7 @@
      
       {
         "port_type":"flow_feedback_port",
-        "variables":["v",""]
+        "variables":["v"]
       }
     ],
     "exit_ports":
@@ -1896,7 +1896,7 @@
       
       {
         "port_type":"flow_feed_port",
-        "variables":["v",""],
+        "variables":["v"],
         "multi_port":"True"
       }
     ],

@@ -3,6 +3,7 @@ from scipy.stats import normaltest
 
 # This class was taken from https://github.com/Samreay/ChainConsumer and modified
 
+
 class Diagnostics(object):
     def __init__(self):
         pass
@@ -57,10 +58,10 @@ class Diagnostics(object):
         R = np.sqrt(v / w)
 
         passed = np.abs(R - 1) < threshold
-        print("Gelman-Rubin Statistic values for chain %s" % name)
-        for p, v, pas in zip(parameters, R, passed):
-            param = "Param %d" % p if isinstance(p, int) else p
-            print("%s: %7.5f (%s)" % (param, v, "Passed" if pas else "Failed"))
+        print("Gelman-Rubin Statistic values for chain s")
+        # for p, v, pas in zip(parameters, R, passed):
+        #     param = "Param %d" % p if isinstance(p, int) else p
+        #     print("%s: %7.5f (%s)" % (param, v, "Passed" if pas else "Failed"))
         return np.all(passed)
 
     def geweke(self, chain, first=0.1, last=0.5, threshold=0.05):
