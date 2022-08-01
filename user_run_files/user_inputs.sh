@@ -5,7 +5,7 @@
 # file_prefix=neonatal
 # file_prefix=physiological
 # file_prefix=control_phys
-file_prefix=elic
+file_prefix=cerebral_elic
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
@@ -13,7 +13,7 @@ file_prefix=elic
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 # input_param_file=control_phys_parameters.csv # this must be stored in resources.
-input_param_file=elic_parameters.csv # this must be stored in resources.
+input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
@@ -67,7 +67,7 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observab
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 
 ## the below for my local
-opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
+opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 # opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 
