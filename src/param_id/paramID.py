@@ -363,7 +363,7 @@ class CVS0DParamID():
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
         # axs.legend()
-        axs.set_ylabel('E$_%$')
+        axs.set_ylabel('E$_{\%}$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -1983,7 +1983,7 @@ class OpencorMCMC():
         if DEBUG:
             self.num_steps = 6
         else:
-            self.num_steps = 1000 
+            self.num_steps = 5000 
 
         self.DEBUG = DEBUG
 
@@ -2022,7 +2022,7 @@ class OpencorMCMC():
             from schwimmbad import MPIPool
 
             if self.DEBUG:
-                num_walkers = 32
+                num_walkers = 64
             else:
                 num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
 
