@@ -5,7 +5,7 @@
 # file_prefix=neonatal
 # file_prefix=physiological
 # file_prefix=control_phys
-file_prefix=cerebral_elic
+file_prefix=FinalModel
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
@@ -13,7 +13,7 @@ file_prefix=cerebral_elic
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 # input_param_file=control_phys_parameters.csv # this must be stored in resources.
-input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
+input_param_file=FinalModel_parameters.csv # this must be stored in resources.
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 

@@ -2062,7 +2062,7 @@
       ["v", "m3_per_s", "no_access", "variable"],
       ["pressure_d", "J_per_m3", "no_access", "global_constant"],
       ["v_T", "m3_per_s", "no_access", "variable"],
-      ["R_T", "Js_per_m6", "no_access", "variable"],
+      ["R_T", "Js_per_m6", "access", "variable"],
       ["C_T", "m6_per_J", "no_access", "constant"],
       ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
       ["BFF_ASL", "dimensionless", "no_access", "constant"],

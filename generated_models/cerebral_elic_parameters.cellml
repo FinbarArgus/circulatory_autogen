@@ -9,7 +9,7 @@
         <variable initial_value="-505.3" name="b_vessel" public_interface="out" units="per_m"/>
         <variable initial_value="0.1324" name="c_vessel" public_interface="out" units="dimensionless"/>
         <variable initial_value="-11.14" name="d_vessel" public_interface="out" units="per_m"/>
-        <variable initial_value="13000" name="pressure_d" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="8000" name="pressure_d" public_interface="out" units="J_per_m3"/>
         <variable initial_value="12.4e-6" name="meanflow_4dflow" public_interface="out" units="m3_per_s"/>
     </component>
     <component name="parameters">

@@ -2067,171 +2067,227 @@
    <variable name="E" public_interface="in" units="J_per_m3"/>
 </component>
 <component name="lateral_occipital_intermediate_temporal_branch_T47_L20_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_occipital_intermediate_temporal_branch_T76_R216_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_calcarine_branch_T51_L202_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_calcarine_branch_T79_R270_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_occipitotemporal_branch_T52_L190_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_occipitotemporal_branch_T80_R258_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_parietal_branch_T53_L196_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_parietal_branch_T81_R264_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_choroidal_T34_L116_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_choroidal_T98_R54_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_parietal_T100_R100_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="anterior_parietal_T35_L162_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_central_sulcus_T101_R70_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_central_sulcus_T36_L132_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_postcentral_sulcus_T102_R88_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_postcentral_sulcus_T37_L150_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_precentral_sulcus_T103_R72_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="artery_of_precentral_sulcus_T38_L134_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_cingular_branch_T105_R250_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_cingular_branch_T40_L182_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_intermediomedial_frontal_branch_T106_R242_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_intermediomedial_frontal_branch_T41_L174_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_paracentral_branch_T107_R254_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_paracentral_branch_T42_L186_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_posteromedial_frontal_branch_T108_R246_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="callosomarginal_posteromedial_frontal_branch_T43_L178_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="distal_medial_striate_T109_R236_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="distal_medial_striate_T44_L40_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_frontobasal_T110_R60_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_frontobasal_T45_L122_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_occipital_anterior_temporal_branch_T111_R212_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_occipital_anterior_temporal_branch_T46_L16_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_occipital_posterior_temporal_branch_T112_R220_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="lateral_occipital_posterior_temporal_branch_T48_L24_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_parieto_occipital_branch_T118_R266_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="medial_occipital_parieto_occipital_branch_T54_L198_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_anterior_temporal_branch_T119_R80_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_anterior_temporal_branch_T55_L142_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_branch_to_angular_gyrus_T120_R108_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_branch_to_angular_gyrus_T56_L170_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_middle_temporal_branch_T121_R84_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_middle_temporal_branch_T57_L146_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_posterior_temporal_branch_T122_R96_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_posterior_temporal_branch_T58_L158_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_posterior_temp_occipital_branch_T123_R94_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="middle_cerebral_posterior_temp_occipital_branch_T59_L156_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="pericallosal_parieto_occipital_branch_T124_R226_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="pericallosal_parieto_occipital_branch_T60_L30_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="pericallosal_precuneal_branch_T125_R230_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="pericallosal_precuneal_branch_T61_L34_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="polar_temporal_T127_R76_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="polar_temporal_T63_L138_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="posterior_parietal_T129_R106_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="posterior_parietal_T64_L168_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="prefrontal_T130_R64_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="prefrontal_T65_L126_T">
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
    <variable name="error_flow_percent" public_interface="in" units="dimensionless"/>
 </component>
 <component name="feedback">
@@ -2740,226 +2796,282 @@
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_intermediate_temporal_branch_T47_L20_T" component_2="lateral_occipital_intermediate_temporal_branch_T47_L20_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_intermediate_temporal_branch_T76_R216_T" component_2="lateral_occipital_intermediate_temporal_branch_T76_R216_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_calcarine_branch_T51_L202_T" component_2="medial_occipital_calcarine_branch_T51_L202_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_calcarine_branch_T79_R270_T" component_2="medial_occipital_calcarine_branch_T79_R270_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_occipitotemporal_branch_T52_L190_T" component_2="medial_occipital_occipitotemporal_branch_T52_L190_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_occipitotemporal_branch_T80_R258_T" component_2="medial_occipital_occipitotemporal_branch_T80_R258_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_parietal_branch_T53_L196_T" component_2="medial_occipital_parietal_branch_T53_L196_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_parietal_branch_T81_R264_T" component_2="medial_occipital_parietal_branch_T81_R264_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="anterior_choroidal_T34_L116_T" component_2="anterior_choroidal_T34_L116_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="anterior_choroidal_T98_R54_T" component_2="anterior_choroidal_T98_R54_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="anterior_parietal_T100_R100_T" component_2="anterior_parietal_T100_R100_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="anterior_parietal_T35_L162_T" component_2="anterior_parietal_T35_L162_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_central_sulcus_T101_R70_T" component_2="artery_of_central_sulcus_T101_R70_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_central_sulcus_T36_L132_T" component_2="artery_of_central_sulcus_T36_L132_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_postcentral_sulcus_T102_R88_T" component_2="artery_of_postcentral_sulcus_T102_R88_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_postcentral_sulcus_T37_L150_T" component_2="artery_of_postcentral_sulcus_T37_L150_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_precentral_sulcus_T103_R72_T" component_2="artery_of_precentral_sulcus_T103_R72_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="artery_of_precentral_sulcus_T38_L134_T" component_2="artery_of_precentral_sulcus_T38_L134_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_cingular_branch_T105_R250_T" component_2="callosomarginal_cingular_branch_T105_R250_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_cingular_branch_T40_L182_T" component_2="callosomarginal_cingular_branch_T40_L182_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_intermediomedial_frontal_branch_T106_R242_T" component_2="callosomarginal_intermediomedial_frontal_branch_T106_R242_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_intermediomedial_frontal_branch_T41_L174_T" component_2="callosomarginal_intermediomedial_frontal_branch_T41_L174_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_paracentral_branch_T107_R254_T" component_2="callosomarginal_paracentral_branch_T107_R254_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_paracentral_branch_T42_L186_T" component_2="callosomarginal_paracentral_branch_T42_L186_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_posteromedial_frontal_branch_T108_R246_T" component_2="callosomarginal_posteromedial_frontal_branch_T108_R246_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="callosomarginal_posteromedial_frontal_branch_T43_L178_T" component_2="callosomarginal_posteromedial_frontal_branch_T43_L178_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="distal_medial_striate_T109_R236_T" component_2="distal_medial_striate_T109_R236_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="distal_medial_striate_T44_L40_T" component_2="distal_medial_striate_T44_L40_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_frontobasal_T110_R60_T" component_2="lateral_frontobasal_T110_R60_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_frontobasal_T45_L122_T" component_2="lateral_frontobasal_T45_L122_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_anterior_temporal_branch_T111_R212_T" component_2="lateral_occipital_anterior_temporal_branch_T111_R212_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_anterior_temporal_branch_T46_L16_T" component_2="lateral_occipital_anterior_temporal_branch_T46_L16_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_posterior_temporal_branch_T112_R220_T" component_2="lateral_occipital_posterior_temporal_branch_T112_R220_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="lateral_occipital_posterior_temporal_branch_T48_L24_T" component_2="lateral_occipital_posterior_temporal_branch_T48_L24_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_parieto_occipital_branch_T118_R266_T" component_2="medial_occipital_parieto_occipital_branch_T118_R266_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="medial_occipital_parieto_occipital_branch_T54_L198_T" component_2="medial_occipital_parieto_occipital_branch_T54_L198_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_anterior_temporal_branch_T119_R80_T" component_2="middle_cerebral_anterior_temporal_branch_T119_R80_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_anterior_temporal_branch_T55_L142_T" component_2="middle_cerebral_anterior_temporal_branch_T55_L142_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_branch_to_angular_gyrus_T120_R108_T" component_2="middle_cerebral_branch_to_angular_gyrus_T120_R108_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_branch_to_angular_gyrus_T56_L170_T" component_2="middle_cerebral_branch_to_angular_gyrus_T56_L170_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_middle_temporal_branch_T121_R84_T" component_2="middle_cerebral_middle_temporal_branch_T121_R84_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_middle_temporal_branch_T57_L146_T" component_2="middle_cerebral_middle_temporal_branch_T57_L146_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_posterior_temporal_branch_T122_R96_T" component_2="middle_cerebral_posterior_temporal_branch_T122_R96_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_posterior_temporal_branch_T58_L158_T" component_2="middle_cerebral_posterior_temporal_branch_T58_L158_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_posterior_temp_occipital_branch_T123_R94_T" component_2="middle_cerebral_posterior_temp_occipital_branch_T123_R94_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="middle_cerebral_posterior_temp_occipital_branch_T59_L156_T" component_2="middle_cerebral_posterior_temp_occipital_branch_T59_L156_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="pericallosal_parieto_occipital_branch_T124_R226_T" component_2="pericallosal_parieto_occipital_branch_T124_R226_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="pericallosal_parieto_occipital_branch_T60_L30_T" component_2="pericallosal_parieto_occipital_branch_T60_L30_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="pericallosal_precuneal_branch_T125_R230_T" component_2="pericallosal_precuneal_branch_T125_R230_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="pericallosal_precuneal_branch_T61_L34_T" component_2="pericallosal_precuneal_branch_T61_L34_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="polar_temporal_T127_R76_T" component_2="polar_temporal_T127_R76_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="polar_temporal_T63_L138_T" component_2="polar_temporal_T63_L138_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="posterior_parietal_T129_R106_T" component_2="posterior_parietal_T129_R106_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="posterior_parietal_T64_L168_T" component_2="posterior_parietal_T64_L168_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="prefrontal_T130_R64_T" component_2="prefrontal_T130_R64_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
    <map_components component_1="prefrontal_T65_L126_T" component_2="prefrontal_T65_L126_T_module"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
    <map_variables variable_1="error_flow_percent" variable_2="error_flow_percent"/>
 </connection>
 <connection>
