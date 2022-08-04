@@ -2058,15 +2058,16 @@
     ],
     "variables_and_units":
     [
-      ["u", "J_per_m3", "access", "variable"],
-      ["v", "m3_per_s", "access", "variable"],
+      ["u", "J_per_m3", "no_access", "variable"],
+      ["v", "m3_per_s", "no_access", "variable"],
       ["pressure_d", "J_per_m3", "no_access", "global_constant"],
-      ["v_T", "m3_per_s", "access", "variable"],
-      ["R_T", "Js_per_m6", "access", "variable"],
-      ["C_T", "m6_per_J", "access", "constant"],
+      ["v_T", "m3_per_s", "no_access", "variable"],
+      ["R_T", "Js_per_m6", "no_access", "variable"],
+      ["C_T", "m6_per_J", "no_access", "constant"],
       ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
-      ["BFF_ASL", "dimensionless", "access", "constant"],
-      ["q_T", "m3", "access", "variable"]
+      ["BFF_ASL", "dimensionless", "no_access", "constant"],
+      ["error_flow_percent", "dimensionless", "access", "variable"],
+      ["q_T", "m3", "no_access", "variable"]
     ]
   }
   

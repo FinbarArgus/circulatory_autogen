@@ -36,7 +36,7 @@ u_out = u_in;-->
     <component name="input_flow_basilar_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="v1" public_interface="out" units="m3_per_s"/>
-        <variable name="v1" public_interface="out" units="m3_per_s"/>
+        <variable name="v2" public_interface="out" units="m3_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -87,7 +87,7 @@ u_out = u_in;-->
         <variable name="u_out" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_T" public_interface="out" units="m3"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="error_flow_percent" public_interface="out" units="Js_per_m6"/>
+        <variable name="error_flow_percent" public_interface="out" units="dimensionless"/>
         <variable name="u_a" public_interface="in" units="J_per_m3"/>
         <variable name="v_a" public_interface="in" units="m3_per_s"/>
         <variable name="meanflow_4dflow" public_interface="in" units="m3_per_s"/>

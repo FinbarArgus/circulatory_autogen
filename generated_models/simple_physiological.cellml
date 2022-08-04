@@ -1,0 +1,1968 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="CardiovascularSystem" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <import xlink:href="simple_physiological_units.cellml">
+        <units name="m2" units_ref="m2"/>
+        <units name="m3" units_ref="m3"/>
+        <units name="m3_per_s" units_ref="m3_per_s"/>
+        <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m_per_s" units_ref="m_per_s"/>
+        <units name="m6_per_J" units_ref="m6_per_J"/>
+        <units name="m6_per_Js" units_ref="m6_per_Js"/>
+        <units name="per_m" units_ref="per_m"/>
+        <units name="per_s" units_ref="per_s"/>
+        <units name="J_per_m3" units_ref="J_per_m3"/>
+        <units name="J_per_m3s" units_ref="J_per_m3s"/>
+        <units name="m3_per_J" units_ref="m3_per_J"/>
+        <units name="J2_per_m6" units_ref="J2_per_m6"/>
+        <units name="Js_per_m6" units_ref="Js_per_m6"/>
+        <units name="Js2_per_m6" units_ref="Js2_per_m6"/>
+        <units name="Js2_per_m5" units_ref="Js2_per_m5"/>
+        <units name="J_per_s" units_ref="J_per_s"/>
+        <units name="J_per_m6" units_ref="J_per_m6"/>
+        <units name="Js_per_m3" units_ref="Js_per_m3"/>
+        <units name="UnitValve" units_ref="UnitValve"/>
+        <units name="J_per_m9" units_ref="J_per_m9"/>
+        <units name="m3_per_Js" units_ref="m3_per_Js"/>
+        <units name="kg_per_m3" units_ref="kg_per_m3"/>
+        <units name="m3_per_kg" units_ref="m3_per_kg"/>
+    </import>
+    <import xlink:href="simple_physiological_parameters.cellml">
+        <component component_ref="parameters" name="parameters"/>
+        <component component_ref="parameters_global" name="parameters_global"/>
+    </import>
+    <component name="environment">
+        <variable name="time" public_interface="out" units="second"/>
+    </component>
+    <!--#STARTGENBELOW-->
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="heart_simple" name="heart_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="vv_type" name="ascending_aorta_A_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="ascending_aorta_B_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="ascending_aorta_C_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="ascending_aorta_D_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="aortic_arch_C2_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="aortic_arch_C46_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="aortic_arch_C64_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="brachiocephalic_trunk_C4_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="common_carotid_L48_A_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="common_carotid_R6_A_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="subclavian_L66_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="subclavian_R28_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="head_L_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="head_R_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="arm_L_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="arm_R_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="aortic_arch_C94_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C96_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C100_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C104_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C108_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="thoracic_aorta_C112_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="abdominal_aorta_C114_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="trunk_C_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C136_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C164_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C176_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="abdominal_aorta_C188_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_split_type" name="abdominal_aorta_C192_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="common_iliac_L194_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="external_iliac_L198_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="common_iliac_R216_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="external_iliac_R220_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="femoral_L200_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pv_type" name="femoral_R222_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="leg_L_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="pp_T_type" name="leg_R_T_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="venous_lb_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="venous_ub_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="venous_ivc_module"/>
+</import>
+<import xlink:href="simple_physiological_modules.cellml">
+    <component component_ref="vp_simple_type" name="venous_svc_module"/>
+</import>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="heart_module" component_2="ascending_aorta_A_module"/>
+   <map_variables variable_1="v_aov" variable_2="v_in"/>
+   <map_variables variable_1="u_root" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_A_module" component_2="ascending_aorta_B_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u_d" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_B_module" component_2="ascending_aorta_C_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_C_module" component_2="ascending_aorta_D_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_D_module" component_2="aortic_arch_C2_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C2_module" component_2="aortic_arch_C46_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C2_module" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C46_module" component_2="aortic_arch_C64_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C46_module" component_2="common_carotid_L48_A_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C64_module" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C64_module" component_2="subclavian_L66_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="brachiocephalic_trunk_C4_module" component_2="common_carotid_R6_A_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="brachiocephalic_trunk_C4_module" component_2="subclavian_R28_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="common_carotid_L48_A_module" component_2="head_L_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="common_carotid_R6_A_module" component_2="head_R_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="subclavian_L66_module" component_2="arm_L_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="subclavian_R28_module" component_2="arm_R_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C94_module" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C96_module" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C100_module" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C104_module" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C108_module" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C112_module" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114_module" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114_module" component_2="trunk_C_T_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C136_module" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C164_module" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C176_module" component_2="abdominal_aorta_C188_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C188_module" component_2="abdominal_aorta_C192_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C192_module" component_2="common_iliac_L194_module"/>
+   <map_variables variable_1="v_out_1" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C192_module" component_2="common_iliac_R216_module"/>
+   <map_variables variable_1="v_out_2" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="common_iliac_L194_module" component_2="external_iliac_L198_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="external_iliac_L198_module" component_2="femoral_L200_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="common_iliac_R216_module" component_2="external_iliac_R220_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="external_iliac_R220_module" component_2="femoral_R222_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="femoral_L200_module" component_2="leg_L_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="femoral_R222_module" component_2="leg_R_T_module"/>
+   <map_variables variable_1="v_out" variable_2="v"/>
+   <map_variables variable_1="u" variable_2="u_in"/>
+</connection>
+<connection>
+   <map_components component_1="venous_lb_module" component_2="venous_ivc_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="venous_ub_module" component_2="venous_svc_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="zero_flow_module" component_2="heart_module"/>
+   <map_variables variable_1="v_zero" variable_2="v_ivc"/>
+</connection>
+<connection>
+   <map_components component_1="venous_ivc_module" component_2="heart_module"/>
+   <map_variables variable_1="v" variable_2="v_svc"/>
+   <map_variables variable_1="u_out" variable_2="u_ra"/>
+</connection>
+<connection>
+   <map_components component_1="venous_svc_module" component_2="heart_module"/>
+   <map_variables variable_1="v" variable_2="v_pvn"/>
+   <map_variables variable_1="u_out" variable_2="u_la"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;terminal venous connection&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="head_L_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="head_L_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_head_L_T"/>
+</connection>
+<connection>
+   <map_components component_1="head_R_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="head_R_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_head_R_T"/>
+</connection>
+<connection>
+   <map_components component_1="arm_L_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="arm_L_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_arm_L_T"/>
+</connection>
+<connection>
+   <map_components component_1="arm_R_T_module" component_2="venous_ub_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="arm_R_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_arm_R_T"/>
+</connection>
+<connection>
+   <map_components component_1="trunk_C_T_module" component_2="venous_lb_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="trunk_C_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_trunk_C_T"/>
+</connection>
+<connection>
+   <map_components component_1="leg_L_T_module" component_2="venous_lb_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="leg_L_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_leg_L_T"/>
+</connection>
+<connection>
+   <map_components component_1="leg_R_T_module" component_2="venous_lb_module"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="leg_R_T_module" component_2="terminal_venous_connection"/>
+   <map_variables variable_1="v_T" variable_2="v_leg_R_T"/>
+</connection>
+<connection>
+   <map_components component_1="terminal_venous_connection" component_2="venous_lb_module"/>
+   <map_variables variable_1="v_venous_lb" variable_2="v_in"/>
+</connection>
+<connection>
+   <map_components component_1="terminal_venous_connection" component_2="venous_ub_module"/>
+   <map_variables variable_1="v_venous_ub" variable_2="v_in"/>
+</connection>
+<component name="terminal_venous_connection">
+<variable name="v_trunk_C_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_leg_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_leg_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_venous_lb" public_interface="out" units="m3_per_s"/>
+<variable name="v_head_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_head_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_arm_L_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_arm_R_T" public_interface="in" units="m3_per_s"/>
+<variable name="v_venous_ub" public_interface="out" units="m3_per_s"/>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+   <apply>
+       <eq/>
+       <ci>v_venous_lb</ci>
+       <apply>
+           <plus/>
+            <ci>v_trunk_C_T</ci>
+            <ci>v_leg_L_T</ci>
+            <ci>v_leg_R_T</ci>
+       </apply>
+   </apply>
+</math>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+   <apply>
+       <eq/>
+       <ci>v_venous_ub</ci>
+       <apply>
+           <plus/>
+            <ci>v_head_L_T</ci>
+            <ci>v_head_R_T</ci>
+            <ci>v_arm_L_T</ci>
+            <ci>v_arm_R_T</ci>
+       </apply>
+   </apply>
+</math>
+</component>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<component name="heart">
+   <variable name="rho" public_interface="in" units="Js2_per_m5"/>
+   <variable name="T" public_interface="in" units="second"/>
+   <variable name="mt" public_interface="in" units="second"/>
+   <variable name="u_ra" public_interface="in" units="J_per_m3"/>
+   <variable name="u_rv" public_interface="in" units="J_per_m3"/>
+   <variable name="u_la" public_interface="in" units="J_per_m3"/>
+   <variable name="u_lv" public_interface="in" units="J_per_m3"/>
+   <variable name="q_ra" public_interface="in" units="m3"/>
+   <variable name="q_rv" public_interface="in" units="m3"/>
+   <variable name="q_la" public_interface="in" units="m3"/>
+   <variable name="q_lv" public_interface="in" units="m3"/>
+   <variable name="q_ra_0" public_interface="in" units="m3"/>
+   <variable name="q_rv_0" public_interface="in" units="m3"/>
+   <variable name="q_la_0" public_interface="in" units="m3"/>
+   <variable name="q_lv_0" public_interface="in" units="m3"/>
+   <variable name="T_ac" public_interface="in" units="second"/>
+   <variable name="T_ar" public_interface="in" units="second"/>
+   <variable name="t_astart" public_interface="in" units="second"/>
+   <variable name="t_astart_norm" public_interface="in" units="second"/>
+   <variable name="chi_a" public_interface="in" units="dimensionless"/>
+   <variable name="chi_afloor" public_interface="in" units="dimensionless"/>
+   <variable name="T_vc" public_interface="in" units="second"/>
+   <variable name="T_vr" public_interface="in" units="second"/>
+   <variable name="t_vstart" public_interface="in" units="second"/>
+   <variable name="t_vstart_norm" public_interface="in" units="second"/>
+   <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
+   <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
+   <variable name="E_rv_A" public_interface="in" units="J_per_m6"/>
+   <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>
+   <variable name="E_la_A" public_interface="in" units="J_per_m6"/>
+   <variable name="E_la_B" public_interface="in" units="J_per_m6"/>
+   <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
+   <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
+   <variable name="e_a" public_interface="in" units="dimensionless"/>
+   <variable name="e_v" public_interface="in" units="dimensionless"/>
+   <variable name="v_trv" public_interface="in" units="m3_per_s"/>
+   <variable name="v_puv" public_interface="in" units="m3_per_s"/>
+   <variable name="v_miv" public_interface="in" units="m3_per_s"/>
+   <variable name="v_aov" public_interface="in" units="m3_per_s"/>
+   <variable name="K_vo_trv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vo_puv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vo_miv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vo_aov" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vc_trv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vc_puv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vc_miv" public_interface="in" units="m3_per_Js"/>
+   <variable name="K_vc_aov" public_interface="in" units="m3_per_Js"/>
+   <variable name="M_rg_trv" public_interface="in" units="dimensionless"/>
+   <variable name="M_rg_puv" public_interface="in" units="dimensionless"/>
+   <variable name="M_rg_miv" public_interface="in" units="dimensionless"/>
+   <variable name="M_rg_aov" public_interface="in" units="dimensionless"/>
+   <variable name="M_st_trv" public_interface="in" units="dimensionless"/>
+   <variable name="M_st_puv" public_interface="in" units="dimensionless"/>
+   <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
+   <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
+   <variable name="l_eff" public_interface="in" units="metre"/>
+   <variable name="A_nn_trv" public_interface="in" units="m2"/>
+   <variable name="A_nn_puv" public_interface="in" units="m2"/>
+   <variable name="A_nn_miv" public_interface="in" units="m2"/>
+   <variable name="A_nn_aov" public_interface="in" units="m2"/>
+   <variable name="A_eff_trv" public_interface="in" units="m2"/>
+   <variable name="A_eff_puv" public_interface="in" units="m2"/>
+   <variable name="A_eff_miv" public_interface="in" units="m2"/>
+   <variable name="A_eff_aov" public_interface="in" units="m2"/>
+</component>
+<component name="ascending_aorta_A">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="ascending_aorta_B">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="ascending_aorta_C">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="ascending_aorta_D">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="aortic_arch_C2">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="aortic_arch_C46">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="aortic_arch_C64">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="brachiocephalic_trunk_C4">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="common_carotid_L48_A">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="common_carotid_R6_A">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="subclavian_L66">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="subclavian_R28">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="head_L_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="head_R_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="arm_L_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="arm_R_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="aortic_arch_C94">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="thoracic_aorta_C96">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="thoracic_aorta_C100">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="thoracic_aorta_C104">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="thoracic_aorta_C108">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="thoracic_aorta_C112">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="abdominal_aorta_C114">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="trunk_C_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="abdominal_aorta_C136">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="abdominal_aorta_C164">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="abdominal_aorta_C176">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="abdominal_aorta_C188">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="abdominal_aorta_C192">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="common_iliac_L194">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="external_iliac_L198">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="common_iliac_R216">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="external_iliac_R220">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="femoral_L200">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="femoral_R222">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="E" public_interface="in" units="J_per_m3"/>
+</component>
+<component name="leg_L_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="leg_R_T">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="v_T" public_interface="in" units="m3_per_s"/>
+   <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+   <variable name="C_T" public_interface="in" units="m6_per_J"/>
+   <variable name="q_T" public_interface="in" units="m3"/>
+</component>
+<component name="venous_lb">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="venous_ub">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="venous_ivc">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="venous_svc">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="heart" component_2="heart_module"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="T" variable_2="T"/>
+   <map_variables variable_1="mt" variable_2="mt"/>
+   <map_variables variable_1="u_ra" variable_2="u_ra"/>
+   <map_variables variable_1="u_rv" variable_2="u_rv"/>
+   <map_variables variable_1="u_la" variable_2="u_la"/>
+   <map_variables variable_1="u_lv" variable_2="u_lv"/>
+   <map_variables variable_1="q_ra" variable_2="q_ra"/>
+   <map_variables variable_1="q_rv" variable_2="q_rv"/>
+   <map_variables variable_1="q_la" variable_2="q_la"/>
+   <map_variables variable_1="q_lv" variable_2="q_lv"/>
+   <map_variables variable_1="q_ra_0" variable_2="q_ra_0"/>
+   <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
+   <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
+   <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
+   <map_variables variable_1="T_ac" variable_2="T_ac"/>
+   <map_variables variable_1="T_ar" variable_2="T_ar"/>
+   <map_variables variable_1="t_astart" variable_2="t_astart"/>
+   <map_variables variable_1="t_astart_norm" variable_2="t_astart_norm"/>
+   <map_variables variable_1="chi_a" variable_2="chi_a"/>
+   <map_variables variable_1="chi_afloor" variable_2="chi_afloor"/>
+   <map_variables variable_1="T_vc" variable_2="T_vc"/>
+   <map_variables variable_1="T_vr" variable_2="T_vr"/>
+   <map_variables variable_1="t_vstart" variable_2="t_vstart"/>
+   <map_variables variable_1="t_vstart_norm" variable_2="t_vstart_norm"/>
+   <map_variables variable_1="E_ra_A" variable_2="E_ra_A"/>
+   <map_variables variable_1="E_ra_B" variable_2="E_ra_B"/>
+   <map_variables variable_1="E_rv_A" variable_2="E_rv_A"/>
+   <map_variables variable_1="E_rv_B" variable_2="E_rv_B"/>
+   <map_variables variable_1="E_la_A" variable_2="E_la_A"/>
+   <map_variables variable_1="E_la_B" variable_2="E_la_B"/>
+   <map_variables variable_1="E_lv_A" variable_2="E_lv_A"/>
+   <map_variables variable_1="E_lv_B" variable_2="E_lv_B"/>
+   <map_variables variable_1="e_a" variable_2="e_a"/>
+   <map_variables variable_1="e_v" variable_2="e_v"/>
+   <map_variables variable_1="v_trv" variable_2="v_trv"/>
+   <map_variables variable_1="v_puv" variable_2="v_puv"/>
+   <map_variables variable_1="v_miv" variable_2="v_miv"/>
+   <map_variables variable_1="v_aov" variable_2="v_aov"/>
+   <map_variables variable_1="K_vo_trv" variable_2="K_vo_trv"/>
+   <map_variables variable_1="K_vo_puv" variable_2="K_vo_puv"/>
+   <map_variables variable_1="K_vo_miv" variable_2="K_vo_miv"/>
+   <map_variables variable_1="K_vo_aov" variable_2="K_vo_aov"/>
+   <map_variables variable_1="K_vc_trv" variable_2="K_vc_trv"/>
+   <map_variables variable_1="K_vc_puv" variable_2="K_vc_puv"/>
+   <map_variables variable_1="K_vc_miv" variable_2="K_vc_miv"/>
+   <map_variables variable_1="K_vc_aov" variable_2="K_vc_aov"/>
+   <map_variables variable_1="M_rg_trv" variable_2="M_rg_trv"/>
+   <map_variables variable_1="M_rg_puv" variable_2="M_rg_puv"/>
+   <map_variables variable_1="M_rg_miv" variable_2="M_rg_miv"/>
+   <map_variables variable_1="M_rg_aov" variable_2="M_rg_aov"/>
+   <map_variables variable_1="M_st_trv" variable_2="M_st_trv"/>
+   <map_variables variable_1="M_st_puv" variable_2="M_st_puv"/>
+   <map_variables variable_1="M_st_miv" variable_2="M_st_miv"/>
+   <map_variables variable_1="M_st_aov" variable_2="M_st_aov"/>
+   <map_variables variable_1="l_eff" variable_2="l_eff"/>
+   <map_variables variable_1="A_nn_trv" variable_2="A_nn_trv"/>
+   <map_variables variable_1="A_nn_puv" variable_2="A_nn_puv"/>
+   <map_variables variable_1="A_nn_miv" variable_2="A_nn_miv"/>
+   <map_variables variable_1="A_nn_aov" variable_2="A_nn_aov"/>
+   <map_variables variable_1="A_eff_trv" variable_2="A_eff_trv"/>
+   <map_variables variable_1="A_eff_puv" variable_2="A_eff_puv"/>
+   <map_variables variable_1="A_eff_miv" variable_2="A_eff_miv"/>
+   <map_variables variable_1="A_eff_aov" variable_2="A_eff_aov"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_A" component_2="ascending_aorta_A_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_B" component_2="ascending_aorta_B_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_C" component_2="ascending_aorta_C_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="ascending_aorta_D" component_2="ascending_aorta_D_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C2" component_2="aortic_arch_C2_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C46" component_2="aortic_arch_C46_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C64" component_2="aortic_arch_C64_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="brachiocephalic_trunk_C4" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="common_carotid_L48_A" component_2="common_carotid_L48_A_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="common_carotid_R6_A" component_2="common_carotid_R6_A_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="subclavian_L66" component_2="subclavian_L66_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="subclavian_R28" component_2="subclavian_R28_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="head_L_T" component_2="head_L_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="head_R_T" component_2="head_R_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="arm_L_T" component_2="arm_L_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="arm_R_T" component_2="arm_R_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="aortic_arch_C94" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C96" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C100" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C104" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C108" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="thoracic_aorta_C112" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C114" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="trunk_C_T" component_2="trunk_C_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C136" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C164" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C176" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C188" component_2="abdominal_aorta_C188_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="abdominal_aorta_C192" component_2="abdominal_aorta_C192_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="common_iliac_L194" component_2="common_iliac_L194_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="external_iliac_L198" component_2="external_iliac_L198_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="common_iliac_R216" component_2="common_iliac_R216_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="external_iliac_R220" component_2="external_iliac_R220_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="femoral_L200" component_2="femoral_L200_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="femoral_R222" component_2="femoral_R222_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="E" variable_2="E"/>
+</connection>
+<connection>
+   <map_components component_1="leg_L_T" component_2="leg_L_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="leg_R_T" component_2="leg_R_T_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="v_T" variable_2="v_T"/>
+   <map_variables variable_1="R_T" variable_2="R_T"/>
+   <map_variables variable_1="C_T" variable_2="C_T"/>
+   <map_variables variable_1="q_T" variable_2="q_T"/>
+</connection>
+<connection>
+   <map_components component_1="venous_lb" component_2="venous_lb_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="venous_ub" component_2="venous_ub_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="venous_ivc" component_2="venous_ivc_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="venous_svc" component_2="venous_svc_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="parameters" component_2="heart_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="heart_module"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="T" variable_2="T"/>
+   <map_variables variable_1="q_ra_0" variable_2="q_ra_0"/>
+   <map_variables variable_1="q_rv_0" variable_2="q_rv_0"/>
+   <map_variables variable_1="q_la_0" variable_2="q_la_0"/>
+   <map_variables variable_1="q_lv_0" variable_2="q_lv_0"/>
+   <map_variables variable_1="T_ac" variable_2="T_ac"/>
+   <map_variables variable_1="T_ar" variable_2="T_ar"/>
+   <map_variables variable_1="t_astart" variable_2="t_astart"/>
+   <map_variables variable_1="T_vc" variable_2="T_vc"/>
+   <map_variables variable_1="T_vr" variable_2="T_vr"/>
+   <map_variables variable_1="t_vstart" variable_2="t_vstart"/>
+   <map_variables variable_1="E_ra_A" variable_2="E_ra_A"/>
+   <map_variables variable_1="E_ra_B" variable_2="E_ra_B"/>
+   <map_variables variable_1="E_rv_A" variable_2="E_rv_A"/>
+   <map_variables variable_1="E_rv_B" variable_2="E_rv_B"/>
+   <map_variables variable_1="E_la_A" variable_2="E_la_A"/>
+   <map_variables variable_1="E_la_B" variable_2="E_la_B"/>
+   <map_variables variable_1="E_lv_A" variable_2="E_lv_A"/>
+   <map_variables variable_1="E_lv_B" variable_2="E_lv_B"/>
+   <map_variables variable_1="K_vo_trv" variable_2="K_vo_trv"/>
+   <map_variables variable_1="K_vo_puv" variable_2="K_vo_puv"/>
+   <map_variables variable_1="K_vo_miv" variable_2="K_vo_miv"/>
+   <map_variables variable_1="K_vo_aov" variable_2="K_vo_aov"/>
+   <map_variables variable_1="K_vc_trv" variable_2="K_vc_trv"/>
+   <map_variables variable_1="K_vc_puv" variable_2="K_vc_puv"/>
+   <map_variables variable_1="K_vc_miv" variable_2="K_vc_miv"/>
+   <map_variables variable_1="K_vc_aov" variable_2="K_vc_aov"/>
+   <map_variables variable_1="M_rg_trv" variable_2="M_rg_trv"/>
+   <map_variables variable_1="M_rg_puv" variable_2="M_rg_puv"/>
+   <map_variables variable_1="M_rg_miv" variable_2="M_rg_miv"/>
+   <map_variables variable_1="M_rg_aov" variable_2="M_rg_aov"/>
+   <map_variables variable_1="M_st_trv" variable_2="M_st_trv"/>
+   <map_variables variable_1="M_st_puv" variable_2="M_st_puv"/>
+   <map_variables variable_1="M_st_miv" variable_2="M_st_miv"/>
+   <map_variables variable_1="M_st_aov" variable_2="M_st_aov"/>
+   <map_variables variable_1="l_eff" variable_2="l_eff"/>
+   <map_variables variable_1="A_nn_trv" variable_2="A_nn_trv"/>
+   <map_variables variable_1="A_nn_puv" variable_2="A_nn_puv"/>
+   <map_variables variable_1="A_nn_miv" variable_2="A_nn_miv"/>
+   <map_variables variable_1="A_nn_aov" variable_2="A_nn_aov"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="ascending_aorta_A_module"/>
+   <map_variables variable_1="E_ascending_aorta_A" variable_2="E"/>
+   <map_variables variable_1="l_ascending_aorta_A" variable_2="l"/>
+   <map_variables variable_1="r_ascending_aorta_A" variable_2="r"/>
+   <map_variables variable_1="theta_ascending_aorta_A" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="ascending_aorta_A_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="ascending_aorta_B_module"/>
+   <map_variables variable_1="E_ascending_aorta_B" variable_2="E"/>
+   <map_variables variable_1="l_ascending_aorta_B" variable_2="l"/>
+   <map_variables variable_1="r_ascending_aorta_B" variable_2="r"/>
+   <map_variables variable_1="theta_ascending_aorta_B" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="ascending_aorta_B_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="ascending_aorta_C_module"/>
+   <map_variables variable_1="E_ascending_aorta_C" variable_2="E"/>
+   <map_variables variable_1="l_ascending_aorta_C" variable_2="l"/>
+   <map_variables variable_1="r_ascending_aorta_C" variable_2="r"/>
+   <map_variables variable_1="theta_ascending_aorta_C" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="ascending_aorta_C_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="ascending_aorta_D_module"/>
+   <map_variables variable_1="E_ascending_aorta_D" variable_2="E"/>
+   <map_variables variable_1="l_ascending_aorta_D" variable_2="l"/>
+   <map_variables variable_1="r_ascending_aorta_D" variable_2="r"/>
+   <map_variables variable_1="theta_ascending_aorta_D" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="ascending_aorta_D_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="aortic_arch_C2_module"/>
+   <map_variables variable_1="E_aortic_arch_C2" variable_2="E"/>
+   <map_variables variable_1="l_aortic_arch_C2" variable_2="l"/>
+   <map_variables variable_1="r_aortic_arch_C2" variable_2="r"/>
+   <map_variables variable_1="theta_aortic_arch_C2" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="aortic_arch_C2_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="aortic_arch_C46_module"/>
+   <map_variables variable_1="E_aortic_arch_C46" variable_2="E"/>
+   <map_variables variable_1="l_aortic_arch_C46" variable_2="l"/>
+   <map_variables variable_1="r_aortic_arch_C46" variable_2="r"/>
+   <map_variables variable_1="theta_aortic_arch_C46" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="aortic_arch_C46_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="aortic_arch_C64_module"/>
+   <map_variables variable_1="E_aortic_arch_C64" variable_2="E"/>
+   <map_variables variable_1="l_aortic_arch_C64" variable_2="l"/>
+   <map_variables variable_1="r_aortic_arch_C64" variable_2="r"/>
+   <map_variables variable_1="theta_aortic_arch_C64" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="aortic_arch_C64_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_variables variable_1="E_brachiocephalic_trunk_C4" variable_2="E"/>
+   <map_variables variable_1="l_brachiocephalic_trunk_C4" variable_2="l"/>
+   <map_variables variable_1="r_brachiocephalic_trunk_C4" variable_2="r"/>
+   <map_variables variable_1="theta_brachiocephalic_trunk_C4" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="common_carotid_L48_A_module"/>
+   <map_variables variable_1="E_common_carotid_L48_A" variable_2="E"/>
+   <map_variables variable_1="l_common_carotid_L48_A" variable_2="l"/>
+   <map_variables variable_1="r_common_carotid_L48_A" variable_2="r"/>
+   <map_variables variable_1="theta_common_carotid_L48_A" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="common_carotid_L48_A_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="common_carotid_R6_A_module"/>
+   <map_variables variable_1="E_common_carotid_R6_A" variable_2="E"/>
+   <map_variables variable_1="l_common_carotid_R6_A" variable_2="l"/>
+   <map_variables variable_1="r_common_carotid_R6_A" variable_2="r"/>
+   <map_variables variable_1="theta_common_carotid_R6_A" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="common_carotid_R6_A_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="subclavian_L66_module"/>
+   <map_variables variable_1="E_subclavian_L66" variable_2="E"/>
+   <map_variables variable_1="l_subclavian_L66" variable_2="l"/>
+   <map_variables variable_1="r_subclavian_L66" variable_2="r"/>
+   <map_variables variable_1="theta_subclavian_L66" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="subclavian_L66_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="subclavian_R28_module"/>
+   <map_variables variable_1="E_subclavian_R28" variable_2="E"/>
+   <map_variables variable_1="l_subclavian_R28" variable_2="l"/>
+   <map_variables variable_1="r_subclavian_R28" variable_2="r"/>
+   <map_variables variable_1="theta_subclavian_R28" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="subclavian_R28_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="head_L_T_module"/>
+   <map_variables variable_1="R_T_head_L" variable_2="R_T"/>
+   <map_variables variable_1="C_T_head_L" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="head_L_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="head_R_T_module"/>
+   <map_variables variable_1="R_T_head_R" variable_2="R_T"/>
+   <map_variables variable_1="C_T_head_R" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="head_R_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="arm_L_T_module"/>
+   <map_variables variable_1="R_T_arm_L" variable_2="R_T"/>
+   <map_variables variable_1="C_T_arm_L" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="arm_L_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="arm_R_T_module"/>
+   <map_variables variable_1="R_T_arm_R" variable_2="R_T"/>
+   <map_variables variable_1="C_T_arm_R" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="arm_R_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="E_aortic_arch_C94" variable_2="E"/>
+   <map_variables variable_1="l_aortic_arch_C94" variable_2="l"/>
+   <map_variables variable_1="r_aortic_arch_C94" variable_2="r"/>
+   <map_variables variable_1="theta_aortic_arch_C94" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="E_thoracic_aorta_C96" variable_2="E"/>
+   <map_variables variable_1="l_thoracic_aorta_C96" variable_2="l"/>
+   <map_variables variable_1="r_thoracic_aorta_C96" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C96" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="E_thoracic_aorta_C100" variable_2="E"/>
+   <map_variables variable_1="l_thoracic_aorta_C100" variable_2="l"/>
+   <map_variables variable_1="r_thoracic_aorta_C100" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C100" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="E_thoracic_aorta_C104" variable_2="E"/>
+   <map_variables variable_1="l_thoracic_aorta_C104" variable_2="l"/>
+   <map_variables variable_1="r_thoracic_aorta_C104" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C104" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="E_thoracic_aorta_C108" variable_2="E"/>
+   <map_variables variable_1="l_thoracic_aorta_C108" variable_2="l"/>
+   <map_variables variable_1="r_thoracic_aorta_C108" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C108" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="E_thoracic_aorta_C112" variable_2="E"/>
+   <map_variables variable_1="l_thoracic_aorta_C112" variable_2="l"/>
+   <map_variables variable_1="r_thoracic_aorta_C112" variable_2="r"/>
+   <map_variables variable_1="theta_thoracic_aorta_C112" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C114" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C114" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C114" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C114" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="trunk_C_T_module"/>
+   <map_variables variable_1="R_T_trunk_C" variable_2="R_T"/>
+   <map_variables variable_1="C_T_trunk_C" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="trunk_C_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C136" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C136" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C136" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C136" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C164" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C164" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C164" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C164" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C176" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C176" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C176" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C176" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C188_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C188" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C188" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C188" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C188" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C188_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="abdominal_aorta_C192_module"/>
+   <map_variables variable_1="E_abdominal_aorta_C192" variable_2="E"/>
+   <map_variables variable_1="l_abdominal_aorta_C192" variable_2="l"/>
+   <map_variables variable_1="r_abdominal_aorta_C192" variable_2="r"/>
+   <map_variables variable_1="theta_abdominal_aorta_C192" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="abdominal_aorta_C192_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="common_iliac_L194_module"/>
+   <map_variables variable_1="E_common_iliac_L194" variable_2="E"/>
+   <map_variables variable_1="l_common_iliac_L194" variable_2="l"/>
+   <map_variables variable_1="r_common_iliac_L194" variable_2="r"/>
+   <map_variables variable_1="theta_common_iliac_L194" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="common_iliac_L194_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="external_iliac_L198_module"/>
+   <map_variables variable_1="E_external_iliac_L198" variable_2="E"/>
+   <map_variables variable_1="l_external_iliac_L198" variable_2="l"/>
+   <map_variables variable_1="r_external_iliac_L198" variable_2="r"/>
+   <map_variables variable_1="theta_external_iliac_L198" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="external_iliac_L198_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="common_iliac_R216_module"/>
+   <map_variables variable_1="E_common_iliac_R216" variable_2="E"/>
+   <map_variables variable_1="l_common_iliac_R216" variable_2="l"/>
+   <map_variables variable_1="r_common_iliac_R216" variable_2="r"/>
+   <map_variables variable_1="theta_common_iliac_R216" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="common_iliac_R216_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="external_iliac_R220_module"/>
+   <map_variables variable_1="E_external_iliac_R220" variable_2="E"/>
+   <map_variables variable_1="l_external_iliac_R220" variable_2="l"/>
+   <map_variables variable_1="r_external_iliac_R220" variable_2="r"/>
+   <map_variables variable_1="theta_external_iliac_R220" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="external_iliac_R220_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="femoral_L200_module"/>
+   <map_variables variable_1="E_femoral_L200" variable_2="E"/>
+   <map_variables variable_1="l_femoral_L200" variable_2="l"/>
+   <map_variables variable_1="r_femoral_L200" variable_2="r"/>
+   <map_variables variable_1="theta_femoral_L200" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="femoral_L200_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="femoral_R222_module"/>
+   <map_variables variable_1="E_femoral_R222" variable_2="E"/>
+   <map_variables variable_1="l_femoral_R222" variable_2="l"/>
+   <map_variables variable_1="r_femoral_R222" variable_2="r"/>
+   <map_variables variable_1="theta_femoral_R222" variable_2="theta"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="femoral_R222_module"/>
+   <map_variables variable_1="beta_g" variable_2="beta_g"/>
+   <map_variables variable_1="rho" variable_2="rho"/>
+   <map_variables variable_1="mu" variable_2="mu"/>
+   <map_variables variable_1="g" variable_2="g"/>
+   <map_variables variable_1="a_vessel" variable_2="a_vessel"/>
+   <map_variables variable_1="b_vessel" variable_2="b_vessel"/>
+   <map_variables variable_1="c_vessel" variable_2="c_vessel"/>
+   <map_variables variable_1="d_vessel" variable_2="d_vessel"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="leg_L_T_module"/>
+   <map_variables variable_1="R_T_leg_L" variable_2="R_T"/>
+   <map_variables variable_1="C_T_leg_L" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="leg_L_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="leg_R_T_module"/>
+   <map_variables variable_1="R_T_leg_R" variable_2="R_T"/>
+   <map_variables variable_1="C_T_leg_R" variable_2="C_T"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="leg_R_T_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="venous_lb_module"/>
+   <map_variables variable_1="R_venous_lb" variable_2="R"/>
+   <map_variables variable_1="C_venous_lb" variable_2="C"/>
+   <map_variables variable_1="I_venous_lb" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="venous_lb_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="venous_ub_module"/>
+   <map_variables variable_1="R_venous_ub" variable_2="R"/>
+   <map_variables variable_1="C_venous_ub" variable_2="C"/>
+   <map_variables variable_1="I_venous_ub" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="venous_ub_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="venous_ivc_module"/>
+   <map_variables variable_1="R_venous_ivc" variable_2="R"/>
+   <map_variables variable_1="C_venous_ivc" variable_2="C"/>
+   <map_variables variable_1="I_venous_ivc" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="venous_ivc_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="venous_svc_module"/>
+   <map_variables variable_1="R_venous_svc" variable_2="R"/>
+   <map_variables variable_1="C_venous_svc" variable_2="C"/>
+   <map_variables variable_1="I_venous_svc" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="venous_svc_module"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;time mapping&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="environment" component_2="heart_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="ascending_aorta_A_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="ascending_aorta_B_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="ascending_aorta_C_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="ascending_aorta_D_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="aortic_arch_C2_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="aortic_arch_C46_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="aortic_arch_C64_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="brachiocephalic_trunk_C4_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="common_carotid_L48_A_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="common_carotid_R6_A_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="subclavian_L66_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="subclavian_R28_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="head_L_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="head_R_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="arm_L_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="arm_R_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="aortic_arch_C94_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C96_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C100_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C104_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C108_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="thoracic_aorta_C112_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C114_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="trunk_C_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C136_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C164_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C176_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C188_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="abdominal_aorta_C192_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="common_iliac_L194_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="external_iliac_L198_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="common_iliac_R216_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="external_iliac_R220_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="femoral_L200_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="femoral_R222_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="leg_L_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="leg_R_T_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="venous_lb_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="venous_ub_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="venous_ivc_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="venous_svc_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+</model>

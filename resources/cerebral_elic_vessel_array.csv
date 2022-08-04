@@ -74,8 +74,6 @@ posterior_cerebral_precommunicating_part_L6,pp,arterial,basilar_C4,posterior_cer
 posterior_cerebral_precommunicating_part_R204,pp,arterial,basilar_C4,posterior_cerebral_postcommunicating_part_R208
 posterior_communicating_L8,pp,arterial,internal_carotid_L50,posterior_cerebral_postcommunicating_part_L12
 posterior_communicating_R206,pp,arterial,internal_carotid_R8,posterior_cerebral_postcommunicating_part_R208
-vertebral_L2,pp,arterial,subclavian_L66,basilar_C4
-vertebral_R272,pp,arterial,subclavian_R28,basilar_C4
 artery_of_precentral_sulcus_T103_R68,pv,split_junction,middle_cerebral_superior_terminal_branch_R66,artery_of_central_sulcus_T101_R70_T                artery_of_precentral_sulcus_T103_R72_T
 artery_of_precentral_sulcus_T38_L130,pv,split_junction,middle_cerebral_superior_terminal_branch_L128,artery_of_central_sulcus_T36_L132_T                artery_of_precentral_sulcus_T38_L134_T
 medial_occipital_parieto_occipital_branch_T118_R262,pv,split_junction,medial_occipital_R260,medial_occipital_parieto_occipital_branch_T118_R266_T                medial_occipital_parietal_branch_T81_R264_T

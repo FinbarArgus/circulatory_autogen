@@ -7760,7 +7760,7 @@
             <apply>
                 <eq/>
                 <ci>v</ci>
-                <cn cellml:units="dimensionless">0.0015</cn>
+                <cn cellml:units="dimensionless" type="e-notation">3.1<sep/>-6</cn>
             </apply>
         </math>
         <!--var v_out: m3_per_s {pub: out};
@@ -7775,7 +7775,7 @@ u_out = u_in;-->
             <apply>
                 <eq/>
                 <ci>v</ci>
-                <cn cellml:units="dimensionless">0.0015</cn>
+                <cn cellml:units="dimensionless" type="e-notation">3.1<sep/>-6</cn>
             </apply>
         </math>
         <!--var v_out: m3_per_s {pub: out};
@@ -7791,12 +7791,12 @@ u_out = u_in;-->
             <apply>
                 <eq/>
                 <ci>v1</ci>
-                <cn cellml:units="dimensionless">0</cn>
+                <cn cellml:units="dimensionless" type="e-notation">3.1<sep/>-6</cn>
             </apply>
             <apply>
                 <eq/>
                 <ci>v2</ci>
-                <cn cellml:units="dimensionless">0</cn>
+                <cn cellml:units="dimensionless" type="e-notation">3.1<sep/>-6</cn>
             </apply>
         </math>
         <!--var v_out: m3_per_s {pub: out};
@@ -8428,8 +8428,8 @@ u_out = 0{J_per_m3};-->
         <variable initial_value="100" name="cc5" units="dimensionless"/>
         <variable initial_value="100" name="aa8" public_interface="out" units="dimensionless"/>
         <variable initial_value="100" name="cc8" units="dimensionless"/>
-        <variable initial_value="1e6" name="learning_rate" units="dimensionless"/>
-        <variable initial_value="0.001" name="K_a" units="dimensionless"/>
+        <variable initial_value="1e8" name="learning_rate" units="dimensionless"/>
+        <variable initial_value="0.01" name="K_a" units="dimensionless"/>
         <variable name="critic" public_interface="out" units="dimensionless"/>
         <variable name="r_a" public_interface="out" units="dimensionless"/>
         <!-- Conservation Laws-->
@@ -8471,7 +8471,7 @@ u_out = 0{J_per_m3};-->
                         <apply>
                             <divide/>
                             <ci>v</ci>
-                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>-4</cn>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>-6</cn>
                         </apply>
                         <cn cellml:units="dimensionless">2</cn>
                     </apply>
