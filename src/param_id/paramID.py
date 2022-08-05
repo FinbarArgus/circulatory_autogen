@@ -75,8 +75,8 @@ class CVS0DParamID():
         self.dt = dt
         self.n_steps = int(sim_time/self.dt)
 
-        param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
-        case_type = f'{param_id_method}_{file_name_prefix}_{param_id_obs_file_prefix}'
+        self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
         if self.rank == 0:
             self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
             if not os.path.exists(self.param_id_output_dir):
@@ -316,11 +316,11 @@ class CVS0DParamID():
                     axs[1, 1].legend(loc='lower right', fontsize=6)
                     plt.tight_layout()
                     plt.savefig(os.path.join(self.plot_dir,
-                                             f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}_{plot_idx}.eps'))
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
                     plt.savefig(os.path.join(self.plot_dir,
-                                             f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}_{plot_idx}.pdf'))
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
                     plt.close()
                     plot_saved = True
                     col_idx = 0
@@ -338,11 +338,11 @@ class CVS0DParamID():
             axs[0, 0].legend(loc='lower right', fontsize=6)
             plt.tight_layout()
             plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_{plot_idx}.eps'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
             plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_{plot_idx}.pdf'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
             plt.close()
 
         # Make a bar plot with all percentage errors.
@@ -369,11 +369,11 @@ class CVS0DParamID():
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'error_bars_{self.param_id_method}_'
-                                 f'{self.file_name_prefix}.eps'))
+                                 f'error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'error_bars_{self.param_id_method}_'
-                                 f'{self.file_name_prefix}.pdf'))
+                                 f'error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.pdf'))
         plt.close()
 
         #plot error as number of standard deviations of
@@ -387,11 +387,11 @@ class CVS0DParamID():
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'std_error_bars_{self.param_id_method}_'
-                                 f'{self.file_name_prefix}.eps'))
+                                 f'std_error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'std_error_bars_{self.param_id_method}_'
-                                 f'{self.file_name_prefix}.pdf'))
+                                 f'std_error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.pdf'))
         plt.close()
 
         print('______observable errors______')
@@ -486,7 +486,6 @@ class CVS0DParamID():
                 best_param_vals = np.load(os.path.join(self.output_dir, 'best_param_vals.npy'))
                 self.param_id.set_best_param_vals(best_param_vals)
 
-        # overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
         overwrite_params_to_plot_idxs = [II for II in range(num_params)] # This plots all param distributions
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
@@ -498,10 +497,25 @@ class CVS0DParamID():
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
                                 truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
                                 fontsize=20)
-        # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.eps'))
-        plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_cornerplot.pdf'))
-        # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.eps'))
-        # plt.savefig(os.path.join(self.plot_dir, 'mcmc_cornerplot.pdf'))
+        plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_{self.file_name_prefix}_'
+                                                f'{self.param_id_obs_file_prefix}.pdf'))
+        plt.close()
+
+        # do another corner plot with just a subset of params
+        overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
+        if self.mcmc_instead:
+            fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
+                                truths=mcmc_object.best_param_vals[overwrite_params_to_plot_idxs],
+                                fontsize=20)
+        else:
+            fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
+                                labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
+                                truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
+                                fontsize=20)
+
+        plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_subset_{self.file_name_prefix}_'
+                                                f'{self.param_id_obs_file_prefix}.pdf'))
         plt.close()
 
         # Also check autocorrelation times for mcmc chain
@@ -523,102 +537,6 @@ class CVS0DParamID():
         acceptable = d.geweke(samples, first=0.3, last=0.5)
         return acceptable
 
-
-    def calculate_mcmc_identifiability(self, second_deriv_threshold=-1000):
-        """THIS FUNCTION IS OBSOLETE REMOVE IT."""
-        if self.rank !=0:
-            return
-
-        mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
-
-        if not os.path.exists(mcmc_chain_path):
-            print('No mcmc results to plot')
-            return
-
-        print('plotting mcmc results')
-        samples = np.load(os.path.join(self.output_dir, 'mcmc_chain.npy'))
-        num_steps = samples.shape[0]
-        num_walkers = samples.shape[1]
-        num_params = samples.shape[2]  # TODO check this is the same as objects num_params
-        if self.mcmc_instead:
-            if num_params != mcmc_object.num_params:
-                print('num params in mcmc chain doesn\'t equal param_id number of params')
-        else:
-            if num_params != self.param_id.num_params:
-                print('num params in mcmc chain doesn\'t equal param_id number of params')
-        # discard first num_steps/10 samples
-        # samples = samples[samples.shape[0]//10:, :, :]
-        # thin = 10
-        # samples = samples[::thin, :, :]
-        # discarding samples isnt needed because we start an "optimal" point
-        # TODO include a user defined burn in if we aren't starting from
-        #  an optimal point.
-        flat_samples = samples.reshape(-1, num_params)
-        means = np.zeros((num_params))
-        conf_ivals = np.zeros((num_params, 3))
-
-        for param_idx in range(num_params):
-            means[param_idx] = np.mean(flat_samples[:, param_idx])
-            conf_ivals[param_idx, :] = np.percentile(flat_samples[:, param_idx], [5, 50, 95])
-
-        # collect bins of data
-        fig, axes = plt.subplots(num_params, figsize=(7, num_params*3))
-        num_bins = 20
-        bin_edges = np.linspace(conf_ivals[:,0], conf_ivals[:, 2], num_bins + 1)
-        bin_edges_norm = np.linspace(0, 1, num_bins + 1)
-        bin_means = np.array([(bin_edges[II, :] + bin_edges[II+1, :])/2 for II in range(num_bins)])
-        bin_means_norm = np.array([(bin_edges_norm[II] + bin_edges_norm[II+1])/2 for II in range(num_bins)])
-        x_for_smooth_plot = np.linspace(0, 1, 1000)
-        second_deriv = np.zeros((num_params,))
-
-        for idx, ax in enumerate(axes):
-            samples_in_bin = np.digitize(flat_samples[:, idx], bin_edges[:, idx])
-            total_in_each_bin = [np.sum(samples_in_bin == II) for II in range(num_bins)]
-            ax.plot(bin_means_norm, total_in_each_bin, color='r', linestyle='None', marker='x', label='post_dist')
-            # now we fit statistical distribution curve to the mcmc results,
-            # so that we can get the 2nd derivative and determine
-            # whether each parameter is identifiable.
-            distribution_test_list = [stat_distributions.gaussian,
-                                      stat_distributions.uniform,
-                                      stat_distributions.log_normal]
-            distribution_d2_dx2_list = [stat_distributions.gaussian_d2_dx2,
-                                      stat_distributions.uniform_d2_dx2,
-                                      stat_distributions.log_normal_d2_dx2]
-
-            dist_params_list = []
-            err_list = []
-            for dist_func in distribution_test_list:
-                dist_params, _ = curve_fit(dist_func, bin_means_norm, total_in_each_bin, maxfev=2000)
-                dist_params_list.append(dist_params)
-                y_fit = dist_func(bin_means_norm, *dist_params)
-                err_list.append(np.sum((y_fit-total_in_each_bin)**2))
-            best_dist_idx = np.argmin(err_list)
-            best_dist_func = distribution_test_list[best_dist_idx]
-            best_dist_d2_dx2 = distribution_d2_dx2_list[best_dist_idx]
-            p_opt = dist_params_list[best_dist_idx]
-            y_opt = best_dist_func(x_for_smooth_plot, *p_opt)
-
-
-            ax.plot(x_for_smooth_plot, y_opt, color='b', label='curve fit')
-            MLE_idx = np.argmax(y_opt)
-            MLE_x_normed = x_for_smooth_plot[MLE_idx]
-            second_deriv[idx] = best_dist_d2_dx2(MLE_x_normed, *p_opt)
-            if second_deriv[idx] < second_deriv_threshold:
-                ax.plot([-999], [0.0], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
-                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='^', label='identifiable MLE')
-            else:
-                ax.plot(MLE_x_normed, y_opt[MLE_idx], color='b', linestyle='None', marker='x', label='non-identifiable MLE')
-                ax.plot([-999], [0.0], color='b', linestyle='None', marker='^', label='identifiable MLE')
-
-            ax.set_xlim(0.0, 1.0)
-            ax.set_xlabel(f'${self.param_names_for_plotting[idx]}$')
-            ax.set_ylabel('freq')
-
-        print(second_deriv)
-        ax.legend()
-        plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_2nd_deriv_plot.pdf'))
-        return second_deriv, second_deriv >= second_deriv_threshold
-    
     def run_single_sensitivity(self, do_triples_and_quads):
         self.param_id.run_single_sensitivity(self.output_dir, do_triples_and_quads)
 
@@ -730,11 +648,11 @@ class CVS0DParamID():
         axs.set_yscale('log')
         axs.legend(loc='lower left', fontsize=6)
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_sensitivity_average.eps'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_sensitivity_average.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_sensitivity_average.pdf'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_sensitivity_average.pdf'))
         plt.close()
         #plot parameter importance
         plt.rc('xtick', labelsize=6)
@@ -745,11 +663,11 @@ class CVS0DParamID():
         axsB.bar(x_values, parameter_importance_average)
         axsB.set_ylabel("Parameter Importance", fontsize=12)
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_parameter_importance_average.eps'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_parameter_importance_average.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_parameter_importance_average.pdf'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_parameter_importance_average.pdf'))
         plt.close()
         #plot collinearity index average
         plt.rc('xtick', labelsize=12)
@@ -763,11 +681,11 @@ class CVS0DParamID():
                 x_values_temp = x_values[i + 1] + "\n" + x_values_temp
         axsC.barh(x_values_cumulative, collinearity_index_average)
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_collinearity_index_average.eps'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_collinearity_index_average.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_collinearity_index_average.pdf'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_collinearity_index_average.pdf'))
         plt.close()
 
         plt.rc('xtick', labelsize=4)
@@ -787,11 +705,11 @@ class CVS0DParamID():
         axsD.set_yticklabels(x_values)
 
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_collinearity_pairs_average.eps'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_collinearity_pairs_average.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                     f'reconstruct_{self.param_id_method}_'
-                                     f'{self.file_name_prefix}_collinearity_pairs_average.pdf'))
+                                     f'reconstruct_{self.file_name_prefix}_'
+                                     f'{self.param_id_obs_file_prefix}_collinearity_pairs_average.pdf'))
 
         if do_triples_and_quads:
             #plot collinearity triples average
@@ -812,11 +730,11 @@ class CVS0DParamID():
                 axsE.set_yticklabels(x_values)
 
                 plt.savefig(os.path.join(self.plot_dir,
-                                             f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.eps'))
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_collinearity_triples_average' + str(i) + '.eps'))
                 plt.savefig(os.path.join(self.plot_dir,
-                                             f'reconstruct_{self.param_id_method}_'
-                                             f'{self.file_name_prefix}_collinearity_triples_average' + str(i) + '.pdf'))
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_collinearity_triples_average' + str(i) + '.pdf'))
                 plt.close()
             #plot collinearity quads average
             for i in range(len(x_values)):
@@ -837,12 +755,12 @@ class CVS0DParamID():
                     axsE.set_yticklabels(x_values)
 
                     plt.savefig(os.path.join(self.plot_dir,
-                                                 f'reconstruct_{self.param_id_method}_'
-                                                 f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                 f'reconstruct_{self.file_name_prefix}_'
+                                                 f'{self.param_id_obs_file_prefix}collinearity_quads_average' + str(i) + '_' + str(
                                                      j) + '.eps'))
                     plt.savefig(os.path.join(self.plot_dir,
-                                                 f'reconstruct_{self.param_id_method}_'
-                                                 f'{self.file_name_prefix}collinearity_quads_average' + str(i) + '_' + str(
+                                                 f'reconstruct_{self.file_name_prefix}_'
+                                                 f'{self.param_id_obs_file_prefix}collinearity_quads_average' + str(i) + '_' + str(
                                                      j) + '.pdf'))
                     plt.close()
 
@@ -1165,11 +1083,11 @@ class CVS0DParamID():
         np.save(os.path.join(self.output_dir, 'prediction_vals_std_ci.npy'), pred_save_array)
 
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'prediction_'
-                                 f'{self.file_name_prefix}.eps'))
+                                 f'prediction_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.eps'))
         plt.savefig(os.path.join(self.plot_dir,
-                                 f'prediction_'
-                                 f'{self.file_name_prefix}.pdf'))
+                                 f'prediction_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.pdf'))
 
         # save param standard deviations
         param_std = np.std(flat_samples, axis=0)
