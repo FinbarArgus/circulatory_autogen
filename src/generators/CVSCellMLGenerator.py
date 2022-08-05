@@ -249,6 +249,7 @@ class CVS0DCellMLGenerator(object):
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
             self.__write_import(wf, vessel_tup)
+
         # TODO change the below to vessel_type, not "name"
         if len(vessel_df.loc[vessel_df["name"] == 'heart']) == 1:
             # add a zero mapping to heart ivc or svc flow input if only one input is specified
@@ -606,7 +607,7 @@ class CVS0DCellMLGenerator(object):
         module_addon = '_module'
 
         global_variable_addon = f'_{vessel_name}'
-        if vessel_row["vessel_type"] == 'terminal':
+        if vessel_row["vessel_type"] == 'terminal' or vessel_row["vessel_type"] == 'terminal2':
             global_variable_addon = re.sub('_T$', '', global_variable_addon)
         params_with_addon_heading = 'parameters'
         params_without_addon_heading = 'parameters_global'

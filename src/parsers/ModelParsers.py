@@ -35,14 +35,22 @@ class CSV0DModelParser(object):
         # TODO remove the below:
         #  Temporarily we add a pulmonary system if there isnt one defined, this should be defined by
         #   the user but we include this to improve backwards compatitibility.
-        if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
-            # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
-            # add pulmonary vein and artery to df
-            vessels_df.loc[vessels_df.index.max()+1] = ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']]
-            vessels_df.loc[vessels_df.index.max()+1] = ['pvn', 'vp', 'arterial_simple', ['par'], ['heart']]
-            # add pulmonary artery (par) to output of heart and pvn to input
-            vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
-            vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
+
+        if len(vessels_df.loc[vessels_df["name"] == 'heart']) == 1:
+            if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
+                # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
+                # add pulmonary vein and artery to df
+                vessels_df.loc[vessels_df.index.max()+1] = ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']]
+                vessels_df.loc[vessels_df.index.max()+1] = ['pvn', 'vp', 'arterial_simple', ['par'], ['heart']]
+                # add pulmonary artery (par) to output of heart and pvn to input
+                vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
+                vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
+        elif len(vessels_df.loc[vessels_df["name"] == 'heart']) == 0:
+            pass
+        else:
+            print('cannot have more than 2 hearts, we dont model octopii')
+            exit()
+
 
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, self.module_config_path)
@@ -90,7 +98,7 @@ class CSV0DModelParser(object):
             if vessel_tup.vessel_type.startswith('heart'):
                 str_addon = ''
                 module = 'heart'
-            elif vessel_tup.vessel_type == 'terminal':
+            elif vessel_tup.vessel_type == 'terminal' or vessel_tup.vessel_type == 'terminal2':
                 str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
                 module = 'systemic'
             else:
