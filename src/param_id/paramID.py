@@ -2149,7 +2149,7 @@ class OpencorMCMC():
 
             if not prior_dist or prior_dist == 'uniform':
                 if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
-                    return -np.inf # temporarily remove limits
+                    return -np.inf
                 else:
                     #prior += 0
                     pass
