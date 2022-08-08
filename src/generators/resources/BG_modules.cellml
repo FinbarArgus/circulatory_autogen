@@ -32,8 +32,9 @@
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -216,6 +217,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v-v_out)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -223,18 +225,24 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_out</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_out</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
+            <!-- + u_ext;-->
             <apply>
                 <eq/>
                 <ci>u</ci>
@@ -283,9 +291,10 @@
         <!-- State Variables-->
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -469,6 +478,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in-v)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -476,15 +486,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v_in</ci>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_in</ci>
-                        <ci>v</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
@@ -537,9 +552,10 @@
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_d" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -730,6 +746,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v-v_d)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -737,15 +754,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_d</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_d</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
@@ -830,11 +852,13 @@
         <!-- State Variables-->
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_d" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C_d" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C_d" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1017,6 +1041,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in-v)/(C/2{dimensionless});-->
             <apply>
                 <eq/>
                 <apply>
@@ -1024,15 +1049,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v_in</ci>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_in</ci>
-                        <ci>v</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -1040,6 +1070,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- ode(u_C_d, t) = (v-v_out)/(C/2{dimensionless});-->
             <apply>
                 <eq/>
                 <apply>
@@ -1047,15 +1078,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C_d</ci>
+                    <ci>q_C_d</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_out</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C_d</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_out</ci>
-                    </apply>
+                    <ci>q_C_d</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -1112,8 +1148,9 @@
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="in" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1153,6 +1190,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v-v_out)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -1160,15 +1198,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_out</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_out</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
@@ -1202,9 +1245,10 @@
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v_d" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1252,6 +1296,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v-v_d)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -1259,15 +1304,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_d</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_d</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
@@ -1335,11 +1385,13 @@
         <!-- State Variables-->
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_d" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C_d" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C_d" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_C_d" public_interface="out" units="J_per_m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1379,6 +1431,8 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in-v)/(C/2{dimensionless});
+ ode(u_C_d, t) = (v-v_out)/(C/2{dimensionless});-->
             <apply>
                 <eq/>
                 <apply>
@@ -1386,15 +1440,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v_in</ci>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v_in</ci>
-                        <ci>v</ci>
-                    </apply>
+                    <ci>q_C</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -1409,15 +1468,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C_d</ci>
+                    <ci>q_C_d</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_out</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C_d</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_out</ci>
-                    </apply>
+                    <ci>q_C_d</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -1620,6 +1684,7 @@
                     <ci>C_T</ci>
                 </apply>
             </apply>
+            <!-- + u_ext;-->
             <apply>
                 <eq/>
                 <ci>u</ci>
@@ -2069,6 +2134,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- The below assumes constant compliance-->
             <apply>
                 <eq/>
                 <ci>du_C_dt</ci>
@@ -2151,12 +2217,14 @@
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_d" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C_d" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C_d" public_interface="out" units="J_per_m3"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2339,6 +2407,8 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in_1+v_in_2-v)/(C/2{dimensionless});
+ ode(u_C_d, t) = (v-v_out_1-v_out_2)/(C/2{dimensionless});-->
             <apply>
                 <eq/>
                 <apply>
@@ -2346,19 +2416,24 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
-                    <divide/>
+                    <minus/>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <plus/>
-                            <ci>v_in_1</ci>
-                            <ci>v_in_2</ci>
-                        </apply>
-                        <ci>v</ci>
+                        <plus/>
+                        <ci>v_in_1</ci>
+                        <ci>v_in_2</ci>
                     </apply>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_C</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -2373,19 +2448,24 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C_d</ci>
+                    <ci>q_C_d</ci>
                 </apply>
                 <apply>
-                    <divide/>
+                    <minus/>
                     <apply>
                         <minus/>
-                        <apply>
-                            <minus/>
-                            <ci>v</ci>
-                            <ci>v_out_1</ci>
-                        </apply>
-                        <ci>v_out_2</ci>
+                        <ci>v</ci>
+                        <ci>v_out_1</ci>
                     </apply>
+                    <ci>v_out_2</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C_d</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_C_d</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -2468,11 +2548,13 @@
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_d" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C_d" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C_d" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2655,6 +2737,8 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in_1+v_in_2-v)/(C/2{dimensionless});
+ ode(u_C_d, t) = (v-v_out)/(C/2{dimensionless});-->
             <apply>
                 <eq/>
                 <apply>
@@ -2662,19 +2746,24 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
-                    <divide/>
+                    <minus/>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <plus/>
-                            <ci>v_in_1</ci>
-                            <ci>v_in_2</ci>
-                        </apply>
-                        <ci>v</ci>
+                        <plus/>
+                        <ci>v_in_1</ci>
+                        <ci>v_in_2</ci>
                     </apply>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_C</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -2689,15 +2778,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C_d</ci>
+                    <ci>q_C_d</ci>
                 </apply>
                 <apply>
+                    <minus/>
+                    <ci>v</ci>
+                    <ci>v_out</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C_d</ci>
+                <apply>
                     <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>v</ci>
-                        <ci>v_out</ci>
-                    </apply>
+                    <ci>q_C_d</ci>
                     <apply>
                         <divide/>
                         <ci>C</ci>
@@ -2776,9 +2870,10 @@
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2961,6 +3056,7 @@
                     <ci>I</ci>
                 </apply>
             </apply>
+            <!-- ode(u_C, t) = (v_in_1+v_in_2-v)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -2968,19 +3064,24 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <apply>
-                    <divide/>
+                    <minus/>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <plus/>
-                            <ci>v_in_1</ci>
-                            <ci>v_in_2</ci>
-                        </apply>
-                        <ci>v</ci>
+                        <plus/>
+                        <ci>v_in_1</ci>
+                        <ci>v_in_2</ci>
                     </apply>
+                    <ci>v</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
+                    <divide/>
+                    <ci>q_C</ci>
                     <ci>C</ci>
                 </apply>
             </apply>
