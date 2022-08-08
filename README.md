@@ -61,7 +61,7 @@ create a json file with the ground truth data. See `resources/simple_physiologic
 ./run_param_id.sh
 ```
 
-Following a succesfull parameter id process the model with updated parameters can be generated with
+Following a successful parameter id process the model with updated parameters can be generated with
 ```bash
 ./run_autogeneration_with_id_params.sh
 ```

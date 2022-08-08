@@ -180,6 +180,9 @@ class JSONFileParser(object):
         for vessel_tup in vessel_df.itertuples():
             vessel_type = vessel_tup.vessel_type
             BC_type = vessel_tup.BC_type
+            if len(BC_type) <1 or len(vessel_type) <1:
+                print('You have an empty entry in your vessel array, exiting')
+                exit()
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
             for column in add_on_lists:

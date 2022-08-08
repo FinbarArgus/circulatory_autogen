@@ -14,6 +14,7 @@ import os
 
 generator_resources_dir_path = os.path.join(os.path.dirname(__file__), '../generators/resources')
 
+
 class CSV0DModelParser(object):
     '''
     Creates a 0D model representation from a vessel and a parameter CSV files.
@@ -29,18 +30,33 @@ class CSV0DModelParser(object):
     def load_model(self):
         # TODO if file ending is csv. elif file ending is json
         # TODO create a json_parser
-        vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename,True)
+        vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename, True)
 
         # TODO remove the below:
         #  Temporarily we add a pulmonary system if there isnt one defined, this should be defined by
         #   the user but we include this to improve backwards compatitibility.
-       
+
+        if len(vessels_df.loc[vessels_df["name"] == 'heart']) == 1:
+            if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
+                # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
+                # add pulmonary vein and artery to df
+                vessels_df.loc[vessels_df.index.max()+1] = ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']]
+                vessels_df.loc[vessels_df.index.max()+1] = ['pvn', 'vp', 'arterial_simple', ['par'], ['heart']]
+                # add pulmonary artery (par) to output of heart and pvn to input
+                vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
+                vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
+        elif len(vessels_df.loc[vessels_df["name"] == 'heart']) == 0:
+            pass
+        else:
+            print('cannot have more than 2 hearts, we dont model octopii')
+            exit()
+
 
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, self.module_config_path)
 
         # TODO change to using a pandas dataframe
-        parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename,True)
+        parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename, True)
         # Reduce parameters_array so that it only includes the required parameters for
         # this vessel_array.
         # This will output True if all the required parameters have been defined and

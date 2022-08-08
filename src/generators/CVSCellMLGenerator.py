@@ -249,17 +249,24 @@ class CVS0DCellMLGenerator(object):
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
             self.__write_import(wf, vessel_tup)
-        # add a zero mapping to heart ivc or svc flow input if only one input is specified
-        if len(vessel_df.loc[vessel_df["name"] == 'heart']) > 0:
+
+        # TODO change the below to vessel_type, not "name"
+        if len(vessel_df.loc[vessel_df["name"] == 'heart']) == 1:
+            # add a zero mapping to heart ivc or svc flow input if only one input is specified
             if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] or \
                     "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
                 wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
-                           f'    <component component_ref="zero_flow" name="zero_flow_module"/>\n',
-                           '</import>\n'])
+                               f'    <component component_ref="zero_flow" name="zero_flow_module"/>\n',
+                               '</import>\n'])
             if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] and \
                     "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
                 print('either venous_ivc, or venous_svc, or both must be inputs to the heart, exiting')
                 exit()
+        elif len(vessel_df.loc[vessel_df["name"] == 'heart']) < 1:
+            pass
+        elif len(vessel_df.loc[vessel_df["name"] == 'heart']) > 1:
+            print('you have declared more that one heart module, exiting')
+            exit()
 
     def __write_module_mappings(self, wf, module_df):
         """This function maps between ports of the modules in a module dataframe."""

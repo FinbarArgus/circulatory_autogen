@@ -1,19 +1,21 @@
 ## general inputs
 # file_prefix=FTU_wCVS
 # file_prefix=3compartment
+file_prefix=3compartment_energy
 # file_prefix=simple_physiological
 # file_prefix=neonatal
 # file_prefix=physiological
 # file_prefix=control_phys
-file_prefix=FinalModel
+# file_prefix=elic
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
+input_param_file=3compartment_energy_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 # input_param_file=control_phys_parameters.csv # this must be stored in resources.
-input_param_file=FinalModel_parameters.csv # this must be stored in resources.
+# input_param_file=elic_parameters.csv # this must be stored in resources.
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
                                      # set this to parameters_orig.csv and a 
@@ -21,15 +23,15 @@ input_param_file=FinalModel_parameters.csv # this must be stored in resources.
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=3
+num_procs=16
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=100
+num_calls_to_function=10000
 run_sensitivity=False
 
 ## mcmc inputs
-do_mcmc=True
+do_mcmc=False
 
 # This for 3compartment
 # param_id_obs_path=/home/finbar/Documents/data/cardiohance_data/cardiohance_observables.json 
@@ -48,9 +50,9 @@ do_mcmc=True
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-# param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
-# param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
-param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
+# param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
+param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
+# param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
 
 # This is for fitting to ADAVN
 # param_id_obs_path=/people/farg967/Documents/data/ADAVN_data.json
@@ -65,9 +67,8 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observab
 ## paths
 ## the below for my hpc
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
-
 ## the below for my local
-opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
-# opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
+# opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
+opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 

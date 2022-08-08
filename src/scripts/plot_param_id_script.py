@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     try:
 
-        plot_predictions = False
+        plot_predictions = True
 
         if len(sys.argv) != 5:
             print(f'incorrect number of inputs to plot_param_id.py script')
