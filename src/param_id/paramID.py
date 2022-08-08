@@ -423,10 +423,11 @@ class CVS0DParamID():
 
         # TODO fix the below
         # for some reason some chains get stuck for long times, remove the chains that get stuck
+        # I think this occurs when initialisation happens outside of the prior distribution
         walkers_to_remove = []
         for walker_idx in range(num_walkers):
             for param_idx in range(num_params):
-                block_size = 40
+                block_size = 200
                 for step_block_idx in range(num_steps//block_size):
                     # get std of the block and remove that chain it if is zero
                     block_std = np.std(samples[step_block_idx*block_size:(step_block_idx+1)*block_size, walker_idx, param_idx])
@@ -434,9 +435,10 @@ class CVS0DParamID():
                         walkers_to_remove.append(walker_idx)
 
         walkers_to_remove = list(set(walkers_to_remove))
-        print('There is a bug where chains can get stuck, removing walkers with stuck parameters. removed walker idxs:')
-        print(walkers_to_remove)
-        samples = np.delete(samples, walkers_to_remove, axis=1)
+        if len(walkers_to_remove) > 0:
+            print('There is a bug where chains can get stuck, removing walkers with stuck parameters. removed walker idxs:')
+            print(walkers_to_remove)
+            samples = np.delete(samples, walkers_to_remove, axis=1)
 
         # discard first num_steps/2 samples
         # TODO include a user defined burn in if we aren't starting from
