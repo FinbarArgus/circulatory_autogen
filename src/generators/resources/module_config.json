@@ -2042,7 +2042,7 @@
       
       {
         "port_type":"pressure_feed_port",
-        "variables":["","u_a"]
+        "variables":["u_a"]
       },
       {
         "port_type":"flow_feed_port",
