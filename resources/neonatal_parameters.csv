@@ -1,5 +1,5 @@
 variable_name,units,value,data_reference
-rho,Js2_per_m5,1050,known
+rho,Js2_per_m5,1050,Safaei
 T,second,0.4,literature
 q_ra_0,m3,0.00000024,literature
 q_rv_0,m3,0.0000008,literature
@@ -30,17 +30,14 @@ M_st_puv,dimensionless,1,Mynard_2012
 M_st_miv,dimensionless,1,Mynard_2012
 M_st_aov,dimensionless,1,Mynard_2012
 l_eff,metre,0.001,guessed
-A_nn_trv,m2,2.80E-04,"Abushaban2018, doubled"
-A_nn_puv,m2,8.80E-05,"Abushaban2018, doubled"
-A_nn_miv,m2,3.16E-04,"Abushaban2018, doubled"
-A_nn_aov,m2,9.46E-05,"Abushaban2018, doubled"
-R_aortic_root,Js_per_m6,1.00E+03,defined_by_user
-C_aortic_root,m6_per_J,4.00E-03,Mynard2011
-I_aortic_root,Js2_per_m6,1.0E+4,Cantinotti2014
-E_ascending_aorta,J_per_m3,4.00E+05,Meeting_23Jun2022
-l_ascending_aorta,metre,9.00E-03,Mynard2011
-r_ascending_aorta,metre,4.65E-03,Cantinotti2014
-theta_ascending_aorta,dimensionless,0.00E+00,defined_by_user
+A_nn_trv,m2,2.80E-04,Abushaban2018doubled
+A_nn_puv,m2,8.80E-05,Abushaban2018doubled
+A_nn_miv,m2,3.16E-04,Abushaban2018doubled
+A_nn_aov,m2,9.46E-05,Abushaban2018doubled
+E_aortic_root,J_per_m3,4.00E+05,to_be_identified
+l_aortic_root,metre,4.00E-03,Mynard2011
+r_aortic_root,metre,5.13E-03,Cantinotti2014
+theta_aortic_root,dimensionless,0.00E+00,defined_by_user
 beta_g,dimensionless,0.0,user_defined
 mu,Js_per_m3,0.004,known
 g,m_per_s2,9.81,known
@@ -48,6 +45,10 @@ a_vessel,dimensionless,0.2802,TODO_reference
 b_vessel,per_m,-505.3,TODO_reference
 c_vessel,dimensionless,0.1324,TODO_reference
 d_vessel,per_m,-11.14,TODO_reference
+E_ascending_aorta,J_per_m3,4.00E+05,Meeting_23Jun2022
+l_ascending_aorta,metre,9.00E-03,Mynard2011
+r_ascending_aorta,metre,4.65E-03,Cantinotti2014
+theta_ascending_aorta,dimensionless,0.00E+00,defined_by_user
 E_brachiocephalic,J_per_m3,4.00E+05,Meeting_23Jun2022
 l_brachiocephalic,metre,1.20E-02,Mynard2011
 r_brachiocephalic,metre,2.30E-03,Machii1997
@@ -84,27 +85,34 @@ E_abdominal_aorta,J_per_m3,4.00E+05,Meeting_23Jun2022
 l_abdominal_aorta,metre,6.90E-02,estimated
 r_abdominal_aorta,metre,2.62E-03,Cantinotti2014
 theta_abdominal_aorta,dimensionless,0.00E+00,defined_by_user
-R_T_abdomen,Js_per_m6,4.53E+09,to_be_identified
-C_T_abdomen,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_abdomen,Js2_per_m6,1e-6,small_chose
 R_T_head_L,Js_per_m6,1.63E+09,to_be_identified
 C_T_head_L,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_head_L,Js2_per_m6,1e-6,small_chosen
+alpha_head_L,dimensionless,1.00E+00,ANS_control_param
+v_nom_head_L,m3_per_s,7.34E-06,ADAN
 R_T_head_R,Js_per_m6,1.63E+09,to_be_identified
 C_T_head_R,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_head_R,Js2_per_m6,1e-6,small_chosen
+alpha_head_R,dimensionless,1.00E+00,ANS_control_param
+v_nom_head_R,m3_per_s,7.34E-06,ADAN
 R_T_arm_L,Js_per_m6,4.28E+10,to_be_identified
 C_T_arm_L,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_arm_L,Js2_per_m6,1e-6,small_chosen
+alpha_arm_L,dimensionless,1.00E+00,ANS_control_param
+v_nom_arm_L,m3_per_s,1.57E-06,ADAN
 R_T_arm_R,Js_per_m6,4.28E+10,to_be_identified
 C_T_arm_R,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_arm_R,Js2_per_m6,1e-6,small_chosen
+alpha_arm_R,dimensionless,1.00E+00,ANS_control_param
+v_nom_arm_R,m3_per_s,1.57E-06,ADAN
 R_T_leg_L,Js_per_m6,4.53E+09,to_be_identified
 C_T_leg_L,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_leg_L,Js2_per_m6,1e-6,small_chosen
+alpha_leg_L,dimensionless,1.00E+00,ANS_control_param
+v_nom_leg_L,m3_per_s,7.33E-06,ADAN
 R_T_leg_R,Js_per_m6,4.53E+09,to_be_identified
 C_T_leg_R,m6_per_J,1.00E-12,try_tiny_terminal_compliances
-I_T_leg_R,Js2_per_m6,1e-6,small_chosen
+alpha_leg_R,dimensionless,1.00E+00,ANS_control_param
+v_nom_leg_R,m3_per_s,7.33E-06,ADAN
+R_T_abdomen,Js_per_m6,4.53E+09,to_be_identified
+C_T_abdomen,m6_per_J,1.00E-12,try_tiny_terminal_compliances
+alpha_abdomen,dimensionless,1.00E+00,ANS_control_param
+v_nom_abdomen,m3_per_s,7.33E-06,ADAN
 R_venous_ivc,Js_per_m6,1.00E+05,try_tiny_venous_resistance
 C_venous_ivc,m6_per_J,1.00E-09,to_be_identified
 I_venous_ivc,Js2_per_m6,1.13E+05,03_05_2022_identified
