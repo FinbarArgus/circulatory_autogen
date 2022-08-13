@@ -276,14 +276,9 @@
       },
       
       {
-        "port_type":"flow_internalcarotid_L",
+        "port_type":"flow_input_BC",
         "variables":["v_in"]
        
-      },
-      {
-        "port_type":"flow_internalcarotid_R",
-        "variables":["v_in"]
-        
       }
     ],
     "exit_ports":
@@ -642,13 +637,8 @@
         "variables":["v_in_2","u"]
       },
       {
-        "port_type":"flow_basilar",
-        "variables":["v_in_1"]
-      },
-      {
-        "port_type":"flow_basilar",
-        "variables":["v_in_2"]
-        
+        "port_type":"flow_BC_2",
+        "variables":["v_in_1", "v_in_2"]
       }
     ],
     "exit_ports":
@@ -1852,7 +1842,7 @@
     "exit_ports":
     [
       {
-        "port_type":"multi_portgjsfglj",
+        "port_type":"multi_port_controller",
         "variables":["u"]
       }
     ],
@@ -1926,78 +1916,59 @@
     ]
   },
   {
-    "vessel_type":"input_flow_internalcarotid_L",
-    "BC_type":"nn",
+    "vessel_type":"input_pressure",
+    "BC_type":"nn_constant",
     "module_format":"cellml",
-    "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_internalcarotid_L_type",
-    
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_pressure_BC_type",
     "entrance_ports":
     [
-     
       {
-        
       }
     ],
-    
     "exit_ports":
     [
-      
-      
       {
-        "port_type":"flow_internalcarotid_L",
+        "port_type":"flow_input_BC",
         "variables":["v"]
        
       }
     ],
     "variables_and_units":
     [
-      ["v", "m3_per_s", "no_access", "variable"] 
-  
-     
+      ["v", "m3_per_s", "access", "constant"] 
     ]
   },
   {
-    "vessel_type":"input_flow_internalcarotid_R",
-    "BC_type":"nn",
+    "vessel_type":"input_flow",
+    "BC_type":"nn_constant",
     "module_format":"cellml",
-    "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_internalcarotid_R_type",
-    
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_flow_BC_type",
     "entrance_ports":
     [
-     
       {
-        
       }
     ],
-    
-    
     "exit_ports":
     [
-      
-     
       {
-        "port_type":"flow_internalcarotid_R",
+        "port_type":"flow_input_BC",
         "variables":["v"]
        
       }
     ],
     "variables_and_units":
     [
-      ["v", "m3_per_s", "no_access", "variable"] 
-    
-     
+      ["v", "m3_per_s", "access", "constant"] 
     ]
   },
   {
-    "vessel_type":"input_flow_basilar",
-    "BC_type":"nn",
+    "vessel_type":"input_flow",
+    "BC_type":"nn_constant_2",
     "module_format":"cellml",
     "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_basilar_type",
-    
-    
+    "module_type":"constant_flow_2_BC_type",
     "entrance_ports":
     [
      
@@ -2005,26 +1976,17 @@
         
       }
     ],
-    
-    
     "exit_ports":
     [
-      
       {
-        "port_type":"flow_basilar",
-        "variables":["v1"]
-        
-      },
-      {
-        "port_type":"flow_basilar",
-        "variables":["v2"]
-        
+        "port_type":"flow_BC_2",
+        "variables":["v_1", "v_2"]
       }
     ],
     "variables_and_units":
     [
-      ["v1", "m3_per_s", "no_access", "variable"], 
-      ["v2", "m3_per_s", "no_access", "variable"]
+      ["v_1", "m3_per_s", "access", "constant"], 
+      ["v_2", "m3_per_s", "access", "constant"]
     ]
   },
   {
@@ -2052,7 +2014,7 @@
     "exit_ports":
     [
       {
-        "port_type":"multi_portgjsfglj",
+        "port_type":"multi_port_controller",
         "variables":["u"]
       }
     ],
