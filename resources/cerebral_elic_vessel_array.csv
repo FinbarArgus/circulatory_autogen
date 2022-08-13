@@ -1,7 +1,7 @@
 name,BC_type,vessel_type,inp_vessels,out_vessels
-input_flow_basilar,nn_constant_2,input_flow,,basilar_C4
-input_flow_internalcarotid_L,nn_constant,input_flow,,ascending_aorta_A
-input_flow_internalcarotid_R,nn_constant,input_flow,,ascending_aorta_B
+input_flow_basilar,nn_constant_2,inlet_flow,,basilar_C4
+input_flow_internalcarotid_L,nn_constant,inlet_flow,,ascending_aorta_A
+input_flow_internalcarotid_R,nn_constant,inlet_flow,,ascending_aorta_B
 ascending_aorta_A,vv,arterial,input_flow_internalcarotid_L,internal_carotid_L50
 ascending_aorta_B,vv,arterial,input_flow_internalcarotid_R,internal_carotid_R8
 internal_carotid_R8,pv,split_junction,  ascending_aorta_B,posterior_communicating_R206             internal_carotid_R48    feedback

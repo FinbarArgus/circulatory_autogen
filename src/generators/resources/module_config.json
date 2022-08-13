@@ -273,12 +273,6 @@
       {
         "port_type":"vessel_port",
         "variables":["v_in","u"]
-      },
-      
-      {
-        "port_type":"flow_input_BC",
-        "variables":["v_in"]
-       
       }
     ],
     "exit_ports":
@@ -637,7 +631,7 @@
         "variables":["v_in_2","u"]
       },
       {
-        "port_type":"flow_BC_2",
+        "port_type":"flow_inlet_BC_2_port",
         "variables":["v_in_1", "v_in_2"]
       }
     ],
@@ -1916,7 +1910,30 @@
     ]
   },
   {
-    "vessel_type":"input_pressure",
+    "vessel_type":"outlet_pressure",
+    "BC_type":"nn_constant",
+    "module_format":"cellml",
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_pressure_BC_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+      }
+    ],
+    "variables_and_units":
+    [
+      ["P", "J_per_m3", "access", "constant"] 
+    ]
+  },
+  {
+    "vessel_type":"inlet_pressure",
     "BC_type":"nn_constant",
     "module_format":"cellml",
     "module_file":"boundary_condition_modules.cellml",
@@ -1929,8 +1946,31 @@
     "exit_ports":
     [
       {
-        "port_type":"flow_input_BC",
-        "variables":["v"]
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["P", "J_per_m3", "access", "constant"] 
+    ]
+  },
+  {
+    "vessel_type":"outlet_flow",
+    "BC_type":"nn_constant",
+    "module_format":"cellml",
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_flow_BC_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
        
       }
     ],
@@ -1940,7 +1980,7 @@
     ]
   },
   {
-    "vessel_type":"input_flow",
+    "vessel_type":"inlet_flow",
     "BC_type":"nn_constant",
     "module_format":"cellml",
     "module_file":"boundary_condition_modules.cellml",
@@ -1953,9 +1993,8 @@
     "exit_ports":
     [
       {
-        "port_type":"flow_input_BC",
-        "variables":["v"]
-       
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
       }
     ],
     "variables_and_units":
@@ -1964,7 +2003,7 @@
     ]
   },
   {
-    "vessel_type":"input_flow",
+    "vessel_type":"inlet_flow",
     "BC_type":"nn_constant_2",
     "module_format":"cellml",
     "module_file":"elic_modules.cellml",
@@ -1979,7 +2018,7 @@
     "exit_ports":
     [
       {
-        "port_type":"flow_BC_2",
+        "port_type":"flow_inlet_BC_2_port",
         "variables":["v_1", "v_2"]
       }
     ],
@@ -2015,6 +2054,40 @@
     [
       {
         "port_type":"multi_port_controller",
+        "variables":["u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "no_access", "variable"],
+      ["v", "m3_per_s", "no_access", "variable"],
+      ["pressure_d", "J_per_m3", "no_access", "global_constant"],
+      ["v_T", "m3_per_s", "no_access", "variable"],
+      ["R_T", "Js_per_m6", "access", "variable"],
+      ["C_T", "m6_per_J", "no_access", "constant"],
+      ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
+      ["BFF_ASL", "dimensionless", "no_access", "constant"],
+      ["error_flow_percent", "dimensionless", "access", "variable"],
+      ["q_T", "m3", "no_access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"coupler",
+    "BC_type":"pv_0D_1D",
+    "module_format":"cellml",
+    "module_file":"coupling_modules.cellml",
+    "module_type":"controller2_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["Q_star","P_s_0D"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"pressure_BC_port",
         "variables":["u"]
       }
     ],
