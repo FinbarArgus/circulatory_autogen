@@ -1924,8 +1924,6 @@
     ],
     "exit_ports":
     [
-      {
-      }
     ],
     "variables_and_units":
     [
@@ -1940,8 +1938,6 @@
     "module_type":"constant_pressure_BC_type",
     "entrance_ports":
     [
-      {
-      }
     ],
     "exit_ports":
     [
@@ -1970,9 +1966,6 @@
     ],
     "exit_ports":
     [
-      {
-       
-      }
     ],
     "variables_and_units":
     [
@@ -1987,8 +1980,6 @@
     "module_type":"constant_flow_BC_type",
     "entrance_ports":
     [
-      {
-      }
     ],
     "exit_ports":
     [
@@ -2010,10 +2001,6 @@
     "module_type":"constant_flow_2_BC_type",
     "entrance_ports":
     [
-     
-      {
-        
-      }
     ],
     "exit_ports":
     [
@@ -2093,16 +2080,10 @@
     ],
     "variables_and_units":
     [
-      ["u", "J_per_m3", "no_access", "variable"],
-      ["v", "m3_per_s", "no_access", "variable"],
-      ["pressure_d", "J_per_m3", "no_access", "global_constant"],
-      ["v_T", "m3_per_s", "no_access", "variable"],
-      ["R_T", "Js_per_m6", "access", "variable"],
-      ["C_T", "m6_per_J", "no_access", "constant"],
-      ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
-      ["BFF_ASL", "dimensionless", "no_access", "constant"],
-      ["error_flow_percent", "dimensionless", "access", "variable"],
-      ["q_T", "m3", "no_access", "variable"]
+      ["rho", "J_per_m3", "access", "variable"],
+      ["I", "J_per_m3", "access", "variable"],
+      ["P", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"]
     ]
   }
   

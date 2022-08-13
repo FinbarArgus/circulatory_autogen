@@ -27,6 +27,7 @@ class CSV0DModelParser(object):
         self.csv_parser = CSVFileParser()
         self.json_parser = JSONFileParser()
 
+
     def load_model(self):
         # TODO if file ending is csv. elif file ending is json
         # TODO create a json_parser
@@ -77,6 +78,11 @@ class CSV0DModelParser(object):
                               param_id_consts=param_id_consts,
                               param_id_date=param_id_date,
                               all_parameters_defined=all_parameters_defined)
+
+        # get the allowable types from the modules_config.json file
+        module_df = self.json_parser.json_to_dataframe(self.module_config_path)
+        model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
+
         if self.parameter_id_dir:
             check_list = [LumpedBCVesselCheck(), LumpedIDParamsCheck()]
         else:
