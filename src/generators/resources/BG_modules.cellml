@@ -29,6 +29,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -237,9 +238,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <!-- + u_ext;-->
@@ -289,6 +294,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
@@ -498,9 +504,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -549,6 +559,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -766,9 +777,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -850,6 +865,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
@@ -1061,13 +1077,17 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <!-- ode(u_C_d, t) = (v-v_out)/(C/2{dimensionless});-->
@@ -1090,13 +1110,17 @@
                 <eq/>
                 <ci>u_C_d</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C_d</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C_d</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1145,6 +1169,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -1210,9 +1235,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1242,6 +1271,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -1316,9 +1346,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1383,6 +1417,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
@@ -1452,13 +1487,17 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1480,13 +1519,17 @@
                 <eq/>
                 <ci>u_C_d</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C_d</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C_d</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1535,6 +1578,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="J_per_m3"/>
@@ -1599,9 +1643,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1634,6 +1682,7 @@
         <variable name="R_T" public_interface="in" units="Js_per_m6"/>
         <variable name="C_T" public_interface="in" units="m6_per_J"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -1679,9 +1728,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_T</ci>
-                    <ci>C_T</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_T</ci>
+                        <ci>C_T</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <!-- + u_ext;-->
@@ -1774,6 +1827,7 @@
         <variable name="R_T" public_interface="in" units="Js_per_m6"/>
         <variable name="C_T" public_interface="in" units="m6_per_J"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -1817,9 +1871,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_T</ci>
-                    <ci>C_T</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_T</ci>
+                        <ci>C_T</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -1945,13 +2003,15 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="u_C" public_interface="out" units="J_per_m3"/>
+        <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="du_C_dt" public_interface="out" units="J_per_m3s"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <!-- Constitutive Relations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2159,9 +2219,18 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>u_C</ci>
+                    <ci>q_C</ci>
                 </apply>
                 <ci>du_C_dt</ci>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_C</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_C</ci>
+                    <ci>u_ext</ci>
+                </apply>
             </apply>
             <apply>
                 <eq/>
@@ -2214,6 +2283,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -2432,13 +2502,17 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -2464,13 +2538,17 @@
                 <eq/>
                 <ci>u_C_d</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C_d</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C_d</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -2545,6 +2623,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -2762,13 +2841,17 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -2790,13 +2873,17 @@
                 <eq/>
                 <ci>u_C_d</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C_d</ci>
+                    <plus/>
                     <apply>
                         <divide/>
-                        <ci>C</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <ci>q_C_d</ci>
+                        <apply>
+                            <divide/>
+                            <ci>C</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
@@ -2867,6 +2954,7 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -3080,9 +3168,13 @@
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_C</ci>
-                    <ci>C</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_C</ci>
+                        <ci>C</ci>
+                    </apply>
+                    <ci>u_ext</ci>
                 </apply>
             </apply>
             <apply>
