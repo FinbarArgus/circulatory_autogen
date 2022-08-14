@@ -2068,7 +2068,7 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":["Q_star","P_s_0D"]
+        "variables":["q_star","P_s_0D"]
       }
     ],
     "exit_ports":
@@ -2086,7 +2086,7 @@
       ["P_s_0D", "J_per_m3", "access", "variable"],
       ["P_s_star", "J_per_m3", "access", "variable"],
       ["A_star", "m3", "access", "variable"],
-      ["Q_star", "m3_per_s", "access", "variable"],
+      ["q_star", "m3_per_s", "access", "variable"],
       ["flux", "m3_per_s", "access", "variable"]
     ]
   },
