@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+<component name="parameters_global">
+</component>
+<component name="parameters">
+<variable initial_value="83333e-09" name="v_inlet" public_interface="out" units="m3_per_s"/>
+<variable initial_value="10.664e+6" name="R_par" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="0.0309077e-8" name="C_par" public_interface="out" units="m6_per_J"/>
+<variable initial_value="1.0e-6" name="I_par" public_interface="out" units="Js2_per_m6"/>
+<variable initial_value="1.333e+6" name="R_pvn" public_interface="out" units="Js_per_m6"/>
+<variable initial_value="0.60015e-8" name="C_pvn" public_interface="out" units="m6_per_J"/>
+<variable initial_value="1.0e-6" name="I_pvn" public_interface="out" units="Js2_per_m6"/>
+<variable initial_value="666.0" name="P_outlet" public_interface="out" units="J_per_m3"/>
+</component>
+</model>

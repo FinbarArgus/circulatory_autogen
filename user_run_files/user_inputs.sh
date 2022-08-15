@@ -7,7 +7,8 @@
 # file_prefix=physiological
 # file_prefix=control_phys
 # file_prefix=cerebral_elic
-file_prefix=0D_1D_coupling_test
+#file_prefix=0D_1D_coupling_test
+file_prefix=behdad_test1
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
@@ -17,7 +18,8 @@ file_prefix=0D_1D_coupling_test
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 # input_param_file=control_phys_parameters.csv # this must be stored in resources.
 #input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
-input_param_file=0D_1D_coupling_test_parameters.csv # this must be stored in resources.
+#input_param_file=0D_1D_coupling_test_parameters.csv # this must be stored in resources.
+input_param_file=behdad_test1_parameters.csv # Behdad added this
 
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
                                      # If first creating a model
@@ -53,7 +55,7 @@ do_mcmc=False
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
+param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json #where u wanna save ur param identification output :)
 # param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
 
@@ -72,6 +74,6 @@ param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observa
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 ## the below for my local
 # opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
-opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
+opencor_pythonshell_path=/hpc/bsha219/Programs/OpenCOR-2022-05-31-Linux/pythonshell # points to opencore python API
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 
