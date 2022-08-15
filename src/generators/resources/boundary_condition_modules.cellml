@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+    <component name="constant_flow_BC_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="P" public_interface="in" units="J_per_m3"/>
+        <variable name="v" private_interface="in" public_interface="out" units="m3_per_s"/>
+    </component>
+    <component name="constant_flow_2_BC_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="v_1" private_interface="in" public_interface="out" units="m3_per_s"/>
+        <variable name="v_2" private_interface="in" public_interface="out" units="m3_per_s"/>
+    </component>
+    <component name="constant_pressure_BC_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="v" public_interface="in" units="m3_per_s"/>
+        <variable name="P" private_interface="in" public_interface="out" units="J_per_m3"/>
+    </component>
+</model>
