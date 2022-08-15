@@ -273,17 +273,6 @@
       {
         "port_type":"vessel_port",
         "variables":["v_in","u"]
-      },
-      
-      {
-        "port_type":"flow_internalcarotid_L",
-        "variables":["v_in"]
-       
-      },
-      {
-        "port_type":"flow_internalcarotid_R",
-        "variables":["v_in"]
-        
       }
     ],
     "exit_ports":
@@ -642,13 +631,8 @@
         "variables":["v_in_2","u"]
       },
       {
-        "port_type":"flow_basilar",
-        "variables":["v_in_1"]
-      },
-      {
-        "port_type":"flow_basilar",
-        "variables":["v_in_2"]
-        
+        "port_type":"flow_inlet_BC_2_port",
+        "variables":["v_in_1", "v_in_2"]
       }
     ],
     "exit_ports":
@@ -1852,7 +1836,7 @@
     "exit_ports":
     [
       {
-        "port_type":"multi_portgjsfglj",
+        "port_type":"multi_port_controller",
         "variables":["u"]
       }
     ],
@@ -1926,105 +1910,109 @@
     ]
   },
   {
-    "vessel_type":"input_flow_internalcarotid_L",
-    "BC_type":"nn",
+    "vessel_type":"outlet_pressure",
+    "BC_type":"nn_constant",
     "module_format":"cellml",
-    "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_internalcarotid_L_type",
-    
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_pressure_BC_type",
     "entrance_ports":
     [
-     
       {
-        
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
       }
     ],
-    
     "exit_ports":
     [
-      
-      
-      {
-        "port_type":"flow_internalcarotid_L",
-        "variables":["v"]
-       
-      }
     ],
     "variables_and_units":
     [
-      ["v", "m3_per_s", "no_access", "variable"] 
-  
-     
+      ["P", "J_per_m3", "access", "constant"] 
     ]
   },
   {
-    "vessel_type":"input_flow_internalcarotid_R",
-    "BC_type":"nn",
+    "vessel_type":"inlet_pressure",
+    "BC_type":"nn_constant",
     "module_format":"cellml",
-    "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_internalcarotid_R_type",
-    
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_pressure_BC_type",
     "entrance_ports":
     [
-     
-      {
-        
-      }
     ],
-    
-    
     "exit_ports":
     [
-      
-     
       {
-        "port_type":"flow_internalcarotid_R",
-        "variables":["v"]
-       
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
       }
     ],
     "variables_and_units":
     [
-      ["v", "m3_per_s", "no_access", "variable"] 
-    
-     
+      ["P", "J_per_m3", "access", "constant"] 
     ]
   },
   {
-    "vessel_type":"input_flow_basilar",
-    "BC_type":"nn",
+    "vessel_type":"outlet_flow",
+    "BC_type":"nn_constant",
     "module_format":"cellml",
-    "module_file":"elic_modules.cellml",
-    "module_type":"input_flow_basilar_type",
-    
-    
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_flow_BC_type",
     "entrance_ports":
     [
-     
       {
-        
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
       }
     ],
-    
-    
     "exit_ports":
     [
-      
+    ],
+    "variables_and_units":
+    [
+      ["v", "m3_per_s", "access", "constant"] 
+    ]
+  },
+  {
+    "vessel_type":"inlet_flow",
+    "BC_type":"nn_constant",
+    "module_format":"cellml",
+    "module_file":"boundary_condition_modules.cellml",
+    "module_type":"constant_flow_BC_type",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
       {
-        "port_type":"flow_basilar",
-        "variables":["v1"]
-        
-      },
-      {
-        "port_type":"flow_basilar",
-        "variables":["v2"]
-        
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
       }
     ],
     "variables_and_units":
     [
-      ["v1", "m3_per_s", "no_access", "variable"], 
-      ["v2", "m3_per_s", "no_access", "variable"]
+      ["v", "m3_per_s", "access", "constant"] 
+    ]
+  },
+  {
+    "vessel_type":"inlet_flow",
+    "BC_type":"nn_constant_2",
+    "module_format":"cellml",
+    "module_file":"elic_modules.cellml",
+    "module_type":"constant_flow_2_BC_type",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"flow_inlet_BC_2_port",
+        "variables":["v_1", "v_2"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["v_1", "m3_per_s", "access", "constant"], 
+      ["v_2", "m3_per_s", "access", "constant"]
     ]
   },
   {
@@ -2052,7 +2040,7 @@
     "exit_ports":
     [
       {
-        "port_type":"multi_portgjsfglj",
+        "port_type":"multi_port_controller",
         "variables":["u"]
       }
     ],
@@ -2069,6 +2057,60 @@
       ["error_flow_percent", "dimensionless", "access", "variable"],
       ["q_T", "m3", "no_access", "variable"]
     ]
+  },
+  {
+    "vessel_type":"coupler",
+    "BC_type":"pv_0D_1D",
+    "module_format":"cellml",
+    "module_file":"coupling_modules.cellml",
+    "module_type":"pv_0D_1D_coupler_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["q_star","P_s_0D"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"0D_1D_port",
+        "variables":["P_t_star","A_star", "flux"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["rho", "Js2_per_m5", "access", "global_constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
+      ["P_t_star", "J_per_m3", "access", "variable"],
+      ["P_s_0D", "J_per_m3", "access", "variable"],
+      ["P_s_star", "J_per_m3", "access", "variable"],
+      ["A_star", "m3", "access", "variable"],
+      ["q_star", "m3_per_s", "access", "variable"],
+      ["flux", "m3_per_s", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"imposter_1D",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"coupling_modules.cellml",
+    "module_type":"imposter_1D",
+    "entrance_ports":
+    [
+      {
+        "port_type":"0D_1D_port",
+        "variables":["P_t_star","A_star", "flux"]
+      }
+    ],
+    "exit_ports":
+    [
+    ],
+    "variables_and_units":
+    [
+      ["P_t_star", "J_per_m3", "access", "constant"],
+      ["A_star", "m3", "access", "constant"],
+      ["flux", "m3_per_s", "access", "variable"]
+    ]
   }
-  
 ]
