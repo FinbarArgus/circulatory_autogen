@@ -29,7 +29,7 @@ input_param_file=FinalModel_parameters.csv # this must be stored in resources.
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=16
+num_procs=2
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
@@ -69,7 +69,7 @@ do_mcmc=False
 # This is for neonatal
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
 
-param_id_obs_path= /home/ash252/UoA/Autogen_git/circulatory_autogen/resources/FinalModel_obs_data.json
+param_id_obs_path=/home/ash252/UoA/Autogen_git/circulatory_autogen/resources/FinalModel_obs_data.json
 ## paths
 ## the below for my hpc
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
