@@ -123,10 +123,11 @@ export LD_LIBRARY_PATH=[OpenCOR]/lib
 so that libcrypto.so.3 can be
 found to load the ssl module.
 
-IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following line 
+IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following lines
 may be required to install the mpi software on your computer
 
 ```bash
 sudo apt install libopenmpi-dev
+sudo apt install libffi7
 ```
 
