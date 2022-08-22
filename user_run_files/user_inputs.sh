@@ -9,14 +9,17 @@ file_prefix=3compartment
 # file_prefix=cerebral_elic
 # file_prefix=0D_1D_coupling_test
 # file_prefix=ADAVN
+# file_prefix=elic
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
+# input_param_file=3compartment_parameters.csv # this must be stored in resources.
 input_param_file=3compartment_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_energy_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
 # input_param_file=control_phys_parameters.csv # this must be stored in resources.
-#input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
+# input_param_file=elic_parameters.csv # this must be stored in resources.
+# input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
 # input_param_file=0D_1D_coupling_test_parameters.csv # this must be stored in resources.
 
 # input_param_file=ADAVN_parameters.csv # this must be stored in resources.
@@ -26,11 +29,11 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=14
+num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=10000
+num_calls_to_function=100000
 run_sensitivity=False
 
 ## mcmc inputs
@@ -42,6 +45,7 @@ do_mcmc=False
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
+#param_id_obs_path=/eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB055.json
 
 # This for simple_physiological (doesn't use experimental data)
 # param_id_obs_path=/home/finbar/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
@@ -72,7 +76,8 @@ param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/lv_estim
 ## the below for my hpc
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 ## the below for my local
-# opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
+# opencor_pythonshell_path=/opt/OpenCOR-2021-10-05-Linux/pythonshell
+# opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 

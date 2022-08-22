@@ -79,14 +79,14 @@ class SequentialParamID:
                 self.param_names = self.param_id.get_param_names()
 
                 param_importance = self.param_id.get_param_importance()
-                # collinearity_index = self.param_id.get_collinearity_index()
-                collinearity_index_pairs = self.param_id.get_collinearity_index_pairs()
+                # collinearity_idx = self.param_id.get_collinearity_idx()
+                collinearity_idx_pairs = self.param_id.get_collinearity_idx_pairs()
                 pred_param_importance = self.param_id.get_pred_param_importance()
-                # collinearity_index = self.param_id.get_collinearity_index()
-                pred_collinearity_index_pairs = self.param_id.get_pred_collinearity_index_pairs()
+                # collinearity_idx = self.param_id.get_collinearity_idx()
+                pred_collinearity_idx_pairs = self.param_id.get_pred_collinearity_idx_pairs()
 
                 if np.min(param_importance) > self.threshold_param_importance and \
-                            np.max(collinearity_index_pairs) < self.threshold_collinearity_pairs:
+                            np.max(collinearity_idx_pairs) < self.threshold_collinearity_pairs:
                     print(f'The model is structurally identifiable with {len(self.param_names)} parameters:')
                     print(self.param_names)
                     identifiable = True
@@ -117,15 +117,15 @@ class SequentialParamID:
                                 identifiable = False
                         else:
                             for JJ in range(len(self.param_names)):
-                                if collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
+                                if collinearity_idx_pairs[II, JJ] > self.threshold_collinearity_pairs:
                                     if param_importance[II] < param_importance[JJ]:
                                         print(f'collinearity of {self.param_names[II]}, {self.param_names[JJ]} '
                                               f'is above threshold, '
                                               f'checking collinearity with respect to predictions.')
-                                        if pred_collinearity_index_pairs[II, JJ] > self.threshold_collinearity_pairs:
+                                        if pred_collinearity_idx_pairs[II, JJ] > self.threshold_collinearity_pairs:
                                             print(f'{self.param_names[II]}, {self.param_names[JJ]} '
                                                   f'pred collinearity is '
-                                                  f'{pred_collinearity_index_pairs[II, JJ]}, '
+                                                  f'{pred_collinearity_idx_pairs[II, JJ]}, '
                                                   f'which is above threshold of {self.threshold_collinearity_pairs}'
                                                   f', so param can be removed.')
                                             param_idxs_to_remove.append(II)
@@ -135,12 +135,12 @@ class SequentialParamID:
                                         else:
                                             print(f'{self.param_names[II]}, {self.param_names[JJ]} '
                                                   f'pred collinearity is '
-                                                  f'{pred_collinearity_index_pairs[II, JJ]}, '
+                                                  f'{pred_collinearity_idx_pairs[II, JJ]}, '
                                                   f'which is below threshold of {self.threshold_collinearity_pairs}'
                                                   f', so param will not be removed.')
                                             # set collinearity pair to a small value so it isn't removed
-                                            pred_collinearity_index_pairs[II, JJ] = 0
-                                            pred_collinearity_index_pairs[JJ, II] = 0
+                                            pred_collinearity_idx_pairs[II, JJ] = 0
+                                            pred_collinearity_idx_pairs[JJ, II] = 0
                                             identifiable = False
                         if identifiable:
                             print('error, not identifiable, but no params to remove added.')
@@ -236,13 +236,14 @@ class SequentialParamID:
                                 sim_time=self.sim_time, pre_time=self.pre_time, maximumStep=self.maximumStep,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
-                with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
-                    param_names_to_remove = []
-                    for row in r:
-                        name_list = row.split(',')
-                        name_list = [name.strip() for name in name_list]
-                        param_names_to_remove.append(name_list)
-                mcmc.remove_params_by_name(param_names_to_remove)
+                if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):
+                    with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
+                        param_names_to_remove = []
+                        for row in r:
+                            name_list = row.split(',')
+                            name_list = [name.strip() for name in name_list]
+                            param_names_to_remove.append(name_list)
+                    mcmc.remove_params_by_name(param_names_to_remove)
         if self.rank != 0:
             return
 

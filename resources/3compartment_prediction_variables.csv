@@ -1,2 +1,3 @@
-heart/u_lv
-aortic_root/u
+name,                   unit,   name_for_plotting
+heart/u_lv,             J_per_m3,   p_{lv}
+aortic_root/u,          J_per_m3,   p_{ao}
