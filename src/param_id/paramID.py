@@ -243,6 +243,7 @@ class CVS0DParamID():
             consts_idx = -1
             series_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
+            std_error_vec = np.zeros((self.num_obs,))
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -295,11 +296,14 @@ class CVS0DParamID():
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
-                    percent_error_vec[II] = 100*np.abs((best_fit_obs_consts[II] - self.ground_truth_consts[II])/
-                                                       self.ground_truth_consts[II])
+                    percent_error_vec[II] = 100*(best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
+                                                       self.ground_truth_consts[consts_idx]
+                    std_error_vec[II] = (best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
+                                                       self.std_const_vec[consts_idx]
                 elif self.gt_df.iloc[II]["data_type"] == "series":
-                    import pdb; pdb.set_trace()
-                    percent_error_vec[II] = 100*np.abs(np.sum((series_plot_gt[series_idx, :] - conversion*best_fit_obs_series[II, :])/(conversion*best_fit_obs_series[II, :]), axis=1)/series_len)
+                    min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
+                    percent_error_vec[II] = 100*np.sum(np.abs((series_plot_gt[series_idx, :] - best_fit_obs_series[series_idx, :])/(series_plot_gt[series_idx, :]))/series_len)
+                    std_error_vec[II] = np.sum(np.abs((series_plot_gt[series_idx, :] - best_fit_obs_series[series_idx, :])/(self.std_series_vec[series_idx]))/series_len)
 
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
@@ -350,9 +354,6 @@ class CVS0DParamID():
         # Make a bar plot with all percentage errors.
         fig, axs = plt.subplots()
         obs_names_for_plot_list = []
-        # calculate coefficient of variation
-        gt_coefficient_of_variation = 100*self.std_const_vec/self.ground_truth_consts
-        bf_percent_error = 100*(best_fit_obs_consts - self.ground_truth_consts)/self.ground_truth_consts
 
         for II in range(self.num_obs):
             if "name_for_plotting" in self.gt_df.iloc[0].keys():
@@ -361,9 +362,7 @@ class CVS0DParamID():
                 obs_names_for_plot_list.append(self.obs_names[II])
         obs_names_for_plot = np.array(obs_names_for_plot_list)
 
-        axs.bar(obs_names_for_plot, bf_percent_error, label='% error', width=1.0, color='b', edgecolor='black')
-        # axs.bar(obs_names_for_plot, gt_coefficient_of_variation, width=1.0, alpha=0.5, label='CV',
-        #         edgecolor='black', color='None')
+        axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
         # axs.legend()
@@ -380,8 +379,7 @@ class CVS0DParamID():
 
         #plot error as number of standard deviations of
         fig, axs = plt.subplots()
-        bf_std_error = (best_fit_obs_consts - self.ground_truth_consts)/self.std_const_vec
-        axs.bar(obs_names_for_plot, bf_std_error, label='% error', width=1.0, color='b', edgecolor='black')
+        axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
         # axs.legend()
@@ -401,7 +399,7 @@ class CVS0DParamID():
             if self.gt_df.iloc[obs_idx]["data_type"] == "constant":
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
-            if self.gt_df.iloc[II]["data_type"] == "series":
+            if self.gt_df.iloc[obs_idx]["data_type"] == "series":
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} series error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
 
@@ -836,7 +834,7 @@ class CVS0DParamID():
         self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                           if self.gt_df.iloc[II]["data_type"] == "constant"])
 
-        self.std_series_vec = np.stack([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+        self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "series"])
 
         return
@@ -1129,7 +1127,6 @@ class OpencorParamID():
         self.num_params = len(self.param_names)
         self.ground_truth_consts = ground_truth_consts
         self.ground_truth_series = ground_truth_series
-        self.len_series = self.ground_truth_series.shape[1]
         self.param_mins = param_mins
         self.param_maxs = param_maxs
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
@@ -1842,13 +1839,14 @@ class OpencorParamID():
         # cost = np.sum(np.power(self.weight_const_vec*(consts -
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        import pdb; pdb.set_trace()
         cost = np.sum(np.power(self.weight_const_vec*(consts -
                                self.ground_truth_consts)/self.std_const_vec, 2))
-        if series:
-            # divide by number data points in series data
-            series_cost = np.sum(np.power(self.weight_series_vec*(series[:self.len_series] -
-                               self.ground_truth_series)/self.std_series_vec, 2))/self.len_series
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
+            # calculate sum of squares cost and divide by number data points in series data
+            series_cost = np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
             cost = (cost + series_cost) / self.num_obs
         else:
             cost = cost/self.num_obs
@@ -2226,10 +2224,12 @@ class OpencorMCMC():
         lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(consts -
                                self.ground_truth_consts)/self.std_const_vec, 2))
         
-        if series:
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
             # divide by number data points in series data
-            series_lnlikelihood = -0.5*np.sum(np.power(self.weight_series_vec*(series[:self.len_series] -
-                               self.ground_truth_series)/self.std_series_vec, 2))/self.len_series
+            series_lnlikelihood = -0.5*np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
             lnlikelihood = (lnlikelihood + series_lnlikelihood) / self.num_obs
         else:
             lnlikelihood = lnlikelihood/self.num_obs
@@ -2273,10 +2273,17 @@ class OpencorMCMC():
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(consts -
                                                       self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
-        # if series:
-        # TODO Have not included cost from series error yet
-        # cost +=
-        # pass
+        
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
+        
+            # divide by number data points in series data
+            series_cost = np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            cost = (cost + series_cost) / self.num_obs
+        else:
+            cost = cost/self.num_obs
 
         return cost
 

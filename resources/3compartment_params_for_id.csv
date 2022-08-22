@@ -1,5 +1,6 @@
-vessel_name,                  param_name,       param_type,  min,        max
-heart,                        q_lv,             state,       200e-6,     1600e-6 
-systemic_T,                   R_T,              const,       1e6,        1000e6
-aortic_root,                  C,                const,       2e-9,       1e-7
-heart,                        Rmod_valve_aov,   const,       1e3,        1e4
+vessel_name,                  param_name,       param_type,  min,        max,     name_for_plotting
+heart,                        q_lv,             state,       400e-6,     2000e-6, q_{sbv} 
+systemic_T,                   R_T,              const,       1e6,        1000e6,  R_{sys}
+aortic_root,                  C,                const,       2e-9,       4e-7,    C_{ao}
+heart,                        Rmod_valve_aov,   const,       1e1,        1e4,     R_{aov}
+heart,                        E_lv_A,           const,       5e7,        7e8,     E_{lvA}

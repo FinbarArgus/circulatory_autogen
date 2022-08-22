@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
         plot_predictions = True
 
-        if len(sys.argv) != 5:
+        if len(sys.argv) != 6:
             print(f'incorrect number of inputs to plot_param_id.py script')
             exit()
         param_id_method = sys.argv[1]
@@ -43,6 +43,7 @@ if __name__ == '__main__':
 
         param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
         run_sensitivity = sys.argv[4] in ['True', 'true']
+        do_mcmc = sys.argv[5] in ['True', 'true']
 
         # set the simulation time where the cost is calculated (sim_time) and the amount of 
         # simulation time it takes to get to an oscilating steady state before that (pre_time)
@@ -68,13 +69,15 @@ if __name__ == '__main__':
             param_id.remove_params_by_name(param_names_to_remove)
 
 
-        if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
-            pass
         param_id.simulate_with_best_param_vals()
         param_id.plot_outputs()
-        if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
-            if not plot_predictions:
-                param_id.plot_mcmc()
+        if do_mcmc:
+            if os.path.exists(os.path.join(param_id.output_dir, 'mcmc_chain.npy')):
+                if not plot_predictions:
+                    param_id.plot_mcmc()
+            else:
+                print('no mcmc chain has been created at ' + 
+                        os.path.join(param_id.output_dir, 'mcmc_chain.npy'))
         param_id.save_prediction_data()
         if run_sensitivity:
             param_id.run_sensitivity(None)
@@ -87,10 +90,11 @@ if __name__ == '__main__':
                                              num_calls_to_function=1,
                                              sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=False)
 
-            seq_param_id.plot_mcmc_and_predictions()
+            if do_mcmc:
+                seq_param_id.plot_mcmc_and_predictions()
 
     except:
         print(traceback.format_exc())
-        print("Usage: param_id_method file_name_prefix input_params_to_id, param_id_obs_file")
-        print("e.g. bayesian simple_physiological True simple_physiological_obs_data.json")
+        print("Usage: param_id_method file_name_prefix input_params_to_id param_id_obs_file do_sensitivity analysis do_mcmc")
+        print("e.g. bayesian simple_physiological True simple_physiological_obs_data.json True True")
         exit()

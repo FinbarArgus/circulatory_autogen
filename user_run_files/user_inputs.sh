@@ -14,8 +14,8 @@ file_prefix=3compartment
 # file_prefix=0D_1D_coupling_test
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
-# input_param_file=3compartment_parameters.csv # this must be stored in resources.
-input_param_file=3compartment_energy_parameters.csv # this must be stored in resources.
+input_param_file=3compartment_parameters.csv # this must be stored in resources.
+# input_param_file=3compartment_energy_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
@@ -31,11 +31,11 @@ input_param_file=3compartment_energy_parameters.csv # this must be stored in res
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=1
+num_procs=32
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=10000
+num_calls_to_function=100000
 run_sensitivity=False
 
 ## mcmc inputs
@@ -59,7 +59,7 @@ param_id_obs_path=/eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimati
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
+# param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
 # param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
 

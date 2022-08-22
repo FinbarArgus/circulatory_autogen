@@ -236,13 +236,14 @@ class SequentialParamID:
                                 sim_time=self.sim_time, pre_time=self.pre_time, maximumStep=self.maximumStep,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
-                with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
-                    param_names_to_remove = []
-                    for row in r:
-                        name_list = row.split(',')
-                        name_list = [name.strip() for name in name_list]
-                        param_names_to_remove.append(name_list)
-                mcmc.remove_params_by_name(param_names_to_remove)
+                if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):
+                    with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
+                        param_names_to_remove = []
+                        for row in r:
+                            name_list = row.split(',')
+                            name_list = [name.strip() for name in name_list]
+                            param_names_to_remove.append(name_list)
+                    mcmc.remove_params_by_name(param_names_to_remove)
         if self.rank != 0:
             return
 
