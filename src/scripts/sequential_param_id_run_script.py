@@ -24,7 +24,9 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = False
+        DEBUG = True
+        if DEBUG:
+            print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
         mpi_debug = False
 
         comm = MPI.COMM_WORLD

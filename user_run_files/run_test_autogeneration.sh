@@ -47,5 +47,11 @@ input_param_file=control_phys_parameters.csv # this must be stored in resources.
 param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 ${opencor_pythonshell_path} ../src/scripts/script_generate_with_new_architecture.py ${file_prefix}_vessel_array.csv ${input_param_file} ${file_prefix} ${param_id_method} ${param_id_obs_path}
 echo ______________________________
+echo Running cerebral_elic autogeneration with id params test
+echo _______________________________
+file_prefix=cerebral_elic
+input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
+${opencor_pythonshell_path} ../src/scripts/script_generate_with_new_architecture.py ${file_prefix}_vessel_array.csv ${input_param_file} ${file_prefix}
+echo ______________________________
 echo Testing complete
 echo ______________________________

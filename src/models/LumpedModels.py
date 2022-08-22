@@ -21,11 +21,9 @@ class CVS0DModel(object):
         self.param_id_states = param_id_states
         self.param_id_consts = param_id_consts
         self.param_id_date = param_id_date
+        self.possible_vessel_types = None
+        self.possible_BC_types = None
 
-        # possible vessel and BC attributes of the model
-        # TODO get these names from the modules_config.json file
-        self.possible_vessel_types = list(set(self.vessels_df["vessel_type"].to_list()))
-        self.possible_BC_types = list(set(self.vessels_df["BC_type"].to_list()))
 
     
     
