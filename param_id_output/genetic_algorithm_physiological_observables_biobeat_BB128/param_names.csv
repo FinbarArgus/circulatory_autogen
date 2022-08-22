@@ -1,8 +1,8 @@
 heart/q_lv
 heart/E_lv_A
+leg_L_T/R_T,leg_R_T/R_T
 arm_L_T/R_T,arm_R_T/R_T
 anterior_cerebral_L_T/R_T,anterior_cerebral_R_T/R_T
 external_carotid_L_T/R_T,external_carotid_R_T/R_T
 middle_cerebral_L_T/R_T,middle_cerebral_R_T/R_T
 posterior_cerebral_L_T/R_T,posterior_cerebral_R_T/R_T
-trunk_C_T/R_T

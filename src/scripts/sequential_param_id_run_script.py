@@ -24,7 +24,7 @@ import traceback
 if __name__ == '__main__':
 
     try:
-        DEBUG = True
+        DEBUG = False
         mpi_debug = False
 
         comm = MPI.COMM_WORLD
