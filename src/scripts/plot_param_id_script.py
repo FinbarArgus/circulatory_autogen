@@ -45,19 +45,16 @@ if __name__ == '__main__':
         run_sensitivity = sys.argv[4] in ['True', 'true']
         do_mcmc = sys.argv[5] in ['True', 'true']
 
-        # set the simulation time where the cost is calculated (sim_time) and the amount of 
-        # simulation time it takes to get to an oscilating steady state before that (pre_time)
-        if file_name_prefix == '3compartment':
-            pre_time = 20.0
-        else: 
-            pre_time = 20.0
-        sim_time = 1.0
-
+        # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
+        # periods it takes to get to an oscilating steady state before that (pre_heart_periods)
+        pre_heart_periods = 20
+        sim_heart_periods = 1
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001)
+                                sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
+                                maximumStep=0.0001)
 
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
             with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
@@ -88,7 +85,8 @@ if __name__ == '__main__':
                                              input_params_path=input_params_path,
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,
-                                             sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=False)
+                                             sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
+                                             maximumStep=0.0001, DEBUG=False)
 
             if do_mcmc:
                 seq_param_id.plot_mcmc_and_predictions()

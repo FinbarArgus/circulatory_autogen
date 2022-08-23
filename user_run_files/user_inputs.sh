@@ -29,7 +29,7 @@ input_param_file=3compartment_parameters.csv # this must be stored in resources.
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=32
+num_procs=14
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
@@ -44,7 +44,7 @@ do_mcmc=False
 # param_id_obs_path=/people/farg967/Documents/data/cardiohance_data/cardiohance_observables.json
 # param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path=/hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
-param_id_obs_path=/home/finbar/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
+param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
 #param_id_obs_path=/eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB055.json
 
 # This for simple_physiological (doesn't use experimental data)

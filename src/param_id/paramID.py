@@ -60,8 +60,9 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
                  input_params_path=None,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0001, dt=0.01,
-                 DEBUG=False):
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
+                 pre_heart_periods=None, sim_heart_periods=None,
+                 maximumStep=0.0001, dt=0.01, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -134,6 +135,7 @@ class CVS0DParamID():
                                            self.ground_truth_consts, self.ground_truth_series,
                                            self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
+                                           pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         else:
             if param_id_model_type == 'CVS0D':
@@ -145,6 +147,7 @@ class CVS0DParamID():
                                                self.ground_truth_consts, self.ground_truth_series,
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
+                                               pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                                dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
@@ -234,8 +237,7 @@ class CVS0DParamID():
         consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
 
         series_plot_gt = np.array(self.ground_truth_series)
-        series_len = series_plot_gt.shape[1]
-        tSim_series = tSim[:series_len]
+        min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
 
 
         for unique_obs_count in range(len(obs_names_unique)):
@@ -292,7 +294,7 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='min $\hat{z}$')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
                     elif self.obs_types[II] == 'series':
-                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
+                        axs[row_idx, col_idx].plot(tSim[:min_len_series], conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -301,14 +303,17 @@ class CVS0DParamID():
                     std_error_vec[II] = (best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
                                                        self.std_const_vec[consts_idx]
                 elif self.gt_df.iloc[II]["data_type"] == "series":
-                    min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
-                    percent_error_vec[II] = 100*np.sum(np.abs((series_plot_gt[series_idx, :] - best_fit_obs_series[series_idx, :])/(series_plot_gt[series_idx, :]))/series_len)
-                    std_error_vec[II] = np.sum(np.abs((series_plot_gt[series_idx, :] - best_fit_obs_series[series_idx, :])/(self.std_series_vec[series_idx]))/series_len)
+                    percent_error_vec[II] = 100*np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
+                                                               best_fit_obs_series[series_idx, :min_len_series]) /
+                                                              (series_plot_gt[series_idx, :min_len_series])))/min_len_series
+                    std_error_vec[II] = np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
+                                                       best_fit_obs_series[series_idx, :min_len_series]) /
+                                                      (self.std_series_vec[series_idx]))/min_len_series)
 
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
-            axs[row_idx, col_idx].set_ylim(ymin=0.0)
+            # axs[row_idx, col_idx].set_ylim(ymin=0.0)
             # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
 
             plot_saved = False
@@ -1108,8 +1113,8 @@ class OpencorParamID():
                  param_names, pred_var_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
-                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
-                 DEBUG=False):
+                 sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
+                 dt=0.01, maximumStep=0.0001, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1137,9 +1142,20 @@ class OpencorParamID():
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.n_steps = int(self.sim_time/self.dt)
 
         self.sim_helper = self.initialise_sim_helper()
+
+        # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
+        if pre_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.pre_time = T*pre_heart_periods
+        if sim_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.sim_time = T*sim_heart_periods
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+
+        self.n_steps = int(self.sim_time/self.dt)
 
         # initialise
         self.param_init = None
@@ -1979,8 +1995,8 @@ class OpencorMCMC():
                  param_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
-                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
-                 DEBUG=False):
+                 sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
+                 dt=0.01, maximumStep=0.0001, DEBUG=False):
 
         self.model_path = model_path
         self.output_dir = None
@@ -2011,6 +2027,15 @@ class OpencorMCMC():
         self.pre_time = pre_time
         self.n_steps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
+
+        if pre_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.pre_time = T*pre_heart_periods
+        if sim_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.sim_time = T*sim_heart_periods
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # initialise
         self.param_init = None

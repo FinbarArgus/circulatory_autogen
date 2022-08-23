@@ -64,18 +64,16 @@ if __name__ == '__main__':
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
             exit()
 
-        # set the simulation time where the cost is calculated (sim_time) and the amount of 
-        # simulation time it takes to get to an oscilating steady state before that (pre_time)
-        if file_name_prefix == '3compartment' or 'FTU_wCVS':
-            pre_time = 20.0
-        else: 
-            pre_time = 16.0
-        sim_time = 2.0
+        # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
+        # periods it takes to get to an oscilating steady state before that (pre_heart_periods)
+        pre_heart_periods = 20
+        sim_heart_periods = 1
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
+                                sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
+                                maximumStep=0.0001, DEBUG=DEBUG)
 
         if rank == 0:
             if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
@@ -105,7 +103,8 @@ if __name__ == '__main__':
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_name_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
-                                    sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
+                                    pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
+                                    maximumStep=0.0001, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)
             # mcmc.set_mcmc_parameters() TODO
             mcmc.run_mcmc()
