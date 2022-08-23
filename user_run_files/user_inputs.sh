@@ -1,7 +1,7 @@
 ## general inputs
 # file_prefix=FTU_wCVS
 # file_prefix=3compartment
-file_prefix=3compartment_energy
+file_prefix=cerebral_elic
 # file_prefix=simple_physiological
 # file_prefix=neonatal
 # file_prefix=physiological
@@ -10,7 +10,7 @@ file_prefix=3compartment_energy
 # file_prefix=ADAVN
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
-input_param_file=3compartment_energy_parameters.csv # this must be stored in resources.
+input_param_file=cerebral_elic_parameters.csv # this must be stored in resources.
 # input_param_file=simple_physiological_parameters.csv # this must be stored in resources.
 # input_param_file=neonatal_parameters.csv # this must be stored in resources.
 # input_param_file=physiological_parameters.csv # this must be stored in resources.
@@ -69,6 +69,6 @@ param_id_obs_path=/home/farg967/Documents/data/heart_projects/Argus_2022/observa
 # opencor_pythonshell_path=/hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
 ## the below for my local
 # opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
-opencor_pythonshell_path=/home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
+opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 ## Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
 
