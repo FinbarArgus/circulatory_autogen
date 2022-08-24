@@ -29,8 +29,6 @@ if __name__ == '__main__':
         with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-        print('WARNING SEQUENTIAL PARAM ID HAS NOT BEEN TESTED FOR THIS COMMIT')
-
         DEBUG = inp_data_dict['DEBUG']
         if DEBUG:
             print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')

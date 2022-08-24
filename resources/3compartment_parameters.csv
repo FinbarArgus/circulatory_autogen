@@ -47,7 +47,7 @@ T,second,1.0395833333,biobeat_measurement
 T_ac,second,0.0739583333,biobeat_measurement
 T_ar,second,0.0739583333,biobeat_measurement
 T_vc,second,0.2895833333,biobeat_measurement
-T_vr,second,0.0770833333,biobeat_measurement
+T_vr,second,0.1570833333,biobeat_measurement
 l_eff,metre,0.01,to_be_identified
 q_la_0,m3,4.0e-6,Korakianitis_2006_Table_1
 q_lv_0,m3,5.0e-6,Korakianitis_2006_Table_1

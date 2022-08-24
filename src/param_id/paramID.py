@@ -509,7 +509,7 @@ class CVS0DParamID():
         plt.close()
 
         # do another corner plot with just a subset of params
-        overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
+        # overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
@@ -1619,7 +1619,8 @@ class OpencorParamID():
 
 
         jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
-        pred_jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
+        num_preds = len(self.pred_var_names)*3 # *3 for the min max and mean of the pred trace
+        pred_jacobian_sensitivity = np.zeros((self.num_params, num_preds))
 
         for i in range(self.num_params):
             #central difference calculation of derivative
@@ -1676,13 +1677,15 @@ class OpencorParamID():
 
             up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
             down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
-            num_preds = len(up_preds_consts_vec)
             for j in range(num_preds):
                 dPreds_param = 0
                 #normalise derivative
                 dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
                 # TODO could I normalise the below better? an estimated std maybe?
                 dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
+                if dPreds_param == 0:
+                    # avoid nan errors if the param has no effect on the prediction
+                    dPreds_param = 1e-14
                 pred_jacobian_sensitivity[i, j] = dPreds_param
 
         np.save(os.path.join(output_path, 'normalised_jacobian_matrix.npy'), jacobian_sensitivity)
@@ -1690,7 +1693,7 @@ class OpencorParamID():
 
         #calculate parameter importance
         self.param_importance = np.zeros(self.num_params)
-        self.pred_param_importance= np.zeros(self.num_params)
+        self.pred_param_importance = np.zeros(self.num_params)
         for param_idx in range(self.num_params):
             sensitivity = 0
             pred_sensitivity = 0
@@ -1734,7 +1737,10 @@ class OpencorParamID():
         #calculate collinearity
         self.collinearity_idx = np.zeros(len(collinearity_eigvals))
         for i in range(len(collinearity_eigvals)):
-            self.collinearity_idx[i] = 1/math.sqrt(collinearity_eigvals[i])
+            if collinearity_eigvals[i] < 1e-12:
+                self.collinearity_idx[i] = 1e6
+            else:
+                self.collinearity_idx[i] = 1/math.sqrt(collinearity_eigvals[i])
 
         np.save(os.path.join(output_path, 'collinearity_idx.npy'), self.collinearity_idx)
 
@@ -1748,13 +1754,13 @@ class OpencorParamID():
                     Sll = Sl@Sl.T
                     eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                     real_eigvals_pairs = eigvals_pairs.real
-                    self.collinearity_idx_pairs[i][j] = 1/math.sqrt(min(real_eigvals_pairs))
+                    self.collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
 
                     pred_Sl = pred_S_norm[[i,j],:]
                     pred_Sll = pred_Sl@pred_Sl.T
                     pred_eigvals_pairs, pred_eigvecs_pairs = la.eig(pred_Sll)
                     pred_real_eigvals_pairs = pred_eigvals_pairs.real
-                    self.pred_collinearity_idx_pairs[i][j] = 1/math.sqrt(min(pred_real_eigvals_pairs)+1e-16)
+                    self.pred_collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(pred_real_eigvals_pairs), 1e-12))
                 else:
                     self.collinearity_idx_pairs[i][j] = 0
                     self.pred_collinearity_idx_pairs[i][j] = 0
@@ -1772,7 +1778,7 @@ class OpencorParamID():
                             Sll = Sl@Sl.T
                             eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                             real_eigvals_pairs = eigvals_pairs.real
-                            collinearity_idx_triple[j][k] = 1/math.sqrt(min(real_eigvals_pairs))
+                            collinearity_idx_triple[j][k] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
                         else:
                             collinearity_idx_triple[j][k] = 0
                 np.save(os.path.join(output_path, 'collinearity_triples'+str(i)+'.npy'), collinearity_idx_triple)
@@ -1787,7 +1793,7 @@ class OpencorParamID():
                                 Sll = Sl@Sl.T
                                 eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                                 real_eigvals_pairs = eigvals_pairs.real
-                                collinearity_idx_quad[k][l] = 1/math.sqrt(min(real_eigvals_pairs))
+                                collinearity_idx_quad[k][l] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
                         else:
                             collinearity_idx_quad[k][l] = 0
                     np.save(os.path.join(output_path, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_idx_quad)
