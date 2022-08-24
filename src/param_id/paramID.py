@@ -62,7 +62,7 @@ class CVS0DParamID():
                  input_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
-                 maximumStep=0.0001, dt=0.01, DEBUG=False):
+                 maximum_step=0.0001, dt=0.01, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -136,7 +136,7 @@ class CVS0DParamID():
                                            self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                           dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
+                                           dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
         else:
             if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -148,7 +148,7 @@ class CVS0DParamID():
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                               dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
+                                               dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
 
@@ -1114,7 +1114,7 @@ class OpencorParamID():
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximumStep=0.0001, DEBUG=False):
+                 dt=0.01, maximum_step=0.0001, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1138,7 +1138,7 @@ class OpencorParamID():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
-        self.maximumStep = maximumStep
+        self.maximum_step = maximum_step
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
@@ -1181,7 +1181,7 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 maximumNumberofSteps=100000000,
-                                maximumStep=self.maximumStep, pre_time=self.pre_time)
+                                maximum_step=self.maximum_step, pre_time=self.pre_time)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -1996,7 +1996,7 @@ class OpencorMCMC():
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximumStep=0.0001, DEBUG=False):
+                 dt=0.01, maximum_step=0.0001, DEBUG=False):
 
         self.model_path = model_path
         self.output_dir = None
@@ -2021,7 +2021,7 @@ class OpencorMCMC():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
-        self.maximumStep = maximumStep
+        self.maximum_step = maximum_step
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
@@ -2054,7 +2054,7 @@ class OpencorMCMC():
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 maximumNumberofSteps=100000000,
-                                maximumStep=self.maximumStep, pre_time=self.pre_time)
+                                maximum_step=self.maximum_step, pre_time=self.pre_time)
 
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals

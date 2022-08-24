@@ -82,12 +82,14 @@ if __name__ == '__main__':
         # if 'sim_heart_periods' in inp_data_dict.keys():
         #     sim_heart_periods = inp_data_dict['sim_heart_periods']
 
+        maximum_step = inp_data_dict['maximum_step']
+
         num_calls_to_function = inp_data_dict['num_calls_to_function']
         seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
-                                sim_time=sim_time, pre_time=pre_time, maximumStep=0.001, DEBUG=DEBUG)
+                                sim_time=sim_time, pre_time=pre_time, maximum_step=maximum_step, DEBUG=DEBUG)
 
         seq_param_id.run()
 

@@ -76,11 +76,13 @@ if __name__ == '__main__':
         if 'sim_heart_periods' in inp_data_dict.keys():
             sim_heart_periods = inp_data_dict['sim_heart_periods']
 
+        maximum_step = inp_data_dict['maximum_step']
+
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximumStep=0.0001, DEBUG=DEBUG)
+                                maximum_step=maximum_step, DEBUG=DEBUG)
 
         if rank == 0:
             if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
@@ -111,7 +113,7 @@ if __name__ == '__main__':
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                    maximumStep=0.0001, DEBUG=DEBUG)
+                                    maximum_step=maximum_step, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)
             # mcmc.set_mcmc_parameters() TODO
             mcmc.run_mcmc()

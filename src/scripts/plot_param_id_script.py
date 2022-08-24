@@ -57,12 +57,14 @@ if __name__ == '__main__':
         if 'sim_heart_periods' in inp_data_dict.keys():
             sim_heart_periods = inp_data_dict['sim_heart_periods']
 
+        maximum_step = inp_data_dict['maximum_step']
+
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximumStep=0.0001)
+                                maximum_step=maximum_step)
 
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
             with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
@@ -94,7 +96,7 @@ if __name__ == '__main__':
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,
                                              sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                             maximumStep=0.0001, DEBUG=False)
+                                             maximum_step=maximum_step, DEBUG=False)
 
             if do_mcmc:
                 seq_param_id.plot_mcmc_and_predictions()
