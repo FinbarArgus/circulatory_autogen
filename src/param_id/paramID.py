@@ -1603,6 +1603,7 @@ class OpencorParamID():
 
         gt_scalefactor = []
         const_idx = 0
+        series_idx = 0
 
         for obs_idx in range(self.num_obs):
             if self.obs_types[obs_idx] != "series":
