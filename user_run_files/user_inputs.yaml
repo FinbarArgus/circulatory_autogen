@@ -26,6 +26,8 @@ pre_heart_periods: 20
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
 sim_heart_periods: 1
 
+# Maximum time step for solver
+maximum_step: 0.0001
 # This for 3compartment
 # param_id_obs_path: /home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
