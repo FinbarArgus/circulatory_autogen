@@ -8,7 +8,6 @@ file_prefix: 3compartment
 input_param_file: 3compartment_parameters.csv 
 
 #__________ parameter identification inputs __________
-num_procs: 14
 # param_id_method can be any of [genetic_algorithm]
 param_id_method: genetic_algorithm 
 # maximum number of calls to the forward function during one run of the param_id_method
@@ -55,14 +54,6 @@ do_sensitivity: False
 
 #______ mcmc inputs ___________
 do_mcmc: False
-
-#_______ paths _________
-# Users should modify opencor_pythonshell_path to the path of their own opencor pythonshell
-# the below for my hpc
-# opencor_pythonshell_path: /hpc/farg967/OpenCOR-2022-05-23-Linux/pythonshell
-# the below for my local
-opencor_pythonshell_path: /home/farg967/software/OpenCOR-2022-05-31-Linux/pythonshell
-# opencor_pythonshell_path: /home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 
 # For plotting
 plot_predictions: True
