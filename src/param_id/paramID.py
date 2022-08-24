@@ -138,7 +138,7 @@ class CVS0DParamID():
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         else:
-            if param_id_model_type == 'CVS0D':
+            if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types,
                                                self.weight_const_vec, self.weight_series_vec,

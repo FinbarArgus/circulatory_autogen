@@ -13,6 +13,7 @@ root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
 
 resources_dir_path = os.path.join(root_dir_path, 'resources')
+user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
 param_id_dir_path = os.path.join(root_dir_path, 'src/param_id')
 generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
 
@@ -21,38 +22,45 @@ from param_id.sequential_paramID import SequentialParamID
 from utilities import obj_to_string
 import traceback
 from distutils import util
+import yaml
 
 if __name__ == '__main__':
 
     try:
 
-        plot_predictions = True
+        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+            inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-        if len(sys.argv) != 6:
-            print(f'incorrect number of inputs to plot_param_id.py script')
-            exit()
-        param_id_method = sys.argv[1]
-        file_name_prefix = sys.argv[2]
-        model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
-        param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
+        plot_predictions = inp_data_dict['plot_predictions']
 
-        input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
+        param_id_method = inp_data_dict['param_id_method']
+        file_prefix = inp_data_dict['file_prefix']
+        model_path = os.path.join(generated_models_dir_path, f'{file_prefix}.cellml')
+        param_id_model_type = inp_data_dict['param_id_model_type']
+
+        input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
         if not os.path.exists(input_params_path):
             print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
             exit()
 
-        param_id_obs_path = os.path.join(resources_dir_path, sys.argv[3])
-        run_sensitivity = sys.argv[4] in ['True', 'true']
-        do_mcmc = sys.argv[5] in ['True', 'true']
+        param_id_obs_path = inp_data_dict['param_id_obs_path']
+        do_sensitivity = inp_data_dict['do_sensitivity']
+        do_mcmc = inp_data_dict['do_mcmc']
 
+        pre_time = inp_data_dict['pre_time']
+        sim_time = inp_data_dict['sim_time']
         # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
         # periods it takes to get to an oscilating steady state before that (pre_heart_periods)
-        pre_heart_periods = 20
-        sim_heart_periods = 1
+        # if these exist they overwrite the pre_time and sim_time
+        if 'pre_heart_periods' in inp_data_dict.keys():
+            pre_heart_periods = inp_data_dict['pre_heart_periods']
+        if 'sim_heart_periods' in inp_data_dict.keys():
+            sim_heart_periods = inp_data_dict['sim_heart_periods']
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
+        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
+                                sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
                                 maximumStep=0.0001)
 
@@ -76,12 +84,12 @@ if __name__ == '__main__':
                 print('no mcmc chain has been created at ' + 
                         os.path.join(param_id.output_dir, 'mcmc_chain.npy'))
         param_id.save_prediction_data()
-        if run_sensitivity:
+        if do_sensitivity:
             param_id.run_sensitivity(None)
         param_id.close_simulation()
 
         if plot_predictions:
-            seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+            seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
                                              input_params_path=input_params_path,
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,
@@ -93,6 +101,4 @@ if __name__ == '__main__':
 
     except:
         print(traceback.format_exc())
-        print("Usage: param_id_method file_name_prefix input_params_to_id param_id_obs_file do_sensitivity analysis do_mcmc")
-        print("e.g. bayesian simple_physiological True simple_physiological_obs_data.json True True")
         exit()
