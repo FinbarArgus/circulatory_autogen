@@ -1607,14 +1607,14 @@ class OpencorParamID():
         for obs_idx in range(self.num_obs):
             if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
-                gt_scalefactor.append(self.weight_const_vec[x_idx]/self.std_const_vec[x_idx])
+                gt_scalefactor.append(self.weight_const_vec[const_idx]/self.std_const_vec[const_idx])
                 # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
                 const_idx = const_idx + 1
             else: 
                 #part of scale factor for normalising jacobain
-                gt_scalefactor.append(self.weight_series_vec[x_idx]/self.std_const_vec[x_idx])
+                gt_scalefactor.append(self.weight_series_vec[series_idx]/self.std_const_vec[series_idx])
                 # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
-                series_idx = x_idx + 1
+                series_idx = series_idx + 1
 
 
         jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
