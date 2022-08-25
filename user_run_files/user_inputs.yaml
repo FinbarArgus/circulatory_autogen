@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: False
+DEBUG: True
 MPI_DEBUG: False
 file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
@@ -11,7 +11,9 @@ input_param_file: 3compartment_parameters.csv
 # param_id_method can be any of [genetic_algorithm]
 param_id_method: genetic_algorithm 
 # maximum number of calls to the forward function during one run of the param_id_method
-num_calls_to_function: 100000
+num_calls_to_function: 10000
+debug_num_calls_to_function: 10
+
 run_sensitivity: False
 # param_id_model_type can only be cellml_only atm (cardiovascular system 0D) atm, but will be extended 
 param_id_model_type: cellml_only
@@ -28,6 +30,8 @@ sim_heart_periods: 1
 
 # Maximum time step for solver
 maximum_step: 0.001
+# Output time step (sampling) # TODO this hasn't been tested for anything other than 0.01
+dt: 0.01
 # This for 3compartment
 # param_id_obs_path: /home/finbar/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
@@ -55,8 +59,15 @@ do_sensitivity: False
 
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: True
+mcmc_options:
+  num_steps: 10000
+  num_walkers: 64
 
-# For plotting
-plot_predictions: False
+debug_mcmc_options:
+  num_steps: 5
+  num_walkers: 20
+
+# For plotting core predictions after mcmc
+plot_predictions: True
 
