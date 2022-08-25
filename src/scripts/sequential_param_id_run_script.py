@@ -81,14 +81,24 @@ if __name__ == '__main__':
             sim_heart_periods = inp_data_dict['sim_heart_periods']
 
         maximum_step = inp_data_dict['maximum_step']
+        dt = inp_data_dict['dt']
 
-        num_calls_to_function = inp_data_dict['num_calls_to_function']
+        if DEBUG:
+            num_calls_to_function = inp_data_dict['debug_num_calls_to_function']
+        else:
+            num_calls_to_function = inp_data_dict['num_calls_to_function']
+
+        if DEBUG:
+            mcmc_options = inp_data_dict['debug_mcmc_options']
+        else:
+            mcmc_options = inp_data_dict['mcmc_options']
+
         seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG)
 
         seq_param_id.run()
 

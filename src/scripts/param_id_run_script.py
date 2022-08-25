@@ -78,19 +78,24 @@ if __name__ == '__main__':
             sim_heart_periods = inp_data_dict['sim_heart_periods']
 
         maximum_step = inp_data_dict['maximum_step']
+        dt = inp_data_dict['dt']
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, DEBUG=DEBUG)
 
         if rank == 0:
             if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
                 os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
 
-        num_calls_to_function = inp_data_dict['num_calls_to_function']
+        if DEBUG:
+            num_calls_to_function = inp_data_dict['debug_num_calls_to_function']
+        else:
+            num_calls_to_function = inp_data_dict['num_calls_to_function']
+
         if param_id_method == 'genetic_algorithm':
             param_id.set_genetic_algorithm_parameters(num_calls_to_function)
         elif param_id_method == 'bayesian':
@@ -110,13 +115,19 @@ if __name__ == '__main__':
         best_param_vals = param_id.get_best_param_vals()
         param_id.close_simulation()
         do_mcmc = inp_data_dict['do_mcmc']
+
+        if DEBUG:
+            mcmc_options = inp_data_dict['debug_mcmc_options']
+        else:
+            mcmc_options = inp_data_dict['mcmc_options']
+
         if do_mcmc:
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time,
                                     pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                    maximum_step=maximum_step, DEBUG=DEBUG)
+                                    maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)
             # mcmc.set_mcmc_parameters() TODO
             mcmc.run_mcmc()
