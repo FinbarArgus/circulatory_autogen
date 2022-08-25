@@ -2198,14 +2198,13 @@ class OpencorMCMC():
                 medians[param_idx] = np.median(flat_samples[:, param_idx])
 
             # rerun with mcmc optimal param vals
-            # TODO for now, we dont do this, gen alg gives better estimation
-            # self.best_param_vals = medians # means
-            # self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-            # print('cost from mcmc mean param vals is {}'.format(self.best_cost))
-            # print('resaving best_param_vals and best_cost from mcmc means')
-            #
-            # np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-            # np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            self.best_param_vals = medians # means
+            self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+            print('cost from mcmc mean param vals is {}'.format(self.best_cost))
+            print('resaving best_param_vals and best_cost from mcmc means')
+
+            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
@@ -2332,7 +2331,7 @@ class OpencorMCMC():
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(consts -
-                                                      self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
+                               self.ground_truth_consts)/self.std_const_vec, 2))
         
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
