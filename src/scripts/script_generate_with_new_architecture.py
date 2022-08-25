@@ -36,12 +36,14 @@ def generate_with_new_architecture(do_generation_with_fit_parameters, inp_data_d
         data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
         param_id_dir_abs_path = os.path.join(param_id_dir_path, param_id_method + f'_{file_prefix}_{data_str_addon}')
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, param_id_dir_abs_path)
+        output_model_subdir_path = os.path.join(output_model_dir_path, file_prefix + '_' + data_str_addon)
     else:
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path)
+        output_model_subdir_path = os.path.join(output_model_dir_path, file_prefix)
 
     model = parser.load_model()
 
-    code_generator = CVS0DCellMLGenerator(model, output_model_dir_path, file_prefix)
+    code_generator = CVS0DCellMLGenerator(model, output_model_subdir_path, file_prefix)
     code_generator.generate_files()
 
 if __name__ == '__main__':

@@ -53,7 +53,8 @@ if __name__ == '__main__':
 
         param_id_method = inp_data_dict['param_id_method']
         file_prefix = inp_data_dict['file_prefix']
-        model_path = os.path.join(generated_models_dir_path, f'{file_prefix}.cellml')
+        generated_models_subdir_path = os.path.join(generated_models_dir_path, file_prefix)
+        model_path = os.path.join(generated_models_subdir_path, f'{file_prefix}.cellml')
         param_id_model_type = inp_data_dict['param_id_model_type']
 
         input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
