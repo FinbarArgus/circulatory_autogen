@@ -2200,14 +2200,32 @@ class OpencorMCMC():
                 means[param_idx] = np.mean(flat_samples[:, param_idx])
                 medians[param_idx] = np.median(flat_samples[:, param_idx])
 
-            # rerun with mcmc optimal param vals
-            self.best_param_vals = medians # means
-            self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-            print('cost from mcmc median param vals is {}'.format(self.best_cost))
-            print('resaving best_param_vals and best_cost from mcmc means')
+            # rerun with original and mcmc optimal param vals
+            mcmc_best_param_vals = medians  # means
+            mcmc_best_cost, obs = self.get_cost_and_obs_from_params(mcmc_best_param_vals, reset=True)
+            if self.best_param_vals is None:
+                self.best_param_vals = mcmc_best_param_vals
+                self.best_cost = mcmc_best_cost
+                print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                print('saving best_param_vals and best_cost from mcmc medians')
 
-            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            else:
+                original_best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=True)
+                if mcmc_best_cost < original_best_cost:
+                    self.best_param_vals = mcmc_best_param_vals
+                    self.best_cost = mcmc_best_cost
+                    print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                    print('resaving best_param_vals and best_cost from mcmc medians')
+
+                    np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                    np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                else:
+                    self.best_cost = original_best_cost
+                    # leave the original best fit param val as the best fit value, mcmc just gives distributions
+                    print('cost from mcmc median param vals is {}'.format(mcmc_best_cost))
+                    print('Keeping the genetic algorithm best fit as it is lower, ({})'.format(self.best_cost))
 
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
