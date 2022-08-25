@@ -779,10 +779,10 @@ class CVS0DParamID():
         if self.rank !=0:
             return
 
-            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
-            time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
-            return time_and_pred
+        tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
+        pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
+        time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
+        return time_and_pred
 
     def save_prediction_data(self):
         if self.rank !=0:
@@ -1014,6 +1014,9 @@ class CVS0DParamID():
             self.pred_var_names_for_plotting = None
 
     def postprocess_predictions(self):
+        if self.pred_var_names == None:
+            print('no prediction variables, not plotting predictions')
+            return 0
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
 
@@ -1619,8 +1622,11 @@ class OpencorParamID():
 
 
         jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
-        num_preds = len(self.pred_var_names)*3 # *3 for the min max and mean of the pred trace
-        pred_jacobian_sensitivity = np.zeros((self.num_params, num_preds))
+        if self.pred_var_names == None:
+            num_preds = 0
+        else:
+            num_preds = len(self.pred_var_names)*3 # *3 for the min max and mean of the pred trace
+            pred_jacobian_sensitivity = np.zeros((self.num_params, num_preds))
 
         for i in range(self.num_params):
             #central difference calculation of derivative
@@ -1633,7 +1639,8 @@ class OpencorParamID():
             success = self.sim_helper.run()
             if success:
                 up_obs = self.sim_helper.get_results(self.obs_names)
-                up_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    up_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_up')
@@ -1643,14 +1650,16 @@ class OpencorParamID():
                     self.sim_helper.set_param_vals(self.param_names, param_vec_up)
                     success = self.sim_helper.run()
                 up_obs = self.sim_helper.get_results(self.obs_names)
-                up_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    up_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
 
             self.sim_helper.set_param_vals(self.param_names, param_vec_down)
             success = self.sim_helper.run()
             if success:
                 down_obs = self.sim_helper.get_results(self.obs_names)
-                down_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    down_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_down')
@@ -1660,7 +1669,8 @@ class OpencorParamID():
                     self.sim_helper.set_param_vals(self.param_names, param_vec_down)
                     success = self.sim_helper.run()
                 down_obs = self.sim_helper.get_results(self.obs_names)
-                down_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    down_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
 
             up_obs_consts_vec, up_obs_series_array = self.get_obs_vec_and_array(up_obs)
@@ -1675,25 +1685,30 @@ class OpencorParamID():
                     dObs_param = 0
                 jacobian_sensitivity[i, j] = dObs_param
 
-            up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
-            down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
-            for j in range(num_preds):
-                dPreds_param = 0
-                #normalise derivative
-                dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
-                # TODO could I normalise the below better? an estimated std maybe?
-                dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
-                if dPreds_param == 0:
-                    # avoid nan errors if the param has no effect on the prediction
-                    dPreds_param = 1e-14
-                pred_jacobian_sensitivity[i, j] = dPreds_param
+            if num_preds > 0:
+                up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
+                down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
+                for j in range(num_preds):
+                    dPreds_param = 0
+                    #normalise derivative
+                    dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    # TODO could I normalise the below better? an estimated std maybe?
+                    dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
+                    if dPreds_param == 0:
+                        # avoid nan errors if the param has no effect on the prediction
+                        dPreds_param = 1e-14
+                    pred_jacobian_sensitivity[i, j] = dPreds_param
 
         np.save(os.path.join(output_path, 'normalised_jacobian_matrix.npy'), jacobian_sensitivity)
-        np.save(os.path.join(output_path, 'normalised_prediction_jacobian_matrix.npy'), pred_jacobian_sensitivity)
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'normalised_prediction_jacobian_matrix.npy'), pred_jacobian_sensitivity)
 
         #calculate parameter importance
         self.param_importance = np.zeros(self.num_params)
-        self.pred_param_importance = np.zeros(self.num_params)
+        if num_preds > 0:
+            self.pred_param_importance = np.zeros(self.num_params)
+        else:
+            self.pred_param_importance = None
         for param_idx in range(self.num_params):
             sensitivity = 0
             pred_sensitivity = 0
@@ -1703,14 +1718,16 @@ class OpencorParamID():
             sensitivity = math.sqrt(sensitivity / self.num_obs)
             self.param_importance[param_idx] = sensitivity
 
-            for pred_idx in range(num_preds):
-                pred_sensitivity += pred_jacobian_sensitivity[param_idx][pred_idx] \
-                                   * pred_jacobian_sensitivity[param_idx][pred_idx]
-            pred_sensitivity = math.sqrt(pred_sensitivity / num_preds)
-            self.pred_param_importance[param_idx] = pred_sensitivity
+            if num_preds > 0:
+                for pred_idx in range(num_preds):
+                    pred_sensitivity += pred_jacobian_sensitivity[param_idx][pred_idx] \
+                                       * pred_jacobian_sensitivity[param_idx][pred_idx]
+                pred_sensitivity = math.sqrt(pred_sensitivity / num_preds)
+                self.pred_param_importance[param_idx] = pred_sensitivity
 
         np.save(os.path.join(output_path, 'parameter_importance.npy'), self.param_importance)
-        np.save(os.path.join(output_path, 'parameter_importance_for_prediction.npy'),
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'parameter_importance_for_prediction.npy'),
                 self.pred_param_importance)
 
         #calculate S-norm
@@ -1720,9 +1737,10 @@ class OpencorParamID():
             for objs_idx in range(self.num_obs):
                 S_norm[param_idx][objs_idx] = jacobian_sensitivity[param_idx][objs_idx]/\
                                              (self.param_importance[param_idx]*math.sqrt(self.num_obs))
-            for preds_idx in range(num_preds):
-                pred_S_norm[param_idx][preds_idx] = pred_jacobian_sensitivity[param_idx][preds_idx]/ \
-                                              (self.pred_param_importance[param_idx]*math.sqrt(num_preds))
+            if num_preds > 0:
+                for preds_idx in range(num_preds):
+                    pred_S_norm[param_idx][preds_idx] = pred_jacobian_sensitivity[param_idx][preds_idx]/ \
+                                                  (self.pred_param_importance[param_idx]*math.sqrt(num_preds))
 
 
         collinearity_eigvals = []
@@ -1746,7 +1764,10 @@ class OpencorParamID():
 
 
         self.collinearity_idx_pairs = np.zeros((self.num_params,self.num_params))
-        self.pred_collinearity_idx_pairs = np.zeros((self.num_params,self.num_params))
+        if num_preds > 0:
+            self.pred_collinearity_idx_pairs = np.zeros((self.num_params,self.num_params))
+        else:
+            self.pred_collinearity_idx_pairs = None
         for i in range(self.num_params):
             for j in range(self.num_params):
                 if i!=j:
@@ -1756,17 +1777,20 @@ class OpencorParamID():
                     real_eigvals_pairs = eigvals_pairs.real
                     self.collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
 
-                    pred_Sl = pred_S_norm[[i,j],:]
-                    pred_Sll = pred_Sl@pred_Sl.T
-                    pred_eigvals_pairs, pred_eigvecs_pairs = la.eig(pred_Sll)
-                    pred_real_eigvals_pairs = pred_eigvals_pairs.real
-                    self.pred_collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(pred_real_eigvals_pairs), 1e-12))
+                    if num_preds > 0:
+                        pred_Sl = pred_S_norm[[i,j],:]
+                        pred_Sll = pred_Sl@pred_Sl.T
+                        pred_eigvals_pairs, pred_eigvecs_pairs = la.eig(pred_Sll)
+                        pred_real_eigvals_pairs = pred_eigvals_pairs.real
+                        self.pred_collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(pred_real_eigvals_pairs), 1e-12))
                 else:
                     self.collinearity_idx_pairs[i][j] = 0
-                    self.pred_collinearity_idx_pairs[i][j] = 0
+                    if num_preds > 0:
+                        self.pred_collinearity_idx_pairs[i][j] = 0
 
         np.save(os.path.join(output_path, 'collinearity_pairs.npy'), self.collinearity_idx_pairs)
-        np.save(os.path.join(output_path, 'pred_collinearity_pairs.npy'), self.pred_collinearity_idx_pairs)
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'pred_collinearity_pairs.npy'), self.pred_collinearity_idx_pairs)
 
         if do_triples_and_quads:
             collinearity_idx_triple = np.zeros((self.num_params, self.num_params))
@@ -2174,13 +2198,14 @@ class OpencorMCMC():
                 medians[param_idx] = np.median(flat_samples[:, param_idx])
 
             # rerun with mcmc optimal param vals
-            self.best_param_vals = medians # means
-            self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-            print('cost from mcmc mean param vals is {}'.format(self.best_cost))
-            print('resaving best_param_vals and best_cost from mcmc means')
-
-            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            # TODO for now, we dont do this, gen alg gives better estimation
+            # self.best_param_vals = medians # means
+            # self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+            # print('cost from mcmc mean param vals is {}'.format(self.best_cost))
+            # print('resaving best_param_vals and best_cost from mcmc means')
+            #
+            # np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+            # np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
 
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
