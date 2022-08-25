@@ -25,6 +25,8 @@ class SequentialParamID:
         self.param_id_obs_path = param_id_obs_path
         self.sim_time = sim_time
         self.pre_time = pre_time
+        self.sim_heart_periods = sim_heart_periods
+        self.pre_heart_periods = pre_heart_periods
         self.maximum_step = maximum_step
         self.DEBUG =DEBUG
 
@@ -211,7 +213,9 @@ class SequentialParamID:
                             self.file_name_prefix,
                             input_params_path=self.input_params_path,
                             param_id_obs_path=self.param_id_obs_path,
-                            sim_time=self.sim_time, pre_time=self.pre_time, maximum_step=self.maximum_step,
+                            sim_time=self.sim_time, pre_time=self.pre_time,
+                            sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
+                            maximum_step=self.maximum_step,
                             DEBUG=self.DEBUG)
 
         mcmc.remove_params_by_idx(param_idxs_to_remove_array)
@@ -236,7 +240,9 @@ class SequentialParamID:
                                 self.file_name_prefix,
                                 input_params_path=self.input_params_path,
                                 param_id_obs_path=self.param_id_obs_path,
-                                sim_time=self.sim_time, pre_time=self.pre_time, maximum_step=self.maximum_step,
+                                sim_time=self.sim_time, pre_time=self.pre_time,
+                                sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
+                                maximum_step=self.maximum_step,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
                 if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):

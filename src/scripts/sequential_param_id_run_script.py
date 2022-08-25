@@ -74,11 +74,10 @@ if __name__ == '__main__':
         # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
         # periods it takes to get to an oscillating steady state before that (pre_heart_periods)
         # if these exist they overwrite the pre_time and sim_time
-        # TODO incorporate heart_periods into SequentialParamID
-        # if 'pre_heart_periods' in inp_data_dict.keys():
-        #     pre_heart_periods = inp_data_dict['pre_heart_periods']
-        # if 'sim_heart_periods' in inp_data_dict.keys():
-        #     sim_heart_periods = inp_data_dict['sim_heart_periods']
+        if 'pre_heart_periods' in inp_data_dict.keys():
+            pre_heart_periods = inp_data_dict['pre_heart_periods']
+        if 'sim_heart_periods' in inp_data_dict.keys():
+            sim_heart_periods = inp_data_dict['sim_heart_periods']
 
         maximum_step = inp_data_dict['maximum_step']
 
@@ -87,7 +86,8 @@ if __name__ == '__main__':
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
-                                sim_time=sim_time, pre_time=pre_time, maximum_step=maximum_step, DEBUG=DEBUG)
+                                sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
+                                maximum_step=maximum_step, DEBUG=DEBUG)
 
         seq_param_id.run()
 

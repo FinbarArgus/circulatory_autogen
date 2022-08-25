@@ -81,6 +81,7 @@ if __name__ == '__main__':
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
+                                sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
                                 maximum_step=maximum_step, DEBUG=DEBUG)
 
@@ -112,6 +113,7 @@ if __name__ == '__main__':
             mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
+                                    sim_time=sim_time, pre_time=pre_time,
                                     pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                     maximum_step=maximum_step, DEBUG=DEBUG)
             mcmc.set_best_param_vals(best_param_vals)

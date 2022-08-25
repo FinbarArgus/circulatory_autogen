@@ -95,6 +95,7 @@ if __name__ == '__main__':
                                              input_params_path=input_params_path,
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,
+                                             sim_time=sim_time, pre_time=pre_time,
                                              sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
                                              maximum_step=maximum_step, DEBUG=False)
 

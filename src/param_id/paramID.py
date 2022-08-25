@@ -305,7 +305,7 @@ class CVS0DParamID():
                 elif self.gt_df.iloc[II]["data_type"] == "series":
                     percent_error_vec[II] = 100*np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
                                                                best_fit_obs_series[series_idx, :min_len_series]) /
-                                                              (series_plot_gt[series_idx, :min_len_series])))/min_len_series
+                                                              (np.mean(series_plot_gt[series_idx, :min_len_series]))))/min_len_series
                     std_error_vec[II] = np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
                                                        best_fit_obs_series[series_idx, :min_len_series]) /
                                                       (self.std_series_vec[series_idx]))/min_len_series)
@@ -2032,7 +2032,6 @@ class OpencorMCMC():
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.n_steps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
 
         if pre_heart_periods is not None:
@@ -2041,6 +2040,8 @@ class OpencorMCMC():
         if sim_heart_periods is not None:
             T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
             self.sim_time = T*sim_heart_periods
+
+        self.n_steps = int(self.sim_time/self.dt)
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
@@ -2167,11 +2168,13 @@ class OpencorMCMC():
             # samples = samples[::thin, :, :]
             flat_samples = samples.reshape(-1, self.num_params)
             means = np.zeros((self.num_params))
+            medians = np.zeros((self.num_params))
             for param_idx in range(self.num_params):
                 means[param_idx] = np.mean(flat_samples[:, param_idx])
+                medians[param_idx] = np.median(flat_samples[:, param_idx])
 
             # rerun with mcmc optimal param vals
-            self.best_param_vals = means
+            self.best_param_vals = medians # means
             self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
             print('cost from mcmc mean param vals is {}'.format(self.best_cost))
             print('resaving best_param_vals and best_cost from mcmc means')
