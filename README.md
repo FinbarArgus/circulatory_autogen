@@ -31,16 +31,21 @@ NOTE: currently the terminal vessels should only have a BC starting with 'pp'
 First create a `{file_prefix}_vessel_array.csv` and `{file_prefix}_parameters.csv` file in `resources/`.
 `file_prefix`'s of `simple_physiological` and `physiological` are good example files.
 
-Then move to the `user_run_files` directory and ensure the `user_inputs.sh` file is filled out correctly. 
+Then move to the `user_run_files` directory and ensure the `user_inputs.yaml` file and
+opencor_pythonshell_path.sh file are filled out correctly. 
 For model generation the following must be set
 
+```yaml
+file_prefix: {file_prefix} 
+input_param_file: {file_prefix}_parameters.csv
+```
+
 ```bash
-file_prefix={file_prefix} 
-input_param_file={file_prefix}_parameters.csv
 opencor_pythonshell_path=path/to/opencor/pythonshell
 ```
 
 then run the following to generate the model
+
 
 ```bash
 ./run_autogeneration.sh
@@ -123,10 +128,11 @@ export LD_LIBRARY_PATH=[OpenCOR]/lib
 so that libcrypto.so.3 can be
 found to load the ssl module.
 
-IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following line 
+IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following lines
 may be required to install the mpi software on your computer
 
 ```bash
 sudo apt install libopenmpi-dev
+sudo apt install libffi7
 ```
 
