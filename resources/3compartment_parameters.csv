@@ -58,3 +58,6 @@ r_lvot,metre,0.0122503863,biobeat_measurement
 rho,Js2_per_m5,1050,known
 t_astart,second,0.8916666667,biobeat_measurement
 t_vstart,second,0.0,Liang_2009_Table_2
+beta,dimensionless,1,user_defined
+gamma,dimensionless,1,user_defined
+

@@ -1074,6 +1074,8 @@
       ["vel_aov", "m_per_s", "access", "variable"],
       ["r_ao", "metre", "access", "global_constant"],
       ["r_lvot", "metre", "access", "global_constant"],
+      ["gamma", "dimensionless", "access", "global_constant"],
+      ["beta", "dimensionless", "access", "global_constant"],
       ["A_aov", "m2", "access", "global_constant"]
     ]
   },

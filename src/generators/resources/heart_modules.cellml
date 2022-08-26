@@ -93,7 +93,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -1406,7 +1406,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -2660,7 +2660,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -3948,7 +3948,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -5300,7 +5300,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -5755,21 +5755,48 @@
                     </apply>
                 </apply>
             </apply>
+        </math>
+        <!-- B_aov = rho/(2{dimensionless}*sqr(A_eff_aov)+eps);-->
+        <variable name="gamma" public_interface="in" units="dimensionless"/>
+        <variable name="beta" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>B_aov</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>gamma</ci>
+                        <ci>rho</ci>
+                        <apply>
+                            <power/>
+                            <apply>
+                                <times/>
+                                <pi/>
+                                <apply>
+                                    <power/>
+                                    <ci>r_ao</ci>
+                                    <cn cellml:units="dimensionless">2</cn>
+                                </apply>
+                            </apply>
+                            <ci>beta</ci>
+                        </apply>
+                    </apply>
                     <apply>
                         <plus/>
                         <apply>
                             <times/>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <pi/>
                             <apply>
                                 <power/>
-                                <ci>A_eff_aov</ci>
+                                <ci>r_lvot</ci>
                                 <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <apply>
+                                <power/>
+                                <ci>A_aov</ci>
+                                <ci>beta</ci>
                             </apply>
                         </apply>
                         <ci>eps</ci>
@@ -5827,6 +5854,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- L_aov = rho*l_eff/(A_eff_aov + eps);-->
             <apply>
                 <eq/>
                 <ci>L_aov</ci>
@@ -5838,9 +5866,13 @@
                         <ci>l_eff</ci>
                     </apply>
                     <apply>
-                        <plus/>
-                        <ci>A_eff_aov</ci>
-                        <ci>eps</ci>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_lvot</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
@@ -6320,6 +6352,7 @@
         <variable name="r_lvot" public_interface="in" units="metre"/>
         <variable name="r_ao" public_interface="in" units="metre"/>
         <variable name="A_aov" public_interface="in" units="m2"/>
+        <!-- A_nn_aov = A_aov;-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
