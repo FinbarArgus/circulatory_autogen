@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: True
+DEBUG: False
 MPI_DEBUG: False
 file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
