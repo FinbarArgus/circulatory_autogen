@@ -5755,29 +5755,54 @@
                     </apply>
                 </apply>
             </apply>
+        </math>
+        <!-- B_aov = rho/(2{dimensionless}*sqr(A_eff_aov)+eps);-->
+        <variable name="gamma" public_interface="in" units="dimensionless"/>
+        <variable name="beta" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>B_aov</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>gamma</ci>
+                        <ci>rho</ci>
+                        <apply>
+                            <power/>
+                            <apply>
+                                <times/>
+                                <pi/>
+                                <apply>
+                                    <power/>
+                                    <ci>r_ao</ci>
+                                    <cn cellml:units="dimensionless">2</cn>
+                                </apply>
+                            </apply>
+                            <ci>beta</ci>
+                        </apply>
+                    </apply>
                     <apply>
                         <plus/>
                         <apply>
                             <times/>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <pi/>
                             <apply>
                                 <power/>
-                                <ci>A_eff_aov</ci>
+                                <ci>r_lvot</ci>
                                 <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <apply>
+                                <power/>
+                                <ci>A_aov</ci>
+                                <ci>beta</ci>
                             </apply>
                         </apply>
                         <ci>eps</ci>
                     </apply>
                 </apply>
             </apply>
-            <!--var gamma_lv: dimensionless {pub: in};-->
-            <!--B_aov = gamma_lv*rho*sqr(pi*sqr(r_ao))/(sqr(A_eff_aov)+eps);-->
             <apply>
                 <eq/>
                 <ci>L_trv</ci>
@@ -5829,6 +5854,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- L_aov = rho*l_eff/(A_eff_aov + eps);-->
             <apply>
                 <eq/>
                 <ci>L_aov</ci>
@@ -5840,13 +5866,16 @@
                         <ci>l_eff</ci>
                     </apply>
                     <apply>
-                        <plus/>
-                        <ci>A_eff_aov</ci>
-                        <ci>eps</ci>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_lvot</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
-            <!--L_aov = rho*l_eff/(pi*sqr(r_lvot));-->
             <apply>
                 <eq/>
                 <ci>A_eff_trv</ci>
