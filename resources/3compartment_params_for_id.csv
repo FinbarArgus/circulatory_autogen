@@ -5,6 +5,7 @@ aortic_root,                  C,                const,       1e-9,       4e-8,  
 heart,                        E_lv_A,           const,       5e7,        5e8,      E_{lvA}
 heart,                        E_lv_B,           const,       5e6,        5e7,      E_{lvB}
 heart,                        E_la_B,           const,       1e7,        5e8,      E_{laB}
-heart,                        A_aov,            const,       1e-5,       2e-3,     A_{aov}
-heart,                        gamma,            const,       0.1,        100,      \gamma
+heart,                        A_aov,            const,       1e-4,       1e-3,     A_{aov}
+heart,                        gamma,            const,       0.01,       1,   \gamma
 heart,                        beta,             const,       0.2,        3,        \beta
+heart,                        T_vr,             const,       0.1,        0.3,      T_{vr}

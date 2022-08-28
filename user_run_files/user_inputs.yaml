@@ -11,7 +11,7 @@ input_param_file: 3compartment_parameters.csv
 # param_id_method can be any of [genetic_algorithm]
 param_id_method: genetic_algorithm 
 # maximum number of calls to the forward function during one run of the param_id_method
-num_calls_to_function: 10000
+num_calls_to_function: 40000
 debug_num_calls_to_function: 10
 
 run_sensitivity: False
@@ -59,7 +59,7 @@ do_sensitivity: False
 
 
 #______ mcmc inputs ___________
-do_mcmc: True
+do_mcmc: False
 mcmc_options:
   num_steps: 10000
   num_walkers: 64
