@@ -59,7 +59,7 @@ do_sensitivity: False
 
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: True
 mcmc_options:
   num_steps: 10000
   num_walkers: 64
