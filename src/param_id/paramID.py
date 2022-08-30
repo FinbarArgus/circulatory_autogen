@@ -62,7 +62,7 @@ class CVS0DParamID():
                  input_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, DEBUG=False):
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -136,7 +136,8 @@ class CVS0DParamID():
                                            self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                           dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
+                                           dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
+                                           DEBUG=self.DEBUG)
         else:
             if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -1013,6 +1014,11 @@ class CVS0DParamID():
             self.pred_var_units = None
             self.pred_var_names_for_plotting = None
 
+        if len(self.pred_var_names) < 1:
+            self.pred_var_names = None
+            self.pred_var_units = None
+            self.pred_var_names_for_plotting = None
+
     def postprocess_predictions(self):
         if self.pred_var_names == None:
             print('no prediction variables, not plotting predictions')
@@ -1165,7 +1171,8 @@ class OpencorParamID():
         self.best_param_vals = None
         self.best_cost = np.inf
 
-        # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
+        # bayesian optimisation constants TODO add more of the constants to this so they can be modified by the user
+        # TODO or remove bayesian optimisation, as it is untested
         self.n_calls = 10000
         self.acq_func = 'EI'  # the acquisition function
         self.n_initial_points = 5
@@ -1228,7 +1235,7 @@ class OpencorParamID():
 
         cost_convergence = 0.0001
         if self.param_id_method == 'bayesian':
-            print('WARNING bayesian will be deprecated')
+            print('WARNING bayesian will be deprecated and is untested')
             if rank == 0:
                 print('Running bayesian optimisation')
             param_ranges = [a for a in zip(self.param_mins, self.param_maxs)]
@@ -2027,7 +2034,7 @@ class OpencorMCMC():
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximum_step=0.0001, DEBUG=False):
+                 dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.output_dir = None
@@ -2076,10 +2083,13 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        if DEBUG:
-            self.num_steps = 6
+        if mcmc_options is not None:
+            self.num_steps = mcmc_options['num_steps']
+            self.num_walkers = mcmc_options['num_walkers']
         else:
-            self.num_steps = 5000 
+            self.num_steps = 5000
+            self.num_walkers = 2*self.num_params
+            print('number of mcmc steps and walkers is not set, choosing defaults of 5000 and 2*num_params')
 
         self.DEBUG = DEBUG
 
@@ -2118,30 +2128,25 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            if self.DEBUG:
-                num_walkers = 64
-            else:
-                num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
-
             if rank == 0:
                 if self.best_param_vals is not None:
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                     # create initial params in gaussian ball around best_param_vals estimate
-                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                                       0.1*np.random.randn(self.num_params, num_walkers)
+                    init_param_vals_norm = (np.ones((self.num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                       0.1*np.random.randn(self.num_params, self.num_walkers)
                     init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                 else:
-                    init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                    init_param_vals_norm = np.random.rand(self.num_params, self.num_walkers)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             try:
                 pool = MPIPool() # workers dont get past this line in this try, they wait for work to do
                 if mcmc_lib == 'emcee':
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                    self.sampler = emcee.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood,
                                                 pool=pool)
                 elif mcmc_lib == 'zeus':
-                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                    self.sampler = zeus.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood,
                                                          pool=pool)
 
                 start_time = time.time()
@@ -2155,22 +2160,20 @@ class OpencorMCMC():
                     pass
 
         else:
-            num_walkers = 2*self.num_params
-
             if self.best_param_vals is not None:
                 best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                                   0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals_norm = (np.ones((self.num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                   0.01*np.random.randn(self.num_params, self.num_walkers)
                 init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
             else:
-                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                init_param_vals_norm = np.random.rand(self.num_params, self.num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             if mcmc_lib == 'emcee':
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+                self.sampler = emcee.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood)
             elif mcmc_lib == 'zeus':
-                self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+                self.sampler = zeus.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood)
 
             start_time = time.time()
             self.sampler.run_mcmc(init_param_vals.T, self.num_steps) # , progress=True)
@@ -2186,7 +2189,7 @@ class OpencorMCMC():
             print('mcmc complete')
             print(f'mcmc chain saved in {mcmc_chain_path}')
 
-            # save best param bals and best cost from mcmc mean
+            # save best param vals and best cost from mcmc mean
             samples = samples[samples.shape[0]//2:, :, :]
             # thin = 10
             # samples = samples[::thin, :, :]
@@ -2197,14 +2200,32 @@ class OpencorMCMC():
                 means[param_idx] = np.mean(flat_samples[:, param_idx])
                 medians[param_idx] = np.median(flat_samples[:, param_idx])
 
-            # rerun with mcmc optimal param vals
-            self.best_param_vals = medians # means
-            self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-            print('cost from mcmc mean param vals is {}'.format(self.best_cost))
-            print('resaving best_param_vals and best_cost from mcmc means')
+            # rerun with original and mcmc optimal param vals
+            mcmc_best_param_vals = medians  # means
+            mcmc_best_cost, obs = self.get_cost_and_obs_from_params(mcmc_best_param_vals, reset=True)
+            if self.best_param_vals is None:
+                self.best_param_vals = mcmc_best_param_vals
+                self.best_cost = mcmc_best_cost
+                print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                print('saving best_param_vals and best_cost from mcmc medians')
 
-            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            else:
+                original_best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=True)
+                if mcmc_best_cost < original_best_cost:
+                    self.best_param_vals = mcmc_best_param_vals
+                    self.best_cost = mcmc_best_cost
+                    print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                    print('resaving best_param_vals and best_cost from mcmc medians')
+
+                    np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                    np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                else:
+                    self.best_cost = original_best_cost
+                    # leave the original best fit param val as the best fit value, mcmc just gives distributions
+                    print('cost from mcmc median param vals is {}'.format(mcmc_best_cost))
+                    print('Keeping the genetic algorithm best fit as it is lower, ({})'.format(self.best_cost))
 
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
