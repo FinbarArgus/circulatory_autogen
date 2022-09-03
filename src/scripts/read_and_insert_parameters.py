@@ -20,6 +20,19 @@ from parsers.PrimitiveParsers import JSONFileParser, CSVFileParser
 import traceback
 import yaml
 
+def insert_parameters(parameters_csv_abs_path, parameters_to_add_json_path):
+    
+    cp = CSVFileParser()
+    jp = JSONFileParser()
+
+    params_df = cp.get_data_as_dataframe(parameters_csv_abs_path)
+    new_params_df = jp.json_to_dataframe(parameters_to_add_json_path)
+
+    # params_df = pd.concat([params_df, new_params_df], ignore_index=True)
+    params_df = new_params_df.set_index('variable_name').combine_first(params_df.set_index('variable_name')).reset_index()
+    params_df.to_csv(parameters_csv_abs_path, index=None, header=True)
+    print(params_df)
+
 if __name__ == '__main__':
     
     try:
@@ -28,18 +41,7 @@ if __name__ == '__main__':
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
         parameters_csv_abs_path = os.path.join(resources_dir_path, inp_data_dict['input_param_file'])
-        parameters_to_add_json_path = os.path.join(resources_dir_path, sys.argv[1])
-
-        cp = CSVFileParser()
-        jp = JSONFileParser()
-
-        params_df = cp.get_data_as_dataframe(parameters_csv_abs_path)
-        new_params_df = jp.json_to_dataframe(parameters_to_add_json_path)
-
-        # params_df = pd.concat([params_df, new_params_df], ignore_index=True)
-        params_df = new_params_df.set_index('variable_name').combine_first(params_df.set_index('variable_name')).reset_index()
-        params_df.to_csv(parameters_csv_abs_path, index=None, header=True)
-        print(params_df)
+        insert_parameters(parameters_csv_abs_path, sys.argv[1])
 
         
     except:

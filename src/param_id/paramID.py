@@ -296,7 +296,7 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='min $\hat{z}$')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
                     elif self.obs_types[II] == 'series':
-                        axs[row_idx, col_idx].plot(tSim[:min_len_series], conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
+                        axs[row_idx, col_idx].plot(tSim[:min_len_series], conversion*series_plot_gt[series_idx, :min_len_series], 'k--', label='$\hat(z)$')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
