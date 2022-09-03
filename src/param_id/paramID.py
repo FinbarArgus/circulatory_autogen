@@ -62,7 +62,7 @@ class CVS0DParamID():
                  input_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, DEBUG=False):
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -149,7 +149,8 @@ class CVS0DParamID():
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                               dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
+                                               dt=self.dt, maximum_step=maximum_step, ga_options=ga_options,
+                                               DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
 
@@ -1123,7 +1124,7 @@ class OpencorParamID():
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximum_step=0.0001, DEBUG=False):
+                 dt=0.01, maximum_step=0.0001, ga_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1185,6 +1186,11 @@ class OpencorParamID():
         self.collinearity_idx_pairs = None
         self.pred_param_importance = None
         self.pred_collinearity_idx_pairs = None
+
+        if ga_options is not None:
+            self.cost_type = ga_options['cost_type']
+        else:
+            self.cost_type = 'MSE'
 
         self.DEBUG = DEBUG
 
@@ -1893,17 +1899,42 @@ class OpencorParamID():
         # cost = np.sum(np.power(self.weight_const_vec*(consts -
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        cost = np.sum(np.power(self.weight_const_vec*(consts -
+        if self.cost_type == 'MSE':
+            cost = np.sum(np.power(self.weight_const_vec*(consts -
                                self.ground_truth_consts)/self.std_const_vec, 2))
+        elif self.cost_type == 'AE':
+            cost = np.sum(np.abs(self.weight_const_vec*(consts -
+                                                          self.ground_truth_consts)/self.std_const_vec))
+
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
             # calculate sum of squares cost and divide by number data points in series data
-            series_cost = np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            # divide by number data points in series data
+            if self.cost_type == 'MSE':
+                series_cost = np.sum(np.power((series[:, :min_len_series] -
+                                               self.ground_truth_series[:,
+                                               :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                              self.std_series_vec.reshape(-1, 1), 2)) / min_len_series
+            elif self.cost_type == 'AE':
+                series_cost = np.sum(np.abs((series[:, :min_len_series] -
+                                             self.ground_truth_series[:,
+                                             :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                            self.std_series_vec.reshape(-1, 1))) / min_len_series
+            else:
+                print(f'cost type of {self.cost_type} not implemented')
+
             cost = (cost + series_cost) / self.num_obs
         else:
-            cost = cost/self.num_obs
+            cost = cost / self.num_obs
+
+        # TODO remove this
+        # TODO get the genetic algorithm to maximise the likelihood
+        # Create a class fir calculating the likelihood
+        # if A_aov is a parameter add a cost for its value to keep it small
+        if ['heart/A_aov'] in self.param_names:
+            A_aov_value = self.sim_helper.get_init_param_vals(['heart/A_aov'])[0]
+            k_aov = 1e3
+            cost += A_aov_value * k_aov
 
         return cost
 
@@ -2086,9 +2117,11 @@ class OpencorMCMC():
         if mcmc_options is not None:
             self.num_steps = mcmc_options['num_steps']
             self.num_walkers = mcmc_options['num_walkers']
+            self.cost_type = mcmc_options['cost_type']
         else:
             self.num_steps = 5000
             self.num_walkers = 2*self.num_params
+            self.cost_type = 'MSE'
             print('number of mcmc steps and walkers is not set, choosing defaults of 5000 and 2*num_params')
 
         self.DEBUG = DEBUG
@@ -2292,27 +2325,8 @@ class OpencorMCMC():
         obs_consts_vec, obs_series_array = self.get_obs_vec_and_array(obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
-        lnlikelihood = self.lnlikelihood_calc(obs_consts_vec, obs_series_array)
-
-        return lnlikelihood
-
-
-    def lnlikelihood_calc(self, consts, series=None):
-        # cost = np.sum(np.power(self.weight_const_vec*(consts -
-        #                        self.ground_truth_consts)/np.minimum(consts,
-        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))
-        
-        if series is not None:
-            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
-            # divide by number data points in series data
-            series_lnlikelihood = -0.5*np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
-            lnlikelihood = (lnlikelihood + series_lnlikelihood) / self.num_obs
-        else:
-            lnlikelihood = lnlikelihood/self.num_obs
+        cost = self.get_cost_from_obs(obs)
+        lnlikelihood = -0.5*cost
 
         return lnlikelihood
 
@@ -2351,19 +2365,42 @@ class OpencorMCMC():
         # cost = np.sum(np.power(self.weight_const_vec*(consts -
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        cost = np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))
-        
+        if self.cost_type == 'MSE':
+            cost = np.sum(np.power(self.weight_const_vec*(consts -
+                                                          self.ground_truth_consts)/self.std_const_vec, 2))
+        elif self.cost_type == 'AE':
+            cost = np.sum(np.abs(self.weight_const_vec*(consts -
+                                                        self.ground_truth_consts)/self.std_const_vec))
+
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
-        
+            # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
-            series_cost = np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            if self.cost_type == 'MSE':
+                series_cost = np.sum(np.power((series[:, :min_len_series] -
+                                               self.ground_truth_series[:,
+                                               :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                              self.std_series_vec.reshape(-1, 1), 2)) / min_len_series
+            elif self.cost_type == 'AE':
+                series_cost = np.sum(np.abs((series[:, :min_len_series] -
+                                             self.ground_truth_series[:,
+                                             :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                            self.std_series_vec.reshape(-1, 1))) / min_len_series
+            else:
+                print(f'cost type of {cost_type} not implemented')
+
             cost = (cost + series_cost) / self.num_obs
         else:
-            cost = cost/self.num_obs
+            cost = cost / self.num_obs
+
+        # TODO remove this
+        # TODO get the genetic algorithm to maximise the likelihood
+        # Create a class fir calculating the likelihood
+        # if A_aov is a parameter add a cost for its value to keep it small
+        if ['heart/A_aov'] in self.param_names:
+            A_aov_value = self.sim_helper.get_init_param_vals(['heart/A_aov'])[0]
+            k_aov = 1e3
+            cost += A_aov_value * k_aov
 
         return cost
 
