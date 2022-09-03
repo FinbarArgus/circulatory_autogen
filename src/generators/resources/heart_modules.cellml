@@ -5826,7 +5826,7 @@
                             <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                 <apply>
                                     <minus/>
                                     <cn cellml:units="dimensionless">1</cn>
@@ -5838,7 +5838,7 @@
                                                 <minus/>
                                                 <ci>B_trv_pre</ci>
                                             </apply>
-                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                         </apply>
                                     </apply>
                                 </apply>
@@ -5865,7 +5865,7 @@
                             <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                 <apply>
                                     <minus/>
                                     <cn cellml:units="dimensionless">1</cn>
@@ -5877,7 +5877,7 @@
                                                 <minus/>
                                                 <ci>B_puv_pre</ci>
                                             </apply>
-                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                         </apply>
                                     </apply>
                                 </apply>
@@ -5904,7 +5904,7 @@
                             <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                 <apply>
                                     <minus/>
                                     <cn cellml:units="dimensionless">1</cn>
@@ -5916,7 +5916,7 @@
                                                 <minus/>
                                                 <ci>B_miv_pre</ci>
                                             </apply>
-                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                         </apply>
                                     </apply>
                                 </apply>
@@ -5943,7 +5943,7 @@
                             <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                 <apply>
                                     <minus/>
                                     <cn cellml:units="dimensionless">1</cn>
@@ -5955,7 +5955,7 @@
                                                 <minus/>
                                                 <ci>B_aov_pre</ci>
                                             </apply>
-                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>17</cn>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
                                         </apply>
                                     </apply>
                                 </apply>
@@ -6522,7 +6522,11 @@
                 <apply>
                     <divide/>
                     <ci>v_aov</ci>
-                    <ci>A_aov</ci>
+                    <apply>
+                        <plus/>
+                        <ci>A_aov</ci>
+                        <ci>eps</ci>
+                    </apply>
                 </apply>
             </apply>
             <!-- Constitutive Relations-->

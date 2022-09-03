@@ -79,22 +79,23 @@ if __name__ == '__main__':
 
         maximum_step = inp_data_dict['maximum_step']
         dt = inp_data_dict['dt']
+        ga_options = inp_data_dict['ga_options']
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG)
 
         if rank == 0:
             if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
                 os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
 
         if DEBUG:
-            num_calls_to_function = inp_data_dict['debug_num_calls_to_function']
+            num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
         else:
-            num_calls_to_function = inp_data_dict['num_calls_to_function']
+            num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
 
         if param_id_method == 'genetic_algorithm':
             param_id.set_genetic_algorithm_parameters(num_calls_to_function)
