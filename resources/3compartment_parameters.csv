@@ -8,7 +8,7 @@ C_T_systemic,m6_per_J,1e-10,small_chosen
 C_aortic_root,m6_per_J,1.2028e-08,to_be_identified
 C_par,m6_per_J,0.0309077e-8,to_be_identified
 C_pvn,m6_per_J,0.60015e-8,to_be_identified
-C_venous_svc,m6_per_J,5e-7,to_be_identified
+C_venous_svc,m6_per_J,8e-7,to_be_identified
 E_la_A,J_per_m6,9.331e+6,Liang_2009_Table_2
 E_la_B,J_per_m6,11.997e+6,Liang_2009_Table_2
 E_lv_A,J_per_m6,366.575e+6,Liang_2009_Table_2
