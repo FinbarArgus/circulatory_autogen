@@ -78,16 +78,15 @@ if __name__ == '__main__':
         dt = inp_data_dict['dt']
         ga_options = inp_data_dict['ga_options']
 
-        obs_dir = '/eresearch/heart/farg967/Sandboxes/Finbar/combined'
-        obs_files = ['lv_estimation_observables_BB016.json',
-                'lv_estimation_observables_BB044.json',
+        # obs_dir = '/eresearch/heart/farg967/Sandboxes/Finbar/combined'
+        obs_dir = '/home/farg967/Documents/data/heart_projects/Argus_2022'
+        obs_files = ['lv_estimation_observables_BB044.json',
                 'lv_estimation_observables_BB047.json',
                 'lv_estimation_observables_BB055.json',
                 'lv_estimation_observables_BB104.json',
                 'lv_estimation_observables_BB105.json',
                 'lv_estimation_observables_BB133.json']
-        const_files = ['lv_estimation_constants_BB016.json',
-                'lv_estimation_constants_BB044.json',
+        const_files = ['lv_estimation_constants_BB044.json',
                 'lv_estimation_constants_BB047.json',
                 'lv_estimation_constants_BB055.json',
                 'lv_estimation_constants_BB104.json',

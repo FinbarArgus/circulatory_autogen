@@ -6523,9 +6523,18 @@
                     <divide/>
                     <ci>v_aov</ci>
                     <apply>
-                        <plus/>
-                        <ci>A_aov</ci>
-                        <ci>eps</ci>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">3</cn>
+                            <cn cellml:units="dimensionless">4</cn>
+                        </apply>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_lvot</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
