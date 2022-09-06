@@ -1,6 +1,6 @@
 name,BC_type,vessel_type,inp_vessels,out_vessels
 heart,                   vp, heart_LVprop,venous_ivc venous_svc, aortic_root    
-aortic_root,             vv, arterial_simple, heart,ascending_aorta       
+aortic_root,             vv, arterial, heart,ascending_aorta       
 ascending_aorta,         pv, split_junction,     aortic_root,aortic_arch_I        brachiocephalic      
 brachiocephalic,         pv, split_junction,     ascending_aorta,subclavian_R         common_carotid_R
 subclavian_R,            pv, arterial,           brachiocephalic,arm_R_T
