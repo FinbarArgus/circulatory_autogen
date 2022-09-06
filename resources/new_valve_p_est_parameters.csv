@@ -1,5 +1,5 @@
 variable_name,units,value,data_reference
-A_aov,m2,0.0004775864,biobeat_measurement
+A_aov,m2,0.0001720229,biobeat_measurement
 A_nn_aov,m2,0.000314,defined_by_user_from_BB128
 A_nn_miv,m2,0.0006,to_be_identified
 A_nn_puv,m2,0.0004,to_be_identified
@@ -43,11 +43,11 @@ R_aortic_root,Js_per_m6,1.0e6,to_be_identified
 R_par,Js_per_m6,10.664e+6,Blanco_2013_Table_8
 R_pvn,Js_per_m6,1.333e+6,Blanco_2013_Table_8
 R_venous_svc,Js_per_m6,1114600.0,small_chosen
-T,second,1.0395833333,biobeat_measurement
-T_ac,second,0.0739583333,biobeat_measurement
-T_ar,second,0.0739583333,biobeat_measurement
-T_vc,second,0.2895833333,biobeat_measurement
-T_vr,second,0.1541666667,biobeat_measurement
+T,second,0.725,biobeat_measurement
+T_ac,second,0.0708333333,biobeat_measurement
+T_ar,second,0.0708333333,biobeat_measurement
+T_vc,second,0.33125,biobeat_measurement
+T_vr,second,0.145,biobeat_measurement
 beta,dimensionless,2,user_defined
 gamma,dimensionless,0.0269,mean_of_population_id_07_09_22_FARGUS
 l_eff,metre,0.01,to_be_identified
@@ -55,8 +55,8 @@ q_la_0,m3,4.0e-6,Korakianitis_2006_Table_1
 q_lv_0,m3,5.0e-6,Korakianitis_2006_Table_1
 q_ra_0,m3,4.0e-6,Korakianitis_2006_Table_1
 q_rv_0,m3,10.0e-6,Korakianitis_2006_Table_1
-r_ao,metre,0.0143944149,biobeat_measurement
-r_lvot,metre,0.0122503863,biobeat_measurement
+r_ao,metre,0.0142714778,biobeat_measurement
+r_lvot,metre,0.010030084,biobeat_measurement
 rho,Js2_per_m5,1050,known
-t_astart,second,0.8916666667,biobeat_measurement
+t_astart,second,0.5833333333,biobeat_measurement
 t_vstart,second,0.0,Liang_2009_Table_2

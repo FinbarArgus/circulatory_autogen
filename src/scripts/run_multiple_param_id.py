@@ -80,12 +80,18 @@ if __name__ == '__main__':
 
         obs_dir = '/eresearch/heart/farg967/Sandboxes/Finbar/combined'
         # obs_dir = '/home/farg967/Documents/data/heart_projects/Argus_2022'
-        obs_files = ['lv_estimation_observables_BB044.json',
-                'lv_estimation_observables_BB047.json',
-                'lv_estimation_observables_BB055.json',
-                'lv_estimation_observables_BB104.json',
-                'lv_estimation_observables_BB105.json',
-                'lv_estimation_observables_BB133.json']
+        # obs_files = ['lv_estimation_observables_BB044.json',
+        #         'lv_estimation_observables_BB047.json',
+        #         'lv_estimation_observables_BB055.json',
+        #         'lv_estimation_observables_BB104.json',
+        #         'lv_estimation_observables_BB105.json',
+        #         'lv_estimation_observables_BB133.json']
+        obs_files = ['lv_estimation_observables_BB044_wout_lv.json',
+                'lv_estimation_observables_BB047_wout_lv.json',
+                'lv_estimation_observables_BB055_wout_lv.json',
+                'lv_estimation_observables_BB104_wout_lv.json',
+                'lv_estimation_observables_BB105_wout_lv.json',
+                'lv_estimation_observables_BB133_wout_lv.json']
         const_files = ['lv_estimation_constants_BB044.json',
                 'lv_estimation_constants_BB047.json',
                 'lv_estimation_constants_BB055.json',
