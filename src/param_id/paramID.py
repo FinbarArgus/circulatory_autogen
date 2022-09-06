@@ -223,8 +223,8 @@ class CVS0DParamID():
         best_fit_obs_consts, best_fit_obs_series = self.param_id.get_obs_vec_and_array(best_fit_obs)
 
         # _________ Plot best comparison _____________
-        subplot_width = 2
-        fig, axs = plt.subplots(subplot_width, subplot_width)
+        subplot_width = 1
+        fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
 
         obs_names_unique = []
         for obs_name in self.obs_names:
@@ -333,7 +333,8 @@ class CVS0DParamID():
                 if row_idx%subplot_width == 0:
                     for JJ in range(subplot_width):
                         fig.align_ylabels(axs[:, JJ])
-                    axs[1, 1].legend(loc='lower right', fontsize=6)
+                    # temporarily remove legend TODO fix
+                    # axs[subplot_width-1, subplot_width-1].legend(loc='lower right', fontsize=6)
                     plt.tight_layout()
                     plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
@@ -341,6 +342,9 @@ class CVS0DParamID():
                     plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+                    plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
                     plt.close()
                     plot_saved = True
                     col_idx = 0
@@ -348,7 +352,7 @@ class CVS0DParamID():
                     plot_idx += 1
                     # create new plot
                     if unique_obs_count != len(obs_names_unique) - 1:
-                        fig, axs = plt.subplots(subplot_width, subplot_width)
+                        fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
                         plot_saved = False
 
         # save final plot if it is not a full set of subplots
