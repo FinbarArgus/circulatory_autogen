@@ -1,0 +1,9 @@
+vessel_name,                  param_name,       param_type,  min,        max,     name_for_plotting
+heart,                        q_lv,             state,       400e-6,     3000e-6,  q_{sbv} 
+systemic_T,                   R_T,              const,       1e6,        1000e6,   R_{sys}
+aortic_root,                  C,                const,       1e-9,       5e-8,     C_{ao}
+heart,                        E_lv_A,           const,       1e8,        5e8,      E_{lvA}
+heart,                        E_lv_B,           const,       1e6,        5e7,      E_{lvB}
+heart,                        A_aov,            const,       2e-4,       4e-4,     A_{aov}
+heart,                        gamma,            const,       1e-3,       5e-2,     \gamma
+heart,                        T_vr,             const,       0.1,        0.3,      T_{vr}
