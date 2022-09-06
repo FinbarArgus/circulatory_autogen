@@ -60,8 +60,9 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
                  input_params_path=None,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, maximumStep=0.0001, dt=0.01,
-                 DEBUG=False):
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
+                 pre_heart_periods=None, sim_heart_periods=None,
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -134,9 +135,11 @@ class CVS0DParamID():
                                            self.ground_truth_consts, self.ground_truth_series,
                                            self.param_mins, self.param_maxs,
                                            sim_time=sim_time, pre_time=pre_time,
-                                           dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
+                                           pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
+                                           dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
+                                           DEBUG=self.DEBUG)
         else:
-            if param_id_model_type == 'CVS0D':
+            if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types,
                                                self.weight_const_vec, self.weight_series_vec,
@@ -145,7 +148,8 @@ class CVS0DParamID():
                                                self.ground_truth_consts, self.ground_truth_series,
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
-                                               dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
+                                               pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
+                                               dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
 
@@ -234,6 +238,7 @@ class CVS0DParamID():
         consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
 
         series_plot_gt = np.array(self.ground_truth_series)
+        min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
 
 
         for unique_obs_count in range(len(obs_names_unique)):
@@ -241,6 +246,7 @@ class CVS0DParamID():
             consts_idx = -1
             series_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
+            std_error_vec = np.zeros((self.num_obs,))
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -289,20 +295,26 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='min $\hat{z}$')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
                     elif self.obs_types[II] == 'series':
-                        axs[row_idx, col_idx].plot(tSim, conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
+                        axs[row_idx, col_idx].plot(tSim[:min_len_series], conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
-                    percent_error_vec[II] = 100*np.abs((best_fit_obs_consts[II] - self.ground_truth_consts[II])/
-                                                       self.ground_truth_consts[II])
+                    percent_error_vec[II] = 100*(best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
+                                                       self.ground_truth_consts[consts_idx]
+                    std_error_vec[II] = (best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
+                                                       self.std_const_vec[consts_idx]
                 elif self.gt_df.iloc[II]["data_type"] == "series":
-                    # rms_error_vec[II] = np.sqrt(consts_plot_gt[consts_idx, :] - consts_plot_bf[])
-                    pass
+                    percent_error_vec[II] = 100*np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
+                                                               best_fit_obs_series[series_idx, :min_len_series]) /
+                                                              (np.mean(series_plot_gt[series_idx, :min_len_series]))))/min_len_series
+                    std_error_vec[II] = np.sum(np.abs((series_plot_gt[series_idx, :min_len_series] -
+                                                       best_fit_obs_series[series_idx, :min_len_series]) /
+                                                      (self.std_series_vec[series_idx]))/min_len_series)
 
 
             axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
-            axs[row_idx, col_idx].set_ylim(ymin=0.0)
+            # axs[row_idx, col_idx].set_ylim(ymin=0.0)
             # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
 
             plot_saved = False
@@ -348,9 +360,6 @@ class CVS0DParamID():
         # Make a bar plot with all percentage errors.
         fig, axs = plt.subplots()
         obs_names_for_plot_list = []
-        # calculate coefficient of variation
-        gt_coefficient_of_variation = 100*self.std_const_vec/self.ground_truth_consts
-        bf_percent_error = 100*(best_fit_obs_consts - self.ground_truth_consts)/self.ground_truth_consts
 
         for II in range(self.num_obs):
             if "name_for_plotting" in self.gt_df.iloc[0].keys():
@@ -359,9 +368,7 @@ class CVS0DParamID():
                 obs_names_for_plot_list.append(self.obs_names[II])
         obs_names_for_plot = np.array(obs_names_for_plot_list)
 
-        axs.bar(obs_names_for_plot, bf_percent_error, label='% error', width=1.0, color='b', edgecolor='black')
-        # axs.bar(obs_names_for_plot, gt_coefficient_of_variation, width=1.0, alpha=0.5, label='CV',
-        #         edgecolor='black', color='None')
+        axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
         # axs.legend()
@@ -378,8 +385,7 @@ class CVS0DParamID():
 
         #plot error as number of standard deviations of
         fig, axs = plt.subplots()
-        bf_std_error = (best_fit_obs_consts - self.ground_truth_consts)/self.std_const_vec
-        axs.bar(obs_names_for_plot, bf_std_error, label='% error', width=1.0, color='b', edgecolor='black')
+        axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
         # axs.legend()
@@ -399,9 +405,9 @@ class CVS0DParamID():
             if self.gt_df.iloc[obs_idx]["data_type"] == "constant":
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
-            if self.gt_df.iloc[II]["data_type"] == "series":
-                # TODO
-                pass
+            if self.gt_df.iloc[obs_idx]["data_type"] == "series":
+                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} series error:')
+                print(f'{percent_error_vec[obs_idx]:.2f} %')
 
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
@@ -504,7 +510,7 @@ class CVS0DParamID():
         plt.close()
 
         # do another corner plot with just a subset of params
-        overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
+        # overwrite_params_to_plot_idxs = [0,1, 4, 7] # This chooses a subset of params to plot
         if self.mcmc_instead:
             fig = corner.corner(flat_samples[:, overwrite_params_to_plot_idxs], bins=20, hist_bin_factor=2, smooth=0.5, quantiles=(0.05, 0.5, 0.95),
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
@@ -564,7 +570,7 @@ class CVS0DParamID():
             self.param_id.run_single_sensitivity(sample_path_list[i], do_triples_and_quads)
 
 
-        # FA: Eventually we will automate the multiple runs of param_id and store the outputs in indexed
+        # FA: Eventually we will automate the multiple runs of param_id and store the outputs in idxed
         # FA: directories that can all be accessed automatically by this function without defining input paths.
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
@@ -577,55 +583,55 @@ class CVS0DParamID():
             sample_path = sample_path_list[i]
             normalised_jacobian = np.load(os.path.join(sample_path, 'normalised_jacobian_matrix.npy'))
             parameter_importance = np.load(os.path.join(sample_path, 'parameter_importance.npy'))
-            collinearity_index_i = np.load(os.path.join(sample_path, 'collinearity_index.npy'))
+            collinearity_idx_i = np.load(os.path.join(sample_path, 'collinearity_idx.npy'))
             if i == 0:
                 normalised_jacobian_average = np.zeros(normalised_jacobian.shape)
                 parameter_importance_average = np.zeros(parameter_importance.shape)
-                collinearity_index_average = np.zeros(collinearity_index_i.shape)
+                collinearity_idx_average = np.zeros(collinearity_idx_i.shape)
             normalised_jacobian_average = normalised_jacobian_average + normalised_jacobian/number_samples
             parameter_importance_average = parameter_importance_average + parameter_importance/number_samples
-            collinearity_index_average = collinearity_index_average + collinearity_index_i/number_samples
-            self.collinearity_index = collinearity_index_average
+            collinearity_idx_average = collinearity_idx_average + collinearity_idx_i/number_samples
+            self.collinearity_idx = collinearity_idx_average
 
-        collinearity_max = collinearity_index_average.max()
+        collinearity_max = collinearity_idx_average.max()
 
         if do_triples_and_quads:
             #find maximum average value of collinearity triples
             for i in range(len(x_values)):
                 for j in range(number_samples):
                     sample_path = sample_path_list[j]
-                    collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+                    collinearity_idx_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
                     if j==0:
-                        collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
-                    collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
-                if collinearity_index_triple_average.max() > collinearity_max:
-                    collinearity_max = collinearity_index_triple_average.max()
+                        collinearity_idx_triple_average = np.zeros(collinearity_idx_triple.shape)
+                    collinearity_idx_triple_average = collinearity_idx_triple_average + collinearity_idx_triple/number_samples
+                if collinearity_idx_triple_average.max() > collinearity_max:
+                    collinearity_max = collinearity_idx_triple_average.max()
 
             #find maximum value of collinearity quads
             for i in range(len(x_values)):
                 for j in range(len(x_values)):
                     for k in range(number_samples):
                         sample_path = sample_path_list[k]
-                        collinearity_index_quad = np.load(
+                        collinearity_idx_quad = np.load(
                             os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
                         if k==0:
-                            collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
-                        collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
-                    if collinearity_index_quad_average.max() > collinearity_max:
-                        collinearity_max = collinearity_index_quad_average.max()
+                            collinearity_idx_quad_average = np.zeros(collinearity_idx_quad.shape)
+                        collinearity_idx_quad_average = collinearity_idx_quad_average + collinearity_idx_quad / number_samples
+                    if collinearity_idx_quad_average.max() > collinearity_max:
+                        collinearity_max = collinearity_idx_quad_average.max()
 
-        #find maximum average value and average values for collinearity index
+        #find maximum average value and average values for collinearity idx
         for i in range(number_samples):
             sample_path = sample_path_list[i]
-            collinearity_index_pairs_i = np.load(
+            collinearity_idx_pairs_i = np.load(
                 os.path.join(sample_path, 'collinearity_pairs.npy'))
             if i==0:
-                collinearity_index_pairs_average = np.zeros(collinearity_index_pairs_i.shape)
-            collinearity_index_pairs_average = collinearity_index_pairs_average + collinearity_index_pairs_i/number_samples
-            self.collinearity_index_pairs = collinearity_index_pairs_average
+                collinearity_idx_pairs_average = np.zeros(collinearity_idx_pairs_i.shape)
+            collinearity_idx_pairs_average = collinearity_idx_pairs_average + collinearity_idx_pairs_i/number_samples
+            self.collinearity_idx_pairs = collinearity_idx_pairs_average
 
-        if collinearity_index_pairs_average.max() > collinearity_max:
-            collinearity_max = collinearity_index_pairs_average.max()
+        if collinearity_idx_pairs_average.max() > collinearity_max:
+            collinearity_max = collinearity_idx_pairs_average.max()
 
         number_Params = len(normalised_jacobian_average)
         #plot jacobian
@@ -636,12 +642,13 @@ class CVS0DParamID():
 
         x_labels = []
         subset = []
-        x_index = 0
+        x_idx = 0
         for obs_idx in range(len(self.obs_names)):
-            if self.obs_types[obs_idx] != "series":
-                x_labels.append(self.obs_names[obs_idx] + " " + self.obs_types[obs_idx])
-                subset.append(x_index)
-                x_index = x_index + 1
+            # if self.obs_types[obs_idx] != "series":
+            x_labels.append(self.obs_names[obs_idx] + " " + self.obs_types[obs_idx])
+            subset.append(x_idx)
+            x_idx = x_idx + 1
+
         for param_idx in range(len(self.param_names)):
             y_values = []
             for obs_idx in range(len(x_labels)):
@@ -671,7 +678,7 @@ class CVS0DParamID():
                                      f'reconstruct_{self.file_name_prefix}_'
                                      f'{self.param_id_obs_file_prefix}_parameter_importance_average.pdf'))
         plt.close()
-        #plot collinearity index average
+        #plot collinearity idx average
         plt.rc('xtick', labelsize=12)
         plt.rc('ytick', labelsize=4)
         figC, axsC = plt.subplots(1, 1)
@@ -681,7 +688,7 @@ class CVS0DParamID():
             x_values_cumulative.append(x_values_temp)
             if (i + 1) < len(x_values):
                 x_values_temp = x_values[i + 1] + "\n" + x_values_temp
-        axsC.barh(x_values_cumulative, collinearity_index_average)
+        axsC.barh(x_values_cumulative, collinearity_idx_average)
         plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.file_name_prefix}_'
                                      f'{self.param_id_obs_file_prefix}_collinearity_index_average.eps'))
@@ -697,9 +704,9 @@ class CVS0DParamID():
         X, Y = np.meshgrid(range(len(x_values)), range(len(x_values)))
         if do_triples_and_quads:
             collinearity_levels = np.linspace(0, collinearity_max, 20)
-            co = axsD.contourf(X, Y, collinearity_index_pairs_average, levels=collinearity_levels)
+            co = axsD.contourf(X, Y, collinearity_idx_pairs_average, levels=collinearity_levels)
         else:
-            co = axsD.contourf(X, Y, collinearity_index_pairs_average)
+            co = axsD.contourf(X, Y, collinearity_idx_pairs_average)
         co = fig.colorbar(co, ax=axsD)
         axsD.set_xticks(range(len(x_values)))
         axsD.set_yticks(range(len(x_values)))
@@ -718,13 +725,13 @@ class CVS0DParamID():
             for i in range(len(x_values)):
                 for j in range(number_samples):
                     sample_path = sample_path_list[j]
-                    collinearity_index_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
+                    collinearity_idx_triple = np.load(os.path.join(sample_path, 'collinearity_triples' + str(i) + '.npy'))
                     if j == 0:
-                        collinearity_index_triple_average = np.zeros(collinearity_index_triple.shape)
-                    collinearity_index_triple_average = collinearity_index_triple_average + collinearity_index_triple/number_samples
+                        collinearity_idx_triple_average = np.zeros(collinearity_idx_triple.shape)
+                    collinearity_idx_triple_average = collinearity_idx_triple_average + collinearity_idx_triple/number_samples
 
                 figE, axsE = plt.subplots(1, 1)
-                co = axsE.contourf(X, Y, collinearity_index_triple_average, levels=collinearity_levels)
+                co = axsE.contourf(X, Y, collinearity_idx_triple_average, levels=collinearity_levels)
                 co = fig.colorbar(co, ax=axsE)
                 axsE.set_xticks(range(len(x_values)))
                 axsE.set_yticks(range(len(x_values)))
@@ -743,13 +750,13 @@ class CVS0DParamID():
                 for j in range(len(x_values)):
                     for k in range(number_samples):
                         sample_path = sample_path_list[k]
-                        collinearity_index_quad = np.load(
+                        collinearity_idx_quad = np.load(
                             os.path.join(sample_path, 'collinearity_quads' + str(i) + '_' + str(j) + '.npy'))
                         if k==0:
-                            collinearity_index_quad_average = np.zeros(collinearity_index_quad.shape)
-                        collinearity_index_quad_average = collinearity_index_quad_average + collinearity_index_quad / number_samples
+                            collinearity_idx_quad_average = np.zeros(collinearity_idx_quad.shape)
+                        collinearity_idx_quad_average = collinearity_idx_quad_average + collinearity_idx_quad / number_samples
                     figE, axsE = plt.subplots(1, 1)
-                    co = axsE.contourf(X, Y, collinearity_index_quad_average, levels=collinearity_levels)
+                    co = axsE.contourf(X, Y, collinearity_idx_quad_average, levels=collinearity_levels)
                     co = fig.colorbar(co, ax=axsE)
                     axsE.set_xticks(range(len(x_values)))
                     axsE.set_yticks(range(len(x_values)))
@@ -773,10 +780,10 @@ class CVS0DParamID():
         if self.rank !=0:
             return
 
-            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
-            time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
-            return time_and_pred
+        tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
+        pred_output = self.param_id.sim_helper.get_results(self.pred_var_names)
+        time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output))
+        return time_and_pred
 
     def save_prediction_data(self):
         if self.rank !=0:
@@ -833,7 +840,7 @@ class CVS0DParamID():
         self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                           if self.gt_df.iloc[II]["data_type"] == "constant"])
 
-        self.std_series_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+        self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "series"])
 
         return
@@ -931,13 +938,14 @@ class CVS0DParamID():
         ground_truth_consts = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "constant"])
 
-        ground_truth_series = np.array([self.gt_df.iloc[II]["series"] for II in range(self.gt_df.shape[0])
+        ground_truth_series = np.stack([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "series"])
 
 
         if self.rank == 0:
-            np.save(os.path.join(self.output_dir, 'ground_truth_consts'), ground_truth_consts)
-            # np.save(os.path.join(self.output_dir, 'ground_truth_series'), ground_truth_series)
+            np.save(os.path.join(self.output_dir, 'ground_truth_consts.npy'), ground_truth_consts)
+            if len(ground_truth_series) > 0:
+                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), ground_truth_series)
 
         return ground_truth_consts, ground_truth_series
     
@@ -956,17 +964,17 @@ class CVS0DParamID():
     def get_param_importance(self):
         return self.param_id.param_importance
 
-    def get_collinearity_index(self):
-        return self.param_id.collinearity_index
+    def get_collinearity_idx(self):
+        return self.param_id.collinearity_idx
 
-    def get_collinearity_index_pairs(self):
-        return self.param_id.collinearity_index_pairs
+    def get_collinearity_idx_pairs(self):
+        return self.param_id.collinearity_idx_pairs
 
     def get_pred_param_importance(self):
         return self.param_id.pred_param_importance
 
-    def get_pred_collinearity_index_pairs(self):
-        return self.param_id.pred_collinearity_index_pairs
+    def get_pred_collinearity_idx_pairs(self):
+        return self.param_id.pred_collinearity_idx_pairs
 
     def remove_params_by_idx(self, param_idxs_to_remove):
         self.__set_and_save_param_names(idxs_to_ignore=param_idxs_to_remove)
@@ -1006,7 +1014,15 @@ class CVS0DParamID():
             self.pred_var_units = None
             self.pred_var_names_for_plotting = None
 
+        if len(self.pred_var_names) < 1:
+            self.pred_var_names = None
+            self.pred_var_units = None
+            self.pred_var_names_for_plotting = None
+
     def postprocess_predictions(self):
+        if self.pred_var_names == None:
+            print('no prediction variables, not plotting predictions')
+            return 0
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
 
@@ -1106,8 +1122,8 @@ class OpencorParamID():
                  param_names, pred_var_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
-                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
-                 DEBUG=False):
+                 sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
+                 dt=0.01, maximum_step=0.0001, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1131,20 +1147,32 @@ class OpencorParamID():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
-        self.maximumStep = maximumStep
+        self.maximum_step = maximum_step
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.n_steps = int(self.sim_time/self.dt)
 
         self.sim_helper = self.initialise_sim_helper()
+
+        # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
+        if pre_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.pre_time = T*pre_heart_periods
+        if sim_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.sim_time = T*sim_heart_periods
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+
+        self.n_steps = int(self.sim_time/self.dt)
 
         # initialise
         self.param_init = None
         self.best_param_vals = None
         self.best_cost = np.inf
 
-        # genetic algorithm constants TODO add more of the constants to this so they can be modified by the user
+        # bayesian optimisation constants TODO add more of the constants to this so they can be modified by the user
+        # TODO or remove bayesian optimisation, as it is untested
         self.n_calls = 10000
         self.acq_func = 'EI'  # the acquisition function
         self.n_initial_points = 5
@@ -1153,17 +1181,17 @@ class OpencorParamID():
 
         # sensitivity
         self.param_importance = None
-        self.collinearity_index = None
-        self.collinearity_index_pairs = None
+        self.collinearity_idx = None
+        self.collinearity_idx_pairs = None
         self.pred_param_importance = None
-        self.pred_collinearity_index_pairs = None
+        self.pred_collinearity_idx_pairs = None
 
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 maximumNumberofSteps=100000000,
-                                maximumStep=self.maximumStep, pre_time=self.pre_time)
+                                maximum_step=self.maximum_step, pre_time=self.pre_time)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -1207,7 +1235,7 @@ class OpencorParamID():
 
         cost_convergence = 0.0001
         if self.param_id_method == 'bayesian':
-            print('WARNING bayesian will be deprecated')
+            print('WARNING bayesian will be deprecated and is untested')
             if rank == 0:
                 print('Running bayesian optimisation')
             param_ranges = [a for a in zip(self.param_mins, self.param_maxs)]
@@ -1584,20 +1612,28 @@ class OpencorParamID():
         self.best_param_vals = np.load(os.path.join(output_path, 'best_param_vals.npy'))
 
         gt_scalefactor = []
-        x_index = 0
-        objs_index = []
+        const_idx = 0
+        series_idx = 0
 
         for obs_idx in range(self.num_obs):
-            #ignore series data for now
             if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
-                gt_scalefactor.append(self.weight_const_vec[x_index]/self.std_const_vec[x_index])
-                # gt_scalefactor.append(1/self.ground_truth_consts[x_index])
-                objs_index.append(x_index)
-                x_index = x_index + 1
+                gt_scalefactor.append(self.weight_const_vec[const_idx]/self.std_const_vec[const_idx])
+                # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
+                const_idx = const_idx + 1
+            else: 
+                #part of scale factor for normalising jacobain
+                gt_scalefactor.append(self.weight_series_vec[series_idx]/self.std_const_vec[series_idx])
+                # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
+                series_idx = series_idx + 1
+
 
         jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
-        pred_jacobian_sensitivity = np.zeros((self.num_params,self.num_obs))
+        if self.pred_var_names == None:
+            num_preds = 0
+        else:
+            num_preds = len(self.pred_var_names)*3 # *3 for the min max and mean of the pred trace
+            pred_jacobian_sensitivity = np.zeros((self.num_params, num_preds))
 
         for i in range(self.num_params):
             #central difference calculation of derivative
@@ -1610,7 +1646,8 @@ class OpencorParamID():
             success = self.sim_helper.run()
             if success:
                 up_obs = self.sim_helper.get_results(self.obs_names)
-                up_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    up_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_up')
@@ -1620,14 +1657,16 @@ class OpencorParamID():
                     self.sim_helper.set_param_vals(self.param_names, param_vec_up)
                     success = self.sim_helper.run()
                 up_obs = self.sim_helper.get_results(self.obs_names)
-                up_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    up_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
 
             self.sim_helper.set_param_vals(self.param_names, param_vec_down)
             success = self.sim_helper.run()
             if success:
                 down_obs = self.sim_helper.get_results(self.obs_names)
-                down_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    down_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_down')
@@ -1637,7 +1676,8 @@ class OpencorParamID():
                     self.sim_helper.set_param_vals(self.param_names, param_vec_down)
                     success = self.sim_helper.run()
                 down_obs = self.sim_helper.get_results(self.obs_names)
-                down_preds = self.sim_helper.get_results(self.pred_var_names)
+                if num_preds > 0:
+                    down_preds = self.sim_helper.get_results(self.pred_var_names)
                 self.sim_helper.reset_and_clear()
 
             up_obs_consts_vec, up_obs_series_array = self.get_obs_vec_and_array(up_obs)
@@ -1647,28 +1687,35 @@ class OpencorParamID():
                 #normalise derivative
                 if j < len(up_obs_consts_vec):
                     dObs_param = (up_obs_consts_vec[j]-down_obs_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
-                    dObs_param = dObs_param*self.best_param_vals[i]*gt_scalefactor[objs_index[j]]
+                    dObs_param = dObs_param*self.best_param_vals[i]*gt_scalefactor[j]
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i, j] = dObs_param
 
-            up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
-            down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
-            num_preds = len(up_preds_consts_vec)
-            for j in range(num_preds):
-                dPreds_param = 0
-                #normalise derivative
-                dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
-                # TODO could I normalise the below better? an estimated std maybe?
-                dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
-                pred_jacobian_sensitivity[i, j] = dPreds_param
+            if num_preds > 0:
+                up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
+                down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
+                for j in range(num_preds):
+                    dPreds_param = 0
+                    #normalise derivative
+                    dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    # TODO could I normalise the below better? an estimated std maybe?
+                    dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
+                    if dPreds_param == 0:
+                        # avoid nan errors if the param has no effect on the prediction
+                        dPreds_param = 1e-14
+                    pred_jacobian_sensitivity[i, j] = dPreds_param
 
         np.save(os.path.join(output_path, 'normalised_jacobian_matrix.npy'), jacobian_sensitivity)
-        np.save(os.path.join(output_path, 'normalised_prediction_jacobian_matrix.npy'), pred_jacobian_sensitivity)
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'normalised_prediction_jacobian_matrix.npy'), pred_jacobian_sensitivity)
 
         #calculate parameter importance
         self.param_importance = np.zeros(self.num_params)
-        self.pred_param_importance= np.zeros(self.num_params)
+        if num_preds > 0:
+            self.pred_param_importance = np.zeros(self.num_params)
+        else:
+            self.pred_param_importance = None
         for param_idx in range(self.num_params):
             sensitivity = 0
             pred_sensitivity = 0
@@ -1678,14 +1725,16 @@ class OpencorParamID():
             sensitivity = math.sqrt(sensitivity / self.num_obs)
             self.param_importance[param_idx] = sensitivity
 
-            for pred_idx in range(num_preds):
-                pred_sensitivity += pred_jacobian_sensitivity[param_idx][pred_idx] \
-                                   * pred_jacobian_sensitivity[param_idx][pred_idx]
-            pred_sensitivity = math.sqrt(pred_sensitivity / num_preds)
-            self.pred_param_importance[param_idx] = pred_sensitivity
+            if num_preds > 0:
+                for pred_idx in range(num_preds):
+                    pred_sensitivity += pred_jacobian_sensitivity[param_idx][pred_idx] \
+                                       * pred_jacobian_sensitivity[param_idx][pred_idx]
+                pred_sensitivity = math.sqrt(pred_sensitivity / num_preds)
+                self.pred_param_importance[param_idx] = pred_sensitivity
 
         np.save(os.path.join(output_path, 'parameter_importance.npy'), self.param_importance)
-        np.save(os.path.join(output_path, 'parameter_importance_for_prediction.npy'),
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'parameter_importance_for_prediction.npy'),
                 self.pred_param_importance)
 
         #calculate S-norm
@@ -1695,9 +1744,10 @@ class OpencorParamID():
             for objs_idx in range(self.num_obs):
                 S_norm[param_idx][objs_idx] = jacobian_sensitivity[param_idx][objs_idx]/\
                                              (self.param_importance[param_idx]*math.sqrt(self.num_obs))
-            for preds_idx in range(num_preds):
-                pred_S_norm[param_idx][preds_idx] = pred_jacobian_sensitivity[param_idx][preds_idx]/ \
-                                              (self.pred_param_importance[param_idx]*math.sqrt(num_preds))
+            if num_preds > 0:
+                for preds_idx in range(num_preds):
+                    pred_S_norm[param_idx][preds_idx] = pred_jacobian_sensitivity[param_idx][preds_idx]/ \
+                                                  (self.pred_param_importance[param_idx]*math.sqrt(num_preds))
 
 
         collinearity_eigvals = []
@@ -1710,15 +1760,21 @@ class OpencorParamID():
             collinearity_eigvals.append(min(real_eigvals))
 
         #calculate collinearity
-        self.collinearity_index = np.zeros(len(collinearity_eigvals))
+        self.collinearity_idx = np.zeros(len(collinearity_eigvals))
         for i in range(len(collinearity_eigvals)):
-            self.collinearity_index[i] = 1/math.sqrt(collinearity_eigvals[i])
+            if collinearity_eigvals[i] < 1e-12:
+                self.collinearity_idx[i] = 1e6
+            else:
+                self.collinearity_idx[i] = 1/math.sqrt(collinearity_eigvals[i])
 
-        np.save(os.path.join(output_path, 'collinearity_index.npy'), self.collinearity_index)
+        np.save(os.path.join(output_path, 'collinearity_idx.npy'), self.collinearity_idx)
 
 
-        self.collinearity_index_pairs = np.zeros((self.num_params,self.num_params))
-        self.pred_collinearity_index_pairs = np.zeros((self.num_params,self.num_params))
+        self.collinearity_idx_pairs = np.zeros((self.num_params,self.num_params))
+        if num_preds > 0:
+            self.pred_collinearity_idx_pairs = np.zeros((self.num_params,self.num_params))
+        else:
+            self.pred_collinearity_idx_pairs = None
         for i in range(self.num_params):
             for j in range(self.num_params):
                 if i!=j:
@@ -1726,22 +1782,25 @@ class OpencorParamID():
                     Sll = Sl@Sl.T
                     eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                     real_eigvals_pairs = eigvals_pairs.real
-                    self.collinearity_index_pairs[i][j] = 1/math.sqrt(min(real_eigvals_pairs))
+                    self.collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
 
-                    pred_Sl = pred_S_norm[[i,j],:]
-                    pred_Sll = pred_Sl@pred_Sl.T
-                    pred_eigvals_pairs, pred_eigvecs_pairs = la.eig(pred_Sll)
-                    pred_real_eigvals_pairs = pred_eigvals_pairs.real
-                    self.pred_collinearity_index_pairs[i][j] = 1/math.sqrt(min(pred_real_eigvals_pairs)+1e-16)
+                    if num_preds > 0:
+                        pred_Sl = pred_S_norm[[i,j],:]
+                        pred_Sll = pred_Sl@pred_Sl.T
+                        pred_eigvals_pairs, pred_eigvecs_pairs = la.eig(pred_Sll)
+                        pred_real_eigvals_pairs = pred_eigvals_pairs.real
+                        self.pred_collinearity_idx_pairs[i][j] = 1/math.sqrt(max(min(pred_real_eigvals_pairs), 1e-12))
                 else:
-                    self.collinearity_index_pairs[i][j] = 0
-                    self.pred_collinearity_index_pairs[i][j] = 0
+                    self.collinearity_idx_pairs[i][j] = 0
+                    if num_preds > 0:
+                        self.pred_collinearity_idx_pairs[i][j] = 0
 
-        np.save(os.path.join(output_path, 'collinearity_pairs.npy'), self.collinearity_index_pairs)
-        np.save(os.path.join(output_path, 'pred_collinearity_pairs.npy'), self.pred_collinearity_index_pairs)
+        np.save(os.path.join(output_path, 'collinearity_pairs.npy'), self.collinearity_idx_pairs)
+        if num_preds > 0:
+            np.save(os.path.join(output_path, 'pred_collinearity_pairs.npy'), self.pred_collinearity_idx_pairs)
 
         if do_triples_and_quads:
-            collinearity_index_triple = np.zeros((self.num_params, self.num_params))
+            collinearity_idx_triple = np.zeros((self.num_params, self.num_params))
             for i in range(self.num_params):
                 for j in range(self.num_params):
                     for k in range(self.num_params):
@@ -1750,12 +1809,12 @@ class OpencorParamID():
                             Sll = Sl@Sl.T
                             eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                             real_eigvals_pairs = eigvals_pairs.real
-                            collinearity_index_triple[j][k] = 1/math.sqrt(min(real_eigvals_pairs))
+                            collinearity_idx_triple[j][k] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
                         else:
-                            collinearity_index_triple[j][k] = 0
-                np.save(os.path.join(output_path, 'collinearity_triples'+str(i)+'.npy'), collinearity_index_triple)
+                            collinearity_idx_triple[j][k] = 0
+                np.save(os.path.join(output_path, 'collinearity_triples'+str(i)+'.npy'), collinearity_idx_triple)
 
-            collinearity_index_quad = np.zeros((self.num_params, self.num_params))
+            collinearity_idx_quad = np.zeros((self.num_params, self.num_params))
             for i in range(self.num_params):
                 for j in range(self.num_params):
                     for k in range(self.num_params):
@@ -1765,10 +1824,10 @@ class OpencorParamID():
                                 Sll = Sl@Sl.T
                                 eigvals_pairs, eigvecs_pairs = la.eig(Sll)
                                 real_eigvals_pairs = eigvals_pairs.real
-                                collinearity_index_quad[k][l] = 1/math.sqrt(min(real_eigvals_pairs))
+                                collinearity_idx_quad[k][l] = 1/math.sqrt(max(min(real_eigvals_pairs), 1e-12))
                         else:
-                            collinearity_index_quad[k][l] = 0
-                    np.save(os.path.join(output_path, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_index_quad)
+                            collinearity_idx_quad[k][l] = 0
+                    np.save(os.path.join(output_path, 'collinearity_quads'+str(i)+'_'+str(j)+'.npy'), collinearity_idx_quad)
 
         return
 
@@ -1835,11 +1894,16 @@ class OpencorParamID():
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
-        # if series:
-            # TODO Have not included cost from series error yet
-            # cost +=
-            # pass
+                               self.ground_truth_consts)/self.std_const_vec, 2))
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
+            # calculate sum of squares cost and divide by number data points in series data
+            series_cost = np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            cost = (cost + series_cost) / self.num_obs
+        else:
+            cost = cost/self.num_obs
 
         return cost
 
@@ -1969,8 +2033,8 @@ class OpencorMCMC():
                  param_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
-                 sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
-                 DEBUG=False):
+                 sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
+                 dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.output_dir = None
@@ -1995,12 +2059,22 @@ class OpencorMCMC():
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
-        self.maximumStep = maximumStep
+        self.maximum_step = maximum_step
         self.point_interval = self.dt
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.n_steps = int(self.sim_time/self.dt)
         self.sim_helper = self.initialise_sim_helper()
+
+        if pre_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.pre_time = T*pre_heart_periods
+        if sim_heart_periods is not None:
+            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            self.sim_time = T*sim_heart_periods
+
+        self.n_steps = int(self.sim_time/self.dt)
+
+        self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # initialise
         self.param_init = None
@@ -2009,17 +2083,20 @@ class OpencorMCMC():
 
         # mcmc
         self.sampler = None
-        if DEBUG:
-            self.num_steps = 6
+        if mcmc_options is not None:
+            self.num_steps = mcmc_options['num_steps']
+            self.num_walkers = mcmc_options['num_walkers']
         else:
-            self.num_steps = 5000 
+            self.num_steps = 5000
+            self.num_walkers = 2*self.num_params
+            print('number of mcmc steps and walkers is not set, choosing defaults of 5000 and 2*num_params')
 
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 maximumNumberofSteps=100000000,
-                                maximumStep=self.maximumStep, pre_time=self.pre_time)
+                                maximum_step=self.maximum_step, pre_time=self.pre_time)
 
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -2051,30 +2128,25 @@ class OpencorMCMC():
             # from pathos.multiprocessing import ProcessPool
             from schwimmbad import MPIPool
 
-            if self.DEBUG:
-                num_walkers = 64
-            else:
-                num_walkers = 32 # TODO make this user definable or change back to max(4*self.num_params, num_procs)
-
             if rank == 0:
                 if self.best_param_vals is not None:
                     best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
                     # create initial params in gaussian ball around best_param_vals estimate
-                    init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                                       0.1*np.random.randn(self.num_params, num_walkers)
+                    init_param_vals_norm = (np.ones((self.num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                       0.1*np.random.randn(self.num_params, self.num_walkers)
                     init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
                 else:
-                    init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                    init_param_vals_norm = np.random.rand(self.num_params, self.num_walkers)
                     init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             try:
                 pool = MPIPool() # workers dont get past this line in this try, they wait for work to do
                 if mcmc_lib == 'emcee':
-                    self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                    self.sampler = emcee.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood,
                                                 pool=pool)
                 elif mcmc_lib == 'zeus':
-                    self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood,
+                    self.sampler = zeus.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood,
                                                          pool=pool)
 
                 start_time = time.time()
@@ -2088,22 +2160,20 @@ class OpencorMCMC():
                     pass
 
         else:
-            num_walkers = 2*self.num_params
-
             if self.best_param_vals is not None:
                 best_param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
-                init_param_vals_norm = (np.ones((num_walkers, self.num_params))*best_param_vals_norm).T + \
-                                   0.01*np.random.randn(self.num_params, num_walkers)
+                init_param_vals_norm = (np.ones((self.num_walkers, self.num_params))*best_param_vals_norm).T + \
+                                   0.01*np.random.randn(self.num_params, self.num_walkers)
                 init_param_vals_norm = np.clip(init_param_vals_norm, 0.001, 0.999)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
             else:
-                init_param_vals_norm = np.random.rand(self.num_params, num_walkers)
+                init_param_vals_norm = np.random.rand(self.num_params, self.num_walkers)
                 init_param_vals = self.param_norm_obj.unnormalise(init_param_vals_norm)
 
             if mcmc_lib == 'emcee':
-                self.sampler = emcee.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+                self.sampler = emcee.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood)
             elif mcmc_lib == 'zeus':
-                self.sampler = zeus.EnsembleSampler(num_walkers, self.num_params, calculate_lnlikelihood)
+                self.sampler = zeus.EnsembleSampler(self.num_walkers, self.num_params, calculate_lnlikelihood)
 
             start_time = time.time()
             self.sampler.run_mcmc(init_param_vals.T, self.num_steps) # , progress=True)
@@ -2119,23 +2189,43 @@ class OpencorMCMC():
             print('mcmc complete')
             print(f'mcmc chain saved in {mcmc_chain_path}')
 
-            # save best param bals and best cost from mcmc mean
+            # save best param vals and best cost from mcmc mean
             samples = samples[samples.shape[0]//2:, :, :]
             # thin = 10
             # samples = samples[::thin, :, :]
             flat_samples = samples.reshape(-1, self.num_params)
             means = np.zeros((self.num_params))
+            medians = np.zeros((self.num_params))
             for param_idx in range(self.num_params):
                 means[param_idx] = np.mean(flat_samples[:, param_idx])
+                medians[param_idx] = np.median(flat_samples[:, param_idx])
 
-            # rerun with mcmc optimal param vals
-            self.best_param_vals = means
-            self.best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-            print('cost from mcmc mean param vals is {}'.format(self.best_cost))
-            print('resaving best_param_vals and best_cost from mcmc means')
+            # rerun with original and mcmc optimal param vals
+            mcmc_best_param_vals = medians  # means
+            mcmc_best_cost, obs = self.get_cost_and_obs_from_params(mcmc_best_param_vals, reset=True)
+            if self.best_param_vals is None:
+                self.best_param_vals = mcmc_best_param_vals
+                self.best_cost = mcmc_best_cost
+                print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                print('saving best_param_vals and best_cost from mcmc medians')
 
-            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            else:
+                original_best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=True)
+                if mcmc_best_cost < original_best_cost:
+                    self.best_param_vals = mcmc_best_param_vals
+                    self.best_cost = mcmc_best_cost
+                    print('cost from mcmc median param vals is {}'.format(self.best_cost))
+                    print('resaving best_param_vals and best_cost from mcmc medians')
+
+                    np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
+                    np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+                else:
+                    self.best_cost = original_best_cost
+                    # leave the original best fit param val as the best fit value, mcmc just gives distributions
+                    print('cost from mcmc median param vals is {}'.format(mcmc_best_cost))
+                    print('Keeping the genetic algorithm best fit as it is lower, ({})'.format(self.best_cost))
 
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
@@ -2213,10 +2303,16 @@ class OpencorMCMC():
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(consts -
                                self.ground_truth_consts)/self.std_const_vec, 2))
-        # if series:
-            # TODO Have not included cost from series error yet
-            # cost +=
-            # pass
+        
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
+            # divide by number data points in series data
+            series_lnlikelihood = -0.5*np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            lnlikelihood = (lnlikelihood + series_lnlikelihood) / self.num_obs
+        else:
+            lnlikelihood = lnlikelihood/self.num_obs
 
         return lnlikelihood
 
@@ -2256,11 +2352,18 @@ class OpencorMCMC():
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
         cost = np.sum(np.power(self.weight_const_vec*(consts -
-                                                      self.ground_truth_consts)/self.std_const_vec, 2))/(self.num_obs)
-        # if series:
-        # TODO Have not included cost from series error yet
-        # cost +=
-        # pass
+                               self.ground_truth_consts)/self.std_const_vec, 2))
+        
+        if series is not None:
+            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
+        
+            # divide by number data points in series data
+            series_cost = np.sum(np.power((series[:, :min_len_series] -
+                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
+                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            cost = (cost + series_cost) / self.num_obs
+        else:
+            cost = cost/self.num_obs
 
         return cost
 

@@ -5,7 +5,7 @@ import numpy as np
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
                  sim_time, maximumNumberofSteps=100000,
-                 maximumStep=0.001, pre_time=0.0):
+                 maximum_step=0.001, pre_time=0.0):
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt  # time step
         self.stop_time = pre_time + sim_time  # full time of simulation
@@ -17,7 +17,7 @@ class SimulationHelper():
             exit()
         self.data = self.simulation.data()
         self.data.set_ode_solver_property('MaximumNumberOfSteps', maximumNumberofSteps)
-        self.data.set_ode_solver_property('MaximumStep', maximumStep)
+        self.data.set_ode_solver_property('MaximumStep', maximum_step)
         self.data.set_point_interval(dt)  # time interval for data storage
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
