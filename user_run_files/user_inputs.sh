@@ -2,7 +2,7 @@
 # file_prefix=FTU_wCVS
 # file_prefix=3compartment
 
-file_prefix=FinalModel
+file_prefix=cerebral
 
 # file_prefix=simple_physiological
 # file_prefix=neonatal
@@ -13,7 +13,7 @@ file_prefix=FinalModel
 # input_param_file=FTU_wCVS_parameters.csv # this must be stored in resources.
 # input_param_file=3compartment_parameters.csv # this must be stored in resources.
 
-input_param_file=FinalModel_parameters.csv # this must be stored in resources.
+input_param_file=cerebral_parameters.csv # this must be stored in resources.
 
 
 
