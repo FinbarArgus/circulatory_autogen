@@ -1,5 +1,8 @@
-# user inputs are defined in user_inputs.sh
-source user_inputs.sh
+if [[ $# -eq 0 ]] ; then
+    echo 'usage is ./run_param_id.sh num_processors'
+    exit 1
+fi
+source opencor_pythonshell_path.sh
 ./run_autogeneration.sh
-mpiexec -n ${num_procs} ${opencor_pythonshell_path} ../src/scripts/sequential_param_id_run_script.py ${param_id_method} ${file_prefix} ${num_calls_to_function} ${param_id_obs_path}
+mpiexec -n $1 ${opencor_pythonshell_path} ../src/scripts/sequential_param_id_run_script.py
 
