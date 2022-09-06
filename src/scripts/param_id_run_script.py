@@ -25,6 +25,7 @@ import yaml
 if __name__ == '__main__':
 
     try:
+
         with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
@@ -33,6 +34,7 @@ if __name__ == '__main__':
         if DEBUG:
             print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
         mpi_debug = inp_data_dict['MPI_DEBUG']
+
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()

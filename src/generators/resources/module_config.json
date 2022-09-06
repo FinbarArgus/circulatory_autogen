@@ -30,6 +30,7 @@
       ["q_C", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["I", "Js2_per_m6", "access", "constant"]
     ]
   },
@@ -64,6 +65,7 @@
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
@@ -105,6 +107,7 @@
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["I", "Js2_per_m6", "access", "constant"]
     ]
   },
@@ -139,6 +142,7 @@
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
@@ -180,6 +184,7 @@
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["I", "Js2_per_m6", "access", "constant"]
     ]
   },
@@ -218,6 +223,7 @@
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
@@ -259,6 +265,7 @@
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["I", "Js2_per_m6", "access", "constant"]
     ]
   },
@@ -294,6 +301,7 @@
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "access", "global_constant"],
@@ -331,6 +339,7 @@
       ["v_T", "m3_per_s", "access", "variable"],
       ["R_T", "Js_per_m6", "access", "constant"],
       ["C_T", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["q_T", "m3", "access", "variable"]
     ]
   },
@@ -377,6 +386,7 @@
       ["I_T", "Js2_per_m6", "access", "constant"],
       ["q_T", "m3", "access", "variable"],
       ["Delta_R", "Js_per_m6", "access", "variable"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["R_local_multiplier", "dimensionless", "access", "variable"]
     ]
   },
@@ -423,6 +433,7 @@
       ["I_T", "Js2_per_m6", "access", "constant"],
       ["q_T", "m3", "access", "variable"],
       ["Delta_R", "Js_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["R_local_multiplier", "dimensionless", "access", "variable"]
     ]
   },
@@ -469,6 +480,7 @@
       ["I_T", "Js2_per_m6", "access", "constant"],
       ["q_T", "m3", "access", "variable"],
       ["Delta_R", "Js_per_m6", "access", "variable"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["R_local_multiplier", "dimensionless", "access", "constant"]
     ]
   },
@@ -520,6 +532,7 @@
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
@@ -561,6 +574,7 @@
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
@@ -604,6 +618,7 @@
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
@@ -658,6 +673,7 @@
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
+      ["u_ext", "J_per_m3", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
@@ -1204,7 +1220,7 @@
     "BC_type":"vp",
     "module_format":"cellml",
     "module_file":"BG_modules.cellml",
-    "module_type":"vp_simple_type",
+    "module_type":"vp_ven_simple_type",
     "entrance_ports":
     [
       {
@@ -1232,6 +1248,7 @@
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["u_ext_ven", "J_per_m3", "no_access", "global_constant"],
       ["I", "Js2_per_m6", "access", "constant"]
     ]
   },
@@ -2162,21 +2179,26 @@
     ]
   },
   {
+
     "vessel_type":"coupler",
     "BC_type":"pv_0D_1D",
     "module_format":"cellml",
     "module_file":"coupling_modules.cellml",
     "module_type":"pv_0D_1D_coupler_type",
+
     "entrance_ports":
     [
       {
         "port_type":"vessel_port",
+
         "variables":["q_star","P_s_0D"]
+
       }
     ],
     "exit_ports":
     [
       {
+
         "port_type":"0D_1D_port",
         "variables":["P_t_star","A_star", "flux"]
       }
