@@ -627,8 +627,8 @@ r_middle_cerebral_posterior_temporal_branch_T58_L154,metre,0.000500255,ADAN_218
 theta_middle_cerebral_posterior_temporal_branch_T58_L154,dimensionless,90,defined_by_user
 C_T_lateral_occipital_intermediate_temporal_branch_T47_L20,m6_per_J,2.64334E-13,ADAN_218
 BFF_ASL_lateral_occipital_intermediate_temporal_branch_T47_L20,dimensionless,0.0896,defined_by_user
-pressure_d,J_per_m3,520346,defined_by_user
-meanflow_4dflow,m3_per_s,0.0003,defined_by_user
+pressure_d,J_per_m3,13000,defined_by_user
+meanflow_4dflow,m3_per_s,1.24E-05,defined_by_user
 C_T_lateral_occipital_intermediate_temporal_branch_T76_R216,m6_per_J,2.6433E-13,ADAN_218
 BFF_ASL_lateral_occipital_intermediate_temporal_branch_T76_R216,dimensionless,0.0968,defined_by_user
 C_T_medial_occipital_calcarine_branch_T51_L202,m6_per_J,5.1628E-13,ADAN_218
@@ -887,3 +887,7 @@ R_T_prefrontal_T130_R64 ,Js_per_m6,39879400495.4306,elic
 R_T_prefrontal_T65_L126 ,Js_per_m6,41210804332.1586,elic
 u_ext_ven,J_per_m3,0,small_chosen
 u_ext,J_per_m3,0,small_chosen
+v_1_input_flow_basilar,m3_per_s,3.1E-06,user_defined
+v_2_input_flow_basilar,m3_per_s,3.1E-06,user_defined
+v_input_flow_internalcarotid_L,m3_per_s,3.1E-06,user_defined
+v_input_flow_internalcarotid_R,m3_per_s,3.1E-06,user_defined

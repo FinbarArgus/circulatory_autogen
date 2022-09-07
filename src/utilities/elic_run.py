@@ -4,7 +4,7 @@ from opencor_helper import SimulationHelper
 import csv
 
 
-file_path = "/home/ash252/UoA/Autogen_git/circulatory_autogen/generated_models/cerebral_elic.cellml"
+file_path = "/home/ash252/UoA/Autogen_git/circulatory_autogen/generated_models/cerebral_elic/cerebral_elic.cellml"
 #file_path = "/home/ash252/UoA/RA/Friberg.cellml"
 Outputfile_address = "/home/ash252/UoA/RA/"
 Terminal_names_path = "/home/ash252/UoA/Finbar/"
@@ -26,9 +26,9 @@ for i in range(len(names)):
     names[i] = re.sub("\['", "", names[i])
     names[i] = re.sub("']", "", names[i])
 
-#names = ['Friberg/Prol', 'Friberg/Tr1', 'Friberg/Tr2', 'Friberg/Tr3', 'Friberg/Circ']
+#names = ['Friberg/Prol', 'Friberg/Tr1', 'Friberg/Tr2', 'Friberg/Tr3', 'Friberg/Circ'] , maximumStep=0.001
 
-x = SimulationHelper(file_path, 0.001, 200, maximumNumberofSteps=1000, maximumStep=0.001, pre_time=0)
+x = SimulationHelper(file_path, 0.001, 200, maximumNumberofSteps=1000, pre_time=0)
 x.run()
 
 

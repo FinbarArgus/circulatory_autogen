@@ -3328,7 +3328,7 @@
             </apply>
         </math>
     </component>
-    <component name="controller2_type">
+    <component name="W_controller2_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="I_T" public_interface="out" units="Js2_per_m6"/>

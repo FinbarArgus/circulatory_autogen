@@ -1,8 +1,8 @@
 variable_name,units,value,data_reference
-v_1_input_flow_basilar,m3_per_s,3.1e-6,user_defined
-v_2_input_flow_basilar,m3_per_s,3.1e-6,user_defined
-v_input_flow_internalcarotid_L,m3_per_s,3.1e-6,user_defined
-v_input_flow_internalcarotid_R,m3_per_s,3.1e-6,user_defined
+v_1_input_flow_basilar,m3_per_s,3.1E-06,user_defined
+v_2_input_flow_basilar,m3_per_s,3.1E-06,user_defined
+v_input_flow_internalcarotid_L,m3_per_s,3.1E-06,user_defined
+v_input_flow_internalcarotid_R,m3_per_s,3.1E-06,user_defined
 E_ascending_aorta_A,J_per_m3,400000,ADAN_86
 l_ascending_aorta_A,metre,0.0153234,ADAN_86
 r_ascending_aorta_A,metre,0.015642,ADAN_86
@@ -333,8 +333,8 @@ r_middle_cerebral_posterior_temporal_branch_T58_L154,metre,0.000500255,ADAN_218
 theta_middle_cerebral_posterior_temporal_branch_T58_L154,dimensionless,90,defined_by_user
 C_T_lateral_occipital_intermediate_temporal_branch_T47_L20,m6_per_J,2.64334E-13,ADAN_218
 BFF_ASL_lateral_occipital_intermediate_temporal_branch_T47_L20,dimensionless,0.0896,defined_by_user
-pressure_d,J_per_m3,520346,defined_by_user
-meanflow_4dflow,m3_per_s,0.0003,defined_by_user
+pressure_d,J_per_m3,13000,defined_by_user
+meanflow_4dflow,m3_per_s,1.24E-05,defined_by_user
 C_T_lateral_occipital_intermediate_temporal_branch_T76_R216,m6_per_J,2.6433E-13,ADAN_218
 BFF_ASL_lateral_occipital_intermediate_temporal_branch_T76_R216,dimensionless,0.0968,defined_by_user
 C_T_medial_occipital_calcarine_branch_T51_L202,m6_per_J,5.1628E-13,ADAN_218
@@ -445,3 +445,4 @@ C_T_prefrontal_T130_R64,m6_per_J,1.3398E-12,ADAN_218
 BFF_ASL_prefrontal_T130_R64,dimensionless,0.3141,defined_by_user
 C_T_prefrontal_T65_L126,m6_per_J,1.33978E-12,ADAN_218
 BFF_ASL_prefrontal_T65_L126,dimensionless,0.3074,defined_by_user
+u_ext,J_per_m3,0,EMPTY_MUST_BE_FILLED
