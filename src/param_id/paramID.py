@@ -11,6 +11,7 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tick
 import paperPlotSetup
 import stat_distributions
 import diagnostics
@@ -104,6 +105,7 @@ class CVS0DParamID():
         self.param_names = None
         self.param_mins = None
         self.param_maxs = None
+        self.param_prior_types = None
         self.param_names_for_plotting = None
         self.num_obs = None
         self.gt_df = None
@@ -132,7 +134,7 @@ class CVS0DParamID():
                                            self.std_const_vec, self.std_series_vec,
                                            self.param_names,
                                            self.ground_truth_consts, self.ground_truth_series,
-                                           self.param_mins, self.param_maxs,
+                                           self.param_mins, self.param_maxs, self.param_prior_types,
                                            sim_time=sim_time, pre_time=pre_time,
                                            dt=self.dt, maximumStep=maximumStep, DEBUG=self.DEBUG)
         else:
@@ -499,6 +501,23 @@ class CVS0DParamID():
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
                                 truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
                                 fontsize=20)
+        axes = fig.get_axes()
+        for idx, ax in enumerate(axes):
+            if idx >= num_params*(num_params - 1):
+
+                ax.tick_params(axis='both', rotation=0)
+                formatterx = matplotlib.ticker.ScalarFormatter()
+                ax.xaxis.set_major_formatter(formatterx)
+                ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+            if idx%num_params == 0:
+
+                ax.tick_params(axis='both', rotation=0)
+                formattery = matplotlib.ticker.ScalarFormatter()
+                ax.yaxis.set_major_formatter(formattery)
+                ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+
+        plt.subplots_adjust(hspace=0.12, wspace=0.1)
+
         plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}.pdf'))
         plt.close()
@@ -515,6 +534,22 @@ class CVS0DParamID():
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
                                 truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
                                 fontsize=20)
+        axes = fig.get_axes()
+        for idx, ax in enumerate(axes):
+            if idx >= len(overwrite_params_to_plot_idxs)*(len(overwrite_params_to_plot_idxs) - 1):
+
+                ax.tick_params(axis='both', rotation=0)
+                formatterx = matplotlib.ticker.ScalarFormatter()
+                ax.xaxis.set_major_formatter(formatterx)
+                ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+            if idx%len(overwrite_params_to_plot_idxs) == 0:
+
+                ax.tick_params(axis='both', rotation=0)
+                formattery = matplotlib.ticker.ScalarFormatter()
+                ax.yaxis.set_major_formatter(formattery)
+                ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+
+        plt.subplots_adjust(hspace=0.12, wspace=0.1)
 
         plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_subset_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}.pdf'))
@@ -903,6 +938,12 @@ class CVS0DParamID():
                                                             for JJ in range(input_params.shape[0])])
                 else:
                     self.param_names_for_plotting = np.array([param_name[0] for param_name in self.param_names])
+
+            # set param_priors
+            if "prior" in input_params.columns:
+                self.param_prior_types = np.array([input_params["prior"][JJ] for JJ in range(input_params.shape[0])])
+            else:
+                self.param_prior_types = np.array(["uniform" for JJ in range(input_params.shape[0])])
 
 
         else:
@@ -1968,7 +2009,7 @@ class OpencorMCMC():
                  obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names,
                  ground_truth_consts, ground_truth_series,
-                 param_mins, param_maxs,
+                 param_mins, param_maxs, param_prior_types,
                  sim_time=2.0, pre_time=20.0, dt=0.01, maximumStep=0.0001,
                  DEBUG=False):
 
@@ -1988,10 +2029,8 @@ class OpencorMCMC():
         self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
+        self.param_prior_types = param_prior_types
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
-
-        # TODO load this from file. Make the user define the priors
-        self.param_prior_dists = None# ['uniform', 'uniform', 'exponential']
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
@@ -2036,6 +2075,7 @@ class OpencorMCMC():
                 self.best_param_vals = np.delete(self.best_param_vals, param_idxs_to_remove)
             self.param_mins = np.delete(self.param_mins, param_idxs_to_remove)
             self.param_maxs = np.delete(self.param_maxs, param_idxs_to_remove)
+            self.param_prior_types = np.delete(self.param_prior_types, param_idxs_to_remove)
             self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
             self.param_init = None
 
@@ -2140,13 +2180,9 @@ class OpencorMCMC():
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
         for idx, param_val in enumerate(param_vals):
-            # TODO input param_prior_dists
-            if self.param_prior_dists:
-                prior_dist = self.param_prior_dists[idx]
+            if self.param_prior_types is not None:
+                prior_dist = self.param_prior_types[idx]
             else:
-                # if np.any([param_name.endswith('C') for param_name in self.param_names[idx]]) : # TODO this is temporary until we input priors
-                #     prior_dist = 'exponential'
-                # else:
                 prior_dist = None
 
             if not prior_dist or prior_dist == 'uniform':
@@ -2164,6 +2200,16 @@ class OpencorMCMC():
                     # the normalisation isnt needed here but might be nice to
                     # make sure prior for each param is between 0 and 1
                     lnprior += -lamb*param_val/self.param_maxs[idx]
+
+            elif prior_dist == 'normal':
+                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
+                    return -np.inf
+                else:
+                    # temporarily make the std 1/6 of the user defined range and the mean the centre of the range
+                    std = 1/6*(self.param_maxs[idx] - self.param_mins[idx])
+                    mean = 0.5*(self.param_maxs[idx] + self.param_mins[idx])
+                    lnprior += -0.5*((param_val - mean)/std)**2
+
 
         return lnprior
 

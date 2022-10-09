@@ -23,11 +23,11 @@ input_param_file=physiological_parameters.csv # this must be stored in resources
                                      # spaces for the required parameters
 
 ## parameter identification inputs
-num_procs=14
+num_procs=2
 ## param_id_method can be any of [genetic_algorithm, bayesian]
 param_id_method=genetic_algorithm
 # num_procs=3
-num_calls_to_function=10000
+num_calls_to_function=100
 run_sensitivity=False
 
 ## mcmc inputs
