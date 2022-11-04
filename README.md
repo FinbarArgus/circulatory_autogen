@@ -136,3 +136,5 @@ sudo apt install libopenmpi-dev
 sudo apt install libffi7
 ```
 
+# License
+circulatory_autogen is fully open source and distributed under the very permissive Apache License 2.0. See LICENSE for more information.
