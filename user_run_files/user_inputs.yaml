@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: False
+DEBUG: True
 MPI_DEBUG: False
 file_prefix: new_valve_p_est
 # input_param_file must be stored in resources. If first creating a parameters file 
