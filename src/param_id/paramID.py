@@ -225,8 +225,8 @@ class CVS0DParamID():
         best_fit_obs_consts, best_fit_obs_series = self.param_id.get_obs_vec_and_array(best_fit_obs)
 
         # _________ Plot best comparison _____________
-        subplot_width = 2
-        fig, axs = plt.subplots(subplot_width, subplot_width)
+        subplot_width = 1
+        fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
 
         obs_names_unique = []
         for obs_name in self.obs_names:
@@ -270,42 +270,42 @@ class CVS0DParamID():
 
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3/s$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3/s$]', fontsize=18)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
                         conversion = no_conv
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$m/s$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$m/s$]', fontsize=18)
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3$]', fontsize=18)
                     elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$kPa$]', fontsize=14)
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$kPa$]', fontsize=18)
                     else:
                         print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
                               f'for plotting')
                         exit()
                     if not this_obs_waveform_plotted:
-                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='$f(p)$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='output')
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
-                                                   'b--', label='mean $\hat{z}$')
+                                                   'b--', label='mean measurement')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
-                                                   'b', label='mean $f(p)$')
+                                                   'b', label='mean output')
                     elif self.obs_types[II] == 'max':
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
-                                                   'r--', label='max $\hat{z}$')
+                                                   'r--', label='max measurement')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
-                                                   'r', label='max $f(p)$')
+                                                   'r', label='max output')
                     elif self.obs_types[II] == 'min':
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
-                                                   'g--', label='min $\hat{z}$')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
+                                                   'g--', label='min measurement')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min output')
                     elif self.obs_types[II] == 'series':
                         axs[row_idx, col_idx].plot(tSim[:min_len_series],
                                                    conversion*series_plot_gt[series_idx, :min_len_series],
-                                                   'k--', label='$\hat(z)$')
+                                                   'k--', label='measurement')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -322,7 +322,7 @@ class CVS0DParamID():
                                                       (self.std_series_vec[series_idx]))/min_len_series)
 
 
-            axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=14)
+            axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=18)
             axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
             # axs[row_idx, col_idx].set_ylim(ymin=0.0)
             # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
@@ -335,7 +335,7 @@ class CVS0DParamID():
                 if row_idx%subplot_width == 0:
                     for JJ in range(subplot_width):
                         fig.align_ylabels(axs[:, JJ])
-                    axs[1, 1].legend(loc='lower right', fontsize=6)
+                    axs[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
                     plt.tight_layout()
                     plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
@@ -343,6 +343,9 @@ class CVS0DParamID():
                     plt.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+                    plt.savefig(os.path.join(self.plot_dir,
+                                             f'reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
                     plt.close()
                     plot_saved = True
                     col_idx = 0
@@ -350,14 +353,14 @@ class CVS0DParamID():
                     plot_idx += 1
                     # create new plot
                     if unique_obs_count != len(obs_names_unique) - 1:
-                        fig, axs = plt.subplots(subplot_width, subplot_width)
+                        fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
                         plot_saved = False
 
         # save final plot if it is not a full set of subplots
         if not plot_saved:
             for JJ in range(subplot_width):
                 fig.align_ylabels(axs[:, JJ])
-            axs[0, 0].legend(loc='lower right', fontsize=6)
+            axs[0, 0].legend(loc='lower right', fontsize=12)
             plt.tight_layout()
             plt.savefig(os.path.join(self.plot_dir,
                                      f'reconstruct_{self.file_name_prefix}_'
@@ -378,8 +381,12 @@ class CVS0DParamID():
                 obs_names_for_plot_list.append(self.obs_names[II])
         obs_names_for_plot = np.array(obs_names_for_plot_list)
 
-        axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
+        bar_list = axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
+
+        # TODO remove this colour change
+        bar_list[0].set_facecolor('r')
+        bar_list[1].set_facecolor('r')
 
         # axs.legend()
         axs.set_ylabel('E$_{\%}$')
@@ -391,12 +398,19 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                  f'error_bars_{self.file_name_prefix}_'
                                  f'{self.param_id_obs_file_prefix}.pdf'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.png'))
         plt.close()
 
         #plot error as number of standard deviations of
         fig, axs = plt.subplots()
-        axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
+        bar_list = axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
+
+        # TODO remove this colour change
+        bar_list[0].set_facecolor('r')
+        bar_list[1].set_facecolor('r')
 
         # axs.legend()
         axs.set_ylabel('E$_{std}$')
@@ -408,6 +422,9 @@ class CVS0DParamID():
         plt.savefig(os.path.join(self.plot_dir,
                                  f'std_error_bars_{self.file_name_prefix}_'
                                  f'{self.param_id_obs_file_prefix}.pdf'))
+        plt.savefig(os.path.join(self.plot_dir,
+                                 f'std_error_bars_{self.file_name_prefix}_'
+                                 f'{self.param_id_obs_file_prefix}.png'))
         plt.close()
 
         print('______observable errors______')

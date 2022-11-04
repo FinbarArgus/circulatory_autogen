@@ -1151,7 +1151,7 @@
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <!-- emperical relation-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1190,7 +1190,6 @@
                     <ci>I</ci>
                 </apply>
             </apply>
-            <!-- ode(u_C, t) = (v-v_out)/C;-->
             <apply>
                 <eq/>
                 <apply>
@@ -1206,6 +1205,7 @@
                     <ci>v_out</ci>
                 </apply>
             </apply>
+            <!-- constitutive laws-->
             <apply>
                 <eq/>
                 <ci>u_C</ci>
@@ -1541,7 +1541,6 @@
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <!-- TODO double check that this applies to veins-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
