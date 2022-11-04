@@ -47,7 +47,7 @@ T,second,0.725,biobeat_measurement
 T_ac,second,0.0708333333,biobeat_measurement
 T_ar,second,0.0708333333,biobeat_measurement
 T_vc,second,0.33125,biobeat_measurement
-T_vr,second,0.145,biobeat_measurement
+T_vr,second,0.0625,biobeat_measurement
 beta,dimensionless,2,user_defined
 gamma,dimensionless,0.0269,mean_of_population_id_07_09_22_FARGUS
 l_eff,metre,0.01,to_be_identified
