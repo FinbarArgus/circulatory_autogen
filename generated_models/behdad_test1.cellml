@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="CardiovascularSystem" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <import xlink:href="behdad_test1_units.cellml">
+        <units name="m2" units_ref="m2"/>
+        <units name="m3" units_ref="m3"/>
+        <units name="m3_per_s" units_ref="m3_per_s"/>
+        <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m_per_s" units_ref="m_per_s"/>
+        <units name="m6_per_J" units_ref="m6_per_J"/>
+        <units name="m6_per_Js" units_ref="m6_per_Js"/>
+        <units name="per_m" units_ref="per_m"/>
+        <units name="per_s" units_ref="per_s"/>
+        <units name="J_per_m3" units_ref="J_per_m3"/>
+        <units name="J_per_m3s" units_ref="J_per_m3s"/>
+        <units name="m3_per_J" units_ref="m3_per_J"/>
+        <units name="J2_per_m6" units_ref="J2_per_m6"/>
+        <units name="Js_per_m6" units_ref="Js_per_m6"/>
+        <units name="Js2_per_m6" units_ref="Js2_per_m6"/>
+        <units name="Js2_per_m5" units_ref="Js2_per_m5"/>
+        <units name="J_per_s" units_ref="J_per_s"/>
+        <units name="J_per_m6" units_ref="J_per_m6"/>
+        <units name="Js_per_m3" units_ref="Js_per_m3"/>
+        <units name="UnitValve" units_ref="UnitValve"/>
+        <units name="J_per_m9" units_ref="J_per_m9"/>
+        <units name="m3_per_Js" units_ref="m3_per_Js"/>
+        <units name="kg_per_m3" units_ref="kg_per_m3"/>
+        <units name="m3_per_kg" units_ref="m3_per_kg"/>
+    </import>
+    <import xlink:href="behdad_test1_parameters.cellml">
+        <component component_ref="parameters" name="parameters"/>
+        <component component_ref="parameters_global" name="parameters_global"/>
+    </import>
+    <component name="environment">
+        <variable name="time" public_interface="out" units="second"/>
+    </component>
+    <!--#STARTGENBELOW-->
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;imports&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<import xlink:href="behdad_test1_modules.cellml">
+    <component component_ref="constant_flow_BC_type" name="inlet_module"/>
+</import>
+<import xlink:href="behdad_test1_modules.cellml">
+    <component component_ref="vp_simple_type" name="par_module"/>
+</import>
+<import xlink:href="behdad_test1_modules.cellml">
+    <component component_ref="vp_simple_type" name="pvn_module"/>
+</import>
+<import xlink:href="behdad_test1_modules.cellml">
+    <component component_ref="constant_pressure_BC_type" name="outlet_module"/>
+</import>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="inlet_module" component_2="par_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="P" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="par_module" component_2="pvn_module"/>
+   <map_variables variable_1="v" variable_2="v_in"/>
+   <map_variables variable_1="u_out" variable_2="u"/>
+</connection>
+<connection>
+   <map_components component_1="pvn_module" component_2="outlet_module"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="u_out" variable_2="P"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;terminal venous connection&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<component name="terminal_venous_connection">
+</component>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;access_variables&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<component name="inlet">
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+</component>
+<component name="par">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="q_C" public_interface="in" units="m3"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="pvn">
+   <variable name="u" public_interface="in" units="J_per_m3"/>
+   <variable name="v" public_interface="in" units="m3_per_s"/>
+   <variable name="R" public_interface="in" units="Js_per_m6"/>
+   <variable name="C" public_interface="in" units="m6_per_J"/>
+   <variable name="I" public_interface="in" units="Js2_per_m6"/>
+</component>
+<component name="outlet">
+   <variable name="P" public_interface="in" units="J_per_m3"/>
+</component>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;vessel mappings&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="inlet" component_2="inlet_module"/>
+   <map_variables variable_1="v" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="par" component_2="par_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="q_C" variable_2="q_C"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="pvn" component_2="pvn_module"/>
+   <map_variables variable_1="u" variable_2="u"/>
+   <map_variables variable_1="v" variable_2="v"/>
+   <map_variables variable_1="R" variable_2="R"/>
+   <map_variables variable_1="C" variable_2="C"/>
+   <map_variables variable_1="I" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="outlet" component_2="outlet_module"/>
+   <map_variables variable_1="P" variable_2="P"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;parameters mapping to modules&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="parameters" component_2="inlet_module"/>
+   <map_variables variable_1="v_inlet" variable_2="v"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="inlet_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="par_module"/>
+   <map_variables variable_1="R_par" variable_2="R"/>
+   <map_variables variable_1="C_par" variable_2="C"/>
+   <map_variables variable_1="I_par" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="par_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="pvn_module"/>
+   <map_variables variable_1="R_pvn" variable_2="R"/>
+   <map_variables variable_1="C_pvn" variable_2="C"/>
+   <map_variables variable_1="I_pvn" variable_2="I"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="pvn_module"/>
+</connection>
+<connection>
+   <map_components component_1="parameters" component_2="outlet_module"/>
+   <map_variables variable_1="P_outlet" variable_2="P"/>
+</connection>
+<connection>
+   <map_components component_1="parameters_global" component_2="outlet_module"/>
+</connection>
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;time mapping&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->
+<connection>
+   <map_components component_1="environment" component_2="inlet_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="par_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="pvn_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+<connection>
+   <map_components component_1="environment" component_2="outlet_module"/>
+   <map_variables variable_1="time" variable_2="t"/>
+</connection>
+</model>

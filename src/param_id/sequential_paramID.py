@@ -13,7 +13,7 @@ class SequentialParamID:
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
                  input_params_path=None, num_calls_to_function=1000,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, sim_heart_periods=None, pre_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None,
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None,
                  DEBUG=False):
 
         self.model_path = model_path
@@ -37,7 +37,7 @@ class SequentialParamID:
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG)
 
 
         self.param_id.set_genetic_algorithm_parameters(num_calls_to_function)

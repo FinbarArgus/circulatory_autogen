@@ -82,11 +82,12 @@ if __name__ == '__main__':
 
         maximum_step = inp_data_dict['maximum_step']
         dt = inp_data_dict['dt']
+        ga_options = inp_data_dict['ga_options']
 
         if DEBUG:
-            num_calls_to_function = inp_data_dict['debug_num_calls_to_function']
+            num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
         else:
-            num_calls_to_function = inp_data_dict['num_calls_to_function']
+            num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
 
         if DEBUG:
             mcmc_options = inp_data_dict['debug_mcmc_options']
@@ -98,7 +99,8 @@ if __name__ == '__main__':
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, ga_options=ga_options,
+                                DEBUG=DEBUG)
 
         seq_param_id.run()
 

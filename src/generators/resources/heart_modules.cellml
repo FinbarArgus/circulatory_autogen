@@ -93,7 +93,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -1406,7 +1406,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -2660,7 +2660,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -3948,7 +3948,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -5300,7 +5300,7 @@
         <variable initial_value="0" name="zeta_puv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_miv_pre" units="dimensionless"/>
         <variable initial_value="0" name="zeta_aov_pre" units="dimensionless"/>
-        <variable initial_value="1e-13" name="eps" units="dimensionless"/>
+        <variable initial_value="1e-22" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
@@ -5691,10 +5691,16 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- Valve model-->
+        </math>
+        <!-- Valve model-->
+        <variable name="B_trv_pre" units="dimensionless"/>
+        <variable name="B_puv_pre" units="dimensionless"/>
+        <variable name="B_miv_pre" units="dimensionless"/>
+        <variable name="B_aov_pre" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>B_trv</ci>
+                <ci>B_trv_pre</ci>
                 <apply>
                     <divide/>
                     <ci>rho</ci>
@@ -5715,7 +5721,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>B_puv</ci>
+                <ci>B_puv_pre</ci>
                 <apply>
                     <divide/>
                     <ci>rho</ci>
@@ -5736,7 +5742,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>B_miv</ci>
+                <ci>B_miv_pre</ci>
                 <apply>
                     <divide/>
                     <ci>rho</ci>
@@ -5755,29 +5761,209 @@
                     </apply>
                 </apply>
             </apply>
+        </math>
+        <!-- B_aov = rho/(2{dimensionless}*sqr(A_eff_aov)+eps);-->
+        <variable name="gamma" public_interface="in" units="dimensionless"/>
+        <variable name="beta" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>B_aov</ci>
+                <ci>B_aov_pre</ci>
                 <apply>
                     <divide/>
-                    <ci>rho</ci>
+                    <apply>
+                        <times/>
+                        <ci>gamma</ci>
+                        <ci>rho</ci>
+                        <apply>
+                            <power/>
+                            <apply>
+                                <times/>
+                                <pi/>
+                                <apply>
+                                    <power/>
+                                    <ci>r_ao</ci>
+                                    <cn cellml:units="dimensionless">2</cn>
+                                </apply>
+                            </apply>
+                            <ci>beta</ci>
+                        </apply>
+                    </apply>
                     <apply>
                         <plus/>
                         <apply>
                             <times/>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <power/>
+                                <ci>r_lvot</ci>
+                                <cn cellml:units="dimensionless">4</cn>
+                            </apply>
                             <apply>
                                 <power/>
                                 <ci>A_eff_aov</ci>
-                                <cn cellml:units="dimensionless">2</cn>
+                                <ci>beta</ci>
                             </apply>
                         </apply>
                         <ci>eps</ci>
                     </apply>
                 </apply>
             </apply>
-            <!--var gamma_lv: dimensionless {pub: in};-->
-            <!--B_aov = gamma_lv*rho*sqr(pi*sqr(r_ao))/(sqr(A_eff_aov)+eps);-->
+            <apply>
+                <eq/>
+                <ci>B_trv</ci>
+                <piecewise>
+                    <piece>
+                        <ci>B_trv_pre</ci>
+                        <apply>
+                            <lt/>
+                            <ci>B_trv_pre</ci>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <divide/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>B_trv_pre</ci>
+                                            </apply>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_puv</ci>
+                <piecewise>
+                    <piece>
+                        <ci>B_puv_pre</ci>
+                        <apply>
+                            <lt/>
+                            <ci>B_puv_pre</ci>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <divide/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>B_puv_pre</ci>
+                                            </apply>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_miv</ci>
+                <piecewise>
+                    <piece>
+                        <ci>B_miv_pre</ci>
+                        <apply>
+                            <lt/>
+                            <ci>B_miv_pre</ci>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <divide/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>B_miv_pre</ci>
+                                            </apply>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>B_aov</ci>
+                <piecewise>
+                    <piece>
+                        <ci>B_aov_pre</ci>
+                        <apply>
+                            <lt/>
+                            <ci>B_aov_pre</ci>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>10</cn>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <divide/>
+                                            <apply>
+                                                <minus/>
+                                                <ci>B_aov_pre</ci>
+                                            </apply>
+                                            <cn cellml:units="dimensionless" type="e-notation">1<sep/>16</cn>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
             <apply>
                 <eq/>
                 <ci>L_trv</ci>
@@ -5829,6 +6015,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- L_aov = rho*l_eff/(A_eff_aov + eps);-->
             <apply>
                 <eq/>
                 <ci>L_aov</ci>
@@ -5840,13 +6027,16 @@
                         <ci>l_eff</ci>
                     </apply>
                     <apply>
-                        <plus/>
-                        <ci>A_eff_aov</ci>
-                        <ci>eps</ci>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_lvot</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
-            <!--L_aov = rho*l_eff/(pi*sqr(r_lvot));-->
             <apply>
                 <eq/>
                 <ci>A_eff_trv</ci>
@@ -5934,6 +6124,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- A_eff_aov = (M_st_aov*A_nn_aov-M_rg_aov*A_nn_aov)*zeta_aov+M_rg_aov*A_nn_aov;-->
             <apply>
                 <eq/>
                 <ci>A_eff_aov</ci>
@@ -5946,12 +6137,12 @@
                             <apply>
                                 <times/>
                                 <ci>M_st_aov</ci>
-                                <ci>A_nn_aov</ci>
+                                <ci>A_aov</ci>
                             </apply>
                             <apply>
                                 <times/>
                                 <ci>M_rg_aov</ci>
-                                <ci>A_nn_aov</ci>
+                                <ci>A_aov</ci>
                             </apply>
                         </apply>
                         <ci>zeta_aov</ci>
@@ -5959,7 +6150,7 @@
                     <apply>
                         <times/>
                         <ci>M_rg_aov</ci>
-                        <ci>A_nn_aov</ci>
+                        <ci>A_aov</ci>
                     </apply>
                 </apply>
             </apply>
@@ -6331,7 +6522,20 @@
                 <apply>
                     <divide/>
                     <ci>v_aov</ci>
-                    <ci>A_aov</ci>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">3</cn>
+                            <cn cellml:units="dimensionless">4</cn>
+                        </apply>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_lvot</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                    </apply>
                 </apply>
             </apply>
             <!-- Constitutive Relations-->

@@ -1,0 +1,27 @@
+name,BC_type,vessel_type,inp_vessels,out_vessels,
+inlet,nn_constant,inlet_flow,             ,PA
+PA,vv,arterial_simple,inlet               ,PA_split
+PA_split,pv,split_junction_simple,PA             ,LPA RPA
+LPA,pv,split_junction_simple,PA_split            ,LUL_A LLL_A
+LUL_A,pv,arterial_simple,LPA              ,LUL
+LLL_A,pv,arterial_simple,LPA              ,LLL
+RPA,pv,split_junction_simple,PA_split            ,RUL_A R_basal_A
+RUL_A,pv,arterial_simple,RPA              ,RUL
+R_basal_A,pv,split_junction_simple,RPA           ,RML_A RLL_A
+RML_A,pv,arterial_simple,R_basal_A        ,RML
+RLL_A,pv,arterial_simple,R_basal_A        ,RLL
+LUL,pp,terminal,LUL_A                     ,LUL_V
+LLL,pp,terminal,LLL_A                     ,LLL_V
+RUL,pp,terminal,RUL_A                     ,RUL_V
+RML,pp,terminal,RML_A                     ,RML_V
+RLL,pp,terminal,RLL_A                     ,RLL_V
+RLL_V,vp,venous,RLL                       ,R_basal_V
+RML_V,vp,venous,RML                       ,R_basal_V
+R_basal_V,vp,merge_junction_simple,RLL_V RML_V   ,RPV
+RUL_V,vp,venous,RUL                       ,RPV
+RPV,vp,merge_junction_simple,R_basal_V RUL_V     ,PV
+LLL_V,vp,venous,LLL                       ,LPV
+LUL_V,vp,venous,LUL                       ,LPV
+LPV,vp,merge_junction_simple,LUL_V LLL_V         ,PV
+PV,vp,merge_junction_simple,LPV RPV              ,outlet
+outlet,nn_constant,outlet_pressure,PV,    ,

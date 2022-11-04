@@ -11,6 +11,7 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tick
 import paperPlotSetup
 import stat_distributions
 import diagnostics
@@ -62,7 +63,7 @@ class CVS0DParamID():
                  input_params_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, DEBUG=False):
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -105,6 +106,7 @@ class CVS0DParamID():
         self.param_names = None
         self.param_mins = None
         self.param_maxs = None
+        self.param_prior_types = None
         self.param_names_for_plotting = None
         self.num_obs = None
         self.gt_df = None
@@ -133,7 +135,7 @@ class CVS0DParamID():
                                            self.std_const_vec, self.std_series_vec,
                                            self.param_names,
                                            self.ground_truth_consts, self.ground_truth_series,
-                                           self.param_mins, self.param_maxs,
+                                           self.param_mins, self.param_maxs, self.param_prior_types,
                                            sim_time=sim_time, pre_time=pre_time,
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                            dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
@@ -149,7 +151,8 @@ class CVS0DParamID():
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                               dt=self.dt, maximum_step=maximum_step, DEBUG=self.DEBUG)
+                                               dt=self.dt, maximum_step=maximum_step, ga_options=ga_options,
+                                               DEBUG=self.DEBUG)
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
 
@@ -286,16 +289,23 @@ class CVS0DParamID():
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'b--', label='mean $\hat{z}$')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'b', label='mean $f(p)$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                                                   'b--', label='mean $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
+                                                   'b', label='mean $f(p)$')
                     elif self.obs_types[II] == 'max':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'r--', label='max $\hat{z}$')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'r', label='max $f(p)$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                                                   'r--', label='max $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
+                                                   'r', label='max $f(p)$')
                     elif self.obs_types[II] == 'min':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :], 'g--', label='min $\hat{z}$')
+                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                                                   'g--', label='min $\hat{z}$')
                         axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min $f(p)$')
                     elif self.obs_types[II] == 'series':
-                        axs[row_idx, col_idx].plot(tSim[:min_len_series], conversion*series_plot_gt[series_idx, :], 'k--', label='$\hat(z)$')
+                        axs[row_idx, col_idx].plot(tSim[:min_len_series],
+                                                   conversion*series_plot_gt[series_idx, :min_len_series],
+                                                   'k--', label='$\hat(z)$')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -505,6 +515,23 @@ class CVS0DParamID():
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
                                 truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
                                 fontsize=20)
+        axes = fig.get_axes()
+        for idx, ax in enumerate(axes):
+            if idx >= num_params*(num_params - 1):
+
+                ax.tick_params(axis='both', rotation=0)
+                formatterx = matplotlib.ticker.ScalarFormatter()
+                ax.xaxis.set_major_formatter(formatterx)
+                ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+            if idx%num_params == 0:
+
+                ax.tick_params(axis='both', rotation=0)
+                formattery = matplotlib.ticker.ScalarFormatter()
+                ax.yaxis.set_major_formatter(formattery)
+                ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+
+        plt.subplots_adjust(hspace=0.12, wspace=0.1)
+
         plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}.pdf'))
         plt.close()
@@ -521,6 +548,22 @@ class CVS0DParamID():
                                 labels=[label_list[II] for II in overwrite_params_to_plot_idxs],
                                 truths=self.param_id.best_param_vals[overwrite_params_to_plot_idxs],
                                 fontsize=20)
+        axes = fig.get_axes()
+        for idx, ax in enumerate(axes):
+            if idx >= len(overwrite_params_to_plot_idxs)*(len(overwrite_params_to_plot_idxs) - 1):
+
+                ax.tick_params(axis='both', rotation=0)
+                formatterx = matplotlib.ticker.ScalarFormatter()
+                ax.xaxis.set_major_formatter(formatterx)
+                ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+            if idx%len(overwrite_params_to_plot_idxs) == 0:
+
+                ax.tick_params(axis='both', rotation=0)
+                formattery = matplotlib.ticker.ScalarFormatter()
+                ax.yaxis.set_major_formatter(formattery)
+                ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+
+        plt.subplots_adjust(hspace=0.12, wspace=0.1)
 
         plt.savefig(os.path.join(self.plot_dir, f'mcmc_cornerplot_subset_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}.pdf'))
@@ -911,6 +954,12 @@ class CVS0DParamID():
                 else:
                     self.param_names_for_plotting = np.array([param_name[0] for param_name in self.param_names])
 
+            # set param_priors
+            if "prior" in input_params.columns:
+                self.param_prior_types = np.array([input_params["prior"][JJ] for JJ in range(input_params.shape[0])])
+            else:
+                self.param_prior_types = np.array(["uniform" for JJ in range(input_params.shape[0])])
+
 
         else:
             print(f'input_params_path cannot be None, exiting')
@@ -1123,7 +1172,7 @@ class OpencorParamID():
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximum_step=0.0001, DEBUG=False):
+                 dt=0.01, maximum_step=0.0001, ga_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1185,6 +1234,11 @@ class OpencorParamID():
         self.collinearity_idx_pairs = None
         self.pred_param_importance = None
         self.pred_collinearity_idx_pairs = None
+
+        if ga_options is not None:
+            self.cost_type = ga_options['cost_type']
+        else:
+            self.cost_type = 'MSE'
 
         self.DEBUG = DEBUG
 
@@ -1893,17 +1947,42 @@ class OpencorParamID():
         # cost = np.sum(np.power(self.weight_const_vec*(consts -
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        cost = np.sum(np.power(self.weight_const_vec*(consts -
+        if self.cost_type == 'MSE':
+            cost = np.sum(np.power(self.weight_const_vec*(consts -
                                self.ground_truth_consts)/self.std_const_vec, 2))
+        elif self.cost_type == 'AE':
+            cost = np.sum(np.abs(self.weight_const_vec*(consts -
+                                                          self.ground_truth_consts)/self.std_const_vec))
+
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
             # calculate sum of squares cost and divide by number data points in series data
-            series_cost = np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            # divide by number data points in series data
+            if self.cost_type == 'MSE':
+                series_cost = np.sum(np.power((series[:, :min_len_series] -
+                                               self.ground_truth_series[:,
+                                               :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                              self.std_series_vec.reshape(-1, 1), 2)) / min_len_series
+            elif self.cost_type == 'AE':
+                series_cost = np.sum(np.abs((series[:, :min_len_series] -
+                                             self.ground_truth_series[:,
+                                             :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                            self.std_series_vec.reshape(-1, 1))) / min_len_series
+            else:
+                print(f'cost type of {self.cost_type} not implemented')
+
             cost = (cost + series_cost) / self.num_obs
         else:
-            cost = cost/self.num_obs
+            cost = cost / self.num_obs
+
+        # TODO remove this
+        # TODO get the genetic algorithm to maximise the likelihood
+        # Create a class fir calculating the likelihood
+        # if A_aov is a parameter add a cost for its value to keep it small
+        if ['heart/A_aov'] in self.param_names:
+            A_aov_value = self.sim_helper.get_init_param_vals(['heart/A_aov'])[0]
+            k_aov = 1e3
+            cost += A_aov_value * k_aov
 
         return cost
 
@@ -2032,7 +2111,7 @@ class OpencorMCMC():
                  obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names,
                  ground_truth_consts, ground_truth_series,
-                 param_mins, param_maxs,
+                 param_mins, param_maxs, param_prior_types,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
 
@@ -2052,10 +2131,8 @@ class OpencorMCMC():
         self.ground_truth_series = ground_truth_series
         self.param_mins = param_mins
         self.param_maxs = param_maxs
+        self.param_prior_types = param_prior_types
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
-
-        # TODO load this from file. Make the user define the priors
-        self.param_prior_dists = None# ['uniform', 'uniform', 'exponential']
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
@@ -2086,9 +2163,11 @@ class OpencorMCMC():
         if mcmc_options is not None:
             self.num_steps = mcmc_options['num_steps']
             self.num_walkers = mcmc_options['num_walkers']
+            self.cost_type = mcmc_options['cost_type']
         else:
             self.num_steps = 5000
             self.num_walkers = 2*self.num_params
+            self.cost_type = 'MSE'
             print('number of mcmc steps and walkers is not set, choosing defaults of 5000 and 2*num_params')
 
         self.DEBUG = DEBUG
@@ -2113,6 +2192,7 @@ class OpencorMCMC():
                 self.best_param_vals = np.delete(self.best_param_vals, param_idxs_to_remove)
             self.param_mins = np.delete(self.param_mins, param_idxs_to_remove)
             self.param_maxs = np.delete(self.param_maxs, param_idxs_to_remove)
+            self.param_prior_types = np.delete(self.param_prior_types, param_idxs_to_remove)
             self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
             self.param_init = None
 
@@ -2230,13 +2310,9 @@ class OpencorMCMC():
     def get_lnprior_from_params(self, param_vals):
         lnprior = 0
         for idx, param_val in enumerate(param_vals):
-            # TODO input param_prior_dists
-            if self.param_prior_dists:
-                prior_dist = self.param_prior_dists[idx]
+            if self.param_prior_types is not None:
+                prior_dist = self.param_prior_types[idx]
             else:
-                # if np.any([param_name.endswith('C') for param_name in self.param_names[idx]]) : # TODO this is temporary until we input priors
-                #     prior_dist = 'exponential'
-                # else:
                 prior_dist = None
 
             if not prior_dist or prior_dist == 'uniform':
@@ -2254,6 +2330,16 @@ class OpencorMCMC():
                     # the normalisation isnt needed here but might be nice to
                     # make sure prior for each param is between 0 and 1
                     lnprior += -lamb*param_val/self.param_maxs[idx]
+
+            elif prior_dist == 'normal':
+                if param_val < self.param_mins[idx] or param_val > self.param_maxs[idx]:
+                    return -np.inf
+                else:
+                    # temporarily make the std 1/6 of the user defined range and the mean the centre of the range
+                    std = 1/6*(self.param_maxs[idx] - self.param_mins[idx])
+                    mean = 0.5*(self.param_maxs[idx] + self.param_mins[idx])
+                    lnprior += -0.5*((param_val - mean)/std)**2
+
 
         return lnprior
 
@@ -2292,27 +2378,8 @@ class OpencorMCMC():
         obs_consts_vec, obs_series_array = self.get_obs_vec_and_array(obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
-        lnlikelihood = self.lnlikelihood_calc(obs_consts_vec, obs_series_array)
-
-        return lnlikelihood
-
-
-    def lnlikelihood_calc(self, consts, series=None):
-        # cost = np.sum(np.power(self.weight_const_vec*(consts -
-        #                        self.ground_truth_consts)/np.minimum(consts,
-        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        lnlikelihood = -0.5*np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))
-        
-        if series is not None:
-            min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
-            # divide by number data points in series data
-            series_lnlikelihood = -0.5*np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
-            lnlikelihood = (lnlikelihood + series_lnlikelihood) / self.num_obs
-        else:
-            lnlikelihood = lnlikelihood/self.num_obs
+        cost = self.get_cost_from_obs(obs)
+        lnlikelihood = -0.5*cost
 
         return lnlikelihood
 
@@ -2351,19 +2418,42 @@ class OpencorMCMC():
         # cost = np.sum(np.power(self.weight_const_vec*(consts -
         #                        self.ground_truth_consts)/np.minimum(consts,
         #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        cost = np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))
-        
+        if self.cost_type == 'MSE':
+            cost = np.sum(np.power(self.weight_const_vec*(consts -
+                                                          self.ground_truth_consts)/self.std_const_vec, 2))
+        elif self.cost_type == 'AE':
+            cost = np.sum(np.abs(self.weight_const_vec*(consts -
+                                                        self.ground_truth_consts)/self.std_const_vec))
+
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
-        
+            # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
-            series_cost = np.sum(np.power((series[:, :min_len_series] -
-                self.ground_truth_series[:, :min_len_series])*self.weight_series_vec.reshape(-1, 1) / 
-                self.std_series_vec.reshape(-1,1), 2))/min_len_series
+            if self.cost_type == 'MSE':
+                series_cost = np.sum(np.power((series[:, :min_len_series] -
+                                               self.ground_truth_series[:,
+                                               :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                              self.std_series_vec.reshape(-1, 1), 2)) / min_len_series
+            elif self.cost_type == 'AE':
+                series_cost = np.sum(np.abs((series[:, :min_len_series] -
+                                             self.ground_truth_series[:,
+                                             :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
+                                            self.std_series_vec.reshape(-1, 1))) / min_len_series
+            else:
+                print(f'cost type of {cost_type} not implemented')
+
             cost = (cost + series_cost) / self.num_obs
         else:
-            cost = cost/self.num_obs
+            cost = cost / self.num_obs
+
+        # TODO remove this
+        # TODO get the genetic algorithm to maximise the likelihood
+        # Create a class fir calculating the likelihood
+        # if A_aov is a parameter add a cost for its value to keep it small
+        if ['heart/A_aov'] in self.param_names:
+            A_aov_value = self.sim_helper.get_init_param_vals(['heart/A_aov'])[0]
+            k_aov = 1e3
+            cost += A_aov_value * k_aov
 
         return cost
 

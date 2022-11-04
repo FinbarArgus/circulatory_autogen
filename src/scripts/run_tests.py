@@ -60,7 +60,7 @@ if __name__ == '__main__':
         inp_data_dict['input_param_file'] = 'control_phys_parameters.csv'
         # Only the file name is taken here, the path doesnt need to exist
         inp_data_dict['param_id_obs_path'] = '/this/dir/path/isnt/important/observables_biobeat_BB128.json'
-        generate_with_new_architecture(True, inp_data_dict)
+        generate_with_new_architecture(False, inp_data_dict)
 
     except:
         print(traceback.format_exc())
