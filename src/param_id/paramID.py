@@ -241,7 +241,8 @@ class CVS0DParamID():
         consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
 
         series_plot_gt = np.array(self.ground_truth_series)
-        min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
+        if len(self.ground_truth_series) > 0:
+            min_len_series = min(series_plot_gt.shape[1], best_fit_obs_series.shape[1])
 
 
         for unique_obs_count in range(len(obs_names_unique)):
@@ -1003,10 +1004,10 @@ class CVS0DParamID():
 
         ground_truth_consts = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "constant"])
-
-        ground_truth_series = np.stack([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"])
-
+        ground_truth_series = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                            if self.gt_df.iloc[II]["data_type"] == "series"])
+        if len(ground_truth_series) > 0:
+                ground_truth_series = np.stack(ground_truth_series)
 
         if self.rank == 0:
             np.save(os.path.join(self.output_dir, 'ground_truth_consts.npy'), ground_truth_consts)
@@ -1080,7 +1081,12 @@ class CVS0DParamID():
             self.pred_var_units = None
             self.pred_var_names_for_plotting = None
 
-        if len(self.pred_var_names) < 1:
+        #if len(self.pred_var_names) < 1:
+        #    self.pred_var_names = None
+        #    self.pred_var_units = None
+        #    self.pred_var_names_for_plotting = None
+
+        if self.pred_var_names is None:
             self.pred_var_names = None
             self.pred_var_units = None
             self.pred_var_names_for_plotting = None
@@ -1956,6 +1962,8 @@ class OpencorParamID():
         obs_consts_vec, obs_series_array = self.get_obs_vec_and_array(obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
+        
+        #print(obs_series_array)
         cost = self.cost_calc(obs_consts_vec, obs_series_array)
 
         return cost
@@ -1970,8 +1978,13 @@ class OpencorParamID():
         elif self.cost_type == 'AE':
             cost = np.sum(np.abs(self.weight_const_vec*(consts -
                                                           self.ground_truth_consts)/self.std_const_vec))
+        
+        # Temp fix
+        if len(series) == 0:
+            series = None
 
         if series is not None:
+            #print(series)
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
             # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
