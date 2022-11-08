@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: False
+DEBUG: True
 MPI_DEBUG: False
 # file_prefix: new_valve_p_est
 file_prefix: physiological
