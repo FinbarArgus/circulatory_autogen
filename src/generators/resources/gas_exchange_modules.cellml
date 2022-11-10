@@ -612,8 +612,8 @@
         <!--constants-->
         <variable name="F_O2_i" public_interface="in" units="dimensionless"/>
         <variable name="F_CO2_i" public_interface="in" units="dimensionless"/>
-        <variable name="P_atm" public_interface="in" units="dimensionless"/>
-        <variable name="P_ws" public_interface="in" units="dimensionless"/>
+        <variable name="P_atm" public_interface="in" units="J_per_m3"/>
+        <variable name="P_ws" public_interface="in" units="J_per_m3"/>
         <!-- This K causes a loss in mass? fix when turning into bond-graph-->
         <variable name="K_LOSSES" public_interface="in" units="dimensionless"/>
         <!-- volume fractions-->
@@ -627,11 +627,11 @@
         <!-- inputs from lung model-->
         <variable name="v_ml" public_interface="in" units="m3_per_s"/>
         <variable name="v_bA" public_interface="in" units="m3_per_s"/>
-        <variable name="q_D" public_interface="in" units="m3_per_s"/>
-        <variable name="q_A" public_interface="in" units="m3_per_s"/>
+        <variable name="q_D" public_interface="in" units="m3"/>
+        <variable name="q_A" public_interface="in" units="m3"/>
         <!--inputs from pulmonary gas exchange model-->
-        <variable name="M_O2" public_interface="out" units="m3_per_s"/>
-        <variable name="M_CO2" public_interface="out" units="m3_per_s"/>
+        <variable name="M_O2" public_interface="in" units="m3_per_s"/>
+        <variable name="M_CO2" public_interface="in" units="m3_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>

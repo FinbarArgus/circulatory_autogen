@@ -27,6 +27,7 @@ F_O2_i_respiratory_gt,dimensionless,0.210379,WestPulmonaryPhysiology2008
 F_CO2_i_respiratory_gt,dimensionless,0.000421,WestPulmonaryPhysiology2008
 K_LOSSES_respiratory_gt,dimensionless,1.2103,WestPulmonaryPhysiology2008
 P_atm,J_per_m3,101300,known
+P_m,J_per_m3,0.0,known
 P_ws,J_per_m3,6266.15,WestPulmonaryPhysiology2008
 P_mus_min_lung,J_per_m3,-490,Albanese2016
 P_plEE_lung,J_per_m3,-490,WestPulmonaryPhysiology2008
@@ -39,6 +40,10 @@ C_l_lung,J_per_m6,1.2959e-8,YasuhiroFukui1972
 C_t_lung,J_per_m6,2.4286e-8,YasuhiroFukui1972
 C_b_lung,J_per_m6,1.3367e-6,YasuhiroFukui1972
 C_A_lung,J_per_m6,2.0408e-6,YasuhiroFukui1972
+q_l_us_lung,m3,34.4e-6,YasuhiroFukui1972
+q_t_us_lung,m3,6.63e-6,YasuhiroFukui1972
+q_b_us_lung,m3,18.7e-6,YasuhiroFukui1972
+q_A_us_lung,m3,1.263e-6,Bizotto2022
 C_pl_lung,J_per_m6,2.5e-6,user_defined_to_be_identified
 T_lung,second,5.0,WestPulmonaryPhysiology2008
 IE_ratio_lung,dimensionless,0.6,Bizotto2022

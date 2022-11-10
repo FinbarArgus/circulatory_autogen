@@ -1527,8 +1527,8 @@
       ["M_O2", "m3_per_s", "access", "variable"],
       ["k_O2", "m6_per_Js", "access", "constant"],
       ["k_CO2", "m6_per_Js", "access", "constant"],
-      ["P_O2_A", "J_per_m3", "access", "global_constant"],
-      ["P_CO2_A", "J_per_m3", "access", "global_constant"],
+      ["P_O2_A", "J_per_m3", "access", "variable"],
+      ["P_CO2_A", "J_per_m3", "access", "variable"],
       ["shunt_fraction", "dimensionless", "access", "constant"],
       ["P_O2_p", "J_per_m3", "access", "variable"],
       ["P_CO2_p", "J_per_m3", "access", "variable"],
@@ -1642,7 +1642,7 @@
     ],
     "variables_and_units":
     [
-      ["P_atm", "J_per_m3", "access", "global_constant"],
+      ["P_m", "J_per_m3", "access", "global_constant"],
       ["P_l", "J_per_m3", "access", "variable"],
       ["P_t", "J_per_m3", "access", "variable"],
       ["P_b", "J_per_m3", "access", "variable"],
@@ -1657,6 +1657,10 @@
       ["q_A", "m3", "access", "variable"],
       ["q_pl", "m3", "access", "variable"],
       ["q_D", "m3", "access", "variable"],
+      ["q_l_us", "m3", "access", "constant"],
+      ["q_t_us", "m3", "access", "constant"],
+      ["q_b_us", "m3", "access", "constant"],
+      ["q_A_us", "m3", "access", "constant"],
       ["v_ml", "m3_per_s", "access", "variable"],
       ["v_lt", "m3_per_s", "access", "variable"],
       ["v_tb", "m3_per_s", "access", "variable"],
@@ -1679,8 +1683,7 @@
       ["IE_ratio", "dimensionless", "access", "constant"],
       ["T_I", "second", "access", "variable"],
       ["T_E", "second", "access", "variable"],
-      ["tau", "second", "access", "variable"],
-      ["P_O2_A", "J_per_m3", "access", "variable"]
+      ["tau", "second", "access", "variable"]
     ]
   },
   {
