@@ -1,7 +1,9 @@
 name,BC_type,vessel_type,inp_vessels,out_vessels
 par,                     vp, arterial_simple,    heart,                              pcap
 pcap,                    vp, arterial_simple,    par,                                pvn pulmonary_GE
-pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,          arterial_gas_transport arterial_chemoreceptor              
+pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,          arterial_gas_transport arterial_chemoreceptor respiratory_gt             
+respiratory_gt,          nn, respiratory_gas_transport, pulmonary_GE,                lung 
+lung,                    nn, simple_lung_bg,     respiratory_gt,                     
 pvn,                     vp, venous,             pcap,                               heart
 heart,             vp_wCont, heart,              venous_ivc venous_svc pvn rv_elastance_effector lv_elastance_effector heart_period_effector,         ascending_aorta_A par  
 ascending_aorta_A,       vv, arterial,           heart                 ,             ascending_aorta_B    

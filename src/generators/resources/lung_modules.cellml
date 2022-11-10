@@ -30,11 +30,11 @@
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// Bond graph lung model //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <component name="simple_lung_bond_graph">
+    <component name="simple_lung_bond_graph_type">
         <variable name="t" public_interface="out" units="second"/>
         <!-- ______  Pressures _________
  atmospheric/mouth pressure-->
-        <variable name="P_m" public_interface="out" units="J_per_m3"/>
+        <variable name="P_atm" public_interface="in" units="J_per_m3"/>
         <!-- larynx pressure-->
         <variable name="P_l" public_interface="out" units="J_per_m3"/>
         <!-- trachea pressure-->
@@ -47,8 +47,8 @@
         <variable name="P_pl" public_interface="out" units="J_per_m3"/>
         <!-- resp muscle pressure-->
         <variable name="P_mus" public_interface="out" units="J_per_m3"/>
-        <variable name="P_mus_min" public_interface="out" units="J_per_m3"/>
-        <variable name="P_plEE" public_interface="out" units="J_per_m3"/>
+        <variable name="P_mus_min" public_interface="in" units="J_per_m3"/>
+        <variable name="P_plEE" public_interface="in" units="J_per_m3"/>
         <!-- ______  volumes_________
  larynx volume-->
         <variable initial_value="0.0" name="q_l" public_interface="out" units="J_per_m3"/>
@@ -56,6 +56,7 @@
         <variable initial_value="0.0" name="q_b" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_A" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_pl" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_D" public_interface="out" units="J_per_m3"/>
         <!-- ______  flows _________-->
         <variable name="v_ml" public_interface="out" units="m3_per_s"/>
         <variable name="v_lt" public_interface="out" units="m3_per_s"/>
@@ -65,30 +66,44 @@
         <variable name="v_bwall" public_interface="out" units="m3_per_s"/>
         <variable name="v_plwall" public_interface="out" units="m3_per_s"/>
         <!-- ______  Resistances_________-->
-        <variable name="R_ml" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_lt" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_tb" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_bA" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_plwall" public_interface="out" units="Js_per_m6"/>
+        <variable name="R_ml" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_lt" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_tb" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_bA" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_plwall" public_interface="in" units="Js_per_m6"/>
         <!-- ______  Compliances_________-->
-        <variable name="C_l" public_interface="out" units="J_per_m6"/>
-        <variable name="C_t" public_interface="out" units="J_per_m6"/>
-        <variable name="C_b" public_interface="out" units="J_per_m6"/>
-        <variable name="C_A" public_interface="out" units="J_per_m6"/>
-        <variable name="C_pl" public_interface="out" units="J_per_m6"/>
+        <variable name="C_l" public_interface="in" units="J_per_m6"/>
+        <variable name="C_t" public_interface="in" units="J_per_m6"/>
+        <variable name="C_b" public_interface="in" units="J_per_m6"/>
+        <variable name="C_A" public_interface="in" units="J_per_m6"/>
+        <variable name="C_pl" public_interface="in" units="J_per_m6"/>
         <variable name="t_floor" public_interface="out" units="second"/>
-        <variable name="T" public_interface="out" units="second"/>
+        <variable name="T" public_interface="in" units="second"/>
         <variable name="T_I" public_interface="out" units="second"/>
         <variable name="T_E" public_interface="out" units="second"/>
         <variable name="tau" public_interface="out" units="second"/>
+        <variable name="IE_ratio" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>T_E</ci>
                 <apply>
-                    <minus/>
+                    <divide/>
                     <ci>T</ci>
-                    <ci>T_I</ci>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>IE_ratio</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>T_I</ci>
+                <apply>
+                    <times/>
+                    <ci>T_E</ci>
+                    <ci>IE_ratio</ci>
                 </apply>
             </apply>
             <apply>
@@ -100,88 +115,6 @@
                     <cn cellml:units="dimensionless">5</cn>
                 </apply>
             </apply>
-            <!-- put these constants in params file-->
-            <apply>
-                <eq/>
-                <ci>P_m</ci>
-                <cn cellml:units="J_per_m3">0</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>P_mus_min</ci>
-                <apply>
-                    <minus/>
-                    <cn cellml:units="J_per_m3">490</cn>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>P_plEE</ci>
-                <apply>
-                    <minus/>
-                    <cn cellml:units="J_per_m3">490</cn>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>C_l</ci>
-                <cn cellml:units="J_per_m6" type="e-notation">1.2959<sep/>-8</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>C_t</ci>
-                <cn cellml:units="J_per_m6" type="e-notation">2.4286<sep/>-8</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>C_b</ci>
-                <cn cellml:units="J_per_m6" type="e-notation">1.3367<sep/>-6</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>C_A</ci>
-                <cn cellml:units="J_per_m6" type="e-notation">2.0408<sep/>-6</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>C_pl</ci>
-                <cn cellml:units="J_per_m6" type="e-notation">2.5<sep/>-6</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_ml</ci>
-                <cn cellml:units="Js_per_m6">100058</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_lt</ci>
-                <cn cellml:units="Js_per_m6">33016</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_tb</ci>
-                <cn cellml:units="Js_per_m6">30017</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_bA</ci>
-                <cn cellml:units="Js_per_m6">8006</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>R_plwall</ci>
-                <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>4</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T</ci>
-                <cn cellml:units="second">5.0</cn>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_I</ci>
-                <cn cellml:units="second">3.0</cn>
-            </apply>
             <!-- TODO split this into submodules-->
             <apply>
                 <eq/>
@@ -190,7 +123,7 @@
                     <divide/>
                     <apply>
                         <minus/>
-                        <ci>P_m</ci>
+                        <ci>P_atm</ci>
                         <ci>P_l</ci>
                     </apply>
                     <ci>R_ml</ci>
@@ -399,6 +332,18 @@
                     <ci>R_plwall</ci>
                 </apply>
             </apply>
+            <!-- Dead space volume-->
+            <apply>
+                <eq/>
+                <ci>q_D</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_l</ci>
+                    <ci>q_t</ci>
+                    <ci>q_b</ci>
+                </apply>
+            </apply>
+            <!-- TODO + unstressed volume-->
             <!-- calculate time through this period-->
             <apply>
                 <eq/>
@@ -420,6 +365,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- TODO swap this muscle model for the one used in ben tal and smith 2008-->
             <apply>
                 <eq/>
                 <ci>P_mus</ci>
@@ -431,7 +377,10 @@
                                 <times/>
                                 <apply>
                                     <divide/>
-                                    <ci>P_mus_min</ci>
+                                    <apply>
+                                        <minus/>
+                                        <ci>P_mus_min</ci>
+                                    </apply>
                                     <apply>
                                         <times/>
                                         <ci>T_I</ci>
@@ -524,10 +473,5 @@
                 </piecewise>
             </apply>
         </math>
-        <!--        oxygen and CO2 concentration
-        var C_O2: dimensionless {pub: out};
-        var C_CO2: dimensionless {pub: out};
-        var P_O2: J_per_m3 {pub: out};
-        var P_CO2: J_per_m3 {pub: out};-->
     </component>
 </model>
