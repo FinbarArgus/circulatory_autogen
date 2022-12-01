@@ -1672,10 +1672,14 @@
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_C" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="0.0" name="q_T_change" public_interface="out" units="m3"/>
+        <variable name="q_T" public_interface="out" units="m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable name="q_us_0" public_interface="in" units="m3"/>
+        <variable name="q_us_wCont" public_interface="out" units="m3"/>
+        <variable name="Delta_q_us" public_interface="in" units="m3"/>
         <!-- TODO double check that this applies to veins-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1722,7 +1726,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>q_C</ci>
+                    <ci>q_T_change</ci>
                 </apply>
                 <apply>
                     <minus/>
@@ -1732,12 +1736,25 @@
             </apply>
             <apply>
                 <eq/>
+                <ci>q_T</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_T_change</ci>
+                    <ci>q_us_0</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <ci>u_C</ci>
                 <apply>
                     <plus/>
                     <apply>
                         <divide/>
-                        <ci>q_C</ci>
+                        <apply>
+                            <minus/>
+                            <ci>q_T</ci>
+                            <ci>q_us_wCont</ci>
+                        </apply>
                         <ci>C</ci>
                     </apply>
                     <ci>u_ext</ci>
@@ -1758,6 +1775,15 @@
                             <ci>v</ci>
                         </apply>
                     </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q_us_wCont</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us_0</ci>
+                    <ci>Delta_q_us</ci>
                 </apply>
             </apply>
         </math>

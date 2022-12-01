@@ -1,40 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- TODO delete the units declaration-->
-    <import xlink:href="units.cellml">
-        <units name="m2" units_ref="m2"/>
-        <units name="m3" units_ref="m3"/>
-        <units name="m3_per_s" units_ref="m3_per_s"/>
-        <units name="m_per_s2" units_ref="m_per_s2"/>
-        <units name="m_per_s" units_ref="m_per_s"/>
-        <units name="m6_per_J" units_ref="m6_per_J"/>
-        <units name="m6_per_Js" units_ref="m6_per_Js"/>
-        <units name="per_m" units_ref="per_m"/>
-        <units name="per_s" units_ref="per_s"/>
-        <units name="J_per_m3" units_ref="J_per_m3"/>
-        <units name="J_per_m3s" units_ref="J_per_m3s"/>
-        <units name="m3_per_J" units_ref="m3_per_J"/>
-        <units name="J2_per_m6" units_ref="J2_per_m6"/>
-        <units name="Js_per_m6" units_ref="Js_per_m6"/>
-        <units name="Js2_per_m6" units_ref="Js2_per_m6"/>
-        <units name="Js2_per_m5" units_ref="Js2_per_m5"/>
-        <units name="J_per_s" units_ref="J_per_s"/>
-        <units name="J_per_m6" units_ref="J_per_m6"/>
-        <units name="Js_per_m3" units_ref="Js_per_m3"/>
-        <units name="UnitValve" units_ref="UnitValve"/>
-        <units name="J_per_m9" units_ref="J_per_m9"/>
-        <units name="m3_per_Js" units_ref="m3_per_Js"/>
-        <units name="kg_per_m3" units_ref="kg_per_m3"/>
-        <units name="m3_per_kg" units_ref="m3_per_kg"/>
-    </import>
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// Bond graph lung model //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
     <component name="simple_lung_bond_graph_type">
-        <variable name="t" public_interface="out" units="second"/>
+        <variable name="t" public_interface="in" units="second"/>
         <!-- ______  Pressures _________
  atmospheric/mouth pressure-->
-        <variable name="P_atm" public_interface="in" units="J_per_m3"/>
+        <variable name="P_m" public_interface="in" units="J_per_m3"/>
         <!-- larynx pressure-->
         <variable name="P_l" public_interface="out" units="J_per_m3"/>
         <!-- trachea pressure-->
@@ -51,12 +24,13 @@
         <variable name="P_plEE" public_interface="in" units="J_per_m3"/>
         <!-- ______  volumes_________
  larynx volume-->
-        <variable initial_value="0.0" name="q_l" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_t" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_b" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_A" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_pl" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_D" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="1.0e-2" name="q_l" public_interface="out" units="m3"/>
+        <variable initial_value="1.0e-3" name="q_t" public_interface="out" units="m3"/>
+        <variable initial_value="1.0e-3" name="q_b" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_A_stressed" public_interface="out" units="m3"/>
+        <variable name="q_A" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_pl" public_interface="out" units="m3"/>
+        <variable name="q_D" public_interface="out" units="m3"/>
         <!-- ______  flows _________-->
         <variable name="v_ml" public_interface="out" units="m3_per_s"/>
         <variable name="v_lt" public_interface="out" units="m3_per_s"/>
@@ -77,12 +51,18 @@
         <variable name="C_b" public_interface="in" units="J_per_m6"/>
         <variable name="C_A" public_interface="in" units="J_per_m6"/>
         <variable name="C_pl" public_interface="in" units="J_per_m6"/>
+        <!-- periods/times-->
         <variable name="t_floor" public_interface="out" units="second"/>
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_I" public_interface="out" units="second"/>
         <variable name="T_E" public_interface="out" units="second"/>
         <variable name="tau" public_interface="out" units="second"/>
         <variable name="IE_ratio" public_interface="in" units="dimensionless"/>
+        <!-- unstressed volumes-->
+        <variable name="q_l_us" public_interface="in" units="m3"/>
+        <variable name="q_t_us" public_interface="in" units="m3"/>
+        <variable name="q_b_us" public_interface="in" units="m3"/>
+        <variable name="q_A_us" public_interface="in" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -123,7 +103,7 @@
                     <divide/>
                     <apply>
                         <minus/>
-                        <ci>P_atm</ci>
+                        <ci>P_m</ci>
                         <ci>P_l</ci>
                     </apply>
                     <ci>R_ml</ci>
@@ -266,7 +246,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>q_A</ci>
+                    <ci>q_A_stressed</ci>
                 </apply>
                 <ci>v_bA</ci>
             </apply>
@@ -277,7 +257,7 @@
                     <plus/>
                     <apply>
                         <divide/>
-                        <ci>q_A</ci>
+                        <ci>q_A_stressed</ci>
                         <ci>C_A</ci>
                     </apply>
                     <ci>P_pl</ci>
@@ -341,6 +321,18 @@
                     <ci>q_l</ci>
                     <ci>q_t</ci>
                     <ci>q_b</ci>
+                    <ci>q_l_us</ci>
+                    <ci>q_t_us</ci>
+                    <ci>q_b_us</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q_A</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_A_stressed</ci>
+                    <ci>q_A_us</ci>
                 </apply>
             </apply>
             <!-- TODO + unstressed volume-->

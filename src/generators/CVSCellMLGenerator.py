@@ -453,11 +453,12 @@ class CVS0DCellMLGenerator(object):
                 first_venous_names.append(vessel_name)
                 vessel_BC_type = vessel_tup.BC_type
                 v_1 = [f'v_{vessel_name}']
-                if vessel_BC_type == 'vp':
+                if vessel_BC_type.startswith('vp'):
                     v_2 = ['v_in']
                 else:
                     print(f'first venous vessel BC type of {vessel_BC_type} has not'
                           f'been implemented')
+                    exit()
 
 
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
