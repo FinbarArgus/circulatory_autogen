@@ -43,9 +43,9 @@ from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
-import resource
-curlimit = resource.getrlimit(resource.RLIMIT_STACK)
-resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY,resource.RLIM_INFINITY))
+# import resource
+# curlimit = resource.getrlimit(resource.RLIMIT_STACK)
+# resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY,resource.RLIM_INFINITY))
 
 # This mcmc_object will be an instance of the OpencorParamID class
 # it needs to be global so that it can be used in calculate_lnlikelihood()
@@ -93,8 +93,8 @@ class CVS0DParamID():
         self.comm.Barrier()
 
         self.DEBUG = DEBUG
-        if self.DEBUG:
-            import resource
+        # if self.DEBUG:
+        #     import resource
 
         # param names
         self.obs_names = None
@@ -1403,9 +1403,9 @@ class OpencorParamID():
                     iter_num += 1
 
                     # Check resource usage
-                    if self.DEBUG:
-                        mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                        print(f'rank={rank} memory={mem}')
+                    # if self.DEBUG:
+                    #     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                    #     print(f'rank={rank} memory={mem}')
 
                     # TODO save results here every few iterations
 
@@ -2454,6 +2454,10 @@ class OpencorMCMC():
         elif self.cost_type == 'AE':
             cost = np.sum(np.abs(self.weight_const_vec*(consts -
                                                         self.ground_truth_consts)/self.std_const_vec))
+
+        # Temp fix
+        if len(series) == 0:
+            series = None
 
         if series is not None:
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
