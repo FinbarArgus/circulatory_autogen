@@ -7,6 +7,8 @@ Created on 29/10/2021
 import sys
 import os
 import re
+import traceback
+import yaml
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
 
@@ -17,10 +19,10 @@ user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
-import traceback
-import yaml
 
-def generate_with_new_architecture(do_generation_with_fit_parameters, inp_data_dict=None):
+
+def generate_with_new_architecture(do_generation_with_fit_parameters,
+                                   inp_data_dict=None):
     if inp_data_dict is None:
         with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
@@ -45,6 +47,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters, inp_data_d
 
     code_generator = CVS0DCellMLGenerator(model, output_model_subdir_path, file_prefix)
     code_generator.generate_files()
+
 
 if __name__ == '__main__':
     try:
