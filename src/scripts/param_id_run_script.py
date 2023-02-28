@@ -74,8 +74,13 @@ if __name__ == '__main__':
         # if these exist they overwrite the pre_time and sim_time
         if 'pre_heart_periods' in inp_data_dict.keys():
             pre_heart_periods = inp_data_dict['pre_heart_periods']
+        else:
+            pre_heart_periods = None
         if 'sim_heart_periods' in inp_data_dict.keys():
             sim_heart_periods = inp_data_dict['sim_heart_periods']
+        else:
+            sim_heart_periods = None
+
 
         maximum_step = inp_data_dict['maximum_step']
         dt = inp_data_dict['dt']
