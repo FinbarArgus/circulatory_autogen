@@ -7,6 +7,7 @@
     </component>
     <component name="constant_flow_2_BC_type">
         <variable name="t" public_interface="in" units="second"/>
+        <variable name="P" public_interface="in" units="J_per_m3"/>
         <variable name="v_1" private_interface="in" public_interface="out" units="m3_per_s"/>
         <variable name="v_2" private_interface="in" public_interface="out" units="m3_per_s"/>
     </component>

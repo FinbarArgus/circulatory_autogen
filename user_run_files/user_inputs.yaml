@@ -3,14 +3,14 @@ DEBUG: True
 MPI_DEBUG: False
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
-file_prefix: simple_physiological
+file_prefix: lung_simple
 # file_prefix: physiological
 # file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv 
-input_param_file: simple_physiological_parameters.csv 
+input_param_file: lung_simple_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: 3compartment_parameters.csv 
 
@@ -18,7 +18,6 @@ input_param_file: simple_physiological_parameters.csv
 # param_id_method can be any of [genetic_algorithm]
 param_id_method: genetic_algorithm 
 
-run_sensitivity: False
 # param_id_model_type can only be cellml_only atm (cardiovascular system 0D) atm, but will be extended 
 param_id_model_type: cellml_only
 # pre_time is the amount of time simulated to get to steady state
@@ -27,10 +26,10 @@ pre_time: 20
 sim_time: 2
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
-pre_heart_periods: 16
+# pre_heart_periods: 16
 # if sim_heart_periods is defined, pre_time will be calculated by multiplying
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
-sim_heart_periods: 1
+# sim_heart_periods: 1
 
 # Maximum time step for solver
 maximum_step: 0.001
@@ -51,7 +50,7 @@ dt: 0.01
 # param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB133.json
 
 # This for simple_physiological (doesn't use experimental data)
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 
@@ -65,6 +64,8 @@ param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/reso
 # This is for neonatal
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
 #
+# This for lung_simple
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_3_obs_data.json
 #_______ sensitivity analysis inputs __________
 do_sensitivity: False
 

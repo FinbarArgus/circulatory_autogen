@@ -96,13 +96,18 @@ class CVS0DParamID():
         # if self.DEBUG:
         #     import resource
 
-        # param names
+        # TODO I should have a separate class for parsing the observable info from param_id_obs_path
+        #  and param info from input_params_path
+        # obs info
         self.obs_names = None
         self.obs_types = None
+        self.obs_operation = None
+        self.obs_operands = None
         self.weight_const_vec = None
         self.weight_series_vec = None
         self.std_const_vec = None
         self.std_series_vec = None
+        # param names
         self.param_names = None
         self.param_mins = None
         self.param_maxs = None
@@ -131,6 +136,7 @@ class CVS0DParamID():
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types,
+                                           self.obs_operation, self.obs_operands,
                                            self.weight_const_vec, self.weight_series_vec,
                                            self.std_const_vec, self.std_series_vec,
                                            self.param_names,
@@ -144,6 +150,7 @@ class CVS0DParamID():
             if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types,
+                                               self.obs_operation, self.obs_operands,
                                                self.weight_const_vec, self.weight_series_vec,
                                                self.std_const_vec, self.std_series_vec,
                                                self.param_names, self.pred_var_names,
@@ -888,6 +895,19 @@ class CVS0DParamID():
 
         self.obs_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])]
 
+        self.obs_operation = []
+        self.obs_operands = []
+        for II in range(self.gt_df.shape[0]):
+            if "operation" not in self.gt_df.iloc[II].keys():
+                self.obs_operation.append(None)
+                self.obs_operands.append(None)
+            elif self.gt_df.iloc[II]["operation"] == "Null":
+                self.obs_operation.append(None)
+                self.obs_operands.append(None)
+            else:
+                self.obs_operation.append(self.gt_df.iloc[II]["operation"])
+                self.obs_operands.append(self.gt_df.iloc[II]["operands"])
+
         self.num_obs = len(self.obs_names)
 
         # how much to weight the different observable errors by
@@ -895,13 +915,6 @@ class CVS0DParamID():
                                           if self.gt_df.iloc[II]["data_type"] == "constant"])
 
         self.weight_series_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
-                                           if self.gt_df.iloc[II]["data_type"] == "series"])
-
-        # The std for the different observables
-        self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                          if self.gt_df.iloc[II]["data_type"] == "constant"])
-
-        self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "series"])
 
         return
@@ -1000,14 +1013,27 @@ class CVS0DParamID():
 
     def __get_ground_truth_values(self):
 
-        # _______ First we access data for mean values
+        # _______ First we access data for constant values
 
         ground_truth_consts = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "constant"])
+
+        # _______ Then for time series
         ground_truth_series = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                            if self.gt_df.iloc[II]["data_type"] == "series"])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"])
+
+        # _______ Then for frequency series
+        # TODO
+
+        # The std for the different observables
+        self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+                                       if self.gt_df.iloc[II]["data_type"] == "constant"])
+
+        self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"])
+
         if len(ground_truth_series) > 0:
-                ground_truth_series = np.stack(ground_truth_series)
+            ground_truth_series = np.stack(ground_truth_series)
 
         if self.rank == 0:
             np.save(os.path.join(self.output_dir, 'ground_truth_consts.npy'), ground_truth_consts)
@@ -1190,7 +1216,8 @@ class OpencorParamID():
     Class for doing parameter identification on opencor models
     """
     def __init__(self, model_path, param_id_method,
-                 obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
+                 obs_names, obs_types, obs_operations, obs_operands,
+                 weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names, pred_var_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs,
@@ -1203,6 +1230,8 @@ class OpencorParamID():
 
         self.obs_names = obs_names
         self.obs_types = obs_types
+        self.obs_operations = obs_operations
+        self.obs_operands = obs_operands
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
         self.std_const_vec = std_const_vec
@@ -1225,6 +1254,7 @@ class OpencorParamID():
         self.pre_time = pre_time
 
         self.sim_helper = self.initialise_sim_helper()
+        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
         if pre_heart_periods is not None:
@@ -1941,7 +1971,7 @@ class OpencorParamID():
 
         success = self.sim_helper.run()
         if success:
-            obs = self.sim_helper.get_results(self.obs_names)
+            obs = self.sim_helper.get_results(self.obs_names, )
 
             cost = self.get_cost_from_obs(obs)
 
@@ -2138,7 +2168,8 @@ class OpencorMCMC():
     """
 
     def __init__(self, model_path,
-                 obs_names, obs_types, weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
+                 obs_names, obs_types, obs_operations, obs_operands,
+                 weight_const_vec, weight_series_vec, std_const_vec, std_series_vec,
                  param_names,
                  ground_truth_consts, ground_truth_series,
                  param_mins, param_maxs, param_prior_types,
@@ -2150,6 +2181,8 @@ class OpencorMCMC():
 
         self.obs_names = obs_names
         self.obs_types = obs_types
+        self.obs_operations = obs_operations
+        self.obs_operands = obs_operands
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
         self.std_const_vec = std_const_vec
@@ -2171,6 +2204,7 @@ class OpencorMCMC():
         self.sim_time = sim_time
         self.pre_time = pre_time
         self.sim_helper = self.initialise_sim_helper()
+        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         if pre_heart_periods is not None:
             T = self.sim_helper.get_init_param_vals(['heart/T'])[0]

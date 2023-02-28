@@ -22,6 +22,8 @@ class SimulationHelper():
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1) # time values for stored part of simulation
+        self.operation_obs_dict = {}
+        self.operation_obs_names = []
 
     def run(self):
         try:
@@ -60,6 +62,36 @@ class SimulationHelper():
                 results[JJ, :] = self.simulation.results().states()[obs_name].values()[-self.n_steps - 1:]
             elif obs_name in self.simulation.results().algebraic():
                 results[JJ, :] = self.simulation.results().algebraic()[obs_name].values()[-self.n_steps-1:]
+            elif obs_name in self.operation_obs_names:
+            # check if the obs name is in the created operation observables.
+                temp_results = [None, None]
+                # loop through operands
+                for II in range(2):
+                    operand_name = self.operation_obs_dict[obs_name]["operands"][II]
+                    if operand_name in self.simulation.results().states():
+                        temp_results[II] = self.simulation.results().states()[operand_name].values()[-self.n_steps - 1:]
+                    elif operand_name in self.simulation.results().algebraic():
+                        temp_results[II] = self.simulation.results().algebraic()[operand_name].values()[-self.n_steps - 1:]
+                    else:
+                        print(f'variable {self.operation_obs_dict[obs_name]["operands"][II]} is not a '
+                              f'model variable. model variables are')
+                        print([name for name in self.simulation.results().states()])
+                        print([name for name in self.simulation.results().algebraic()])
+                        print('exiting')
+                        exit()
+
+                if self.operation_obs_dict[obs_name]["operation"] == "multiplication":
+                    results[JJ, :] = temp_results[0] * temp_results[1]
+                elif self.operation_obs_dict[obs_name]["operation"] == "division":
+                    results[JJ, :] = temp_results[0] / temp_results[1] # TODO careful here with divide by zero
+                elif self.operation_obs_dict[obs_name]["operation"] == "addition":
+                    results[JJ, :] = temp_results[0] + temp_results[1]
+                elif self.operation_obs_dict[obs_name]["operation"] == "subtraction":
+                    results[JJ, :] = temp_results[0] - temp_results[1]
+                else:
+                    print(f'operation {self.operation_obs_dict[obs_name]["operation"]} is not a valid'
+                          f'operation, must be multiplication, division, addition, or subtraction')
+
             else:
                 print(f'variable {obs_name} is not a model variable. model variables are')
                 print([name for name in self.simulation.results().states()])
@@ -169,5 +201,14 @@ class SimulationHelper():
 
     def close_simulation(self):
         oc.close_simulation(self.simulation)
+
+    def create_operation_variables(self, obs_names, operations, operands):
+        for II in range(len(obs_names)):
+            if operations[II] is not None:
+                self.operation_obs_names.append(obs_names[II])
+                self.operation_obs_dict[obs_names[II]] = {"operation": operations[II],
+                                                          "operands": operands[II]}
+
+
 
 

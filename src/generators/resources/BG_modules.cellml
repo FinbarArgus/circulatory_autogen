@@ -1561,6 +1561,31 @@
             </apply>
         </math>
     </component>
+    <component name="vv_rigid_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <!-- Constitutive parameters-->
+        <variable name="R" public_interface="in" units="Js_per_m6"/>
+        <!-- State Variables-->
+        <variable name="v_in" public_interface="in" units="m3_per_s"/>
+        <variable name="u" public_interface="out" units="J_per_m3"/>
+        <variable name="v_out" public_interface="in" units="m3_per_s"/>
+        <!-- Conservation Laws-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>u</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>v_in</ci>
+                        <ci>v_out</ci>
+                    </apply>
+                    <ci>R</ci>
+                </apply>
+            </apply>
+        </math>
+    </component>
     <component name="vp_simple_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
@@ -2404,11 +2429,12 @@
             </apply>
         </math>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
-        <variable name="q_C" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <variable name="du_C_dt" public_interface="out" units="J_per_m3s"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
@@ -3455,14 +3481,15 @@
             </apply>
         </math>
     </component>
-    <component name="vp_merge_type">
+    <component name="vp_merge_simple_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable name="I" public_interface="out" units="Js2_per_m6"/>
-        <variable name="C" public_interface="out" units="m6_per_J"/>
-        <variable name="R" public_interface="out" units="Js_per_m6"/>
+        <variable name="I" public_interface="in" units="Js2_per_m6"/>
+        <variable name="C" public_interface="in" units="m6_per_J"/>
+        <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
+        <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_in_2" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
