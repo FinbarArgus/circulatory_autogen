@@ -289,9 +289,9 @@ class CVS0DParamID():
                         conversion = Pa_to_kPa
                         axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$kPa$]', fontsize=18)
                     else:
-                        print(f'variable with unit of {self.gt_df.iloc[JJ]["unit"]} is not implemented'
-                              f'for plotting')
-                        exit()
+                        conversion = 1.0
+                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [{self.gt_df.iloc[JJ]["unit"]}]',
+                                                         fontsize=18)
                     if not this_obs_waveform_plotted:
                         axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='output')
                         this_obs_waveform_plotted = True
@@ -392,9 +392,8 @@ class CVS0DParamID():
         bar_list = axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
-        # TODO remove this colour change
-        bar_list[0].set_facecolor('r')
-        bar_list[1].set_facecolor('r')
+        # bar_list[0].set_facecolor('r')
+        # bar_list[1].set_facecolor('r')
 
         # axs.legend()
         axs.set_ylabel('E$_{\%}$')
@@ -416,9 +415,8 @@ class CVS0DParamID():
         bar_list = axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
-        # TODO remove this colour change
-        bar_list[0].set_facecolor('r')
-        bar_list[1].set_facecolor('r')
+        # bar_list[0].set_facecolor('r')
+        # bar_list[1].set_facecolor('r')
 
         # axs.legend()
         axs.set_ylabel('E$_{std}$')
