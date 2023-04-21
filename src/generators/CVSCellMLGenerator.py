@@ -445,16 +445,26 @@ class CVS0DCellMLGenerator(object):
                 self.__write_mapping(wf, vessel_name+'_module','terminal_venous_connection',
                               [v_1], [v_2])
 
-            # check that vessel type is venous but and that it is the first venous thats connected to a terminal
-            if vessel_tup.vessel_type == 'venous' and \
-                    vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
+            # This only allowed venous types to be called venous.
+            # # check that vessel type is venous but and that it is the first venous thats connected to a terminal
+            # if vessel_tup.vessel_type == 'venous' and \
+            #         vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
+            #         ]['vessel_type'].str.contains('terminal').any():
+
+            # check if the vessel has a terminal as an input
+            if vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
                     ]['vessel_type'].str.contains('terminal').any():
                 vessel_name = vessel_tup.name
                 first_venous_names.append(vessel_name)
                 vessel_BC_type = vessel_tup.BC_type
                 v_1 = [f'v_{vessel_name}']
-                if vessel_BC_type.startswith('vp'):
+                if len(vessel_tup.inp_vessels) > 1:
+                    print('first venous vessels (output of terminals '
+                          'with multiple inputs have not been implemented.')
+                    exit()
+                if vessel_BC_type.startswith('v'):
                     v_2 = ['v_in']
+                    # TODO cases for merge type etc
                 else:
                     print(f'first venous vessel BC type of {vessel_BC_type} has not'
                           f'been implemented')

@@ -47,7 +47,7 @@ class SimulationHelper():
         self.simulation.reset()
         self.simulation.clear_results()
 
-    def get_results(self, obs_names):
+    def get_results(self, obs_names, output_temp_results=False):
         """
         gets results after a simulation
         inputs:
@@ -57,6 +57,8 @@ class SimulationHelper():
         """
         n_obs = len(obs_names)
         results = np.zeros((n_obs, self.n_steps + 1))
+        # temp results stores results that are operated together
+        temp_results = np.zeros((n_obs, 2, self.n_steps + 1))
         for JJ, obs_name in enumerate(obs_names):
             if obs_name in self.simulation.results().states():
                 results[JJ, :] = self.simulation.results().states()[obs_name].values()[-self.n_steps - 1:]
@@ -64,14 +66,13 @@ class SimulationHelper():
                 results[JJ, :] = self.simulation.results().algebraic()[obs_name].values()[-self.n_steps-1:]
             elif obs_name in self.operation_obs_names:
             # check if the obs name is in the created operation observables.
-                temp_results = [None, None]
                 # loop through operands
                 for II in range(2):
                     operand_name = self.operation_obs_dict[obs_name]["operands"][II]
                     if operand_name in self.simulation.results().states():
-                        temp_results[II] = self.simulation.results().states()[operand_name].values()[-self.n_steps - 1:]
+                        temp_results[JJ, II] = self.simulation.results().states()[operand_name].values()[-self.n_steps - 1:]
                     elif operand_name in self.simulation.results().algebraic():
-                        temp_results[II] = self.simulation.results().algebraic()[operand_name].values()[-self.n_steps - 1:]
+                        temp_results[JJ, II] = self.simulation.results().algebraic()[operand_name].values()[-self.n_steps - 1:]
                     else:
                         print(f'variable {self.operation_obs_dict[obs_name]["operands"][II]} is not a '
                               f'model variable. model variables are')
@@ -81,13 +82,13 @@ class SimulationHelper():
                         exit()
 
                 if self.operation_obs_dict[obs_name]["operation"] == "multiplication":
-                    results[JJ, :] = temp_results[0] * temp_results[1]
+                    results[JJ, :] = temp_results[JJ, 0] * temp_results[JJ, 1]
                 elif self.operation_obs_dict[obs_name]["operation"] == "division":
-                    results[JJ, :] = temp_results[0] / temp_results[1] # TODO careful here with divide by zero
+                    results[JJ, :] = temp_results[JJ, 0] / temp_results[JJ, 1] # TODO careful here with divide by zero
                 elif self.operation_obs_dict[obs_name]["operation"] == "addition":
-                    results[JJ, :] = temp_results[0] + temp_results[1]
+                    results[JJ, :] = temp_results[JJ, 0] + temp_results[JJ, 1]
                 elif self.operation_obs_dict[obs_name]["operation"] == "subtraction":
-                    results[JJ, :] = temp_results[0] - temp_results[1]
+                    results[JJ, :] = temp_results[JJ, 0] - temp_results[JJ, 1]
                 else:
                     print(f'operation {self.operation_obs_dict[obs_name]["operation"]} is not a valid'
                           f'operation, must be multiplication, division, addition, or subtraction')
@@ -99,7 +100,10 @@ class SimulationHelper():
                 print('exiting')
                 exit()
 
-        return results
+        if output_temp_results:
+            return results, temp_results
+        else:
+            return results
 
     def get_init_param_vals(self, param_names):
         param_init = []

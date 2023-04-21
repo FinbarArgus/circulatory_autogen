@@ -1,27 +1,33 @@
 name,BC_type,vessel_type,inp_vessels,out_vessels,
-inlet,nn_constant,inlet_flow,             ,PA
-PA,vv,arterial_simple,inlet               ,PA_split
-PA_split,pv,split_junction_simple,PA             ,LPA RPA
-LPA,pv,split_junction_simple,PA_split            ,LUL_A LLL_A
-LUL_A,pv,arterial_simple,LPA              ,LUL
-LLL_A,pv,arterial_simple,LPA              ,LLL
-RPA,pv,split_junction_simple,PA_split            ,RUL_A R_basal_A
-RUL_A,pv,arterial_simple,RPA              ,RUL
-R_basal_A,pv,split_junction_simple,RPA           ,RML_A RLL_A
-RML_A,pv,arterial_simple,R_basal_A        ,RML
-RLL_A,pv,arterial_simple,R_basal_A        ,RLL
-LUL,pp,terminal,LUL_A                     ,LUL_V
+inlet,            nn_fourier_8,   inlet_flow,             ,                         inlet_connector
+inlet_connector,  vv,             arterial_simple,        inlet,                    MPA_A 
+MPA_A,pv,split_junction,inlet_connector  ,LPA_A RPA_A
+LPA_A,pv,split_junction,MPA_A        ,LUL_A LBS_A
+LUL_A,pp,arterial,LPA_A              ,L_connector_A
+LBS_A,pv,split_junction,LPA_A              ,LM_A LLL_A
+LM_A,pp,arterial,LBS_A              ,L_connector_A
+L_connector_A,vv,merge_junction_simple,LUL_A LM_A ,LUL
+LLL_A,pv,arterial,LBS_A              ,LLL
+RPA_A,pv,split_junction,MPA_A        ,RUL_A RBS_A
+RUL_A,pv,arterial,RPA_A              ,RUL
+RBS_A,pv,split_junction,RPA_A          ,RML_A RLL_A
+RML_A,pv,arterial,RBS_A        ,RML
+RLL_A,pv,arterial,RBS_A        ,RLL
+LUL,pp,terminal,L_connector_A         ,L_connector_V
 LLL,pp,terminal,LLL_A                     ,LLL_V
 RUL,pp,terminal,RUL_A                     ,RUL_V
 RML,pp,terminal,RML_A                     ,RML_V
 RLL,pp,terminal,RLL_A                     ,RLL_V
-RLL_V,vp,venous,RLL                       ,R_basal_V
-RML_V,vp,venous,RML                       ,R_basal_V
-R_basal_V,vp,merge_junction_simple,RLL_V RML_V   ,RPV
-RUL_V,vp,venous,RUL                       ,RPV
-RPV,vp,merge_junction_simple,R_basal_V RUL_V     ,PV
-LLL_V,vp,venous,LLL                       ,LPV
-LUL_V,vp,venous,LUL                       ,LPV
-LPV,vp,merge_junction_simple,LUL_V LLL_V         ,PV
-PV,vp,merge_junction_simple,LPV RPV              ,outlet
-outlet,nn_constant,outlet_pressure,PV,    ,
+RLL_V,vp,venous_wGeom,RLL                       ,RBS_V
+RUL_V,vp,venous_wGeom,RUL                       ,RPV_V
+RML_V,vp,venous_wGeom,RML                       ,RBS_V
+RBS_V,vp,merge_junction,RLL_V RML_V   ,RPV_V
+RPV_V,vp,merge_junction,RBS_V RUL_V     ,outlet_R
+L_connector_V,vv,split_junction_simple, LUL, LUL_V LM_V
+LLL_V,vp,venous_wGeom,LLL ,LBS_V
+LUL_V,pp,venous_wGeom,L_connector_V             ,LPV_V
+LM_V,pp,venous_wGeom,L_connector_V              ,LBS_V
+LBS_V,vp,merge_junction,LLL_V LM_V         ,LPV_V
+LPV_V,vp,merge_junction,LBS_V LUL_V         ,outlet_L
+outlet_L,         nn_constant,    outlet_pressure,        LPV_V,            
+outlet_R,         nn_constant,    outlet_pressure,        RPV_V,            
