@@ -33,17 +33,18 @@ for II in range(len(data["vessel_names"])):
                              f'{input_vessel}/v']
 
     entry["unit"] = "Js/m^6" # data["impedance"]["unit"]
-    entry["weight"] = 1.0
     entry["obs_type"] = "frequency"
     entry["value"] = [val*conversion for val in data["impedance"][data["vessel_names"][II]]]
     entry["std"] = [conversion*val/10 for val in data["impedance"][data["vessel_names"][II]]]
-    entry["std"][0] = entry["std"][0]/10 # temporarily hardcode the weights on the first and second frequencies
-    entry["std"][1] = entry["std"][1]/2
     entry["frequencies"] = data["frequency"]
     entry["phase"] = [val for val in data["phase"][data["vessel_names"][II]]]
     # temporarily hardcode the weights for the phase
-    entry["phase_weights"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
-    entry["phase_weights"][0] = entry["phase_weights"][0]*10
+    entry["weight"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
+    entry["weight"][0] = 3
+    entry["weight"][1] = 2
+    entry["phase_weight"] = [10.0 for val in data["phase"][data["vessel_names"][II]]]
+    entry["phase_weight"][0] = entry["phase_weight"][0]*3
+    entry["phase_weight"][1] = entry["phase_weight"][1]*2
     entry_list.append(entry)
 
 full_dict["data_item"] = entry_list

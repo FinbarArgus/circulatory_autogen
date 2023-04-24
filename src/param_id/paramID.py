@@ -106,7 +106,8 @@ class CVS0DParamID():
         self.obs_operands = None
         self.weight_const_vec = None
         self.weight_series_vec = None
-        self.weight_freq_vec = None
+        self.weight_amp_vec = None
+        self.weight_phase_vec = None
         self.std_const_vec = None
         self.std_series_vec = None
         self.std_amp_vec = None
@@ -141,7 +142,8 @@ class CVS0DParamID():
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_names, self.obs_types, self.obs_freqs,
                                            self.obs_operations, self.obs_operands,
-                                           self.weight_const_vec, self.weight_series_vec, self.weight_freq_vec,
+                                           self.weight_const_vec, self.weight_series_vec, 
+                                           self.weight_amp_vec, self.weight_phase_vec,
                                            self.std_const_vec, self.std_series_vec, self.std_amp_vec,
                                            self.param_names,
                                            self.ground_truth_const, self.ground_truth_series,
@@ -156,7 +158,8 @@ class CVS0DParamID():
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.obs_types, self.obs_freqs,
                                                self.obs_operations, self.obs_operands,
-                                               self.weight_const_vec, self.weight_series_vec, self.weight_freq_vec,
+                                               self.weight_const_vec, self.weight_series_vec,
+                                               self.weight_amp_vec, self.weight_phase_vec,
                                                self.std_const_vec, self.std_series_vec, self.std_amp_vec,
                                                self.param_names, self.pred_var_names,
                                                self.ground_truth_const, self.ground_truth_series,
@@ -274,7 +277,7 @@ class CVS0DParamID():
             series_idx = -1
             freq_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
-            percent_phase_error_vec = np.zeros((self.num_obs,))
+            phase_error_vec = np.zeros((self.num_obs,))
             std_error_vec = np.zeros((self.num_obs,))
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
@@ -363,16 +366,13 @@ class CVS0DParamID():
                                                       (self.std_series_vec[series_idx]))/min_len_series)
                 elif self.gt_df.iloc[II]["data_type"] == "frequency":
                     std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) *
-                                               self.weight_freq_vec[freq_idx] /
+                                               self.weight_amp_vec[freq_idx] /
                                                self.std_amp_vec[freq_idx]) / len(best_fit_obs_amp[freq_idx]))
-                    percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) *
-                                                       self.weight_freq_vec[freq_idx] /
+                    percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) /
                                                        np.mean(self.ground_truth_amp[freq_idx]))
                                                        / len(best_fit_obs_amp[freq_idx]))
-                    percent_phase_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx]) *
-                                                       self.weight_freq_vec[freq_idx] /
-                                                       np.mean(self.ground_truth_phase[freq_idx]))
-                                                       / len(best_fit_obs_phase[freq_idx]))
+                    phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx])
+                                                       / len(best_fit_obs_phase[freq_idx])))
 
                 if self.gt_df.iloc[II]["data_type"] == "frequency":
                     axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
@@ -511,7 +511,7 @@ class CVS0DParamID():
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} phase error:')
-                print(f'{percent_phase_error_vec[obs_idx]:.2f} %')
+                print(f'{phase_error_vec[obs_idx]:.2f}')
 
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
@@ -993,7 +993,10 @@ class CVS0DParamID():
         self.weight_series_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "series"])
 
-        self.weight_freq_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+        self.weight_amp_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                           if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        
+        self.weight_phase_vec = np.array([self.gt_df.iloc[II]["phase_weight"] for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         return
@@ -1315,7 +1318,8 @@ class OpencorParamID():
     """
     def __init__(self, model_path, param_id_method,
                  obs_names, obs_types, obs_freqs, obs_operations, obs_operands,
-                 weight_const_vec, weight_series_vec, weight_freq_vec,
+                 weight_const_vec, weight_series_vec, 
+                 weight_amp_vec, weight_phase_vec,
                  std_const_vec, std_series_vec, std_amp_vec,
                  param_names, pred_var_names,
                  ground_truth_const, ground_truth_series, ground_truth_amp, ground_truth_phase,
@@ -1340,7 +1344,8 @@ class OpencorParamID():
         self.obs_operands = obs_operands
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
-        self.weight_freq_vec = weight_freq_vec
+        self.weight_amp_vec = weight_amp_vec
+        self.weight_phase_vec = weight_phase_vec
         self.std_const_vec = std_const_vec
         self.std_series_vec = std_series_vec
         self.std_amp_vec = std_amp_vec
@@ -2164,11 +2169,11 @@ class OpencorParamID():
             # divide by number data points in series data
             if self.cost_type == 'MSE':
                 amp_cost = np.sum([np.power((amp[JJ] - self.ground_truth_amp[JJ]) *
-                                             self.weight_freq_vec[JJ] /
+                                             self.weight_amp_vec[JJ] /
                                              self.std_amp_vec[JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
             elif self.cost_type == 'AE':
                 amp_cost = np.sum([np.abs((amp[JJ] - self.ground_truth_amp[JJ]) *
-                                             self.weight_freq_vec[JJ] /
+                                             self.weight_amp_vec[JJ] /
                                              self.std_amp_vec[JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
         else:
             amp_cost = 0
@@ -2179,11 +2184,11 @@ class OpencorParamID():
             # TODO figure out how to properly weight this compared to the frequency weight.
             if self.cost_type == 'MSE':
                 phase_cost = np.sum([np.power((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                             self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
+                                             self.weight_phase_vec[JJ], 2) / len(phase[JJ]) for JJ in
                                     range(len(phase))])
             if self.cost_type == 'AE':
                 phase_cost = np.sum([np.abs((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                              self.weight_freq_vec[JJ]) / len(phase[JJ]) for JJ in
+                                              self.weight_phase_vec[JJ]) / len(phase[JJ]) for JJ in
                                      range(len(phase))])
         else:
             phase_cost = 0
@@ -2366,7 +2371,8 @@ class OpencorMCMC():
 
     def __init__(self, model_path,
                  obs_names, obs_types, obs_freqs, obs_operations, obs_operands,
-                 weight_const_vec, weight_series_vec, weight_freq_vec,
+                 weight_const_vec, weight_series_vec, 
+                 weight_amp_vec, weight_phase_vec,
                  std_const_vec, std_series_vec, std_amp_vec,
                  param_names,
                  ground_truth_const, ground_truth_series, ground_truth_amp,
@@ -2384,7 +2390,8 @@ class OpencorMCMC():
         self.obs_operands = obs_operands
         self.weight_const_vec = weight_const_vec
         self.weight_series_vec = weight_series_vec
-        self.weight_freq_vec = weight_freq_vec
+        self.weight_amp_vec = weight_amp_vec
+        self.weight_phase_vec = weight_phase_vec
         self.std_const_vec = std_const_vec
         self.std_series_vec = std_series_vec
         self.std_amp_vec = std_amp_vec
@@ -2721,11 +2728,11 @@ class OpencorMCMC():
             # divide by number data points in series data
             if self.cost_type == 'MSE':
                 amp_cost = np.sum([np.power((amp[JJ] - self.ground_truth_amp[JJ]) *
-                                             self.weight_freq_vec[JJ] /
+                                             self.weight_amp_vec[JJ] /
                                              self.std_amp_vec[JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
             elif self.cost_type == 'AE':
                 amp_cost = np.sum([np.abs((amp[JJ] - self.ground_truth_amp[JJ]) *
-                                             self.weight_freq_vec[JJ] /
+                                             self.weight_amp_vec[JJ] /
                                              self.std_amp_vec[JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
         else:
             amp_cost = 0
@@ -2736,11 +2743,11 @@ class OpencorMCMC():
             # TODO figure out how to properly weight this compared to the frequency weight.
             if self.cost_type == 'MSE':
                 phase_cost = np.sum([np.power((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                             self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
+                                             self.weight_phase_vec[JJ], 2) / len(phase[JJ]) for JJ in
                                     range(len(phase))])
             if self.cost_type == 'AE':
                 phase_cost = np.sum([np.abs((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                              self.weight_freq_vec[JJ]) / len(phase[JJ]) for JJ in
+                                              self.weight_phase_vec[JJ]) / len(phase[JJ]) for JJ in
                                      range(len(phase))])
         else:
             phase_cost = 0
