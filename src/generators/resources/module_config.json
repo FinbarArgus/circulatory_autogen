@@ -365,6 +365,7 @@
       ["v_T", "m3_per_s", "access", "variable"],
       ["R_T", "Js_per_m6", "access", "constant"],
       ["C_T", "m6_per_J", "access", "constant"],
+      ["I_T", "Js2_per_m6", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_T", "m3", "access", "variable"]
     ]
