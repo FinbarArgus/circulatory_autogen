@@ -42,7 +42,7 @@ for II in range(len(data["vessel_names"])):
     entry["weight"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
     entry["weight"][0] = 3
     entry["weight"][1] = 2
-    entry["phase_weight"] = [10.0 for val in data["phase"][data["vessel_names"][II]]]
+    entry["phase_weight"] = [100.0 for val in data["phase"][data["vessel_names"][II]]]
     entry["phase_weight"][0] = entry["phase_weight"][0]*3
     entry["phase_weight"][1] = entry["phase_weight"][1]*2
     entry_list.append(entry)
