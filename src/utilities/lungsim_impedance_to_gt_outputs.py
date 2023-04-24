@@ -29,7 +29,7 @@ for II in range(len(data["vessel_names"])):
         entry["operands"] = [f'{data["vessel_names"][II]}/u',
                              f'{input_vessel}/v']
 
-    entry["unit"] = data["impedance"]["unit"]
+    entry["unit"] = "Js/m^6" # data["impedance"]["unit"]
     entry["weight"] = 1.0
     entry["obs_type"] = "frequency"
     entry["value"] = [val*conversion for val in data["impedance"][data["vessel_names"][II]]]
