@@ -109,7 +109,7 @@ class CVS0DParamID():
         self.weight_freq_vec = None
         self.std_const_vec = None
         self.std_series_vec = None
-        self.std_freq_vec = None
+        self.std_amp_vec = None
         # param names
         self.param_names = None
         self.param_mins = None
@@ -125,7 +125,7 @@ class CVS0DParamID():
             self.__set_and_save_param_names()
 
         # ground truth values
-        self.ground_truth_consts, self.ground_truth_series, self.ground_truth_freq, self.ground_truth_phase = \
+        self.ground_truth_const, self.ground_truth_series, self.ground_truth_amp, self.ground_truth_phase = \
             self.__get_ground_truth_values()
 
         # get prediction variables
@@ -142,10 +142,10 @@ class CVS0DParamID():
                                            self.obs_names, self.obs_types, self.obs_freqs,
                                            self.obs_operations, self.obs_operands,
                                            self.weight_const_vec, self.weight_series_vec, self.weight_freq_vec,
-                                           self.std_const_vec, self.std_series_vec, self.std_freq_vec,
+                                           self.std_const_vec, self.std_series_vec, self.std_amp_vec,
                                            self.param_names,
-                                           self.ground_truth_consts, self.ground_truth_series,
-                                           self.ground_truth_freq, self.ground_truth_phase,
+                                           self.ground_truth_const, self.ground_truth_series,
+                                           self.ground_truth_amp, self.ground_truth_phase,
                                            self.param_mins, self.param_maxs, self.param_prior_types,
                                            sim_time=sim_time, pre_time=pre_time,
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
@@ -157,10 +157,10 @@ class CVS0DParamID():
                                                self.obs_names, self.obs_types, self.obs_freqs,
                                                self.obs_operations, self.obs_operands,
                                                self.weight_const_vec, self.weight_series_vec, self.weight_freq_vec,
-                                               self.std_const_vec, self.std_series_vec, self.std_freq_vec,
+                                               self.std_const_vec, self.std_series_vec, self.std_amp_vec,
                                                self.param_names, self.pred_var_names,
-                                               self.ground_truth_consts, self.ground_truth_series,
-                                               self.ground_truth_freq, self.ground_truth_phase,
+                                               self.ground_truth_const, self.ground_truth_series,
+                                               self.ground_truth_amp, self.ground_truth_phase,
                                                self.param_mins, self.param_maxs,
                                                sim_time=sim_time, pre_time=pre_time,
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
@@ -242,10 +242,10 @@ class CVS0DParamID():
             best_fit_temp_obs = None
 
         obs_dict = self.param_id.get_obs_vec_and_array(best_fit_obs, temp_obs=best_fit_temp_obs)
-        obs_const_vec = obs_dict['const']
-        obs_series_vec = obs_dict['series']
-        obs_freq_vec = obs_dict['freq']
-        obs_phase_vec = obs_dict['phase']
+        best_fit_obs_const = obs_dict['const']
+        best_fit_obs_series = obs_dict['series']
+        best_fit_obs_amp = obs_dict['amp']
+        best_fit_obs_phase = obs_dict['phase']
 
         # _________ Plot best comparison _____________
         subplot_width = 1
@@ -260,8 +260,8 @@ class CVS0DParamID():
         row_idx = 0
         plot_idx = 0
         tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        consts_plot_gt = np.tile(self.ground_truth_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
-        consts_plot_bf = np.tile(best_fit_obs_consts.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
+        const_plot_gt = np.tile(self.ground_truth_const.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
+        const_plot_bf = np.tile(best_fit_obs_const.reshape(-1, 1), (1, self.param_id.sim_helper.n_steps + 1))
 
         if len(self.ground_truth_series) > 0:
             min_len_series = min(self.ground_truth_series.shape[1], best_fit_obs_series.shape[1])
@@ -269,7 +269,7 @@ class CVS0DParamID():
 
         for unique_obs_count in range(len(obs_names_unique)):
             this_obs_waveform_plotted = False
-            consts_idx = -1
+            const_idx = -1
             series_idx = -1
             freq_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
@@ -277,7 +277,7 @@ class CVS0DParamID():
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
                 if self.gt_df.iloc[II]["data_type"] == "constant":
-                    consts_idx += 1
+                    const_idx += 1
                 elif self.gt_df.iloc[II]["data_type"] == "series":
                     series_idx += 1
                 elif self.gt_df.iloc[II]["data_type"] == "frequency":
@@ -314,39 +314,39 @@ class CVS0DParamID():
                         if not self.obs_types[II] == 'frequency':
                             axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='output')
                         else:
-                            axs[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_freq[freq_idx],
+                            axs[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_amp[freq_idx],
                                                        'kv', label='model output')
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_gt[const_idx, :],
                                                    'b--', label='mean measurement')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_bf[const_idx, :],
                                                    'b', label='mean output')
                     elif self.obs_types[II] == 'max':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_gt[const_idx, :],
                                                    'r--', label='max measurement')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :],
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_bf[const_idx, :],
                                                    'r', label='max output')
                     elif self.obs_types[II] == 'min':
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_gt[consts_idx, :],
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_gt[const_idx, :],
                                                    'g--', label='min measurement')
-                        axs[row_idx, col_idx].plot(tSim, conversion*consts_plot_bf[consts_idx, :], 'g', label='min output')
+                        axs[row_idx, col_idx].plot(tSim, conversion*const_plot_bf[const_idx, :], 'g', label='min output')
                     elif self.obs_types[II] == 'series':
                         axs[row_idx, col_idx].plot(tSim[:min_len_series],
                                                    conversion*self.ground_truth_series[series_idx, :min_len_series],
                                                    'k--', label='measurement')
                     elif self.obs_types[II] == 'frequency':
                         axs[row_idx, col_idx].plot(self.obs_freqs[II],
-                                                   conversion*self.ground_truth_freq[freq_idx],
+                                                   conversion*self.ground_truth_amp[freq_idx],
                                                    'kx', label='measurement')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
-                    percent_error_vec[II] = 100*(best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
-                                                       self.ground_truth_consts[consts_idx]
-                    std_error_vec[II] = (best_fit_obs_consts[consts_idx] - self.ground_truth_consts[consts_idx])/ \
-                                                       self.std_const_vec[consts_idx]
+                    percent_error_vec[II] = 100*(best_fit_obs_const[const_idx] - self.ground_truth_const[const_idx])/ \
+                                                       self.ground_truth_const[const_idx]
+                    std_error_vec[II] = (best_fit_obs_const[const_idx] - self.ground_truth_const[const_idx])/ \
+                                                       self.std_const_vec[const_idx]
                 elif self.gt_df.iloc[II]["data_type"] == "series":
                     percent_error_vec[II] = 100*np.sum(np.abs((self.ground_truth_series[series_idx, :min_len_series] -
                                                                best_fit_obs_series[series_idx, :min_len_series]) /
@@ -355,15 +355,15 @@ class CVS0DParamID():
                                                        best_fit_obs_series[series_idx, :min_len_series]) /
                                                       (self.std_series_vec[series_idx]))/min_len_series)
                 elif self.gt_df.iloc[II]["data_type"] == "frequency":
-                    std_error_vec[II] = np.sum([np.abs((best_fit_obs_freq[JJ] - self.ground_truth_freq[JJ]) *
+                    std_error_vec[II] = np.sum([np.abs((best_fit_obs_amp[JJ] - self.ground_truth_amp[JJ]) *
                                                self.weight_freq_vec[JJ] /
-                                               self.std_freq_vec[JJ]) / len(best_fit_obs_freq[JJ])
-                                               for JJ in range(len(best_fit_obs_freq))])
-                    percent_error_vec[II] = 100*np.sum([np.abs((best_fit_obs_freq[JJ] - self.ground_truth_freq[JJ]) *
+                                               self.std_amp_vec[JJ]) / len(best_fit_obs_amp[JJ])
+                                               for JJ in range(len(best_fit_obs_amp))])
+                    percent_error_vec[II] = 100*np.sum([np.abs((best_fit_obs_amp[JJ] - self.ground_truth_amp[JJ]) *
                                                        self.weight_freq_vec[JJ] /
-                                                       np.mean(self.ground_truth_freq[freq_idx]))
-                                                       / len(best_fit_obs_freq[JJ])
-                                                       for JJ in range(len(best_fit_obs_freq))])
+                                                       np.mean(self.ground_truth_amp[freq_idx]))
+                                                       / len(best_fit_obs_amp[JJ])
+                                                       for JJ in range(len(best_fit_obs_amp))])
 
                 if self.gt_df.iloc[II]["data_type"] == "frequency":
                     axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
@@ -1066,7 +1066,7 @@ class CVS0DParamID():
 
         # _______ First we access data for constant values
 
-        ground_truth_consts = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+        ground_truth_const = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "constant"])
 
         # _______ Then for time series
@@ -1074,11 +1074,11 @@ class CVS0DParamID():
                                         if self.gt_df.iloc[II]["data_type"] == "series"])
 
         # _______ Then for frequency series
-        ground_truth_freq = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+        ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         # _______ and the phase of the freq data
-        ground_truth_phase = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+        ground_truth_phase = np.array([self.gt_df.iloc[II]["phase"] for II in range(self.gt_df.shape[0])
                                       if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         # The std for the different observables
@@ -1088,29 +1088,29 @@ class CVS0DParamID():
         self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "series"])
 
-        self.std_freq_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+        self.std_amp_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         if len(ground_truth_series) > 0:
             # TODO what if we have ground truths of different size or sample rate?
             ground_truth_series = np.stack(ground_truth_series)
 
-        if len(ground_truth_freq) > 0:
-            ground_truth_freq = np.stack(ground_truth_freq)
+        if len(ground_truth_amp) > 0:
+            ground_truth_amp = np.stack(ground_truth_amp)
 
         if len(ground_truth_phase) > 0:
             ground_truth_phase = np.stack(ground_truth_phase)
 
         if self.rank == 0:
-            np.save(os.path.join(self.output_dir, 'ground_truth_consts.npy'), ground_truth_consts)
+            np.save(os.path.join(self.output_dir, 'ground_truth_const.npy'), ground_truth_const)
             if len(ground_truth_series) > 0:
                 np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), ground_truth_series)
-            if len(ground_truth_freq) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_freq.npy'), ground_truth_freq)
+            if len(ground_truth_amp) > 0:
+                np.save(os.path.join(self.output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
             if len(ground_truth_phase) > 0:
                 np.save(os.path.join(self.output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
 
-        return ground_truth_consts, ground_truth_series, ground_truth_freq, ground_truth_phase
+        return ground_truth_const, ground_truth_series, ground_truth_amp, ground_truth_phase
 
     
     def get_best_param_vals(self):
@@ -1288,9 +1288,9 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_names, obs_types, obs_freqs, obs_operations, obs_operands,
                  weight_const_vec, weight_series_vec, weight_freq_vec,
-                 std_const_vec, std_series_vec, std_freq_vec,
+                 std_const_vec, std_series_vec, std_amp_vec,
                  param_names, pred_var_names,
-                 ground_truth_consts, ground_truth_series, ground_truth_freq, ground_truth_phase,
+                 ground_truth_const, ground_truth_series, ground_truth_amp, ground_truth_phase,
                  param_mins, param_maxs,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, ga_options=None, DEBUG=False):
@@ -1315,14 +1315,14 @@ class OpencorParamID():
         self.weight_freq_vec = weight_freq_vec
         self.std_const_vec = std_const_vec
         self.std_series_vec = std_series_vec
-        self.std_freq_vec = std_freq_vec
+        self.std_amp_vec = std_amp_vec
         self.param_names = param_names
         self.pred_var_names = pred_var_names
         self.num_obs = len(self.obs_names)
         self.num_params = len(self.param_names)
-        self.ground_truth_consts = ground_truth_consts
+        self.ground_truth_const = ground_truth_const
         self.ground_truth_series = ground_truth_series
-        self.ground_truth_freq = ground_truth_freq
+        self.ground_truth_amp = ground_truth_amp
         self.ground_truth_phase = ground_truth_phase
         self.param_mins = param_mins
         self.param_maxs = param_maxs
@@ -1814,12 +1814,12 @@ class OpencorParamID():
             if self.obs_types[obs_idx] != "series":
                 #part of scale factor for normalising jacobain
                 gt_scalefactor.append(self.weight_const_vec[const_idx]/self.std_const_vec[const_idx])
-                # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
+                # gt_scalefactor.append(1/self.ground_truth_const[x_idx])
                 const_idx = const_idx + 1
             else: 
                 #part of scale factor for normalising jacobain
                 gt_scalefactor.append(self.weight_series_vec[series_idx]/self.std_const_vec[series_idx])
-                # gt_scalefactor.append(1/self.ground_truth_consts[x_idx])
+                # gt_scalefactor.append(1/self.ground_truth_const[x_idx])
                 series_idx = series_idx + 1
 
 
@@ -1877,27 +1877,27 @@ class OpencorParamID():
 
             print('sensitivity analysis needs to be updated to new version. Exiting')
             exit()
-            up_obs_consts_vec, up_obs_series_array = self.get_obs_vec_and_array(up_obs)
-            down_obs_consts_vec, down_obs_series_array = self.get_obs_vec_and_array(down_obs)
-            for j in range(len(up_obs_consts_vec)+len(up_obs_series_array)):
+            up_obs_const_vec, up_obs_series_array = self.get_obs_vec_and_array(up_obs)
+            down_obs_const_vec, down_obs_series_array = self.get_obs_vec_and_array(down_obs)
+            for j in range(len(up_obs_const_vec)+len(up_obs_series_array)):
                 dObs_param = 0
                 #normalise derivative
-                if j < len(up_obs_consts_vec):
-                    dObs_param = (up_obs_consts_vec[j]-down_obs_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                if j < len(up_obs_const_vec):
+                    dObs_param = (up_obs_const_vec[j]-down_obs_const_vec[j])/(param_vec_up[i]-param_vec_down[i])
                     dObs_param = dObs_param*self.best_param_vals[i]*gt_scalefactor[j]
                 else:
                     dObs_param = 0
                 jacobian_sensitivity[i, j] = dObs_param
 
             if num_preds > 0:
-                up_preds_consts_vec = self.get_preds_min_max_mean(up_preds)
-                down_preds_consts_vec = self.get_preds_min_max_mean(down_preds)
+                up_preds_const_vec = self.get_preds_min_max_mean(up_preds)
+                down_preds_const_vec = self.get_preds_min_max_mean(down_preds)
                 for j in range(num_preds):
                     dPreds_param = 0
                     #normalise derivative
-                    dPreds_param = (up_preds_consts_vec[j]-down_preds_consts_vec[j])/(param_vec_up[i]-param_vec_down[i])
+                    dPreds_param = (up_preds_const_vec[j]-down_preds_const_vec[j])/(param_vec_up[i]-param_vec_down[i])
                     # TODO could I normalise the below better? an estimated std maybe?
-                    dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_consts_vec[j]
+                    dPreds_param = dPreds_param*self.best_param_vals[i]/up_preds_const_vec[j]
                     if dPreds_param == 0:
                         # avoid nan errors if the param has no effect on the prediction
                         dPreds_param = 1e-14
@@ -2096,26 +2096,22 @@ class OpencorParamID():
         return cost
 
     def cost_calc(self, obs_dict):
-        # cost = np.sum(np.power(self.weight_const_vec*(consts -
-        #                        self.ground_truth_consts)/np.minimum(consts,
-        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
-        consts = obs_dict['consts']
+        # cost = np.sum(np.power(self.weight_const_vec*(const -
+        #                        self.ground_truth_const)/np.minimum(const,
+        #                                                             self.ground_truth_const), 2))/(self.num_obs)
+        const = obs_dict['const']
         series = obs_dict['series']
-        freq = obs_dict['freq']
+        amp = obs_dict['amp']
         phase = obs_dict['phase']
         if self.cost_type == 'MSE':
-            cost = np.sum(np.power(self.weight_const_vec*(consts -
-                               self.ground_truth_consts)/self.std_const_vec, 2))
+            cost = np.sum(np.power(self.weight_const_vec*(const -
+                               self.ground_truth_const)/self.std_const_vec, 2))
         elif self.cost_type == 'AE':
-            cost = np.sum(np.abs(self.weight_const_vec*(consts -
-                                                          self.ground_truth_consts)/self.std_const_vec))
+            cost = np.sum(np.abs(self.weight_const_vec*(const -
+                                                          self.ground_truth_const)/self.std_const_vec))
         else:
             print(f'cost type of {self.cost_type} not implemented')
             exit()
-
-        # Temp fix
-        if len(series) == 0:
-            series = None
 
         if series is not None:
             #print(series)
@@ -2135,19 +2131,19 @@ class OpencorParamID():
         else:
             series_cost = 0
 
-        if freq is not None:
+        if amp is not None:
             # calculate sum of squares cost and divide by number data points in freq data
             # divide by number data points in series data
             if self.cost_type == 'MSE':
-                freq_cost = np.sum([np.power((freq[JJ] - self.ground_truth_freq[JJ]) *
+                amp_cost = np.sum([np.power((amp[JJ] - self.ground_truth_amp[JJ]) *
                                              self.weight_freq_vec[JJ] /
-                                             self.std_freq_vec[JJ], 2) / len(freq[JJ]) for JJ in range(len(freq))])
+                                             self.std_amp_vec[JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
             elif self.cost_type == 'AE':
-                freq_cost = np.sum([np.abs((freq[JJ] - self.ground_truth_freq[JJ]) *
+                amp_cost = np.sum([np.abs((amp[JJ] - self.ground_truth_amp[JJ]) *
                                              self.weight_freq_vec[JJ] /
-                                             self.std_freq_vec[JJ]) / len(freq[JJ]) for JJ in range(len(freq))])
+                                             self.std_amp_vec[JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
         else:
-            freq_cost = 0
+            amp_cost = 0
 
         if phase is not None:
             # calculate sum of squares cost and divide by number data points in freq data
@@ -2157,20 +2153,20 @@ class OpencorParamID():
                 phase_cost = np.sum([np.power((phase[JJ] - self.ground_truth_phase[JJ]) *
                                              self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
                                     range(len(phase))])
-            if self.cost_type == 'MSE':
+            if self.cost_type == 'AE':
                 phase_cost = np.sum([np.abs((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                              self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
+                                              self.weight_freq_vec[JJ]) / len(phase[JJ]) for JJ in
                                      range(len(phase))])
         else:
             phase_cost = 0
 
-        cost = (cost + series_cost + freq_cost + phase_cost) / self.num_obs
+        cost = (cost + series_cost + amp_cost + phase_cost) / self.num_obs
 
         return cost
 
     def get_obs_vec_and_array(self, obs, temp_obs=None):
 
-        obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))
+        obs_const_vec = np.zeros((len(self.ground_truth_const), ))
         obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
         # TODO series array should also be a list of arrays for if the series are of variable lengths
         obs_amp_list_of_arrays = [np.zeros(len(self.obs_freqs[JJ])) for JJ in range(len(obs))
@@ -2183,13 +2179,13 @@ class OpencorParamID():
         freq_count = 0
         for JJ in range(len(obs)):
             if self.obs_types[JJ] == 'mean':
-                obs_consts_vec[const_count] = np.mean(obs[JJ, :])
+                obs_const_vec[const_count] = np.mean(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'max':
-                obs_consts_vec[const_count] = np.max(obs[JJ, :])
+                obs_const_vec[const_count] = np.max(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'min':
-                obs_consts_vec[const_count] = np.min(obs[JJ, :])
+                obs_const_vec[const_count] = np.min(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'series':
                 obs_series_array[series_count, :] = obs[JJ, :]
@@ -2200,31 +2196,30 @@ class OpencorParamID():
                     time_domain_obs = obs[JJ, :]
 
                     amp_and_phase = np.fft.fft(time_domain_obs)
-                    amp = np.abs(freq_and_phase)[0:len(time_domain_obs)//2]
+                    amp = np.abs(amp_and_phase)[0:len(time_domain_obs)//2]
                     phase = np.angle(amp_and_phase)[0:len(time_domain_obs)//2]
                     freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
                 else:
                     time_domain_obs_0 = temp_obs[JJ, 0, :]
                     time_domain_obs_1 = temp_obs[JJ, 1, :]
 
-                    amp_and_phase_0 = np.fft.fft(time_domain_obs_0)
-                    amp_0 = np.abs(amp_and_phase_0)[0:len(time_domain_obs)//2]
-                    phase_0 = np.angle(amp_and_phase_0)[0:len(time_domain_obs)//2]
-                    amp_and_phase_1 = np.fft.fft(time_domain_obs_1)
-                    amp_1 = np.abs(amp_and_phase_1)[0:len(time_domain_obs)//2]
-                    phase_1 = np.angle(amp_and_phase_1)[0:len(time_domain_obs)//2]
+                    complex_num_0 = np.fft.fft(time_domain_obs_0)
+                    complex_num_1 = np.fft.fft(time_domain_obs_1)
+
+                    if (self.obs_operations[JJ] == 'multiplication' and temp_obs is not None):
+                        complex_num = complex_num_0 * complex_num_1
+                    elif (self.obs_operations[JJ] == 'division' and temp_obs is not None):
+                        complex_num = complex_num_0 / complex_num_1
+                    elif (self.obs_operations[JJ] == 'addition' and temp_obs is not None):
+                        complex_num = complex_num_0 + complex_num_1
+                    elif (self.obs_operations[JJ] == 'subtraction' and temp_obs is not None):
+                        complex_num = complex_num_0 - complex_num_1
+
+                    amp = np.abs(complex_num)[0:len(time_domain_obs_0)//2]
+                    phase = np.angle(complex_num)[0:len(time_domain_obs_0)//2]
 
                     freqs = np.fft.fftfreq(time_domain_obs_0.shape[-1], d=self.dt)[:len(time_domain_obs_0)//2]
 
-                    # TODO add the phase together properly
-                    if (self.obs_operations[JJ] == 'multiplication' and temp_obs is not None):
-                        amp = amp_0 * amp_1
-                    elif (self.obs_operations[JJ] == 'division' and temp_obs is not None):
-                        amp = amp_0 / amp_1
-                    elif (self.obs_operations[JJ] == 'addition' and temp_obs is not None):
-                        amp = amp_0 + amp_1
-                    elif (self.obs_operations[JJ] == 'subtraction' and temp_obs is not None):
-                        amp = amp_0 - amp_1
 
                 # now interpolate to defined frequencies
                 obs_amp_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, amp)
@@ -2238,18 +2233,18 @@ class OpencorParamID():
             if freq_count == 0:
                 obs_freq_list_of_arrays = None
                 obs_phase_list_of_arrays = None
-            obs_dict = {'consts': obs_consts_vec, 'series': obs_series_array,
-                        'freqs': obs_freq_list_of_arrays, 'phases': obs_phase_list_of_arrays}
+            obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
+                        'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
         return obs_dict
 
     def get_preds_min_max_mean(self, preds):
 
-        preds_consts_vec = np.zeros((preds.shape[0]*3, ))
+        preds_const_vec = np.zeros((preds.shape[0]*3, ))
         for JJ in range(len(preds)):
-            preds_consts_vec[JJ] = np.min(preds[JJ, :])
-            preds_consts_vec[JJ + 1] = np.max(preds[JJ, :])
-            preds_consts_vec[JJ + 2] = np.mean(preds[JJ, :])
-        return preds_consts_vec
+            preds_const_vec[JJ] = np.min(preds[JJ, :])
+            preds_const_vec[JJ + 1] = np.max(preds[JJ, :])
+            preds_const_vec[JJ + 2] = np.mean(preds[JJ, :])
+        return preds_const_vec
 
     def simulate_with_best_param_vals(self, use_mcmc_chain=False):
         if MPI.COMM_WORLD.Get_rank() != 0:
@@ -2278,7 +2273,7 @@ class OpencorParamID():
 
 
         print(f'final obs values :')
-        print(obs_dict['consts'])
+        print(obs_dict['const'])
         # TODO print all const outputs with their variable name
 
     def simulate_once(self):
@@ -2301,7 +2296,7 @@ class OpencorParamID():
         print('cost check after single simulation is {}'.format(cost_check))
 
         print(f'final obs values :')
-        print(obs_dict['consts'])
+        print(obs_dict['const'])
 
     def set_genetic_algorithm_parameters(self, n_calls):
         if not self.param_id_method == 'genetic_algorithm':
@@ -2344,9 +2339,9 @@ class OpencorMCMC():
     def __init__(self, model_path,
                  obs_names, obs_types, obs_freqs, obs_operations, obs_operands,
                  weight_const_vec, weight_series_vec, weight_freq_vec,
-                 std_const_vec, std_series_vec, std_freq_vec,
+                 std_const_vec, std_series_vec, std_amp_vec,
                  param_names,
-                 ground_truth_consts, ground_truth_series, ground_truth_freq,
+                 ground_truth_const, ground_truth_series, ground_truth_amp,
                  param_mins, param_maxs, param_prior_types,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
@@ -2364,13 +2359,13 @@ class OpencorMCMC():
         self.weight_freq_vec = weight_freq_vec
         self.std_const_vec = std_const_vec
         self.std_series_vec = std_series_vec
-        self.std_freq_vec = std_freq_vec
+        self.std_amp_vec = std_amp_vec
         self.param_names = param_names
         self.num_obs = len(self.obs_names)
         self.num_params = len(self.param_names)
-        self.ground_truth_consts = ground_truth_consts
+        self.ground_truth_const = ground_truth_const
         self.ground_truth_series = ground_truth_series
-        self.ground_truth_freq = ground_truth_freq
+        self.ground_truth_amp = ground_truth_amp
         self.ground_truth_phase = ground_truth_phase
         self.param_mins = param_mins
         self.param_maxs = param_maxs
@@ -2650,23 +2645,23 @@ class OpencorMCMC():
 
     def get_cost_from_obs(self, obs):
 
-        obs_consts_vec, obs_series_array, obs_freq_array = self.get_obs_vec_and_array(obs)
+        obs_const_vec, obs_series_array, obs_freq_array = self.get_obs_vec_and_array(obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
-        cost = self.cost_calc(obs_consts_vec, obs_series_array, obs_freq_array)
+        cost = self.cost_calc(obs_const_vec, obs_series_array, obs_freq_array)
 
         return cost
 
-    def cost_calc(self, consts, series=None):
-        # cost = np.sum(np.power(self.weight_const_vec*(consts -
-        #                        self.ground_truth_consts)/np.minimum(consts,
-        #                                                             self.ground_truth_consts), 2))/(self.num_obs)
+    def cost_calc(self, const, series=None):
+        # cost = np.sum(np.power(self.weight_const_vec*(const -
+        #                        self.ground_truth_const)/np.minimum(const,
+        #                                                             self.ground_truth_const), 2))/(self.num_obs)
         if self.cost_type == 'MSE':
-            cost = np.sum(np.power(self.weight_const_vec*(consts -
-                                                          self.ground_truth_consts)/self.std_const_vec, 2))
+            cost = np.sum(np.power(self.weight_const_vec*(const -
+                                                          self.ground_truth_const)/self.std_const_vec, 2))
         elif self.cost_type == 'AE':
-            cost = np.sum(np.abs(self.weight_const_vec*(consts -
-                                                        self.ground_truth_consts)/self.std_const_vec))
+            cost = np.sum(np.abs(self.weight_const_vec*(const -
+                                                        self.ground_truth_const)/self.std_const_vec))
 
         # Temp fix
         if len(series) == 0:
@@ -2695,13 +2690,13 @@ class OpencorMCMC():
             # calculate sum of squares cost and divide by number data points in freq data
             # divide by number data points in series data
             if self.cost_type == 'MSE':
-                freq_cost = np.sum([np.power((freq[JJ] - self.ground_truth_freq[JJ]) *
+                freq_cost = np.sum([np.power((freq[JJ] - self.ground_truth_amp[JJ]) *
                                              self.weight_freq_vec[JJ] /
-                                             self.std_freq_vec[JJ], 2) / len(freq[JJ]) for JJ in range(len(freq))])
+                                             self.std_amp_vec[JJ], 2) / len(freq[JJ]) for JJ in range(len(freq))])
             elif self.cost_type == 'AE':
-                freq_cost = np.sum([np.abs((freq[JJ] - self.ground_truth_freq[JJ]) *
+                freq_cost = np.sum([np.abs((freq[JJ] - self.ground_truth_amp[JJ]) *
                                            self.weight_freq_vec[JJ] /
-                                           self.std_freq_vec[JJ]) / len(freq[JJ]) for JJ in range(len(freq))])
+                                           self.std_amp_vec[JJ]) / len(freq[JJ]) for JJ in range(len(freq))])
         else:
             freq_cost = 0
 
@@ -2735,7 +2730,7 @@ class OpencorMCMC():
 
     def get_obs_vec_and_array(self, obs):
 
-        obs_consts_vec = np.zeros((len(self.ground_truth_consts), ))
+        obs_const_vec = np.zeros((len(self.ground_truth_const), ))
         obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
         # TODO series array should also be a list of arrays for if the series are of variable lengths
         obs_freq_list_of_arrays = [np.zeros(len(self.obs_freqs[JJ])) for JJ in range(len(obs))
@@ -2746,13 +2741,13 @@ class OpencorMCMC():
         freq_count = 0
         for JJ in range(len(obs)):
             if self.obs_types[JJ] == 'mean':
-                obs_consts_vec[const_count] = np.mean(obs[JJ, :])
+                obs_const_vec[const_count] = np.mean(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'max':
-                obs_consts_vec[const_count] = np.max(obs[JJ, :])
+                obs_const_vec[const_count] = np.max(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'min':
-                obs_consts_vec[const_count] = np.min(obs[JJ, :])
+                obs_const_vec[const_count] = np.min(obs[JJ, :])
                 const_count += 1
             elif self.obs_types[JJ] == 'series':
                 obs_series_array[series_count, :] = obs[JJ, :]
@@ -2767,7 +2762,7 @@ class OpencorMCMC():
                 # now interpolate to defined frequencies
                 obs_freq_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, freq_domain_obs)
                 freq_count += 1
-        return obs_consts_vec, obs_series_array, obs_freq_list_of_arrays
+        return obs_const_vec, obs_series_array, obs_freq_list_of_arrays
 
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir

@@ -14,10 +14,13 @@ vessel_array = pd.read_csv(vessel_array_path, index_col=0)
 conversion = 1e5
 
 full_dict = {}
-full_dict["data_item"] = [{} for II in range(len(data["vessel_names"]))]
+entry_list = []
 for II in range(len(data["vessel_names"])):
     entry = {}
     entry["variable"] = data["vessel_names"][II]
+    if entry["variable"].endswith("_V"):
+        # Temporarily skip the venous vessel data
+        continue
     entry["data_type"] = "frequency"
     entry["operation"] = "division"
     input_vessel = vessel_array["inp_vessels"][data["vessel_names"][II]].strip()
@@ -41,7 +44,9 @@ for II in range(len(data["vessel_names"])):
     # temporarily hardcode the weights for the phase
     entry["phase_weights"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
     entry["phase_weights"][0] = entry["phase_weights"][0]*10
-    full_dict["data_item"][II] = entry
+    entry_list.append(entry)
+
+full_dict["data_item"] = entry_list
 
 with open(save_file_path, 'w') as wf: 
     json.dump(full_dict, wf, indent=2)
