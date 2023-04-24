@@ -301,20 +301,23 @@ class CVS0DParamID():
 
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3/s$]', fontsize=18)
+                        unit_label = '[cm^3/s]'
                     elif self.gt_df.iloc[JJ]["unit"] == 'm_per_s':
                         conversion = no_conv
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$m/s$]', fontsize=18)
+                        unit_label = '[m/s]'
                     elif self.gt_df.iloc[JJ]["unit"] == 'm3':
                         conversion = m3_to_cm3
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$cm^3$]', fontsize=18)
+                        unit_label = '[cm^3]'
                     elif self.gt_df.iloc[JJ]["unit"] == 'J_per_m3':
                         conversion = Pa_to_kPa
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [$kPa$]', fontsize=18)
+                        unit_label = '[kPa]'
                     else:
                         conversion = 1.0
-                        axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ [{self.gt_df.iloc[JJ]["unit"]}]',
-                                                         fontsize=18)
+                        unit_label = f'[{self.gt_df.iloc[JJ]["unit"]}]'
+
+                    axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ ${unit_label}$', fontsize=18)
+                    axs_phase[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ phase', fontsize=18)
+                    
                     if not this_obs_waveform_plotted:
                         if not self.obs_types[II] == 'frequency':
                             axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='output')
