@@ -250,6 +250,7 @@ class CVS0DParamID():
         # _________ Plot best comparison _____________
         subplot_width = 1
         fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
+        fig_phase, axs_phase = plt.subplots(subplot_width, subplot_width, squeeze=False)
 
         obs_names_unique = []
         for obs_name in self.obs_names:
@@ -273,6 +274,7 @@ class CVS0DParamID():
             series_idx = -1
             freq_idx = -1
             percent_error_vec = np.zeros((self.num_obs,))
+            percent_phase_error_vec = np.zeros((self.num_obs,))
             std_error_vec = np.zeros((self.num_obs,))
             for II in range(self.num_obs):
                 # TODO the below counting is hacky, store the constant and series data in one list of arrays
@@ -316,6 +318,8 @@ class CVS0DParamID():
                         else:
                             axs[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_amp[freq_idx],
                                                        'kv', label='model output')
+                            axs_phase[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_phase[freq_idx],
+                                                       'kv', label='model output')
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
@@ -340,6 +344,9 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(self.obs_freqs[II],
                                                    conversion*self.ground_truth_amp[freq_idx],
                                                    'kx', label='measurement')
+                        axs_phase[row_idx, col_idx].plot(self.obs_freqs[II],
+                                                   conversion*self.ground_truth_phase[freq_idx],
+                                                   'kx', label='measurement')
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -355,15 +362,17 @@ class CVS0DParamID():
                                                        best_fit_obs_series[series_idx, :min_len_series]) /
                                                       (self.std_series_vec[series_idx]))/min_len_series)
                 elif self.gt_df.iloc[II]["data_type"] == "frequency":
-                    std_error_vec[II] = np.sum([np.abs((best_fit_obs_amp[JJ] - self.ground_truth_amp[JJ]) *
-                                               self.weight_freq_vec[JJ] /
-                                               self.std_amp_vec[JJ]) / len(best_fit_obs_amp[JJ])
-                                               for JJ in range(len(best_fit_obs_amp))])
-                    percent_error_vec[II] = 100*np.sum([np.abs((best_fit_obs_amp[JJ] - self.ground_truth_amp[JJ]) *
-                                                       self.weight_freq_vec[JJ] /
+                    std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) *
+                                               self.weight_freq_vec[freq_idx] /
+                                               self.std_amp_vec[freq_idx]) / len(best_fit_obs_amp[freq_idx]))
+                    percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) *
+                                                       self.weight_freq_vec[freq_idx] /
                                                        np.mean(self.ground_truth_amp[freq_idx]))
-                                                       / len(best_fit_obs_amp[JJ])
-                                                       for JJ in range(len(best_fit_obs_amp))])
+                                                       / len(best_fit_obs_amp[freq_idx]))
+                    percent_phase_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx]) *
+                                                       self.weight_freq_vec[freq_idx] /
+                                                       np.mean(self.ground_truth_phase[freq_idx]))
+                                                       / len(best_fit_obs_phase[freq_idx]))
 
                 if self.gt_df.iloc[II]["data_type"] == "frequency":
                     axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
@@ -383,18 +392,34 @@ class CVS0DParamID():
                 if row_idx%subplot_width == 0:
                     for JJ in range(subplot_width):
                         fig.align_ylabels(axs[:, JJ])
+                        fig_phase.align_ylabels(axs_phase[:, JJ])
                     axs[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
-                    plt.tight_layout()
-                    plt.savefig(os.path.join(self.plot_dir,
+                    axs_phase[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
+                    fig.tight_layout()
+                    fig_phase.tight_layout()
+                    fig.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
-                    plt.savefig(os.path.join(self.plot_dir,
+                    fig.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
-                    plt.savefig(os.path.join(self.plot_dir,
+                    fig.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
-                    plt.close()
+                    plt.close(fig)
+                    
+                    fig_phase.savefig(os.path.join(self.plot_dir,
+                                             f'phase_reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
+                    fig_phase.savefig(os.path.join(self.plot_dir,
+                                             f'phase_reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+                    fig_phase.savefig(os.path.join(self.plot_dir,
+                                             f'phase_reconstruct_{self.file_name_prefix}_'
+                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
+
+                    plt.close(fig_phase)
+
                     plot_saved = True
                     col_idx = 0
                     row_idx = 0
@@ -402,6 +427,7 @@ class CVS0DParamID():
                     # create new plot
                     if unique_obs_count != len(obs_names_unique) - 1:
                         fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
+                        fig_phase, axs_phase = plt.subplots(subplot_width, subplot_width, squeeze=False)
                         plot_saved = False
 
         # save final plot if it is not a full set of subplots
@@ -479,11 +505,13 @@ class CVS0DParamID():
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
             if self.gt_df.iloc[obs_idx]["data_type"] == "series":
-                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} series error:')
+                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
             if self.gt_df.iloc[obs_idx]["data_type"] == "frequency":
-                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} frequency error:')
+                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
+                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} phase error:')
+                print(f'{percent_phase_error_vec[obs_idx]:.2f} %')
 
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
@@ -2083,7 +2111,7 @@ class OpencorParamID():
             print(param_vals)
             cost = np.inf
 
-        return cost, obs
+        return cost, obs, temp_obs
 
     def get_cost_from_obs(self, obs, temp_obs=None):
 
@@ -2195,9 +2223,9 @@ class OpencorParamID():
                 if self.obs_operations[JJ] == None:
                     time_domain_obs = obs[JJ, :]
 
-                    amp_and_phase = np.fft.fft(time_domain_obs)
-                    amp = np.abs(amp_and_phase)[0:len(time_domain_obs)//2]
-                    phase = np.angle(amp_and_phase)[0:len(time_domain_obs)//2]
+                    complex_num = np.fft.fft(time_domain_obs)
+                    amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
+                    phase = np.angle(complex_num)[0:len(time_domain_obs)//2]
                     freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
                 else:
                     time_domain_obs_0 = temp_obs[JJ, 0, :]
@@ -2265,8 +2293,8 @@ class OpencorParamID():
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # run simulation and check cost
-        cost_check, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
-        obs_dict = self.get_obs_vec_and_array(obs)
+        cost_check, obs, temp_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+        obs_dict = self.get_obs_vec_and_array(obs, temp_obs=temp_obs)
 
         print(f'cost should be {self.best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
@@ -2289,7 +2317,7 @@ class OpencorParamID():
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
         # run simulation and check cost
-        cost_check, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
+        cost_check, obs, temp_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=False)
         obs_dict = self.get_obs_vec_and_array(obs)
 
         print(f'cost should be {self.best_cost}')
@@ -2521,7 +2549,7 @@ class OpencorMCMC():
 
             # rerun with original and mcmc optimal param vals
             mcmc_best_param_vals = medians  # means
-            mcmc_best_cost, obs = self.get_cost_and_obs_from_params(mcmc_best_param_vals, reset=True)
+            mcmc_best_cost, obs, temp_obs = self.get_cost_and_obs_from_params(mcmc_best_param_vals, reset=True)
             if self.best_param_vals is None:
                 self.best_param_vals = mcmc_best_param_vals
                 self.best_cost = mcmc_best_cost
@@ -2531,7 +2559,7 @@ class OpencorMCMC():
                 np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
                 np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
             else:
-                original_best_cost, obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=True)
+                original_best_cost, obs, temp_obs = self.get_cost_and_obs_from_params(self.best_param_vals, reset=True)
                 if mcmc_best_cost < original_best_cost:
                     self.best_param_vals = mcmc_best_param_vals
                     self.best_cost = mcmc_best_cost
@@ -2641,33 +2669,37 @@ class OpencorMCMC():
             print(param_vals)
             cost = np.inf
 
-        return cost, obs
+        return cost, obs, temp_obs
 
     def get_cost_from_obs(self, obs):
 
-        obs_const_vec, obs_series_array, obs_freq_array = self.get_obs_vec_and_array(obs)
+        obs_dict = self.get_obs_vec_and_array(obs)
         # calculate error between the observables of this set of parameters
         # and the ground truth
-        cost = self.cost_calc(obs_const_vec, obs_series_array, obs_freq_array)
+        cost = self.cost_calc(obs_dict)
 
         return cost
 
-    def cost_calc(self, const, series=None):
+    def cost_calc(self, obs_dict):
         # cost = np.sum(np.power(self.weight_const_vec*(const -
         #                        self.ground_truth_const)/np.minimum(const,
         #                                                             self.ground_truth_const), 2))/(self.num_obs)
+        const = obs_dict['const']
+        series = obs_dict['series']
+        amp = obs_dict['amp']
+        phase = obs_dict['phase']
         if self.cost_type == 'MSE':
             cost = np.sum(np.power(self.weight_const_vec*(const -
-                                                          self.ground_truth_const)/self.std_const_vec, 2))
+                               self.ground_truth_const)/self.std_const_vec, 2))
         elif self.cost_type == 'AE':
             cost = np.sum(np.abs(self.weight_const_vec*(const -
-                                                        self.ground_truth_const)/self.std_const_vec))
-
-        # Temp fix
-        if len(series) == 0:
-            series = None
+                                                          self.ground_truth_const)/self.std_const_vec))
+        else:
+            print(f'cost type of {self.cost_type} not implemented')
+            exit()
 
         if series is not None:
+            #print(series)
             min_len_series = min(self.ground_truth_series.shape[1], series.shape[1])
             # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
@@ -2681,24 +2713,22 @@ class OpencorMCMC():
                                              self.ground_truth_series[:,
                                              :min_len_series]) * self.weight_series_vec.reshape(-1, 1) /
                                             self.std_series_vec.reshape(-1, 1))) / min_len_series
-            else:
-                print(f'cost type of {cost_type} not implemented')
         else:
             series_cost = 0
 
-        if freq is not None:
+        if amp is not None:
             # calculate sum of squares cost and divide by number data points in freq data
             # divide by number data points in series data
             if self.cost_type == 'MSE':
-                freq_cost = np.sum([np.power((freq[JJ] - self.ground_truth_amp[JJ]) *
+                amp_cost = np.sum([np.power((amp[JJ] - self.ground_truth_amp[JJ]) *
                                              self.weight_freq_vec[JJ] /
-                                             self.std_amp_vec[JJ], 2) / len(freq[JJ]) for JJ in range(len(freq))])
+                                             self.std_amp_vec[JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
             elif self.cost_type == 'AE':
-                freq_cost = np.sum([np.abs((freq[JJ] - self.ground_truth_amp[JJ]) *
-                                           self.weight_freq_vec[JJ] /
-                                           self.std_amp_vec[JJ]) / len(freq[JJ]) for JJ in range(len(freq))])
+                amp_cost = np.sum([np.abs((amp[JJ] - self.ground_truth_amp[JJ]) *
+                                             self.weight_freq_vec[JJ] /
+                                             self.std_amp_vec[JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
         else:
-            freq_cost = 0
+            amp_cost = 0
 
         if phase is not None:
             # calculate sum of squares cost and divide by number data points in freq data
@@ -2706,35 +2736,28 @@ class OpencorMCMC():
             # TODO figure out how to properly weight this compared to the frequency weight.
             if self.cost_type == 'MSE':
                 phase_cost = np.sum([np.power((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                              self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
-                                     range(len(phase))])
-            if self.cost_type == 'MSE':
+                                             self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
+                                    range(len(phase))])
+            if self.cost_type == 'AE':
                 phase_cost = np.sum([np.abs((phase[JJ] - self.ground_truth_phase[JJ]) *
-                                            self.weight_freq_vec[JJ], 2) / len(phase[JJ]) for JJ in
+                                              self.weight_freq_vec[JJ]) / len(phase[JJ]) for JJ in
                                      range(len(phase))])
         else:
             phase_cost = 0
 
-        cost = (cost + series_cost + freq_cost + phase_cost) / self.num_obs
-
-        # TODO remove this commented out block
-        #  What the below is trying to do can be implemented by choosing an exponential prior.
-        # # Create a class fir calculating the likelihood
-        # # if A_aov is a parameter add a cost for its value to keep it small
-        # if ['heart/A_aov'] in self.param_names:
-        #     A_aov_value = self.sim_helper.get_init_param_vals(['heart/A_aov'])[0]
-        #     k_aov = 1e3
-        #     cost += A_aov_value * k_aov
+        cost = (cost + series_cost + amp_cost + phase_cost) / self.num_obs
 
         return cost
 
-    def get_obs_vec_and_array(self, obs):
+    def get_obs_vec_and_array(self, obs, temp_obs=None):
 
         obs_const_vec = np.zeros((len(self.ground_truth_const), ))
         obs_series_array = np.zeros((len(self.ground_truth_series), self.n_steps + 1))
         # TODO series array should also be a list of arrays for if the series are of variable lengths
-        obs_freq_list_of_arrays = [np.zeros(len(self.obs_freqs[JJ])) for JJ in range(len(obs))
+        obs_amp_list_of_arrays = [np.zeros(len(self.obs_freqs[JJ])) for JJ in range(len(obs))
                                    if self.obs_types[JJ] == 'frequency']
+        obs_phase_list_of_arrays = [np.zeros(len(self.obs_freqs[JJ])) for JJ in range(len(obs))
+                                  if self.obs_types[JJ] == 'frequency']
 
         const_count = 0
         series_count = 0
@@ -2753,16 +2776,51 @@ class OpencorMCMC():
                 obs_series_array[series_count, :] = obs[JJ, :]
                 series_count += 1
             elif self.obs_types[JJ] == 'frequency':
-                # TODO copy the genetic algorithm code to here for multiplication etc!!
-                print("WARNING: frequency observations not yet implemented in mcmc")
-                exit()
-                time_domain_obs = obs[JJ, :]
-                freq_domain_obs = np.abs(np.fft.fft(time_domain_obs))[0:len(time_domain_obs)//2]
-                freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
+                # TODO copy this to mcmc
+                if self.obs_operations[JJ] == None:
+                    time_domain_obs = obs[JJ, :]
+
+                    complex_num = np.fft.fft(time_domain_obs)
+                    amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
+                    phase = np.angle(complex_num)[0:len(time_domain_obs)//2]
+                    freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
+                else:
+                    time_domain_obs_0 = temp_obs[JJ, 0, :]
+                    time_domain_obs_1 = temp_obs[JJ, 1, :]
+
+                    complex_num_0 = np.fft.fft(time_domain_obs_0)
+                    complex_num_1 = np.fft.fft(time_domain_obs_1)
+
+                    if (self.obs_operations[JJ] == 'multiplication' and temp_obs is not None):
+                        complex_num = complex_num_0 * complex_num_1
+                    elif (self.obs_operations[JJ] == 'division' and temp_obs is not None):
+                        complex_num = complex_num_0 / complex_num_1
+                    elif (self.obs_operations[JJ] == 'addition' and temp_obs is not None):
+                        complex_num = complex_num_0 + complex_num_1
+                    elif (self.obs_operations[JJ] == 'subtraction' and temp_obs is not None):
+                        complex_num = complex_num_0 - complex_num_1
+
+                    amp = np.abs(complex_num)[0:len(time_domain_obs_0)//2]
+                    phase = np.angle(complex_num)[0:len(time_domain_obs_0)//2]
+
+                    freqs = np.fft.fftfreq(time_domain_obs_0.shape[-1], d=self.dt)[:len(time_domain_obs_0)//2]
+
+
                 # now interpolate to defined frequencies
-                obs_freq_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, freq_domain_obs)
+                obs_amp_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, amp)
+                # and phase
+                obs_phase_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, phase)
+
                 freq_count += 1
-        return obs_const_vec, obs_series_array, obs_freq_list_of_arrays
+
+            if series_count == 0:
+                obs_series_array = None
+            if freq_count == 0:
+                obs_freq_list_of_arrays = None
+                obs_phase_list_of_arrays = None
+            obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
+                        'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
+        return obs_dict
 
     def set_output_dir(self, output_dir):
         self.output_dir = output_dir
