@@ -5,7 +5,7 @@ LUL,                        R_T,              const,       1e6,        1e9,     
 LUL,                        C_T,              const,       1e-6,       1e-4,     C_{LUL}
 LLL,                        R_T,              const,       1e6,        1e9,     R_{LLL}
 LLL,                        C_T,              const,       1e-6,       1e-4,     C_{LLL}
-RUL,                        R_T,              const,       1e7,        1e10,     R_{RUL}
+RUL,                        R_T,              const,       1e6,        1e9,     R_{RUL}
 RUL,                        C_T,              const,       1e-6,       1e-4,     C_{RUL}
 RML,                        R_T,              const,       1e7,        5e9,     R_{RML}
 RML,                        C_T,              const,       1e-6,       1e-4,     C_{RML}

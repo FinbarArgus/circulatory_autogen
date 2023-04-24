@@ -65,7 +65,8 @@ dt: 0.01
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
 #
 # This for lung_ROM
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
+param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 #_______ sensitivity analysis inputs __________
 do_sensitivity: False
 
