@@ -374,8 +374,9 @@ class CVS0DParamID():
                     percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) /
                                                        np.mean(self.ground_truth_amp[freq_idx]))
                                                        / len(best_fit_obs_amp[freq_idx]))
-                    phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx])
-                                                       / len(best_fit_obs_phase[freq_idx])))
+                    phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx])*
+                                                        np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0) /
+                                                        np.sum(np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0))))
 
                 if self.gt_df.iloc[II]["data_type"] == "frequency":
                     axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
