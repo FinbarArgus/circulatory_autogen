@@ -40,9 +40,13 @@ for II in range(len(data["vessel_names"])):
     entry["phase"] = [val for val in data["phase"][data["vessel_names"][II]]]
     # temporarily hardcode the weights for the phase
     entry["weight"] = [1.0 for val in data["phase"][data["vessel_names"][II]]]
-    entry["weight"][0] = 4
-    entry["weight"][1] = 2
-    entry["phase_weight"] = [100.0 for val in data["phase"][data["vessel_names"][II]]]
+    entry["weight"][0] = 10
+    entry["weight"][1] = 8
+    entry["weight"][2] = 6
+    entry["weight"][3] = 4
+    entry["weight"][4] = 3
+    entry["weight"][5] = 2
+    entry["phase_weight"] = [200.0 for val in data["phase"][data["vessel_names"][II]]]
     entry["phase_weight"][0] = entry["phase_weight"][0]*3
     entry["phase_weight"][1] = entry["phase_weight"][1]*2
     for II in range(4, len(entry["phase_weight"])):
