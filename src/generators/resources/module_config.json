@@ -2468,7 +2468,7 @@
     ]
   },
   {
-    "vessel_type":"pressure_observer_terminal",
+    "vessel_type":"pressure_observer",
     "BC_type":"nn",
     "module_format":"cellml",
     "module_file":"elic_modules.cellml",
@@ -2496,7 +2496,7 @@
     ]
   },
   {
-    "vessel_type":"flow_observer_terminal",
+    "vessel_type":"flow_observer",
     "BC_type":"nn",
     "module_format":"cellml",
     "module_file":"elic_modules.cellml",

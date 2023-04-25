@@ -451,25 +451,13 @@ class CVS0DCellMLGenerator(object):
             #         vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
             #         ]['vessel_type'].str.contains('terminal').any():
 
-            # check if the vessel has a terminal as an input
+            # check if the vessel has a terminal as an input and has a flow input
             if vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
-                    ]['vessel_type'].str.contains('terminal').any():
+                    ]['vessel_type'].str.contains('terminal').any() and vessel_tup.BC_type.startswith('v'):
                 vessel_name = vessel_tup.name
                 first_venous_names.append(vessel_name)
-                vessel_BC_type = vessel_tup.BC_type
                 v_1 = [f'v_{vessel_name}']
-                if len(vessel_tup.inp_vessels) > 1:
-                    print('first venous vessels (output of terminals '
-                          'with multiple inputs have not been implemented.')
-                    exit()
-                if vessel_BC_type.startswith('v'):
-                    v_2 = ['v_in']
-                    # TODO cases for merge type etc
-                else:
-                    print(f'first venous vessel BC type of {vessel_BC_type} has not'
-                          f'been implemented')
-                    exit()
-
+                v_2 = ['v_in']
 
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
                               v_1, v_2)

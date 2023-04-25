@@ -1870,7 +1870,8 @@
         <!-- Constitutive parameters-->
         <variable name="I_T" public_interface="in" units="Js2_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <variable name="R_T" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_1_T" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_2_T" public_interface="in" units="Js_per_m6"/>
         <variable name="C_T" public_interface="in" units="m6_per_J"/>
         <!-- State Variables-->
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
@@ -1964,7 +1965,7 @@
                             <apply>
                                 <times/>
                                 <ci>v</ci>
-                                <ci>R_T</ci>
+                                <ci>R_1_T</ci>
                             </apply>
                             <cn cellml:units="dimensionless">2</cn>
                         </apply>
@@ -1995,7 +1996,7 @@
                             <apply>
                                 <times/>
                                 <ci>v_T</ci>
-                                <ci>R_T</ci>
+                                <ci>R_2_T</ci>
                             </apply>
                             <cn cellml:units="dimensionless">2</cn>
                         </apply>
