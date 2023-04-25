@@ -13,11 +13,11 @@ RUL_A,pv,arterial,RPA_A              ,RUL
 RBS_A,pv,split_junction,RPA_A          ,RML_A RLL_A
 RML_A,pv,arterial,RBS_A        ,RML
 RLL_A,pv,arterial,RBS_A        ,RLL
-LUL,pp,terminal,L_connector_A         ,L_connector_V
-LLL,pp,terminal,LLL_A                     ,LLL_V
-RUL,pp,terminal,RUL_A                     ,RUL_V
-RML,pp,terminal,RML_A                     ,RML_V
-RLL,pp,terminal,RLL_A                     ,RLL_V
+LUL,pp_I,terminal,L_connector_A         ,L_connector_V
+LLL,pp_I,terminal,LLL_A                     ,LLL_V
+RUL,pp_I,terminal,RUL_A                     ,RUL_V
+RML,pp_I,terminal,RML_A                     ,RML_V
+RLL,pp_I,terminal,RLL_A                     ,RLL_V
 RLL_V,vp,venous_wGeom,RLL                       ,RBS_V
 RUL_V,vp,venous_wGeom,RUL                       ,RPV_V
 RML_V,vp,venous_wGeom,RML                       ,RBS_V
