@@ -23,7 +23,7 @@ param_id_model_type: cellml_only
 # pre_time is the amount of time simulated to get to steady state
 pre_time: 100
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 16
+sim_time: 8.33
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
 # pre_heart_periods: 16

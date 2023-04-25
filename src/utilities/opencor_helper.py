@@ -58,7 +58,8 @@ class SimulationHelper():
         n_obs = len(obs_names)
         results = np.zeros((n_obs, self.n_steps + 1))
         # temp results stores results that are operated together
-        temp_results = np.zeros((n_obs, 2, self.n_steps + 1))
+        # TODO this temporarily is a fixed size of 10, but should be changed to be dynamic
+        temp_results = np.zeros((n_obs, 10, self.n_steps + 1))
         for JJ, obs_name in enumerate(obs_names):
             if obs_name in self.simulation.results().states():
                 results[JJ, :] = self.simulation.results().states()[obs_name].values()[-self.n_steps - 1:]
@@ -67,7 +68,7 @@ class SimulationHelper():
             elif obs_name in self.operation_obs_names:
             # check if the obs name is in the created operation observables.
                 # loop through operands
-                for II in range(2):
+                for II in range(len(self.operation_obs_dict[obs_name]["operands"])):
                     operand_name = self.operation_obs_dict[obs_name]["operands"][II]
                     if operand_name in self.simulation.results().states():
                         temp_results[JJ, II] = self.simulation.results().states()[operand_name].values()[-self.n_steps - 1:]
@@ -82,12 +83,21 @@ class SimulationHelper():
                         exit()
 
                 if self.operation_obs_dict[obs_name]["operation"] == "multiplication":
+                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
+                        print('multiplication operation must have exactly 2 operands')
+                        exit()
                     results[JJ, :] = temp_results[JJ, 0] * temp_results[JJ, 1]
                 elif self.operation_obs_dict[obs_name]["operation"] == "division":
+                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
+                        print('division operation must have exactly 2 operands')
+                        exit()
                     results[JJ, :] = temp_results[JJ, 0] / temp_results[JJ, 1] # TODO careful here with divide by zero
                 elif self.operation_obs_dict[obs_name]["operation"] == "addition":
-                    results[JJ, :] = temp_results[JJ, 0] + temp_results[JJ, 1]
+                    results[JJ, :] = np.sum(temp_results[JJ, :], axis=0)
                 elif self.operation_obs_dict[obs_name]["operation"] == "subtraction":
+                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
+                        print('subtraction operation must have exactly 2 operands')
+                        exit()
                     results[JJ, :] = temp_results[JJ, 0] - temp_results[JJ, 1]
                 else:
                     print(f'operation {self.operation_obs_dict[obs_name]["operation"]} is not a valid'

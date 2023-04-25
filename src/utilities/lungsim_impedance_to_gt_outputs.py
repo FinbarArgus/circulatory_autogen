@@ -15,12 +15,14 @@ conversion = 1e5
 
 full_dict = {}
 entry_list = []
+terminal_names = []
 for II in range(len(data["vessel_names"])):
     entry = {}
     entry["variable"] = data["vessel_names"][II]
     if entry["variable"].endswith("_V"):
         # Temporarily skip the venous vessel data
         continue
+
     entry["data_type"] = "frequency"
     entry["operation"] = "division"
     input_vessel = vessel_array["inp_vessels"][data["vessel_names"][II]].strip()
@@ -52,6 +54,20 @@ for II in range(len(data["vessel_names"])):
     for II in range(4, len(entry["phase_weight"])):
         entry["phase_weight"][II] = 0.0
     entry_list.append(entry)
+
+# add an entry for total stressed volume of terminals
+entry = {}
+entry["variable"] = "stressed_volume_sum"
+entry["data_type"] = "constant"
+entry["operation"] = "addition"
+entry["operands"] = ["LUL/q_T", "RUL/q_T", "LLL/q_T", "RLL/q_T", "RML/q_T"] 
+entry["unit"] = "Js/m^6" # data["impedance"]["unit"]
+entry["obs_type"] = "mean"
+entry["value"] = 0.0001
+entry["std"] = 0.00001
+entry["weight"] = 10
+entry_list.append(entry)
+
 
 full_dict["data_item"] = entry_list
 
