@@ -1,3 +1,7 @@
+'''
+@author: Finbar J. Argus
+'''
+
 import numpy as np
 import os
 import sys

@@ -994,7 +994,7 @@
       "obs_type": "mean",
       "value": 0.0001,
       "std": 1e-05,
-      "weight": 10
+      "weight": 2
     }
   ]
 }
