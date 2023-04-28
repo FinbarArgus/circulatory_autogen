@@ -80,7 +80,6 @@ class CVS0DParamID():
         self.num_procs = self.comm.Get_size()
 
         self.dt = dt
-        self.n_steps = int(sim_time/self.dt)
 
         self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
         case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
@@ -157,6 +156,7 @@ class CVS0DParamID():
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                            dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
                                            DEBUG=self.DEBUG)
+            self.n_steps = mcmc_object.n_steps
         else:
             if param_id_model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
@@ -173,9 +173,10 @@ class CVS0DParamID():
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                                dt=self.dt, maximum_step=maximum_step, ga_options=ga_options,
                                                DEBUG=self.DEBUG)
+            self.n_steps = self.param_id.n_steps
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
-
+        
         self.best_output_calculated = False
         self.sensitivity_calculated = False
 
@@ -416,15 +417,16 @@ class CVS0DParamID():
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
                     plt.close(fig)
                     
-                    fig_phase.savefig(os.path.join(self.plot_dir,
-                                             f'phase_reconstruct_{self.file_name_prefix}_'
-                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
-                    fig_phase.savefig(os.path.join(self.plot_dir,
-                                             f'phase_reconstruct_{self.file_name_prefix}_'
-                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
-                    fig_phase.savefig(os.path.join(self.plot_dir,
-                                             f'phase_reconstruct_{self.file_name_prefix}_'
-                                             f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
+                    if self.obs_types[II] == 'frequency':
+                        fig_phase.savefig(os.path.join(self.plot_dir,
+                                                f'phase_reconstruct_{self.file_name_prefix}_'
+                                                f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
+                        fig_phase.savefig(os.path.join(self.plot_dir,
+                                                f'phase_reconstruct_{self.file_name_prefix}_'
+                                                f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+                        fig_phase.savefig(os.path.join(self.plot_dir,
+                                                f'phase_reconstruct_{self.file_name_prefix}_'
+                                                f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
 
                     plt.close(fig_phase)
 
@@ -1373,12 +1375,18 @@ class OpencorParamID():
         self.dt = dt  # TODO this could be optimised
         self.maximum_step = maximum_step
         self.point_interval = self.dt
-        self.sim_time = sim_time
-        self.pre_time = pre_time
+        if sim_time is not None:
+            self.sim_time = sim_time
+        else:
+            # set temporary sim time, just to initialise the sim_helper
+            self.sim_time = 0.001
+        if pre_time is not None:
+            self.pre_time = pre_time
+        else:
+            # set temporary pre time, just to initialise the sim_helper
+            self.pre_time = 0.001
 
         self.sim_helper = self.initialise_sim_helper()
-        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
-
         # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
         if pre_heart_periods is not None:
             T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
@@ -1389,7 +1397,11 @@ class OpencorParamID():
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
+        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
+
         self.n_steps = int(self.sim_time/self.dt)
+        self.sim_helper = self.initialise_sim_helper()
+        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         # initialise
         self.param_init = None
@@ -2269,13 +2281,13 @@ class OpencorParamID():
 
                 freq_count += 1
 
-            if series_count == 0:
-                obs_series_array = None
-            if freq_count == 0:
-                obs_freq_list_of_arrays = None
-                obs_phase_list_of_arrays = None
-            obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
-                        'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
+        if series_count == 0:
+            obs_series_array = None
+        if freq_count == 0:
+            obs_freq_list_of_arrays = None
+            obs_phase_list_of_arrays = None
+        obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
+                    'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
         return obs_dict
 
     def get_preds_min_max_mean(self, preds):

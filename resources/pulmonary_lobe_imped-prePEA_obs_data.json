@@ -891,6 +891,23 @@
       ]
     },
     {
+      "variable": "stressed_volume_sum",
+      "data_type": "constant",
+      "operation": "addition",
+      "operands": [
+        "LUL/q_T",
+        "RUL/q_T",
+        "LLL/q_T",
+        "RLL/q_T",
+        "RML/q_T"
+      ],
+      "unit": "Js/m^6",
+      "obs_type": "mean",
+      "value": 0.0001,
+      "std": 1e-05,
+      "weight": 2
+    },
+    {
       "variable": "LBS_A",
       "data_type": "frequency",
       "operation": "division",
@@ -978,23 +995,6 @@
         0.0,
         0.0
       ]
-    },
-    {
-      "variable": "stressed_volume_sum",
-      "data_type": "constant",
-      "operation": "addition",
-      "operands": [
-        "LUL/q_T",
-        "RUL/q_T",
-        "LLL/q_T",
-        "RLL/q_T",
-        "RML/q_T"
-      ],
-      "unit": "Js/m^6",
-      "obs_type": "mean",
-      "value": 0.0001,
-      "std": 1e-05,
-      "weight": 2
     }
   ]
 }
