@@ -65,7 +65,7 @@ entry["unit"] = "Js/m^6" # data["impedance"]["unit"]
 entry["obs_type"] = "mean"
 entry["value"] = 0.0001
 entry["std"] = 0.00001
-entry["weight"] = 10
+entry["weight"] = 2
 entry_list.append(entry)
 
 

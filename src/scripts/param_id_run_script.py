@@ -67,8 +67,14 @@ if __name__ == '__main__':
             print(f'param_id_obs_path={param_id_obs_path} does not exist')
             exit()
 
-        pre_time = inp_data_dict['pre_time']
-        sim_time = inp_data_dict['sim_time']
+        if 'pre_time' in inp_data_dict.keys():
+            pre_time = inp_data_dict['pre_time']
+        else:
+            pre_time = None
+        if 'sim_time' in inp_data_dict.keys():
+            sim_time = inp_data_dict['sim_time']
+        else:
+            sim_time = None
         # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
         # periods it takes to get to an oscillating steady state before that (pre_heart_periods)
         # if these exist they overwrite the pre_time and sim_time
@@ -80,6 +86,11 @@ if __name__ == '__main__':
             sim_heart_periods = inp_data_dict['sim_heart_periods']
         else:
             sim_heart_periods = None
+
+        if pre_time == None and pre_heart_periods == None:
+            print('pre_time and pre_heart_periods are undefined, one of these must be set in user_inputs.yaml')
+        if sim_time == None and sim_heart_periods == None:
+            print('sim_time and sim_heart_periods are undefined, one of these must be set in user_inputs.yaml')
 
         maximum_step = inp_data_dict['maximum_step']
         dt = inp_data_dict['dt']

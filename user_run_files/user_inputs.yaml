@@ -3,14 +3,18 @@ DEBUG: False
 MPI_DEBUG: False
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
-file_prefix: lung_ROM
+# file_prefix: lung_ROM
+# file_prefix: lung_control
 # file_prefix: physiological
 # file_prefix: 3compartment
+file_prefix: neonatal
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv 
-input_param_file: lung_ROM_parameters.csv 
+# input_param_file: lung_ROM_parameters.csv 
+# input_param_file: lung_control_parameters.csv 
+input_param_file: neonatal_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: 3compartment_parameters.csv 
 
@@ -63,6 +67,7 @@ dt: 0.01
 
 # This is for neonatal
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data_23_v1_freq.json
 #
 # This for lung_ROM
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
@@ -74,7 +79,7 @@ do_sensitivity: False
 ga_options:
   cost_type: AE
   # maximum number of calls to the forward function during one run of the param_id_method
-  num_calls_to_function: 200000
+  num_calls_to_function: 150000
 
 debug_ga_options:
   cost_type: AE
