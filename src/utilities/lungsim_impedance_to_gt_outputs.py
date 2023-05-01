@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-case_name = 'lobe_imped-prePEA'
+case_name = 'lobe_imped-postPEA'
 data_file_path = f'/home/farg967/Documents/data/pulmonary/{case_name}.json'
 vessel_array_path = f'/home/farg967/Documents/git_projects/circulatory_autogen/resources/lung_ROM_vessel_array.csv'
 save_file_path = f'/home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_{case_name}_obs_data.json'
@@ -48,7 +48,7 @@ for II in range(len(data["vessel_names"])):
     entry["weight"][3] = 4
     entry["weight"][4] = 3
     entry["weight"][5] = 2
-    entry["phase_weight"] = [200.0 for val in data["phase"][data["vessel_names"][II]]]
+    entry["phase_weight"] = [20.0 for val in data["phase"][data["vessel_names"][II]]]
     entry["phase_weight"][0] = entry["phase_weight"][0]*3
     entry["phase_weight"][1] = entry["phase_weight"][1]*2
     for II in range(4, len(entry["phase_weight"])):

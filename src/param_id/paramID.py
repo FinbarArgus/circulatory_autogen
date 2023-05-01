@@ -327,9 +327,9 @@ class CVS0DParamID():
                         if not self.obs_types[II] == 'frequency':
                             axs[row_idx, col_idx].plot(tSim, conversion*best_fit_obs[II, :], 'k', label='output')
                         else:
-                            axs[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_amp[freq_idx],
+                            axs[row_idx, col_idx].plot(self.obs_freqs[II], conversion * best_fit_obs_amp[freq_idx],
                                                        'kv', label='model output')
-                            axs_phase[row_idx, col_idx].plot(self.obs_freqs[freq_idx], conversion * best_fit_obs_phase[freq_idx],
+                            axs_phase[row_idx, col_idx].plot(self.obs_freqs[II], conversion * best_fit_obs_phase[freq_idx],
                                                        'kv', label='model output')
                         this_obs_waveform_plotted = True
 
