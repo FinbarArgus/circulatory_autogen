@@ -995,7 +995,6 @@
         0.0,
         0.0
       ]
-<<<<<<< HEAD
     },
     {
       "variable": "stressed_volume_sum",
@@ -1013,8 +1012,6 @@
       "value": 0.0001,
       "std": 1e-05,
       "weight": 2
-=======
->>>>>>> 8d014232c47dfbf4709ff8f2c9055feb14e6a2e4
     }
   ]
 }
