@@ -3,8 +3,8 @@ DEBUG: False
 MPI_DEBUG: False
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
-file_prefix: lung_ROM
-# file_prefix: lung_control
+# file_prefix: lung_ROM
+file_prefix: lung_control
 # file_prefix: physiological
 # file_prefix: 3compartment
 # file_prefix: neonatal
@@ -12,8 +12,8 @@ file_prefix: lung_ROM
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
-# input_param_file: lung_control_parameters.csv 
-input_param_file: lung_ROM_parameters.csv 
+input_param_file: lung_control_parameters.csv 
+# input_param_file: lung_ROM_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: 3compartment_parameters.csv 
@@ -25,15 +25,15 @@ param_id_method: genetic_algorithm
 # param_id_model_type can only be cellml_only atm (cardiovascular system 0D) atm, but will be extended 
 param_id_model_type: cellml_only
 # pre_time is the amount of time simulated to get to steady state
-pre_time: 333.2
+# pre_time: 333.2
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 8.33
+# sim_time: 8.33
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
-# pre_heart_periods: 16
+pre_heart_periods: 16
 # if sim_heart_periods is defined, pre_time will be calculated by multiplying
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
-# sim_heart_periods: 1
+sim_heart_periods: 1
 
 # Maximum time step for solver
 maximum_step: 0.001
@@ -58,6 +58,10 @@ dt: 0.01
 
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
 
+# for lung_control
+# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined_2/lv_estimation_observables_BB044.json
+param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/combined_2/lv_estimation_observables_BB044.json
+
 # This for physiological
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
@@ -70,7 +74,7 @@ dt: 0.01
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data_23_v1_freq.json
 #
 # This for lung_ROM
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 #_______ sensitivity analysis inputs __________
 do_sensitivity: False

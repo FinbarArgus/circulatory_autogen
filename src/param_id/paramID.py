@@ -358,6 +358,12 @@ class CVS0DParamID():
                         axs_phase[row_idx, col_idx].plot(self.obs_freqs[II],
                                                    conversion*self.ground_truth_phase[freq_idx],
                                                    'kx', label='measurement')
+                    if self.gt_df.iloc[II]["data_type"] == "frequency":
+                        axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
+                        axs[row_idx, col_idx].set_xlabel('frequency [$Hz$]', fontsize=18)
+                    else:
+                        axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
+                        axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=18)
 
                 #also calculate the RMS error for each observable
                 if self.gt_df.iloc[II]["data_type"] == "constant":
@@ -383,12 +389,6 @@ class CVS0DParamID():
                                                         np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0) /
                                                         np.sum(np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0))))
 
-                if self.gt_df.iloc[II]["data_type"] == "frequency":
-                    axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
-                    axs[row_idx, col_idx].set_xlabel('frequency [$Hz$]', fontsize=18)
-                else:
-                    axs[row_idx, col_idx].set_xlim(0.0, self.param_id.sim_time)
-                    axs[row_idx, col_idx].set_xlabel('Time [$s$]', fontsize=18)
 
             # axs[row_idx, col_idx].set_ylim(ymin=0.0)
             # axs[row_idx, col_idx].set_yticks(np.arange(0, 21, 10))
