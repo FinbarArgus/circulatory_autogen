@@ -1400,8 +1400,6 @@ class OpencorParamID():
         self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         self.n_steps = int(self.sim_time/self.dt)
-        self.sim_helper = self.initialise_sim_helper()
-        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         # initialise
         self.param_init = None
@@ -2395,7 +2393,7 @@ class OpencorMCMC():
                  weight_amp_vec, weight_phase_vec,
                  std_const_vec, std_series_vec, std_amp_vec,
                  param_names,
-                 ground_truth_const, ground_truth_series, ground_truth_amp,
+                 ground_truth_const, ground_truth_series, ground_truth_amp, ground_truth_phase,
                  param_mins, param_maxs, param_prior_types,
                  sim_time=2.0, pre_time=20.0, pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
@@ -2426,15 +2424,27 @@ class OpencorMCMC():
         self.param_maxs = param_maxs
         self.param_prior_types = param_prior_types
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
+        
+        for type, operation in zip(self.obs_types, self.obs_operations):
+            if type == 'frequency' and operation != None:
+                print('have not implemented frequency with operations in mcmc yet. EXITING')
+                exit()
 
         # set up opencor simulation
         self.dt = dt  # TODO this could be optimised
         self.maximum_step = maximum_step
         self.point_interval = self.dt
-        self.sim_time = sim_time
-        self.pre_time = pre_time
+        if sim_time is not None:
+            self.sim_time = sim_time
+        else:
+            # set temporary sim time, just to initialise the sim_helper
+            self.sim_time = 0.001
+        if pre_time is not None:
+            self.pre_time = pre_time
+        else:
+            # set temporary pre time, just to initialise the sim_helper
+            self.pre_time = 0.001
         self.sim_helper = self.initialise_sim_helper()
-        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         if pre_heart_periods is not None:
             T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
@@ -2446,6 +2456,7 @@ class OpencorMCMC():
         self.n_steps = int(self.sim_time/self.dt)
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+        self.sim_helper.create_operation_variables(self.obs_names, self.obs_operations, self.obs_operands)
 
         # initialise
         self.param_init = None
@@ -2696,6 +2707,7 @@ class OpencorMCMC():
             print(param_vals)
             cost = np.inf
 
+        temp_obs = None # TODO implement operands with frequency domain in MCMC
         return cost, obs, temp_obs
 
     def get_cost_from_obs(self, obs):
