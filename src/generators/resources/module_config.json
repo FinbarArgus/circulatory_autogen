@@ -821,10 +821,6 @@
       {
         "port_type":"vessel_port",
         "variables":["v_in","u"]
-      },
-      {
-        "port_type":"flow_inlet_BC_2_port",
-        "variables":["v_in_1", "v_in_2"]
       }
     ],
     "exit_ports":
@@ -872,10 +868,6 @@
       {
         "port_type":"vessel_port",
         "variables":["v_in","u"]
-      },
-      {
-        "port_type":"flow_inlet_BC_2_port",
-        "variables":["v_in_1", "v_in_2"]
       }
     ],
     "exit_ports":

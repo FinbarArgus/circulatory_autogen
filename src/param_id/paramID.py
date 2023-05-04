@@ -1005,9 +1005,13 @@ class CVS0DParamID():
 
         self.weight_amp_vec = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "frequency"])
-        
-        self.weight_phase_vec = np.array([self.gt_df.iloc[II]["phase_weight"] for II in range(self.gt_df.shape[0])
-                                           if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        weight_phase_list = [] 
+        for II in range(self.gt_df.shape[0]):
+            if self.gt_df.iloc[II]["data_type"] == "frequency":
+                if "phase_weight" not in self.gt_df.iloc[II].keys():
+                    weight_phase_list.append(1)
+                else:
+                    weight_phase_list.append(self.gt_df.iloc[II]["phase_weight"])
 
         return
 
@@ -1389,10 +1393,22 @@ class OpencorParamID():
         self.sim_helper = self.initialise_sim_helper()
         # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
         if pre_heart_periods is not None:
-            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            try:
+                T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            except:
+                print('ERROR: heart/T not found in model parameters. You should be setting sim_time and pre_time'
+                      'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
+                      'if your model doesn\'t have a heart period. Exiting')
+                exit()
             self.pre_time = T*pre_heart_periods
         if sim_heart_periods is not None:
-            T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            try:
+                T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
+            except:
+                print('ERROR: heart/T not found in model parameters. You should be setting sim_time and pre_time'
+                      'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
+                      'if your model doesn\'t have a heart period. Exiting')
+                exit()
             self.sim_time = T*sim_heart_periods
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
