@@ -964,6 +964,8 @@ class CVS0DParamID():
             self.param_id.close_simulation()
 
     def __set_obs_names_and_df(self, param_id_obs_path):
+        # TODO this function should be in the parsing section. as it parses the 
+        # ground truth data.
         with open(param_id_obs_path, encoding='utf-8-sig') as rf:
             json_obj = json.load(rf)
         self.gt_df = pd.DataFrame(json_obj)
@@ -1012,10 +1014,12 @@ class CVS0DParamID():
                     weight_phase_list.append(1)
                 else:
                     weight_phase_list.append(self.gt_df.iloc[II]["phase_weight"])
+        self.weight_phase_vec = np.array(weight_phase_list)
 
         return
 
     def __set_and_save_param_names(self, idxs_to_ignore=None):
+        # This should also be a function under parsers.
 
         # Each entry in param_names is a name or list of names that gets modified by one parameter
         if self.input_params_path:
@@ -1123,8 +1127,14 @@ class CVS0DParamID():
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         # _______ and the phase of the freq data
-        ground_truth_phase = np.array([self.gt_df.iloc[II]["phase"] for II in range(self.gt_df.shape[0])
-                                      if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        ground_truth_phase_list = []
+        for II in range(self.gt_df.shape[0]):
+            if self.gt_df.iloc[II]["data_type"] == "frequency":
+                if "phase" not in self.gt_df.iloc[II].keys():
+                    ground_truth_phase_list.append(None)
+                else:
+                    ground_truth_phase_list.append(self.gt_df.iloc[II]["phase"])
+        ground_truth_phase = np.array(ground_truth_phase_list)
 
         # The std for the different observables
         self.std_const_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
@@ -2170,6 +2180,8 @@ class OpencorParamID():
         series = obs_dict['series']
         amp = obs_dict['amp']
         phase = obs_dict['phase']
+        if self.ground_truth_phase in [None, [None]]:
+            phase = None
         if self.cost_type == 'MSE':
             cost = np.sum(np.power(self.weight_const_vec*(const -
                                self.ground_truth_const)/self.std_const_vec, 2))
@@ -2743,6 +2755,8 @@ class OpencorMCMC():
         series = obs_dict['series']
         amp = obs_dict['amp']
         phase = obs_dict['phase']
+        if self.ground_truth_phase in [None, [None]]:
+            phase = None
         if self.cost_type == 'MSE':
             cost = np.sum(np.power(self.weight_const_vec*(const -
                                self.ground_truth_const)/self.std_const_vec, 2))

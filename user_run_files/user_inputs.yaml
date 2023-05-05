@@ -101,7 +101,7 @@ mcmc_options:
 
 debug_mcmc_options:
   num_steps: 5
-  num_walkers: 20
+  num_walkers: 40
   cost_type: AE
 
 # For plotting core predictions after mcmc
