@@ -3,6 +3,8 @@ import numpy as np
 from opencor_helper import SimulationHelper
 import csv
 
+# TODO Finbar
+# TODO Make this a simple example of running a cellml model that has been generated.
 
 file_path = "/home/ash252/UoA/Autogen_git/circulatory_autogen/generated_models/cerebral_elic/cerebral_elic.cellml"
 #file_path = "/home/ash252/UoA/RA/Friberg.cellml"

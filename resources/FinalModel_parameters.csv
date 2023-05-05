@@ -1153,3 +1153,11 @@ u_ext_venous_svc,J_per_m3,0,small_chosen
 u_ext_par,J_per_m3,0,small_chosen
 u_ext_pvn,J_per_m3,0,small_chosen
 u_ext_ven,J_per_m3,0,small_chosen
+q_us_0_venous_lb,m3,0.0,small_chosen
+Delta_q_us_venous_lb,m3,0.0,small_chosen
+q_us_0_venous_ub,m3,0.0,small_chosen
+Delta_q_us_venous_ub,m3,0.0,small_chosen
+q_us_0_venous_ivc,m3,0.0,small_chosen
+Delta_q_us_venous_ivc,m3,0.0,small_chosen
+q_us_0_venous_svc,m3,0.0,small_chosen
+Delta_q_us_venous_svc,m3,0.0,small_chosen

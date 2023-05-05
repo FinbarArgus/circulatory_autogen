@@ -119,6 +119,7 @@ tqdm
 ### Required packages for autogeneration
 pandas
 
+### Potential Errors:
 IMPORTANT if you get an SSL error you must do the following before the pip install
 
 ```bash
@@ -134,6 +135,33 @@ may be required to install the mpi software on your computer
 ```bash
 sudo apt install libopenmpi-dev
 sudo apt install libffi7
+```
+
+### Windows package instalment
+Running on Windows is in development. It can work with some caveats...
+
+1) To be able to importing mpi4py you may have to do the following:
+
+1. download MS MPI, install both .mis and SDK.
+
+2. set up environmental variables
+
+control panel --> advanced system settings --> environmental variables --> add
+
+C:\Program Files\Microsoft MPI\
+
+C:\Program Files (x86)\Microsoft SDKs\MPI\
+
+## Running in Windows
+For running scripts you cannot use the .sh files, So you have to run the scripts in src/scripts explicitly.
+e.g for running param id...
+
+First move to C:\path\to\opencor\dir
+
+Then run
+
+```bash
+.\pythonshell.bat C:\path\to\circulatory\autogen\src\scripts\param_id_run_script.py
 ```
 
 # License

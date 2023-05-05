@@ -270,9 +270,22 @@ class CVS0DCellMLGenerator(object):
 
     def __write_module_mappings(self, wf, module_df):
         """This function maps between ports of the modules in a module dataframe."""
-        module_df.apply(self.__write_module_mapping_for_row, args=(module_df, wf), axis=1)
+        # set connected to false for all entrance ports TODO this might be a better way to check connected for exit ports too
+        entrance_ports_connected = {}
+        for module_row_idx in range(len(module_df)):
+            entrance_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
+            for II in range(len(module_df.iloc[module_row_idx]["entrance_ports"])):
+                # module_df.iloc[module_row_idx]["entrance_ports"][II]["connected"] = False
+                entrance_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
 
-    def __write_module_mapping_for_row(self, module_row, module_df, wf):
+        # module_df.apply(self.__write_module_mapping_for_row, args=(module_df, wf), axis=1)
+        # The above line is much faster but I'm worried about memory access of entrance_ports_connected
+        for II in range(len(module_df)):
+            self.__write_module_mapping_for_row(module_df.iloc[II], module_df, 
+                                                entrance_ports_connected, wf) # entrance_ports_connected is a modified
+                                                                              # in this function 
+
+    def __write_module_mapping_for_row(self, module_row, module_df, entrance_ports_connected, wf):
         """This function maps between ports of the modules in a one row of a module dataframe."""
         # input and output modules
         main_module = module_row["name"]
@@ -341,10 +354,19 @@ class CVS0DCellMLGenerator(object):
                     entrance_port_type_idx = -1
                     if entrance_port_types[II]["port_type"] == port_types[port_type_idx]["port_type"]:
                         entrance_port_type_idx = II
+                        entrance_port_idx = -1
+                        for JJ in entrance_port_types[II]["entrance_port_idxs"]:
+                            if entrance_ports_connected[out_module][JJ] == False:
+                                entrance_port_idx = JJ
+                                break    
                         break
                 if entrance_port_type_idx == -1:
                     # this port type isnt used, continue to next one
                     continue
+                if entrance_port_idx == -1:
+                    print("One connection type has been module with single port has been connected",
+                          "to multiple . Should you be using multi_port:True?")
+                    exit()
 
                 if port_types[port_type_idx]["port_type"] == "vessel_port":
                     for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
@@ -352,6 +374,7 @@ class CVS0DCellMLGenerator(object):
                             out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
                             break
                     # get the entrance port idx for the output module
+                    # TODO is this needed, the above should be right
                     entrance_port_idx = -1
                     for II in range(len(out_module_row["inp_vessels"])):
                         # check that the entrance port corresponds to the main_vessel
@@ -381,32 +404,26 @@ class CVS0DCellMLGenerator(object):
 
                     self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
                     port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                    entrance_ports_connected[out_module][entrance_port_idx] = True
                 else:
-                    this_type_entrance_port_idx = 0
                     for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
                         if not port_types[port_type_idx]["connected"][this_type_port_idx]:
                             out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
                             # get the entrance port idx for the output module
-                            entrance_port_idx = -1
                             if main_module_type == 'tissue_GE_simple_type' and out_module_type == "gas_transport_simple_type":
                                 # this connection is done through the terminal_venous_connection
                                 break
-                            # TODO the below if isnt general. Figure out how to generalise this.
-                            if out_module_type == 'flow_sum_2_type':
-                                for II in range(len(out_module_row["inp_vessels"])):
-                                    # check that the entrance port corresponds to the main_vessel
-                                    if out_module_row["inp_vessels"][II] == main_module:
-                                        entrance_port_idx = \
-                                            entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
-                                        break
-                            else:
-                                entrance_port_idx = \
-                                    entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][this_type_port_idx]
-                                if this_type_port_idx > 1:
-                                    print('making multiple of the same port types might cause issues. This hasnt been'
-                                          'generalised. It has been hard coded to work with vessel_port and '
-                                          'for the flow_sum_2 vessel type only. Proceed with care')
 
+                            # TODO the below if isnt general. Figure out how to generalise this.
+                            # if out_module_type == 'flow_sum_2_type':
+                            #     for II in range(len(out_module_row["inp_vessels"])):
+                            #         # check that the entrance port corresponds to the main_vessel
+                            #         if out_module_row["inp_vessels"][II] == main_module:
+                            #             entrance_port_idx = \
+                            #                 entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
+                            #             break
+                            # else:
+                            
                             variables_1 = module_row["exit_ports"][out_port_idx]['variables']
                             variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
 
@@ -423,7 +440,16 @@ class CVS0DCellMLGenerator(object):
                                     port_types[port_type_idx]["connected"][this_type_port_idx] = True
                             else:
                                 port_types[port_type_idx]["connected"][this_type_port_idx] = True
-                            this_type_entrance_port_idx += 1
+
+                            if 'multi_port' in out_module_row["entrance_ports"][entrance_port_idx].keys():
+                                if out_module_row["entrance_ports"][entrance_port_idx]['multi_port'] in ['True', True]:
+                                    pass
+                                else:
+                                    entrance_ports_connected[out_module][entrance_port_idx] = True
+                            else:
+                                entrance_ports_connected[out_module][entrance_port_idx] = True
+
+        return entrance_ports_connected
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
         first_venous_names = [] # stores name of venous compartments that take flow from terminals
@@ -445,20 +471,19 @@ class CVS0DCellMLGenerator(object):
                 self.__write_mapping(wf, vessel_name+'_module','terminal_venous_connection',
                               [v_1], [v_2])
 
-            # check that vessel type is venous but and that it is the first venous thats connected to a terminal
-            if vessel_tup.vessel_type == 'venous' and \
-                    vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
-                    ]['vessel_type'].str.contains('terminal').any():
+            # This only allowed venous types to be called venous.
+            # # check that vessel type is venous but and that it is the first venous thats connected to a terminal
+            # if vessel_tup.vessel_type == 'venous' and \
+            #         vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
+            #         ]['vessel_type'].str.contains('terminal').any():
+
+            # check if the vessel has a terminal as an input and has a flow input
+            if vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
+                    ]['vessel_type'].str.contains('terminal').any() and vessel_tup.BC_type.startswith('v'):
                 vessel_name = vessel_tup.name
                 first_venous_names.append(vessel_name)
-                vessel_BC_type = vessel_tup.BC_type
                 v_1 = [f'v_{vessel_name}']
-                if vessel_BC_type == 'vp':
-                    v_2 = ['v_in']
-                else:
-                    print(f'first venous vessel BC type of {vessel_BC_type} has not'
-                          f'been implemented')
-
+                v_2 = ['v_in']
 
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
                               v_1, v_2)
