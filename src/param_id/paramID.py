@@ -2180,7 +2180,9 @@ class OpencorParamID():
         series = obs_dict['series']
         amp = obs_dict['amp']
         phase = obs_dict['phase']
-        if self.ground_truth_phase in [None, [None]]:
+        if len(self.ground_truth_phase) == 0:
+            phase = None
+        if self.ground_truth_phase.all() == None:
             phase = None
         if self.cost_type == 'MSE':
             cost = np.sum(np.power(self.weight_const_vec*(const -
@@ -2755,7 +2757,9 @@ class OpencorMCMC():
         series = obs_dict['series']
         amp = obs_dict['amp']
         phase = obs_dict['phase']
-        if self.ground_truth_phase in [None, [None]]:
+        if len(self.ground_truth_phase) == 0:
+            phase = None
+        if self.ground_truth_phase.all() == None:
             phase = None
         if self.cost_type == 'MSE':
             cost = np.sum(np.power(self.weight_const_vec*(const -
