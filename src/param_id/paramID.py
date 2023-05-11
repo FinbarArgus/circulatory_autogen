@@ -241,6 +241,12 @@ class CVS0DParamID():
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
         no_conv = 1.0
+        if len(self.ground_truth_phase) == 0:
+            phase = False
+        elif self.ground_truth_phase.all() == None:
+            phase = False
+        else: 
+            phase = True
 
         if np.any(np.array(self.obs_types) == 'frequency') and np.any(np.array(self.obs_operations) != None):
             best_fit_obs, best_fit_temp_obs = self.param_id.sim_helper.get_results(self.obs_names,
@@ -321,7 +327,8 @@ class CVS0DParamID():
                         unit_label = f'[{self.gt_df.iloc[JJ]["unit"]}]'
 
                     axs[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ ${unit_label}$', fontsize=18)
-                    axs_phase[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ phase', fontsize=18)
+                    if phase:
+                        axs_phase[row_idx, col_idx].set_ylabel(f'${obs_name_for_plot}$ phase', fontsize=18)
                     
                     if not this_obs_waveform_plotted:
                         if not self.obs_types[II] == 'frequency':
@@ -329,8 +336,9 @@ class CVS0DParamID():
                         else:
                             axs[row_idx, col_idx].plot(self.obs_freqs[II], conversion * best_fit_obs_amp[freq_idx],
                                                        'kv', label='model output')
-                            axs_phase[row_idx, col_idx].plot(self.obs_freqs[II], conversion * best_fit_obs_phase[freq_idx],
-                                                       'kv', label='model output')
+                            if phase:
+                                axs_phase[row_idx, col_idx].plot(self.obs_freqs[II], conversion * best_fit_obs_phase[freq_idx],
+                                                        'kv', label='model output')
                         this_obs_waveform_plotted = True
 
                     if self.obs_types[II] == 'mean':
@@ -355,9 +363,10 @@ class CVS0DParamID():
                         axs[row_idx, col_idx].plot(self.obs_freqs[II],
                                                    conversion*self.ground_truth_amp[freq_idx],
                                                    'kx', label='measurement')
-                        axs_phase[row_idx, col_idx].plot(self.obs_freqs[II],
-                                                   conversion*self.ground_truth_phase[freq_idx],
-                                                   'kx', label='measurement')
+                        if phase:
+                            axs_phase[row_idx, col_idx].plot(self.obs_freqs[II],
+                                                    conversion*self.ground_truth_phase[freq_idx],
+                                                    'kx', label='measurement')
                     if self.gt_df.iloc[II]["data_type"] == "frequency":
                         axs[row_idx, col_idx].set_xlim(0.0, self.obs_freqs[II][-1])
                         axs[row_idx, col_idx].set_xlabel('frequency [$Hz$]', fontsize=18)
@@ -385,9 +394,9 @@ class CVS0DParamID():
                     percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.ground_truth_amp[freq_idx]) /
                                                        np.mean(self.ground_truth_amp[freq_idx]))
                                                        / len(best_fit_obs_amp[freq_idx]))
-                    phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx])*
-                                                        np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0) /
-                                                        np.sum(np.where(self.weight_phase_vec[freq_idx] == 0, 0.0, 1.0))))
+                    if phase:
+                        phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.ground_truth_phase[freq_idx])*
+                                                            self.weight_phase_vec[freq_idx]))/len(best_fit_obs_phase[freq_idx])
 
 
             # axs[row_idx, col_idx].set_ylim(ymin=0.0)
@@ -401,11 +410,14 @@ class CVS0DParamID():
                 if row_idx%subplot_width == 0:
                     for JJ in range(subplot_width):
                         fig.align_ylabels(axs[:, JJ])
-                        fig_phase.align_ylabels(axs_phase[:, JJ])
+                        if phase:
+                            fig_phase.align_ylabels(axs_phase[:, JJ])
                     axs[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
-                    axs_phase[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
+                    if phase:
+                        axs_phase[subplot_width-1, subplot_width-1].legend(loc='upper right', fontsize=12)
                     fig.tight_layout()
-                    fig_phase.tight_layout()
+                    if phase:
+                        fig_phase.tight_layout()
                     fig.savefig(os.path.join(self.plot_dir,
                                              f'reconstruct_{self.file_name_prefix}_'
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
@@ -417,7 +429,7 @@ class CVS0DParamID():
                                              f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
                     plt.close(fig)
                     
-                    if self.obs_types[II] == 'frequency':
+                    if phase:
                         fig_phase.savefig(os.path.join(self.plot_dir,
                                                 f'phase_reconstruct_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
@@ -428,7 +440,7 @@ class CVS0DParamID():
                                                 f'phase_reconstruct_{self.file_name_prefix}_'
                                                 f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
 
-                    plt.close(fig_phase)
+                        plt.close(fig_phase)
 
                     plot_saved = True
                     col_idx = 0
@@ -437,7 +449,8 @@ class CVS0DParamID():
                     # create new plot
                     if unique_obs_count != len(obs_names_unique) - 1:
                         fig, axs = plt.subplots(subplot_width, subplot_width, squeeze=False)
-                        fig_phase, axs_phase = plt.subplots(subplot_width, subplot_width, squeeze=False)
+                        if phase:
+                            fig_phase, axs_phase = plt.subplots(subplot_width, subplot_width, squeeze=False)
                         plot_saved = False
 
         # save final plot if it is not a full set of subplots
@@ -520,8 +533,9 @@ class CVS0DParamID():
             if self.gt_df.iloc[obs_idx]["data_type"] == "frequency":
                 print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} error:')
                 print(f'{percent_error_vec[obs_idx]:.2f} %')
-                print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} phase error:')
-                print(f'{phase_error_vec[obs_idx]:.2f}')
+                if phase:
+                    print(f'{self.obs_names[obs_idx]} {self.obs_types[obs_idx]} phase error:')
+                    print(f'{phase_error_vec[obs_idx]:.2f}')
 
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
@@ -2276,27 +2290,35 @@ class OpencorParamID():
                 if self.obs_operations[JJ] == None:
                     time_domain_obs = obs[JJ, :]
 
-                    complex_num = np.fft.fft(time_domain_obs)
+                    complex_num = np.fft.fft(time_domain_obs)/len(time_domain_obs)
                     amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
+                    # make sure the first amplitude is negative if it is a negative signal
+                    amp[0] = amp[0] * np.sign(np.mean(time_domain_obs))
                     phase = np.angle(complex_num)[0:len(time_domain_obs)//2]
                     freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
                 else:
                     time_domain_obs_0 = temp_obs[JJ, 0, :]
                     time_domain_obs_1 = temp_obs[JJ, 1, :]
 
-                    complex_num_0 = np.fft.fft(time_domain_obs_0)
-                    complex_num_1 = np.fft.fft(time_domain_obs_1)
+                    complex_num_0 = np.fft.fft(time_domain_obs_0)/len(time_domain_obs_0)
+                    complex_num_1 = np.fft.fft(time_domain_obs_1)/len(time_domain_obs_1)
 
                     if (self.obs_operations[JJ] == 'multiplication' and temp_obs is not None):
                         complex_num = complex_num_0 * complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) * np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'division' and temp_obs is not None):
                         complex_num = complex_num_0 / complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) / np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'addition' and temp_obs is not None):
                         complex_num = complex_num_0 + complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) + np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'subtraction' and temp_obs is not None):
                         complex_num = complex_num_0 - complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) - np.mean(time_domain_obs_1))
 
                     amp = np.abs(complex_num)[0:len(time_domain_obs_0)//2]
+                    # make sure the first amplitude is negative if it is a negative signal
+                    amp[0] = amp[0] * sign_signal
                     phase = np.angle(complex_num)[0:len(time_domain_obs_0)//2]
 
                     freqs = np.fft.fftfreq(time_domain_obs_0.shape[-1], d=self.dt)[:len(time_domain_obs_0)//2]
