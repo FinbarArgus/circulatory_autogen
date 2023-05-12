@@ -2875,31 +2875,38 @@ class OpencorMCMC():
                 if self.obs_operations[JJ] == None:
                     time_domain_obs = obs[JJ, :]
 
-                    complex_num = np.fft.fft(time_domain_obs)
+                    complex_num = np.fft.fft(time_domain_obs)/len(time_domain_obs)
                     amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
+                    # make sure the first amplitude is negative if it is a negative signal
+                    amp[0] = amp[0] * np.sign(np.mean(time_domain_obs))
                     phase = np.angle(complex_num)[0:len(time_domain_obs)//2]
                     freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
                 else:
                     time_domain_obs_0 = temp_obs[JJ, 0, :]
                     time_domain_obs_1 = temp_obs[JJ, 1, :]
 
-                    complex_num_0 = np.fft.fft(time_domain_obs_0)
-                    complex_num_1 = np.fft.fft(time_domain_obs_1)
+                    complex_num_0 = np.fft.fft(time_domain_obs_0)/len(time_domain_obs_0)
+                    complex_num_1 = np.fft.fft(time_domain_obs_1)/len(time_domain_obs_1)
 
                     if (self.obs_operations[JJ] == 'multiplication' and temp_obs is not None):
                         complex_num = complex_num_0 * complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) * np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'division' and temp_obs is not None):
                         complex_num = complex_num_0 / complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) / np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'addition' and temp_obs is not None):
                         complex_num = complex_num_0 + complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) + np.mean(time_domain_obs_1))
                     elif (self.obs_operations[JJ] == 'subtraction' and temp_obs is not None):
                         complex_num = complex_num_0 - complex_num_1
+                        sign_signal = np.sign(np.mean(time_domain_obs_0) - np.mean(time_domain_obs_1))
 
                     amp = np.abs(complex_num)[0:len(time_domain_obs_0)//2]
+                    # make sure the first amplitude is negative if it is a negative signal
+                    amp[0] = amp[0] * sign_signal
                     phase = np.angle(complex_num)[0:len(time_domain_obs_0)//2]
 
                     freqs = np.fft.fftfreq(time_domain_obs_0.shape[-1], d=self.dt)[:len(time_domain_obs_0)//2]
-
 
                 # now interpolate to defined frequencies
                 obs_amp_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, amp)
