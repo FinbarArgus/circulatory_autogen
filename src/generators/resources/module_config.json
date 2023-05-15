@@ -31,7 +31,9 @@
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
-      ["I", "Js2_per_m6", "access", "constant"]
+      ["I", "Js2_per_m6", "access", "constant"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"]
     ]
   },
   {

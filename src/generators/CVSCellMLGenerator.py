@@ -33,6 +33,8 @@ class CVS0DCellMLGenerator(object):
                                os.listdir(os.path.join(generators_dir_path, 'resources'))
                                if filename.endswith('modules.cellml')]
         self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
+        self.all_parameters_defined = False
+        self.BC_set = {}
 
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
@@ -64,7 +66,7 @@ class CVS0DCellMLGenerator(object):
             if sim.valid():
                 print('Model generation has been successful.')
             else:
-                if self.model.all_parameters_defined:
+                if self.all_parameters_defined:
                     print('The OpenCOR model is not yet working, The reason for this is unknown. \n'
                           'Open the model in OpenCor and check the error in the simulation environment \n'
                           'for further error info. \n')
@@ -147,8 +149,9 @@ class CVS0DCellMLGenerator(object):
     
             global_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
                                                                       'global_constant')]
-            module_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
-                                                                         'constant')]
+            module_params_array = self.model.parameters_array[np.where((self.model.parameters_array["const_type"] ==
+                                                                         'constant') | (self.model.parameters_array["const_type"] == 
+                                                                         'boundary_condition'))]
 
             wf.write('<component name="parameters_global">\n')
             self.__write_constant_declarations(wf, global_params_array["variable_name"],
@@ -176,7 +179,7 @@ class CVS0DCellMLGenerator(object):
 
         # check if all the required parameters have been defined, if not we make an "unfinished"
         # csv file which makes it easy for the user to include the required parameters
-        if self.model.all_parameters_defined:
+        if self.all_parameters_defined:
             file_to_create = os.path.join(self.output_path, f'{self.filename_prefix}_parameters.csv')
         else:
             file_to_create = os.path.join(self.user_resources_path,
@@ -278,12 +281,41 @@ class CVS0DCellMLGenerator(object):
                 # module_df.iloc[module_row_idx]["entrance_ports"][II]["connected"] = False
                 entrance_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
 
+        # set BC_set to false for all boundary_condition variables
+        for module_row_idx in range(len(module_df)):
+            self.BC_set[module_df.iloc[module_row_idx]["name"]] = {}
+            for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
+                if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
+                    self.BC_set[module_df.iloc[module_row_idx]["name"]] \
+                        [module_df.iloc[module_row_idx]["variables_and_units"][II][0]] = False
+
         # module_df.apply(self.__write_module_mapping_for_row, args=(module_df, wf), axis=1)
         # The above line is much faster but I'm worried about memory access of entrance_ports_connected
         for II in range(len(module_df)):
             self.__write_module_mapping_for_row(module_df.iloc[II], module_df, 
                                                 entrance_ports_connected, wf) # entrance_ports_connected is a modified
                                                                               # in this function 
+                            
+        # check whether the BC variables have been set with a matched module, if so, remove them from 
+        # parameters array and if not, set them to constant
+        for module_row_idx in range(len(module_df)):
+            for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
+                if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
+                    full_variable_name = module_df.iloc[module_row_idx]["variables_and_units"][II][0] + \
+                        '_' + module_df.iloc[module_row_idx]["name"]
+                    if self.BC_set[module_df.iloc[module_row_idx]["name"]] \
+                        [module_df.iloc[module_row_idx]["variables_and_units"][II][0]] == False:
+                        module_df.iloc[module_row_idx]["variables_and_units"][II][3] = 'constant'
+                        # self.model.parameters_array[np.where(self.model.parameters_array["variable_name"] == 
+                        #                                      full_variable_name)][0][2] = 'constant'
+                    else:
+                        self.model.parameters_array = np.delete(self.model.parameters_array, np.where(self.model.parameters_array["variable_name"] == 
+                                                             full_variable_name))
+
+        if np.any(self.model.parameters_array["value"] == 'EMPTY_MUST_BE_FILLED'):
+            self.all_parameters_defined = False
+        else:
+            self.all_parameters_defined = True
 
     def __write_module_mapping_for_row(self, module_row, module_df, entrance_ports_connected, wf):
         """This function maps between ports of the modules in a one row of a module dataframe."""
@@ -405,6 +437,11 @@ class CVS0DCellMLGenerator(object):
                     self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
                     port_types[port_type_idx]["connected"][this_type_port_idx] = True
                     entrance_ports_connected[out_module][entrance_port_idx] = True
+                    for II in range(len(variables_1)):
+                        if variables_1[II] in self.BC_set[main_module].keys():
+                            self.BC_set[main_module][variables_1[II]] = True
+                        if variables_2[II] in self.BC_set[out_module].keys():
+                            self.BC_set[out_module][variables_2[II]] = True
                 else:
                     for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
                         if not port_types[port_type_idx]["connected"][this_type_port_idx]:
@@ -651,8 +688,10 @@ class CVS0DCellMLGenerator(object):
         if params_array is not None:
             for variable_name in module_vars:
                 if variable_name not in params_array["variable_name"]:
+                    print(f'________________ERROR_________________')
                     print(f'variable {variable_name} is not in the parameter '
-                          f'dataframe/csv file')
+                          f'dataframe/csv file. It needs to be added!!!')
+                    print(f'______________________________________')
                     exit()
         self.__write_mapping(wf, params_with_addon_heading, vessel_name + module_addon,
                              module_vars, vars)

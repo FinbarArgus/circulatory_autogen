@@ -10,14 +10,12 @@ class CVS0DModel(object):
     '''
 
     def __init__(self, vessels_df, parameters_array,
-                 param_id_states=None, param_id_consts=None, param_id_date=None,
-                 all_parameters_defined=False):
+                 param_id_states=None, param_id_consts=None, param_id_date=None):
         '''
         Constructor
         '''
         self.vessels_df = vessels_df
         self.parameters_array = parameters_array
-        self.all_parameters_defined = all_parameters_defined
         self.param_id_states = param_id_states
         self.param_id_consts = param_id_consts
         self.param_id_date = param_id_date
