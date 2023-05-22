@@ -14,7 +14,7 @@ if __name__ == '__main__':
         with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-        print('_________Running all tests_____________')
+        print('_________Running all autogeneration tests_____________')
         print('')
 
         print('running 3compartment autogeneration test')

@@ -63,7 +63,7 @@ class CSV0DModelParser(object):
         # This will output True if all the required parameters have been defined and
         # False if they have not.
         # TODO change reduce_parameters_array to be automatic with respect to the modules
-        parameters_array, all_parameters_defined = self.__reduce_parameters_array(parameters_array_orig, vessels_df)
+        parameters_array = self.__reduce_parameters_array(parameters_array_orig, vessels_df)
         # this vessel_array
         if self.parameter_id_dir:
             param_id_states, param_id_consts, param_id_date = self.csv_parser.get_param_id_params_as_lists_of_tuples(
@@ -76,8 +76,7 @@ class CSV0DModelParser(object):
         model_0D = CVS0DModel(vessels_df,parameters_array,
                               param_id_states=param_id_states,
                               param_id_consts=param_id_consts,
-                              param_id_date=param_id_date,
-                              all_parameters_defined=all_parameters_defined)
+                              param_id_date=param_id_date)
 
         # get the allowable types from the modules_config.json file
         module_df = self.json_parser.json_to_dataframe(self.module_config_path)
@@ -115,6 +114,12 @@ class CSV0DModelParser(object):
                                  vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
                                    i in range(len(vessel_tup.variables_and_units)) if
                                    vessel_tup.variables_and_units[i][3] in ['constant']]
+            
+            # add parameter if it is set as boundary_condition
+            required_params += [(vessel_tup.variables_and_units[i][0] + str_addon,
+                                 vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
+                                   i in range(len(vessel_tup.variables_and_units)) if
+                                   vessel_tup.variables_and_units[i][3] in ['boundary_condition']]
 
             # dont add str_addon if global_constant
             required_params += [(vessel_tup.variables_and_units[i][0],
@@ -139,8 +144,6 @@ class CSV0DModelParser(object):
                 required_params_unique.append(entry)
         required_params = np.array(required_params_unique)
 
-        all_parameters_defined = True
-
         parameters_list = []
 
         for idx, param_tuple in enumerate(required_params):
@@ -162,8 +165,6 @@ class CSV0DModelParser(object):
                                      'EMPTY_MUST_BE_FILLED', 'EMPTY_MUST_BE_FILLED'])
                 parameters_list.append(new_entry)
 
-                all_parameters_defined = False
-
         if len(set([len(a) for a in parameters_list])) != 1:
             print('parameters rows are of non consistent length, exiting')
             exit()
@@ -175,7 +176,7 @@ class CSV0DModelParser(object):
         parameters_array['const_type'] = np.array(parameters_list)[:,2]
         parameters_array['value'] = np.array(parameters_list)[:,3]
         parameters_array['data_reference'] = np.array(parameters_list)[:,4]
-        return parameters_array, all_parameters_defined
+        return parameters_array
 
 
 
