@@ -22,12 +22,10 @@ RLL_V,vp,venous_wGeom,RLL                       ,RBS_V
 RUL_V,vp,venous_wGeom,RUL                       ,RPV_V
 RML_V,vp,venous_wGeom,RML                       ,RBS_V
 RBS_V,vp,merge_junction,RLL_V RML_V   ,RPV_V
-RPV_V,vp,merge_junction,RBS_V RUL_V     ,outlet_R
+RPV_V,vp,merge_junction,RBS_V RUL_V     ,
 L_connector_V,vv,split_junction_simple, LUL, LUL_V LM_V
 LLL_V,vp,venous_wGeom,LLL ,LBS_V
 LUL_V,pp,venous_wGeom,L_connector_V             ,LPV_V
 LM_V,pp,venous_wGeom,L_connector_V              ,LBS_V
 LBS_V,vp,merge_junction,LLL_V LM_V         ,LPV_V
-LPV_V,vp,merge_junction,LBS_V LUL_V         ,outlet_L
-outlet_L,         nn_constant,    outlet_pressure,        LPV_V,            
-outlet_R,         nn_constant,    outlet_pressure,        RPV_V,            
+LPV_V,vp,merge_junction,LBS_V LUL_V         ,
