@@ -1,6 +1,6 @@
 vessel_name,                  param_name,       param_type,  min,        max,     name_for_plotting
-MPA_A LPA_A LUL_A LLL_A LBS_A LM_A RPA_A RUL_A RML_A RLL_A RBS_A, E, const, 0.5e5, 0.8e6, E_A
-LPV_V LUL_V LLL_V LBS_V LM_V RPV_V RUL_V RML_V RLL_V RBS_V, E, const, 0.5e3, 0.4e6, E_V 
+MPA_A LPA_A LUL_A LLL_A LBS_A LM_A RPA_A RUL_A RML_A RLL_A RBS_A, E, const, 0.1e5, 0.5e6, E_A
+LPV_V LUL_V LLL_V LBS_V LM_V RPV_V RUL_V RML_V RLL_V RBS_V, E, const, 0.5e3, 0.4e5, E_V 
 LUL,                        R_1_T,            const,       1e7,        1e10,     R_{LUL}
 LUL,                        R_2_T,            const,       1e5,        1e8,     R_{LUL}
 LUL,                        C_T,              const,       1e-10,      1e-7,     C_{LUL}

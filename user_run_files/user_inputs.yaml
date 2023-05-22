@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: True
+DEBUG: False
 MPI_DEBUG: False
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
@@ -21,7 +21,7 @@ input_param_file: lung_ROM_parameters.csv
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: 3compartment_parameters.csv 
-input_param_file: cpp_coupling_parameters.csv 
+# input_param_file: cpp_coupling_parameters.csv 
 
 #__________ parameter identification inputs __________
 # param_id_method can be any of [genetic_algorithm]
@@ -81,9 +81,9 @@ dt: 0.01
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_test_obs_data.json
 #
 # This for lung_ROM
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-# param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
+param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
