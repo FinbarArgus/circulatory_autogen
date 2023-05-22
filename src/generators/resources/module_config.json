@@ -741,7 +741,10 @@
       ["a_vessel", "dimensionless", "no_access", "global_constant"],
       ["b_vessel", "per_m", "no_access", "global_constant"],
       ["c_vessel", "dimensionless", "no_access", "global_constant"],
-      ["d_vessel", "per_m", "no_access", "global_constant"]
+      ["d_vessel", "per_m", "no_access", "global_constant"],
+      ["v_in_1", "m3_per_s", "access", "boundary_condition"],
+      ["v_in_2", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"]
     ]
   },
   {

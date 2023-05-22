@@ -9,6 +9,7 @@ import numpy as np
 import os
 import csv
 import json
+import copy
 
 class CSVFileParser(object):
     '''
@@ -186,7 +187,8 @@ class JSONFileParser(object):
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
             for column in add_on_lists:
-                add_on_lists[column].append(this_vessel_module_df[column])
+                # deepcopy to make sure that the lists for different vessel same module are not linked
+                add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
 
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]
