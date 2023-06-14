@@ -95,6 +95,11 @@ class CVS0DCellMLGenerator(object):
                     if '#STARTGENBELOW' in line:
                         break
 
+                # write units mapping
+                print('writing units mapping')
+                self.__write_section_break(wf, 'units')
+                self.__write_units(wf, self.model.vessels_df, self.model.parameters_array)
+
                 # import vessels
                 print('writing imports')
                 self.__write_section_break(wf, 'imports')
@@ -249,6 +254,24 @@ class CVS0DCellMLGenerator(object):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
                 text + '&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->\n')
 
+    def __write_units(self, wf, vessel_df, parameters_array):
+        units_list = []
+        wf.writelines(f'<import xlink:href="{self.filename_prefix}_units.cellml">\n')
+
+        for vessel_tup in vessel_df.itertuples():
+            for variable in vessel_tup.variables_and_units:
+                if variable[1] not in units_list:
+                    wf.writelines(f'    <units name="{variable[1]}" units_ref="{variable[1]}"/>\n')
+                    units_list.append(variable[1])
+        
+        for param_tup in parameters_array:
+            if param_tup[1] not in units_list:
+                wf.writelines(f'    <units name="{param_tup[1]}" units_ref="{param_tup[1]}"/>\n')
+                units_list.append(param_tup[1])
+        
+        wf.writelines('</import>\n')
+        
+        
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
             self.__write_import(wf, vessel_tup)
@@ -469,6 +492,12 @@ class CVS0DCellMLGenerator(object):
 
                             self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
+                            for II in range(len(variables_1)):
+                                if variables_1[II] in self.BC_set[main_module].keys():
+                                    self.BC_set[main_module][variables_1[II]] = True
+                                if variables_2[II] in self.BC_set[out_module].keys():
+                                    self.BC_set[out_module][variables_2[II]] = True
+                                    
                             # only assign connected if the port doesnt have a multi_ports flag
                             if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
                                 if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:

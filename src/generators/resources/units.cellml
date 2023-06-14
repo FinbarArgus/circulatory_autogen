@@ -404,4 +404,67 @@
         <unit units="joule"/>
         <unit exponent="-9" units="metre"/>
     </units>
+    <!-- cell dynamics-->
+    <units name="milliV">
+        <unit prefix="milli" units="volt"/>
+    </units>
+    <units name="per_milliV">
+        <unit exponent="-1" units="milliV"/>
+    </units>
+    <units name="per_V">
+        <unit exponent="-1" units="volt"/>
+    </units>
+    <units name="milliV_per_V">
+        <unit units="milliV"/>
+        <unit exponent="-1" units="volt"/>
+    </units>
+    <units name="V2">
+        <unit exponent="2" units="volt"/>
+    </units>
+    <units name="milliV2">
+        <unit exponent="2" prefix="milli" units="volt"/>
+    </units>
+    <units name="millimolar">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+    </units>
+    <units name="per_millimolar">
+        <unit exponent="-1" units="millimolar"/>
+    </units>
+    <units name="millimolar_per_s">
+        <unit units="millimolar"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="microm">
+        <unit prefix="micro" units="metre"/>
+    </units>
+    <units name="microm3">
+        <unit exponent="3" units="microm"/>
+    </units>
+    <units name="m3_per_microm3">
+        <unit units="m3"/>
+        <unit exponent="-1" units="microm3"/>
+    </units>
+    <units name="S_per_F">
+        <unit units="siemens"/>
+        <unit exponent="-1" units="farad"/>
+    </units>
+    <units name="m3_per_Fs">
+        <unit exponent="3" units="metre"/>
+        <unit exponent="-1" units="farad"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="A_per_F">
+        <unit units="ampere"/>
+        <unit exponent="-1" units="farad"/>
+    </units>
+    <units name="J_per_MK">
+        <unit units="joule"/>
+        <unit exponent="-1" units="mole"/>
+        <unit exponent="-1" units="kelvin"/>
+    </units>
+    <units name="C_per_M">
+        <unit units="coulomb"/>
+        <unit exponent="-1" units="mole"/>
+    </units>
 </model>
