@@ -2915,13 +2915,13 @@ class OpencorMCMC():
 
                 freq_count += 1
 
-            if series_count == 0:
-                obs_series_array = None
-            if freq_count == 0:
-                obs_freq_list_of_arrays = None
-                obs_phase_list_of_arrays = None
-            obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
-                        'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
+        if series_count == 0:
+            obs_series_array = None
+        if freq_count == 0:
+            obs_freq_list_of_arrays = None
+            obs_phase_list_of_arrays = None
+        obs_dict = {'const': obs_const_vec, 'series': obs_series_array,
+                    'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
         return obs_dict
 
     def set_output_dir(self, output_dir):
