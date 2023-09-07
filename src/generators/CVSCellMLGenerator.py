@@ -35,6 +35,7 @@ class CVS0DCellMLGenerator(object):
         self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
         self.all_parameters_defined = False
         self.BC_set = {}
+        self.all_units = []
 
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
@@ -44,13 +45,13 @@ class CVS0DCellMLGenerator(object):
         print("Generating model files at {}".format(self.output_path))
         
         #    Code to generate model files
+        self.__generate_units_file()
         self.__generate_CellML_file()
         if self.model.param_id_consts:
             self.__modify_parameters_array_from_param_id()
         self.__generate_parameters_csv()
         self.__generate_parameters_file()
         self.__generate_modules_file()
-        self.__generate_units_file()
 
         # TODO check that model generation is succesful, possibly by calling to opencor
         print('Model generation complete.')
@@ -94,6 +95,11 @@ class CVS0DCellMLGenerator(object):
                     wf.write(line)
                     if '#STARTGENBELOW' in line:
                         break
+
+                # write units mapping
+                print('writing units mapping')
+                self.__write_section_break(wf, 'units')
+                self.__write_units(wf)
 
                 # import vessels
                 print('writing imports')
@@ -145,7 +151,10 @@ class CVS0DCellMLGenerator(object):
 
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
-                     '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
+                     '" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">\n')
+
+            self.__write_section_break(wf, 'parameter_units')
+            self.__write_units(wf)
     
             global_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
                                                                       'global_constant')]
@@ -201,6 +210,8 @@ class CVS0DCellMLGenerator(object):
             with open(os.path.join(self.output_path, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
+                    if "units name" in line:
+                        self.all_units.append(re.search('units name="(.*?)"', line).group(1))
 
     def __generate_modules_file(self):
         if self.model.param_id_states:
@@ -208,12 +219,16 @@ class CVS0DCellMLGenerator(object):
             state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
+            # write first two lines
+            wf.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+            wf.write("<model name=\"modules\" xmlns=\"http://www.cellml.org/cellml/1.1#\" xmlns:cellml=\"http://www.cellml.org/cellml/1.1#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")
+            # also write units in modules file
+            self.__write_section_break(wf, 'module_units')
+            self.__write_units(wf)
+
             for II, module_file_path in enumerate(self.module_scripts):
                 with open(module_file_path, 'r') as rf:
-                    if II == 0:
-                        # skip last line so enddef; doesn't get written till the end.
-                        lines = rf.readlines()[:-1]
-                    elif II == len(self.module_scripts) - 1:
+                    if II == len(self.module_scripts) - 1:
                         # skip first two lines
                         lines = rf.readlines()[2:]
                     else:
@@ -249,6 +264,27 @@ class CVS0DCellMLGenerator(object):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
                 text + '&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;//-->\n')
 
+    def __write_units(self, wf):
+
+        wf.writelines(f'<import xlink:href="{self.filename_prefix}_units.cellml">\n')
+        for unit in self.all_units:
+            wf.writelines(f'    <units name="{unit}" units_ref="{unit}"/>\n')
+        # units_list = []
+
+        # for vessel_tup in vessel_df.itertuples():
+        #     for variable in vessel_tup.variables_and_units:
+        #         if variable[1] not in units_list:
+        #             wf.writelines(f'    <units name="{variable[1]}" units_ref="{variable[1]}"/>\n')
+        #             units_list.append(variable[1])
+        
+        # for param_tup in parameters_array:
+        #     if param_tup[1] not in units_list:
+        #         wf.writelines(f'    <units name="{param_tup[1]}" units_ref="{param_tup[1]}"/>\n')
+        #         units_list.append(param_tup[1])
+        
+        wf.writelines('</import>\n')
+        
+        
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
             self.__write_import(wf, vessel_tup)
@@ -396,8 +432,9 @@ class CVS0DCellMLGenerator(object):
                     # this port type isnt used, continue to next one
                     continue
                 if entrance_port_idx == -1:
-                    print("One connection type has been module with single port has been connected",
-                          "to multiple . Should you be using multi_port:True?")
+                    print(f"module {main_module} has a single port {port_types[port_type_idx]['port_type']}, connected",
+                            f"to multiple ports. Should it have a multiport:True entry in the",
+                            f"module_config.json file??")
                     exit()
 
                 if port_types[port_type_idx]["port_type"] == "vessel_port":
@@ -469,6 +506,12 @@ class CVS0DCellMLGenerator(object):
 
                             self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
+                            for II in range(len(variables_1)):
+                                if variables_1[II] in self.BC_set[main_module].keys():
+                                    self.BC_set[main_module][variables_1[II]] = True
+                                if variables_2[II] in self.BC_set[out_module].keys():
+                                    self.BC_set[out_module][variables_2[II]] = True
+                                    
                             # only assign connected if the port doesnt have a multi_ports flag
                             if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
                                 if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:
