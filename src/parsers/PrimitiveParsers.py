@@ -186,6 +186,10 @@ class JSONFileParser(object):
                 exit()
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
+            if this_vessel_module_df.empty:
+                print(f'combination of vessel_type = {vessel_type} and BC_type = {BC_type} doesn\'t exist, check module_config.json',
+                        'for this combination')
+                exit()
             for column in add_on_lists:
                 # deepcopy to make sure that the lists for different vessel same module are not linked
                 add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
