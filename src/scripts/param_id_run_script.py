@@ -56,10 +56,13 @@ def run_param_id(inp_data_dict=None):
     generated_models_subdir_path = os.path.join(generated_models_dir_path, file_prefix)
     model_path = os.path.join(generated_models_subdir_path, f'{file_prefix}.cellml')
     param_id_model_type = inp_data_dict['param_id_model_type']
+    if 'params_for_id_file' in inp_data_dict.keys():
+        params_for_id_path = os.path.join(resources_dir_path, inp_data_dict['params_for_id_file'])
+    else:
+        params_for_id_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
 
-    input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
-    if not os.path.exists(input_params_path):
-        print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
+    if not os.path.exists(params_for_id_path):
+        print(f'params_for_id path of {params_for_id_path} doesn\'t exist, user must create this file')
         exit()
 
     param_id_obs_path = inp_data_dict['param_id_obs_path']
@@ -97,7 +100,7 @@ def run_param_id(inp_data_dict=None):
     ga_options = inp_data_dict['ga_options']
 
     param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
-                            input_params_path=input_params_path,
+                            params_for_id_path=params_for_id_path,
                             param_id_obs_path=param_id_obs_path,
                             sim_time=sim_time, pre_time=pre_time,
                             sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
@@ -139,7 +142,7 @@ def run_param_id(inp_data_dict=None):
 
     if do_mcmc:
         mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_prefix,
-                                input_params_path=input_params_path,
+                                params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,

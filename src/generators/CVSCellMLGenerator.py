@@ -287,6 +287,9 @@ class CVS0DCellMLGenerator(object):
         
     def __write_imports(self, wf, vessel_df):
         for vessel_tup in vessel_df.itertuples():
+            if vessel_tup.module_format != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
             self.__write_import(wf, vessel_tup)
 
         # TODO change the below to vessel_type, not "name"
@@ -312,6 +315,9 @@ class CVS0DCellMLGenerator(object):
         # set connected to false for all entrance ports TODO this might be a better way to check connected for exit ports too
         entrance_ports_connected = {}
         for module_row_idx in range(len(module_df)):
+            if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
             entrance_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
             for II in range(len(module_df.iloc[module_row_idx]["entrance_ports"])):
                 # module_df.iloc[module_row_idx]["entrance_ports"][II]["connected"] = False
@@ -319,6 +325,9 @@ class CVS0DCellMLGenerator(object):
 
         # set BC_set to false for all boundary_condition variables
         for module_row_idx in range(len(module_df)):
+            if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
             self.BC_set[module_df.iloc[module_row_idx]["name"]] = {}
             for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
                 if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
@@ -327,14 +336,20 @@ class CVS0DCellMLGenerator(object):
 
         # module_df.apply(self.__write_module_mapping_for_row, args=(module_df, wf), axis=1)
         # The above line is much faster but I'm worried about memory access of entrance_ports_connected
-        for II in range(len(module_df)):
-            self.__write_module_mapping_for_row(module_df.iloc[II], module_df, 
+        for module_row_idx in range(len(module_df)):
+            if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
+            self.__write_module_mapping_for_row(module_df.iloc[module_row_idx], module_df, 
                                                 entrance_ports_connected, wf) # entrance_ports_connected is a modified
                                                                               # in this function 
                             
         # check whether the BC variables have been set with a matched module, if so, remove them from 
         # parameters array and if not, set them to constant
         for module_row_idx in range(len(module_df)):
+            if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
             for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
                 if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
                     full_variable_name = module_df.iloc[module_row_idx]["variables_and_units"][II][0] + \

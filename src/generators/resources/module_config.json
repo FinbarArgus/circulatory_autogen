@@ -4576,5 +4576,37 @@
     [
       ["Vm", "V", "access", "variable"]
     ]
+  },
+  {
+    "vessel_type":"arterial",
+    "BC_type":"1D",
+    "module_format":"FV_1D_Muller",
+    "module_file":"",
+    "module_type":"1",
+    "entrance_ports":
+    [
+      {
+        "port_type":"1D_1D_arterial_port",
+        "variables":["None"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["qBC","pC"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"1D_1D_arterial_port",
+        "variables":["None"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["qBC","pC"]
+      }
+    ],
+    "variables_and_units":
+    [
+    ]
   }
 ]

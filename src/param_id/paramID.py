@@ -65,7 +65,7 @@ class CVS0DParamID():
     Class for doing parameter identification on a 0D cvs model
     """
     def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
-                 input_params_path=None,
+                 params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
                  maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False):
@@ -101,7 +101,7 @@ class CVS0DParamID():
         #     import resource
 
         # TODO I should have a separate class for parsing the observable info from param_id_obs_path
-        #  and param info from input_params_path
+        #  and param info from params_for_id_path
         # obs info
         self.obs_names = None
         self.obs_types = None
@@ -122,10 +122,10 @@ class CVS0DParamID():
         self.param_names_for_plotting = None
         self.num_obs = None
         self.gt_df = None
-        self.input_params_path = input_params_path
+        self.params_for_id_path = params_for_id_path
         if param_id_obs_path:
             self.__set_obs_names_and_df(param_id_obs_path)
-        if self.input_params_path:
+        if self.params_for_id_path:
             self.__set_and_save_param_names()
 
         # ground truth values
@@ -1036,9 +1036,9 @@ class CVS0DParamID():
         # This should also be a function under parsers.
 
         # Each entry in param_names is a name or list of names that gets modified by one parameter
-        if self.input_params_path:
+        if self.params_for_id_path:
             csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_multistrings(self.input_params_path)
+            input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
             self.param_names = []
             param_names_for_gen = []
             param_state_names_for_gen = []
@@ -1107,7 +1107,7 @@ class CVS0DParamID():
 
 
         else:
-            print(f'input_params_path cannot be None, exiting')
+            print(f'params_for_id_path cannot be None, exiting')
 
         if self.rank == 0:
             with open(os.path.join(self.output_dir, 'param_names.csv'), 'w') as f:
