@@ -93,6 +93,11 @@ class CVS0DParamID():
             self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
             if not os.path.exists(self.plot_dir):
                 os.mkdir(self.plot_dir)
+            if os.path.exists(os.path.join(self.output_dir, 'best_cost_history.csv')):
+                # delete file
+                os.remove(os.path.join(self.output_dir, 'best_cost_history.csv'))
+            if os.path.exists(os.path.join(self.output_dir, 'best_param_vals_history.csv')):
+                os.remove(os.path.join(self.output_dir, 'best_param_vals_history.csv'))
 
         self.comm.Barrier()
 
@@ -221,6 +226,7 @@ class CVS0DParamID():
             mcmc_object.set_param_names(param_names)
         else:
             self.param_id.set_param_names(param_names)
+        
 
         # TODO have to save param names as in __set_and_save_param_names!!
 
@@ -1122,6 +1128,10 @@ class CVS0DParamID():
             with open(os.path.join(self.output_dir, 'param_const_names_for_gen.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(param_const_names_for_gen)
+            with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'w') as f:
+                wr = csv.writer(f)
+                new_array_names = np.char.replace(self.param_names_for_plotting, '/', ' ')
+                wr.writerows(new_array_names.reshape(1, -1))
 
         return
 
@@ -1800,6 +1810,13 @@ class OpencorParamID():
                     print('best params normed : {}'.format(param_vals_norm[:, 0]))
                     np.save(os.path.join(self.output_dir, 'best_cost'), cost[0])
                     np.save(os.path.join(self.output_dir, 'best_param_vals'), param_vals[:, 0])
+                    # Use np.savetxt to append the array to the text file
+                    with open(os.path.join(self.output_dir, 'best_cost_history.csv'), 'a') as file:
+                        np.savetxt(file, cost[:10].reshape(1,-1), fmt='%1.9f', delimiter=', ')
+                    
+                    with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
+                        np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
+                    
 
                     # At this stage all of the population has been simulated
                     simulated_bools = [True]*num_pop

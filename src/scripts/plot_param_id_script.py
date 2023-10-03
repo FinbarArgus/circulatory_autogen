@@ -39,7 +39,11 @@ if __name__ == '__main__':
         model_path = os.path.join(generated_models_subdir_path, f'{file_prefix}.cellml')
         param_id_model_type = inp_data_dict['param_id_model_type']
 
-        input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
+        if 'params_for_id_file' in inp_data_dict.keys():
+            input_params_path = os.path.join(resources_dir_path, inp_data_dict['params_for_id_file'])
+        else:
+            input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
+
         if not os.path.exists(input_params_path):
             print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
             exit()

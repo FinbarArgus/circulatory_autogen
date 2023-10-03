@@ -350,6 +350,7 @@ class CVS0DCellMLGenerator(object):
             if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
                 # if not cellml then don't do anything for this vessel/module
                 continue
+            indexes_to_remove = []
             for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
                 if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
                     full_variable_name = module_df.iloc[module_row_idx]["variables_and_units"][II][0] + \
@@ -362,6 +363,12 @@ class CVS0DCellMLGenerator(object):
                     else:
                         self.model.parameters_array = np.delete(self.model.parameters_array, np.where(self.model.parameters_array["variable_name"] == 
                                                              full_variable_name))
+                        indexes_to_remove.append(II)
+                        
+            # remove the BC variables from the variables_and_units list
+            # these variables will be accesible from the neighbouring
+            # modules where they are calculated.
+            module_df.iloc[module_row_idx]["variables_and_units"] = np.delete(module_df.iloc[module_row_idx]["variables_and_units"], indexes_to_remove, axis=0)
 
         if np.any(self.model.parameters_array["value"] == 'EMPTY_MUST_BE_FILLED'):
             self.all_parameters_defined = False
