@@ -9,13 +9,10 @@ import os
 from mpi4py import MPI
 from distutils import util
 
-root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
-sys.path.append(os.path.join(root_dir_path, 'src'))
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
 
-resources_dir_path = os.path.join(root_dir_path, 'resources')
-user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
-param_id_dir_path = os.path.join(root_dir_path, 'src/param_id')
-generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
+user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 
 from param_id.paramID import CVS0DParamID
 from param_id.sequential_paramID import SequentialParamID
@@ -28,24 +25,38 @@ if __name__ == '__main__':
 
     try:
 
-        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+        with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
         plot_predictions = inp_data_dict['plot_predictions']
 
         param_id_method = inp_data_dict['param_id_method']
         file_prefix = inp_data_dict['file_prefix']
-        generated_models_subdir_path = os.path.join(generated_models_dir_path, file_prefix)
-        model_path = os.path.join(generated_models_subdir_path, f'{file_prefix}.cellml')
+
+        
+        resources_dir = os.path.join(root_dir, 'resources')
+        param_id_dir = os.path.join(root_dir, 'src/param_id')
+        generated_models_dir = os.path.join(root_dir, 'generated_models')
+        
+        # overwrite dir paths if set in user_inputs.yaml
+        if "resources_dir" in inp_data_dict.keys():
+            resources_dir = inp_data_dict['resources_dir']
+        if "param_id_output_dir" in inp_data_dict.keys():
+            param_id_output_dir = inp_data_dict['param_id_output_dir']
+        if "generated_models_dir" in inp_data_dict.keys():
+            generated_models_dir = inp_data_dict['generated_models_dir']
+        
+        generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
+        model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
         param_id_model_type = inp_data_dict['param_id_model_type']
 
         if 'params_for_id_file' in inp_data_dict.keys():
-            input_params_path = os.path.join(resources_dir_path, inp_data_dict['params_for_id_file'])
+            params_for_id_path = os.path.join(resources_dir, inp_data_dict['params_for_id_file'])
         else:
-            input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
+            params_for_id_path = os.path.join(resources_dir, f'{file_prefix}_params_for_id.csv')
 
-        if not os.path.exists(input_params_path):
-            print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
+        if not os.path.exists(params_for_id_path):
+            print(f'params_for_id_path of {params_for_id_path} doesn\'t exist, user must create this file')
             exit()
 
         param_id_obs_path = inp_data_dict['param_id_obs_path']
@@ -82,11 +93,12 @@ if __name__ == '__main__':
         ga_options = inp_data_dict['ga_options']
 
         param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
-                                input_params_path=input_params_path,
+                                params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, ga_options=ga_options, dt=dt)
+                                maximum_step=maximum_step, ga_options=ga_options, dt=dt,
+                                param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
             with open(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'), 'r') as r:
@@ -114,12 +126,13 @@ if __name__ == '__main__':
 
         if plot_predictions:
             seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
-                                             input_params_path=input_params_path,
+                                             params_for_id_path=params_for_id_path,
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,
                                              sim_time=sim_time, pre_time=pre_time,
                                              sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                             maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=False)
+                                             maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=False,
+                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
             if do_mcmc:
                 seq_param_id.plot_mcmc_and_predictions()

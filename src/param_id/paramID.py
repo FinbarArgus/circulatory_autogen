@@ -8,7 +8,6 @@ import sys
 from sys import exit
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
-resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
 import math as math
 import opencor as oc
 import time
@@ -68,7 +67,8 @@ class CVS0DParamID():
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False):
+                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False,
+                 param_id_output_dir=None, resources_dir=None):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -84,7 +84,11 @@ class CVS0DParamID():
         self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
         case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
         if self.rank == 0:
-            self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
+            if param_id_output_dir is None:
+                self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
+            else:
+                self.param_id_output_dir = param_id_output_dir
+            
             if not os.path.exists(self.param_id_output_dir):
                 os.mkdir(self.param_id_output_dir)
             self.output_dir = os.path.join(self.param_id_output_dir, f'{case_type}')
@@ -93,11 +97,11 @@ class CVS0DParamID():
             self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
             if not os.path.exists(self.plot_dir):
                 os.mkdir(self.plot_dir)
-            if os.path.exists(os.path.join(self.output_dir, 'best_cost_history.csv')):
-                # delete file
-                os.remove(os.path.join(self.output_dir, 'best_cost_history.csv'))
-            if os.path.exists(os.path.join(self.output_dir, 'best_param_vals_history.csv')):
-                os.remove(os.path.join(self.output_dir, 'best_param_vals_history.csv'))
+        
+        if resources_dir is None:
+            self.resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
+        else:
+            self.resources_dir = resources_dir
 
         self.comm.Barrier()
 
@@ -964,7 +968,7 @@ class CVS0DParamID():
             print('single prediction data saved')
 
         else:
-            pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
+            pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
             print(f'prediction variables have not been defined, if you want to save predicition variables,',
                   f'create a file {pred_var_path}, with the names of the desired prediction variables')
 
@@ -1128,10 +1132,6 @@ class CVS0DParamID():
             with open(os.path.join(self.output_dir, 'param_const_names_for_gen.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(param_const_names_for_gen)
-            with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'w') as f:
-                wr = csv.writer(f)
-                new_array_names = np.char.replace(self.param_names_for_plotting, '/', ' ')
-                wr.writerows(new_array_names.reshape(1, -1))
 
         return
 
@@ -1167,7 +1167,7 @@ class CVS0DParamID():
         self.std_series_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "series"])
 
-        self.std_amp_vec = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+        self.std_amp_vec = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
         if len(ground_truth_series) > 0:
@@ -1241,7 +1241,7 @@ class CVS0DParamID():
 
     def __set_prediction_var(self):
         # prediction variables
-        pred_var_path = os.path.join(resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
+        pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
         if os.path.exists(pred_var_path):
             # TODO change this to loading with parser
             csv_parser = CSVFileParser()
@@ -1512,6 +1512,20 @@ class OpencorParamID():
         if rank == 0:
             # save date as identifier for the param_id
             np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
+
+            # delete history files
+            if os.path.exists(os.path.join(self.output_dir, 'best_cost_history.csv')):
+                # delete file
+                os.remove(os.path.join(self.output_dir, 'best_cost_history.csv'))
+            if os.path.exists(os.path.join(self.output_dir, 'best_param_vals_history.csv')):
+                os.remove(os.path.join(self.output_dir, 'best_param_vals_history.csv'))
+
+            # write column header for best params
+            with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'w') as f:
+                wr = csv.writer(f)
+                new_array_names = np.char.replace(np.array([list_of_names[0] 
+                                    for list_of_names in self.param_names]), '/', ' ')
+                wr.writerows(new_array_names.reshape(1, -1))
 
         print('starting param id run for rank = {} process'.format(rank))
 
@@ -2342,9 +2356,18 @@ class OpencorParamID():
 
 
                 # now interpolate to defined frequencies
-                obs_amp_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, amp)
+                obs_amp_list_of_arrays[freq_count][:] = utilities.bin_resample(amp, freqs, self.obs_freqs[JJ])
                 # and phase
-                obs_phase_list_of_arrays[freq_count][:] = np.interp(self.obs_freqs[JJ], freqs, phase)
+                obs_phase_list_of_arrays[freq_count][:] = utilities.bin_resample(phase, freqs, self.obs_freqs[JJ])
+
+                # TODO remove this plotting
+                # fig, ax = plt.subplots()
+                # ax.plot(freqs, amp, 'ko')
+                # ax.plot(self.obs_freqs[JJ], obs_amp_list_of_arrays[freq_count][:], 'rx')
+
+                # randnum = np.random.randint(100000)
+                # plt.savefig(f'/home/farg967/Documents/random/rand_plots/{randnum}.png')
+                # plt.close()
 
                 freq_count += 1
 

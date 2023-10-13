@@ -18,7 +18,7 @@ class CVS0DCellMLGenerator(object):
     '''
 
 
-    def __init__(self, model, output_path, filename_prefix):
+    def __init__(self, model, output_path, filename_prefix, resources_dir=None):
         '''
         Constructor
         '''
@@ -27,7 +27,10 @@ class CVS0DCellMLGenerator(object):
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
         self.filename_prefix = filename_prefix
-        self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
+        if resources_dir is None:
+            self.resources_dir = os.path.join(generators_dir_path, '../../resources')
+        else:
+            self.resources_dir = resources_dir 
         self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
         self.module_scripts = [os.path.join(generators_dir_path, 'resources', filename) for filename in
                                os.listdir(os.path.join(generators_dir_path, 'resources'))
@@ -74,7 +77,7 @@ class CVS0DCellMLGenerator(object):
                 else:
                     print('The OpenCOR model is not yet working because all parameters have not been given values, \n'
                           f'Enter the values in '
-                          f'{os.path.join(self.user_resources_path, f"{self.filename_prefix}_parameters_unfinished.csv")}')
+                          f'{os.path.join(self.resources_dir, f"{self.filename_prefix}_parameters_unfinished.csv")}')
 
         else:
             print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
@@ -191,7 +194,7 @@ class CVS0DCellMLGenerator(object):
         if self.all_parameters_defined:
             file_to_create = os.path.join(self.output_path, f'{self.filename_prefix}_parameters.csv')
         else:
-            file_to_create = os.path.join(self.user_resources_path,
+            file_to_create = os.path.join(self.resources_dir,
                                           f'{self.filename_prefix}_parameters_unfinished.csv')
             print(f'\n WARNING \nRequired parameters are missing. \nCreating a file {file_to_create},\n'
                   f'which has EMPTY_MUST_BE_FILLED tags where parameters\n'
@@ -489,6 +492,19 @@ class CVS0DCellMLGenerator(object):
                             # TODO the above isnt robust
                     variables_1 = module_row["exit_ports"][out_port_idx]['variables']
                     variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
+                    
+                    if module_row["vessel_type"].endswith('terminal'):
+                        # the terminal connections are done through the terminal_venous_connection
+                        # TODO here I set that this connection is done. It is actually done later on
+                        # when doing the venous_terminal_connection. Fine for now.
+                        port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                        entrance_ports_connected[out_module][entrance_port_idx] = True
+                        for II in range(len(variables_1)):
+                            if variables_1[II] in self.BC_set[main_module].keys():
+                                self.BC_set[main_module][variables_1[II]] = True
+                            if variables_2[II] in self.BC_set[out_module].keys():
+                                self.BC_set[out_module][variables_2[II]] = True
+                        continue
 
                     main_module_module = main_module + '_module'
                     out_module_module = out_module + '_module'
@@ -647,6 +663,8 @@ class CVS0DCellMLGenerator(object):
 
             variables.append(f'v_{venous_name}')
             units.append('m3_per_s')
+            # TODO check this for full CVS case
+            # in_outs.append('priv_in_pub_out')
             in_outs.append('out')
 
         for GE_name in tissue_GE_names:
@@ -838,7 +856,10 @@ class CVS0DCellMLGenerator(object):
 
     def __write_variable_declarations(self, wf, variables, units, in_outs):
         for variable, unit, in_out in zip(variables, units, in_outs):
-            wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>\n')
+            if in_out == 'priv_in_pub_out':
+                wf.write(f'<variable name="{variable}" private_interface="in" public_interface="out" units="{unit}"/>\n')
+            else:
+                wf.write(f'<variable name="{variable}" public_interface="{in_out}" units="{unit}"/>\n')
 
     def __write_constant_declarations(self, wf, variable_names, units, values):
         for variable, unit, value in zip(variable_names, units, values):

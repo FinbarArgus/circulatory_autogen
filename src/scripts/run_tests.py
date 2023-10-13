@@ -3,16 +3,25 @@ import sys
 import yaml
 import traceback
 
-root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
-sys.path.append(os.path.join(root_dir_path, 'src'))
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
 
-user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
+user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 
 if __name__ == '__main__':
     try:
-        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+        with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+
+        # remove user_input entries so they aren't passed to the param_id script,
+        # so the default dirs are used
+        if 'resources_dir' in inp_data_dict.keys():
+            del inp_data_dict['resources_dir']
+        if 'generated_model_dir' in inp_data_dict.keys():
+            del inp_data_dict['generated_model_dir']
+        if 'param_id_output_dir' in inp_data_dict.keys():
+            del inp_data_dict['param_id_output_dir']
 
         print('_________Running all autogeneration tests_____________')
         print('')

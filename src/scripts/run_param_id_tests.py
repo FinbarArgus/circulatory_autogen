@@ -6,13 +6,13 @@ import traceback
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
 
-user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
+user_inputs_dir = os.path.join(root_dir_path, 'user_run_files')
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from scripts.param_id_run_script import run_param_id
 
 if __name__ == '__main__':
     try:
-        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+        with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
         print('_________Running all param_id tests_____________')
@@ -23,6 +23,14 @@ if __name__ == '__main__':
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
 
         # generate_with_new_architecture(False, inp_data_dict)
+        if 'resources_dir' in inp_data_dict.keys():
+            # remove that entry so it doesnt get passed to the param_id script
+            # so the default dirs are used
+            del inp_data_dict['resources_dir']
+        if 'generated_model_dir' in inp_data_dict.keys():
+            del inp_data_dict['generated_model_dir']
+        if 'param_id_output_dir' in inp_data_dict.keys():
+            del inp_data_dict['param_id_output_dir']
 
         print('')
         print('running simple_physiological parameter id test')
