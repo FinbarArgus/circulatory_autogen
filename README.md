@@ -115,6 +115,7 @@ emcee
 corner
 schwimmbad
 tqdm
+sympy
 
 ### Required packages for autogeneration
 pandas
