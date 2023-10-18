@@ -33,10 +33,14 @@
         <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
-        <variable name="q_ra_0" public_interface="in" units="m3"/>
-        <variable name="q_rv_0" public_interface="in" units="m3"/>
-        <variable name="q_la_0" public_interface="in" units="m3"/>
-        <variable name="q_lv_0" public_interface="in" units="m3"/>
+        <variable name="q_ra_us" public_interface="in" units="m3"/>
+        <variable name="q_rv_us" public_interface="in" units="m3"/>
+        <variable name="q_la_us" public_interface="in" units="m3"/>
+        <variable name="q_lv_us" public_interface="in" units="m3"/>
+        <variable name="q_ra_init" public_interface="in" units="m3"/>
+        <variable name="q_rv_init" public_interface="in" units="m3"/>
+        <variable name="q_la_init" public_interface="in" units="m3"/>
+        <variable name="q_lv_init" public_interface="in" units="m3"/>
         <!-- State Variables-->
         <variable name="u_ra" public_interface="out" units="J_per_m3"/>
         <variable name="u_rv" units="J_per_m3"/>
@@ -96,12 +100,12 @@
         <variable initial_value="1e-14" name="eps" units="dimensionless"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
-        <!-- TODO the below parameters should be set in an init_states parameter file
- q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="0.00069934" name="q_lv" units="m3"/>
-        <variable initial_value="1e-05" name="q_rv" units="m3"/>
-        <variable initial_value="4e-06" name="q_la" units="m3"/>
-        <variable initial_value="4e-06" name="q_ra" units="m3"/>
+        <!-- q_lv_init sometimes gets identified, the others are set arbitrarily to zero normally, 
+ identifying q_lv sets the stressed volume of the system.-->
+        <variable initial_value="q_lv_init" name="q_lv" units="m3"/>
+        <variable initial_value="q_rv_init" name="q_rv" units="m3"/>
+        <variable initial_value="q_la_init" name="q_la" units="m3"/>
+        <variable initial_value="q_ra_init" name="q_ra" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" units="dimensionless"/>
         <variable name="chi_afloor" units="dimensionless"/>
@@ -1184,7 +1188,7 @@
                     <apply>
                         <minus/>
                         <ci>q_ra</ci>
-                        <ci>q_ra_0</ci>
+                        <ci>q_ra_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -1205,7 +1209,7 @@
                     <apply>
                         <minus/>
                         <ci>q_rv</ci>
-                        <ci>q_rv_0</ci>
+                        <ci>q_rv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -1226,7 +1230,7 @@
                     <apply>
                         <minus/>
                         <ci>q_la</ci>
-                        <ci>q_la_0</ci>
+                        <ci>q_la_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -1247,7 +1251,7 @@
                     <apply>
                         <minus/>
                         <ci>q_lv</ci>
-                        <ci>q_lv_0</ci>
+                        <ci>q_lv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -1346,10 +1350,10 @@
         <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
-        <variable name="q_ra_0" public_interface="in" units="m3"/>
-        <variable name="q_rv_0" public_interface="in" units="m3"/>
-        <variable name="q_la_0" public_interface="in" units="m3"/>
-        <variable name="q_lv_0" public_interface="in" units="m3"/>
+        <variable name="q_ra_us" public_interface="in" units="m3"/>
+        <variable name="q_rv_us" public_interface="in" units="m3"/>
+        <variable name="q_la_us" public_interface="in" units="m3"/>
+        <variable name="q_lv_us" public_interface="in" units="m3"/>
         <!-- State Variables-->
         <variable name="u_ra" public_interface="out" units="J_per_m3"/>
         <variable name="u_rv" units="J_per_m3"/>
@@ -2438,7 +2442,7 @@
                     <apply>
                         <minus/>
                         <ci>q_ra</ci>
-                        <ci>q_ra_0</ci>
+                        <ci>q_ra_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2459,7 +2463,7 @@
                     <apply>
                         <minus/>
                         <ci>q_rv</ci>
-                        <ci>q_rv_0</ci>
+                        <ci>q_rv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2480,7 +2484,7 @@
                     <apply>
                         <minus/>
                         <ci>q_la</ci>
-                        <ci>q_la_0</ci>
+                        <ci>q_la_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2501,7 +2505,7 @@
                     <apply>
                         <minus/>
                         <ci>q_lv</ci>
-                        <ci>q_lv_0</ci>
+                        <ci>q_lv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2600,10 +2604,10 @@
         <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
-        <variable name="q_ra_0" public_interface="in" units="m3"/>
-        <variable name="q_rv_0" public_interface="in" units="m3"/>
-        <variable name="q_la_0" public_interface="in" units="m3"/>
-        <variable name="q_lv_0" public_interface="in" units="m3"/>
+        <variable name="q_ra_us" public_interface="in" units="m3"/>
+        <variable name="q_rv_us" public_interface="in" units="m3"/>
+        <variable name="q_la_us" public_interface="in" units="m3"/>
+        <variable name="q_lv_us" public_interface="in" units="m3"/>
         <!-- State Variables-->
         <variable name="u_ra" public_interface="out" units="J_per_m3"/>
         <variable name="u_rv" units="J_per_m3"/>
@@ -3725,7 +3729,7 @@
                     <apply>
                         <minus/>
                         <ci>q_ra</ci>
-                        <ci>q_ra_0</ci>
+                        <ci>q_ra_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3746,7 +3750,7 @@
                     <apply>
                         <minus/>
                         <ci>q_rv</ci>
-                        <ci>q_rv_0</ci>
+                        <ci>q_rv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3767,7 +3771,7 @@
                     <apply>
                         <minus/>
                         <ci>q_la</ci>
-                        <ci>q_la_0</ci>
+                        <ci>q_la_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3788,7 +3792,7 @@
                     <apply>
                         <minus/>
                         <ci>q_lv</ci>
-                        <ci>q_lv_0</ci>
+                        <ci>q_lv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3888,10 +3892,10 @@
         <variable name="E_rv_B" units="J_per_m6"/>
         <variable name="E_ra_A" units="J_per_m6"/>
         <variable name="E_ra_B" units="J_per_m6"/>
-        <variable name="q_ra_0" public_interface="in" units="m3"/>
-        <variable name="q_rv_0" public_interface="in" units="m3"/>
-        <variable name="q_la_0" public_interface="in" units="m3"/>
-        <variable name="q_lv_0" public_interface="in" units="m3"/>
+        <variable name="q_ra_us" public_interface="in" units="m3"/>
+        <variable name="q_rv_us" public_interface="in" units="m3"/>
+        <variable name="q_la_us" public_interface="in" units="m3"/>
+        <variable name="q_lv_us" public_interface="in" units="m3"/>
         <!-- State Variables-->
         <variable name="u_ra" public_interface="out" units="J_per_m3"/>
         <variable name="u_rv" units="J_per_m3"/>
@@ -5023,7 +5027,7 @@
                     <apply>
                         <minus/>
                         <ci>q_ra</ci>
-                        <ci>q_ra_0</ci>
+                        <ci>q_ra_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5044,7 +5048,7 @@
                     <apply>
                         <minus/>
                         <ci>q_rv</ci>
-                        <ci>q_rv_0</ci>
+                        <ci>q_rv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5065,7 +5069,7 @@
                     <apply>
                         <minus/>
                         <ci>q_la</ci>
-                        <ci>q_la_0</ci>
+                        <ci>q_la_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5086,7 +5090,7 @@
                     <apply>
                         <minus/>
                         <ci>q_lv</ci>
-                        <ci>q_lv_0</ci>
+                        <ci>q_lv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5240,10 +5244,10 @@
         <variable name="E_rv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_ra_B" public_interface="in" units="J_per_m6"/>
-        <variable name="q_ra_0" public_interface="in" units="m3"/>
-        <variable name="q_rv_0" public_interface="in" units="m3"/>
-        <variable name="q_la_0" public_interface="in" units="m3"/>
-        <variable name="q_lv_0" public_interface="in" units="m3"/>
+        <variable name="q_ra_us" public_interface="in" units="m3"/>
+        <variable name="q_rv_us" public_interface="in" units="m3"/>
+        <variable name="q_la_us" public_interface="in" units="m3"/>
+        <variable name="q_lv_us" public_interface="in" units="m3"/>
         <!-- State Variables-->
         <variable name="u_ra" public_interface="out" units="J_per_m3"/>
         <variable name="u_rv" units="J_per_m3"/>
@@ -6556,7 +6560,7 @@
                     <apply>
                         <minus/>
                         <ci>q_ra</ci>
-                        <ci>q_ra_0</ci>
+                        <ci>q_ra_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -6577,7 +6581,7 @@
                     <apply>
                         <minus/>
                         <ci>q_rv</ci>
-                        <ci>q_rv_0</ci>
+                        <ci>q_rv_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -6598,7 +6602,7 @@
                     <apply>
                         <minus/>
                         <ci>q_la</ci>
-                        <ci>q_la_0</ci>
+                        <ci>q_la_us</ci>
                     </apply>
                 </apply>
             </apply>
@@ -6619,7 +6623,7 @@
                     <apply>
                         <minus/>
                         <ci>q_lv</ci>
-                        <ci>q_lv_0</ci>
+                        <ci>q_lv_us</ci>
                     </apply>
                 </apply>
             </apply>
