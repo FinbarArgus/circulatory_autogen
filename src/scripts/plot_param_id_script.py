@@ -8,6 +8,7 @@ import sys
 import os
 from mpi4py import MPI
 from distutils import util
+import re
 
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         # here we get the subdir of the generated model that has the fitted params in it.
         generated_models_subdir= os.path.join(generated_models_dir, file_prefix + '_' + data_str_addon)
         # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
-        
+
         # run the generation script with new param values
         generate_with_new_architecture(True, inp_data_dict=inp_data_dict)
 

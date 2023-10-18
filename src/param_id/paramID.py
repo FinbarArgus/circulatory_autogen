@@ -2239,7 +2239,9 @@ class OpencorParamID():
             print(f'cost type of {self.cost_type} not implemented')
             exit()
         
-        # TODO remove this debug, strange error
+        # TODO debugging a strange error that occurs occasionally in GA
+        assert not np.isnan(cost), 'cost is nan'
+        assert isinstance(cost, float), 'cost is not a float'
 
         if series is not None:
             #print(series)
