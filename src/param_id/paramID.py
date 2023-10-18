@@ -1435,23 +1435,26 @@ class OpencorParamID():
 
         self.sim_helper = self.initialise_sim_helper()
         # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
-        if pre_heart_periods is not None:
-            try:
-                T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
-            except:
-                print('ERROR: heart/T not found in model parameters. You should be setting sim_time and pre_time'
-                      'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
-                      'if your model doesn\'t have a heart period. Exiting')
+        if pre_heart_periods is not None or sim_heart_periods is not None:
+            # look for period in model parameters
+
+            period_full_name = [name for name in self.sim_helper.data.constants() if name.endswith('/T')]
+
+            if len(period_full_name) == 1:
+                T = self.sim_helper.get_init_param_vals([period_full_name[0]])[0]
+            elif len(period_full_name) > 1:
+                print('ERROR: more than one <module>/T found in model parameters.'
+                    'It is unclear what the model period is for setting the pre_time and'
+                    'sim_time from pre_heart_periods and sim_time_periods')
                 exit()
+            else:
+                print('ERROR: <module>/T not found in model parameters. You should be setting sim_time and pre_time'
+                    'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
+                    'if your model doesn\'t have a heart period. Exiting')
+                exit()
+        if pre_heart_periods is not None:
             self.pre_time = T*pre_heart_periods
         if sim_heart_periods is not None:
-            try:
-                T = self.sim_helper.get_init_param_vals(['heart/T'])[0]
-            except:
-                print('ERROR: heart/T not found in model parameters. You should be setting sim_time and pre_time'
-                      'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
-                      'if your model doesn\'t have a heart period. Exiting')
-                exit()
             self.sim_time = T*sim_heart_periods
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
@@ -2235,6 +2238,8 @@ class OpencorParamID():
         else:
             print(f'cost type of {self.cost_type} not implemented')
             exit()
+        
+        # TODO remove this debug, strange error
 
         if series is not None:
             #print(series)
