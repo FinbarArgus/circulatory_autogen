@@ -16,6 +16,7 @@ user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 
 from param_id.paramID import CVS0DParamID
 from param_id.sequential_paramID import SequentialParamID
+from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from utilities import obj_to_string
 import traceback
 from distutils import util
@@ -46,7 +47,22 @@ if __name__ == '__main__':
         if "generated_models_dir" in inp_data_dict.keys():
             generated_models_dir = inp_data_dict['generated_models_dir']
         
-        generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
+    
+        param_id_obs_path = inp_data_dict['param_id_obs_path']
+        if not os.path.exists(param_id_obs_path):
+            print(f'param_id_obs_path={param_id_obs_path} does not exist')
+            exit()
+
+        data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        # here we get the subdir of the generated model that has the fitted params in it.
+        generated_models_subdir= os.path.join(generated_models_dir, file_prefix + '_' + data_str_addon)
+        # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
+        
+        # run the generation script with new param values
+        generate_with_new_architecture(True, inp_data_dict=inp_data_dict)
+
+        # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
+
         model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
         param_id_model_type = inp_data_dict['param_id_model_type']
 
@@ -59,7 +75,6 @@ if __name__ == '__main__':
             print(f'params_for_id_path of {params_for_id_path} doesn\'t exist, user must create this file')
             exit()
 
-        param_id_obs_path = inp_data_dict['param_id_obs_path']
         do_sensitivity = inp_data_dict['do_sensitivity']
         do_mcmc = inp_data_dict['do_mcmc']
 
