@@ -41,7 +41,6 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
 
     vessels_csv_abs_path = os.path.join(resources_dir, file_prefix + '_vessel_array.csv')
     parameters_csv_abs_path = os.path.join(resources_dir, input_param_file)
-    
 
     if do_generation_with_fit_parameters:
         param_id_obs_path = inp_data_dict['param_id_obs_path']
@@ -56,6 +55,11 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
         output_model_subdir = os.path.join(generated_models_dir, file_prefix)
 
     model = parser.load_model()
+
+    if not os.path.exists(generated_models_dir):
+        os.mkdir(generated_models_dir)
+    if not os.path.exists(output_model_subdir):
+        os.mkdir(output_model_subdir)
 
     code_generator = CVS0DCellMLGenerator(model, output_model_subdir, file_prefix,
                                           resources_dir=resources_dir)
