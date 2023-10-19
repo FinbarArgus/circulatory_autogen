@@ -467,14 +467,18 @@ class CVS0DCellMLGenerator(object):
                         if not port_types[port_type_idx]["connected"][this_type_port_idx]:
                             out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
                             break
-                    # get the entrance port idx for the output module
-                    # TODO is this needed, the above should be right
-                    entrance_port_idx = -1
-                    for II in range(len(out_module_row["inp_vessels"])):
-                        # check that the entrance port corresponds to the main_vessel
-                        if out_module_row["inp_vessels"][II] == main_module:
-                            entrance_port_idx = entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
-                            break
+
+                    # I dont think this block is needed
+                    # # get the entrance port idx for the output module
+                    # if entrance_port_types[entrance_port_type_idx]["port_type_count"] == 1:
+                    #     entrance_port_idx = 0
+                    # else:
+                    #     entrance_port_idx = -1
+                    #     for II in range(len(out_module_row["inp_vessels"])):
+                    #         # check that the entrance port corresponds to the main_vessel
+                    #         if out_module_row["inp_vessels"][II] == main_module:
+                    #             entrance_port_idx = entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
+                    #             break
 
                     # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
                     #  heart module?
@@ -498,7 +502,8 @@ class CVS0DCellMLGenerator(object):
                         # TODO here I set that this connection is done. It is actually done later on
                         # when doing the venous_terminal_connection. Fine for now.
                         port_types[port_type_idx]["connected"][this_type_port_idx] = True
-                        entrance_ports_connected[out_module][entrance_port_idx] = True
+                        # dont do the below line becuase we can have multiple terminals connected to the same venous section
+                        # entrance_ports_connected[out_module][entrance_port_idx] = True
                         for II in range(len(variables_1)):
                             if variables_1[II] in self.BC_set[main_module].keys():
                                 self.BC_set[main_module][variables_1[II]] = True

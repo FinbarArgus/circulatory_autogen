@@ -1665,7 +1665,8 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":["v_in","u"]
+        "variables":["v_in","u"],
+        "multi_port":"True"
       },
       {
         "port_type":"venous_compliance_delta_port",
