@@ -1084,16 +1084,16 @@ class CVS0DParamID():
 
                 else:
                     param_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
                                                 for JJ in range(len(input_params["vessel_name"][II]))])
 
                     param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                      input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
                                                       for JJ in range(len(input_params["vessel_name"][II]))
                                                       if input_params["param_type"][II] == 'state'])
 
                     param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                      input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
                                                       for JJ in range(len(input_params["vessel_name"][II]))
                                                       if input_params["param_type"][II] == 'const'])
 
@@ -1691,12 +1691,14 @@ class OpencorParamID():
             cost[0] = np.inf
 
             while cost[0] > cost_convergence and gen_count < self.max_generations:
-                if gen_count > 30:
-                   mutation_weight = 0.04
-                elif gen_count > 60 :
-                   mutation_weight = 0.02
-                else:
-                   mutation_weight = 0.08
+                mutation_weight = 0.1
+                # TODO make the default just a mutation weight of 0.1
+                # if gen_count > 30:
+                #    mutation_weight = 0.04
+                # elif gen_count > 60 :
+                #    mutation_weight = 0.02
+                # else:
+                #    mutation_weight = 0.08
                 # TODO make these modifiable to the user
                 # TODO make this more general for the automated approach
                 # if gen_count > 100:
@@ -1717,6 +1719,8 @@ class OpencorParamID():
                 if rank == 0:
                     print('generation num: {}'.format(gen_count))
                     # check param_vals are within bounds and if not set them to the bound
+                    # TODO this is not a good way to set values close to bounds
+                    # TODO do a squeezing approach like gonzalo recommended.
                     for II in range(self.num_params):
                         for JJ in range(num_pop):
                             if param_vals[II, JJ] < self.param_mins[II]:

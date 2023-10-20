@@ -122,6 +122,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- the below are the wrong units, the 0.5 should be dimensionless-->
             <apply>
                 <eq/>
                 <apply>

@@ -386,6 +386,8 @@ class CVS0DCellMLGenerator(object):
         main_module_type = module_row["module_type"]
 
         # create a list of dicts that stores info for the exit ports of this main module
+        # entrance_port_types is the corresponding connection check for entrance ports and is stored in 
+        # this object so it can be obtained for each main module that connects to that out module
         port_types = []
         for out_port_idx in range(len(module_row["exit_ports"])):
             port_type = module_row["exit_ports"][out_port_idx]["port_type"]
@@ -457,7 +459,7 @@ class CVS0DCellMLGenerator(object):
                     # this port type isnt used, continue to next one
                     continue
                 if entrance_port_idx == -1:
-                    print(f"module {main_module} has a single port {port_types[port_type_idx]['port_type']}, connected",
+                    print(f"module {out_module} has a single port {port_types[port_type_idx]['port_type']}, connected",
                             f"to multiple ports. Should it have a multiport:True entry in the",
                             f"module_config.json file??")
                     exit()
@@ -482,7 +484,7 @@ class CVS0DCellMLGenerator(object):
 
                     # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
                     #  heart module?
-                    if out_module == 'heart':
+                    if out_module_type.startswith('heart'):
                         if len(out_module_row["inp_vessels"]) == 2:
                             # this is the case if there is only one vc and one pulmonary
                             # We map the ivc to a zero flow mapping
@@ -494,29 +496,46 @@ class CVS0DCellMLGenerator(object):
                             # it to the ivc port. the ivc, is the 0'th entrance_port_idx, so adding one avoids it.
                             entrance_port_idx += 1
                             # TODO the above isnt robust
+                        
+                        else:
+                            for heart_inp_idx in range(3):
+                                # there are three vessel_port entrances to the heart, ivc, svc, and pulmonary
+                                # in the vessel_array file, they must be ordered ivc, svc, pulmonary
+                                if main_module == out_module_row["inp_vessels"][heart_inp_idx]:
+                                    entrance_port_idx = heart_inp_idx
+                                    break
+                        
                     variables_1 = module_row["exit_ports"][out_port_idx]['variables']
                     variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
                     
                     if module_row["vessel_type"].endswith('terminal'):
                         # the terminal connections are done through the terminal_venous_connection
-                        # TODO here I set that this connection is done. It is actually done later on
+                        # TODO after this if loop I set that this connection is done. It is actually done later on
                         # when doing the venous_terminal_connection. Fine for now.
+                        pass
+                    else:
+                        main_module_module = main_module + '_module'
+                        out_module_module = out_module + '_module'
+
+                        self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+
+                    # only assign connected if the port doesnt have a multi_ports flag
+                    if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
+                        if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:
+                            pass
+                        else:
+                            port_types[port_type_idx]["connected"][this_type_port_idx] = True
+                    else:
                         port_types[port_type_idx]["connected"][this_type_port_idx] = True
-                        # dont do the below line becuase we can have multiple terminals connected to the same venous section
-                        # entrance_ports_connected[out_module][entrance_port_idx] = True
-                        for II in range(len(variables_1)):
-                            if variables_1[II] in self.BC_set[main_module].keys():
-                                self.BC_set[main_module][variables_1[II]] = True
-                            if variables_2[II] in self.BC_set[out_module].keys():
-                                self.BC_set[out_module][variables_2[II]] = True
-                        continue
 
-                    main_module_module = main_module + '_module'
-                    out_module_module = out_module + '_module'
+                    if 'multi_port' in out_module_row["entrance_ports"][entrance_port_idx].keys():
+                        if out_module_row["entrance_ports"][entrance_port_idx]['multi_port'] in ['True', True]:
+                            pass
+                        else:
+                            entrance_ports_connected[out_module][entrance_port_idx] = True
+                    else:
+                        entrance_ports_connected[out_module][entrance_port_idx] = True
 
-                    self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
-                    port_types[port_type_idx]["connected"][this_type_port_idx] = True
-                    entrance_ports_connected[out_module][entrance_port_idx] = True
                     for II in range(len(variables_1)):
                         if variables_1[II] in self.BC_set[main_module].keys():
                             self.BC_set[main_module][variables_1[II]] = True
@@ -527,9 +546,6 @@ class CVS0DCellMLGenerator(object):
                         if not port_types[port_type_idx]["connected"][this_type_port_idx]:
                             out_port_idx = port_types[port_type_idx]["out_port_idxs"][this_type_port_idx]
                             # get the entrance port idx for the output module
-                            if main_module_type == 'tissue_GE_simple_type' and out_module_type == "gas_transport_simple_type":
-                                # this connection is done through the terminal_venous_connection
-                                break
 
                             # TODO the below if isnt general. Figure out how to generalise this.
                             # if out_module_type == 'flow_sum_2_type':
@@ -544,10 +560,18 @@ class CVS0DCellMLGenerator(object):
                             variables_1 = module_row["exit_ports"][out_port_idx]['variables']
                             variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
 
-                            main_module_module = main_module + '_module'
-                            out_module_module = out_module + '_module'
+                            # TODO make this more general. Have a entry in module_config.json entrance and exit 
+                            # types that specify a certain operation, like averaging wrt flow, like this gas port.
+                            if main_module_type == 'tissue_GE_simple_type' and out_module_type == "gas_transport_simple_type":
+                                # this connection is done through the terminal_venous_connection
+                                # TODO after this if loop I set that this connection is done. It is actually done later on
+                                # when doing the venous_terminal_connection. Fine for now.
+                                pass
+                            else:
+                                main_module_module = main_module + '_module'
+                                out_module_module = out_module + '_module'
 
-                            self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+                                self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
                             for II in range(len(variables_1)):
                                 if variables_1[II] in self.BC_set[main_module].keys():
@@ -702,16 +726,12 @@ class CVS0DCellMLGenerator(object):
             self.__write_variable_sum(wf, lhs_variable, rhs_variables)
 
         if len(tissue_GE_names) > 0:
-            # sum all venous components to get a total flow to use for gas transport
-            lhs_variable = 'v_venous_total'
-            rhs_variables = []
-            for idx, venous_name in enumerate(first_venous_names):
-                rhs_variables.append(f'v_{venous_name}')
-            self.__write_variable_sum(wf, lhs_variable, rhs_variables)
 
             rhs_variables_to_average = []
             rhs_variables_weightings = []
             rhs_variables_to_average_CO2 = []
+            # sum all venous components to get a total flow to use for gas transport
+            lhs_variable_flow = 'v_venous_total'
             lhs_variable = f'C_O2_p_venous_ave'
             lhs_variable_CO2 = f'C_CO2_p_venous_ave'
             for terminal_name, GE_name in zip(terminal_names_with_GE, tissue_GE_names):
@@ -719,6 +739,7 @@ class CVS0DCellMLGenerator(object):
                 rhs_variables_to_average_CO2.append(f'C_CO2_p_{GE_name}')
                 rhs_variables_weightings.append(f'v_{terminal_name}')
 
+            self.__write_variable_sum(wf, lhs_variable_flow, rhs_variables_weightings)
             self.__write_variable_average(wf, lhs_variable, rhs_variables_to_average, rhs_variables_weightings)
             self.__write_variable_average(wf, lhs_variable_CO2, rhs_variables_to_average_CO2, rhs_variables_weightings)
 
@@ -757,8 +778,9 @@ class CVS0DCellMLGenerator(object):
         module_addon = '_module'
 
         global_variable_addon = f'_{vessel_name}'
-        if vessel_row["vessel_type"] == 'terminal' or vessel_row["vessel_type"] == 'terminal2':
-            global_variable_addon = re.sub('_T$', '', global_variable_addon)
+        # TODO check this doesnt break anything
+        # if vessel_row["vessel_type"] == 'terminal' or vessel_row["vessel_type"] == 'terminal2':
+        #     global_variable_addon = re.sub('_T$', '', global_variable_addon)
         params_with_addon_heading = 'parameters'
         params_without_addon_heading = 'parameters_global'
 

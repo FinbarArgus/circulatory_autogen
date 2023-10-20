@@ -105,9 +105,10 @@ class CSV0DModelParser(object):
             if vessel_tup.vessel_type.startswith('heart'):
                 str_addon = ''
                 module = 'heart'
-            elif vessel_tup.vessel_type == 'terminal' or vessel_tup.vessel_type == 'terminal2':
-                str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
-                module = 'systemic'
+            # TODO check that removing this doesn't break anything
+            # elif vessel_tup.vessel_type == 'terminal' or vessel_tup.vessel_type == 'terminal2':
+            #     str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
+            #     module = 'systemic'
             else:
                 str_addon = f'_{vessel_tup.name}'
 
