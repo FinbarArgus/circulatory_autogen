@@ -4980,5 +4980,55 @@
     "variables_and_units":
     [
     ]
+  },
+  {
+    "vessel_type":"delay_test",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"delay_modules.cellml",
+    "module_type":"delay_test",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+    ],
+    "variables_and_units":
+    [
+      ["V", "dimensionless", "access", "variable"],
+      ["V_delay", "dimensionless", "access", "variable"],
+      ["delay", "second", "access", "constant"],
+      ["k_e", "dimensionless", "access", "constant"]
+    ],
+    "delay_info":
+    {
+      "variables_to_delay":["V"],
+      "delayed_variables":["V_delay"],
+      "delay_amounts":["delay"]
+    }
+  },
+  {
+    "vessel_type":"FV1D_vessel",
+    "BC_type":"vp",
+    "module_format":"cpp",
+    "module_file":"",
+    "module_type":"Muller_1d",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "variables_and_units":
+    [
+    ]
   }
 ]

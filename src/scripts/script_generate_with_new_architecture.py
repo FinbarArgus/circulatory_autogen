@@ -16,6 +16,7 @@ user_inputs_dir= os.path.join(root_dir, 'user_run_files')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
+from generators.CVSCppGenerator import CVS0DCppGenerator
 
 
 def generate_with_new_architecture(do_generation_with_fit_parameters,
@@ -61,9 +62,20 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     if not os.path.exists(output_model_subdir):
         os.mkdir(output_model_subdir)
 
-    code_generator = CVS0DCellMLGenerator(model, output_model_subdir, file_prefix,
+    if inp_data_dict['model_type'] == 'cellml_only':
+        code_generator = CVS0DCellMLGenerator(model, output_model_subdir, file_prefix,
                                           resources_dir=resources_dir)
-    code_generator.generate_files()
+        code_generator.generate_files()
+    elif inp_data_dict['model_type'] == 'cpp':
+        code_generator = CVS0DCppGenerator(model, output_model_subdir, file_prefix,
+                                          resources_dir=resources_dir, solver=inp_data_dict['solver'])
+        code_generator.generate_cellml()
+        code_generator.annotate_cellml()
+        code_generator.generate_cpp()
+
+    else: 
+        print('model_type must be either cellml_only or cpp, not ' + inp_data_dict['model_type'])
+        exit()
 
 
 if __name__ == '__main__':

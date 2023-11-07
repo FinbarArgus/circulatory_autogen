@@ -18,14 +18,14 @@ class CVS0DCellMLGenerator(object):
     '''
 
 
-    def __init__(self, model, output_path, filename_prefix, resources_dir=None):
+    def __init__(self, model, output_dir, filename_prefix, resources_dir=None):
         '''
         Constructor
         '''
         self.model = model
-        self.output_path = output_path
-        if not os.path.exists(self.output_path):
-            os.mkdir(self.output_path)
+        self.output_dir = output_dir
+        if not os.path.exists(self.output_dir):
+            os.mkdir(self.output_dir)
         self.filename_prefix = filename_prefix
         if resources_dir is None:
             self.resources_dir = os.path.join(generators_dir_path, '../../resources')
@@ -45,7 +45,7 @@ class CVS0DCellMLGenerator(object):
             print("Error: The model should be a CVS0DModel representation")
             return
         
-        print("Generating model files at {}".format(self.output_path))
+        print("Generating model files at {}".format(self.output_dir))
         
         #    Code to generate model files
         self.__generate_units_file()
@@ -66,7 +66,7 @@ class CVS0DCellMLGenerator(object):
             opencor_available = False
             pass
         if opencor_available:
-            sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
+            sim = oc.open_simulation(os.path.join(self.output_dir, f'{self.filename_prefix}.cellml'))
             if sim.valid():
                 print('Model generation has been successful.')
             else:
@@ -87,7 +87,7 @@ class CVS0DCellMLGenerator(object):
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
         with open(self.base_script, 'r') as rf:
-            with open(os.path.join(self.output_path,f'{self.filename_prefix}.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_dir,f'{self.filename_prefix}.cellml'), 'w') as wf:
                 for line in rf:
                     if 'import xlink:href="units.cellml"' in line:
                         line = re.sub('units', f'{self.filename_prefix}_units', line)
@@ -150,7 +150,7 @@ class CVS0DCellMLGenerator(object):
         Takes in a data frame of the params and generates the parameter_cellml file
         """
 
-        with open(os.path.join(self.output_path, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
 
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
@@ -192,7 +192,7 @@ class CVS0DCellMLGenerator(object):
         # check if all the required parameters have been defined, if not we make an "unfinished"
         # csv file which makes it easy for the user to include the required parameters
         if self.all_parameters_defined:
-            file_to_create = os.path.join(self.output_path, f'{self.filename_prefix}_parameters.csv')
+            file_to_create = os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.csv')
         else:
             file_to_create = os.path.join(self.resources_dir,
                                           f'{self.filename_prefix}_parameters_unfinished.csv')
@@ -210,7 +210,7 @@ class CVS0DCellMLGenerator(object):
         #  This function simply copies the units file
         print(f'Generating CellML file {self.filename_prefix}_units.cellml')
         with open(self.units_script, 'r') as rf:
-            with open(os.path.join(self.output_path, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
                     if "units name" in line:
@@ -221,7 +221,7 @@ class CVS0DCellMLGenerator(object):
             # create list to check if all states get modified to param_id values
             state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
-        with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
             # write first two lines
             wf.write("<?xml version='1.0' encoding='UTF-8'?>\n")
             wf.write("<model name=\"modules\" xmlns=\"http://www.cellml.org/cellml/1.1#\" xmlns:cellml=\"http://www.cellml.org/cellml/1.1#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")
