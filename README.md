@@ -1,4 +1,4 @@
-This project allows the generation and calibration of cellml (and soon to be more) circulatory system models from an array of vessel names and connections. 
+This project allows the generation and calibration of cellml (and soon to be more) circulatory system models from an array of module/vessel names and connections. 
 This array is written in a csv file such as `test_vessel_array.csv` where the entries are detailed as...
 
 ```
@@ -115,6 +115,7 @@ emcee
 corner
 schwimmbad
 tqdm
+sympy
 
 ### Required packages for autogeneration
 pandas

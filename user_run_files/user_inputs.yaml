@@ -1,11 +1,12 @@
 #_______ general inputs ________
-DEBUG: False
-MPI_DEBUG: False
+DEBUG: false
+MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
 file_prefix: lung_ROM
 # file_prefix: lung_control
 # file_prefix: lung_control
+# file_prefix: simple_physiological
 # file_prefix: physiological
 # file_prefix: 3compartment
 # file_prefix: neonatal
@@ -16,7 +17,7 @@ file_prefix: lung_ROM
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
-input_param_file: lung_ROM_parameters.csv 
+input_param_file: lung_ROM_parameters.csv
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
@@ -25,25 +26,30 @@ input_param_file: lung_ROM_parameters.csv
 
 #__________ parameter identification inputs __________
 # param_id_method can be any of [genetic_algorithm]
-param_id_method: genetic_algorithm 
+param_id_method: genetic_algorithm
 
 # param_id_model_type can only be cellml_only atm (cardiovascular system 0D) atm, but will be extended 
 param_id_model_type: cellml_only
 # pre_time is the amount of time simulated to get to steady state
-pre_time: 333.2
 # pre_time: 20.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 8.33
-# sim_time: 1.0
+# sim_time: 2.0
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
-# pre_heart_periods: 16
+pre_heart_periods: 30
 # if sim_heart_periods is defined, pre_time will be calculated by multiplying
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
-# sim_heart_periods: 1
+sim_heart_periods: 2
+
+resources_dir: 
+  /hpc/farg967/pulmonary_workspace/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/resources
+generated_models_dir: 
+  /hpc/farg967/pulmonary_workspace/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/generated_models
+param_id_output_dir: 
+  /hpc/farg967/pulmonary_workspace/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/param_id_output
 
 # Maximum time step for solver
-maximum_step: 0.001
+maximum_step: 0.01
 # Output time step (sampling) # TODO this hasn't been tested for anything other than 0.01
 dt: 0.01
 # This for 3compartment
@@ -83,12 +89,13 @@ dt: 0.01
 # This for lung_ROM
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
+param_id_obs_path: 
+  /hpc/farg967/pulmonary_workspace/data/pulmonary/ground_truth_for_CA/ROM_gt/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 #_______ sensitivity analysis inputs __________
-do_sensitivity: False
+do_sensitivity: false
 
 #______ genetic algorithm inputs ___________
 ga_options:
@@ -98,10 +105,10 @@ ga_options:
 
 debug_ga_options:
   cost_type: AE
-  num_calls_to_function: 10
+  num_calls_to_function: 1500
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: false
 mcmc_options:
   num_steps: 40000
   num_walkers: 64
@@ -113,5 +120,5 @@ debug_mcmc_options:
   cost_type: AE
 
 # For plotting core predictions after mcmc
-plot_predictions: True
+plot_predictions: true
 

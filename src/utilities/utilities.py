@@ -46,6 +46,39 @@ def obj_to_string(obj, extra='    '):
                       obj.__dict__[item])))
          for item in sorted(obj.__dict__)))
 
+def bin_resample(data, freq_1, freq_ds):
+
+    new_len = len(freq_ds)
+    new_data = np.zeros((new_len))
+    new_count = 0 
+    this_count = 0 
+    addup = 0 
+    for II in range(0, len(freq_1)):
+        
+        dist_behind = np.abs(freq_1[II] - freq_ds[new_count])
+        dist_infront = np.abs(freq_1[II] - freq_ds[new_count+1])
+        if dist_behind < dist_infront:
+            addup += data[II]
+            this_count += 1
+        else:
+            if new_count == 0:
+                # overwrite with 0th entry of data
+                # this ignores some data points directly after 0 frequency
+                new_data[0] = data[0]
+            else:
+                new_data[new_count] = addup / this_count
+            addup = data[II]
+            this_count = 1 
+            new_count += 1
+
+        if new_count == len(freq_ds) - 1:
+            # add all remaining data points to this new datapoint and average
+            new_data[new_count] = np.sum(data[II+1:]) / len(data[II+1:])
+            break
+
+    return new_data
+
+
 
 
 

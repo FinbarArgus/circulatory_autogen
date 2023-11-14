@@ -11,16 +11,17 @@ class SequentialParamID:
     """
 
     def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
-                 input_params_path=None, num_calls_to_function=1000,
+                 params_for_id_path=None, num_calls_to_function=1000,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, sim_heart_periods=None, pre_heart_periods=None,
                  maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None,
+                 param_id_output_dir=None, resources_dir=None,
                  DEBUG=False):
 
         self.model_path = model_path
         self.param_id_model_type = param_id_model_type
         self.param_id_method = param_id_method
         self.file_name_prefix = file_name_prefix
-        self.input_params_path = input_params_path
+        self.params_for_id_path = params_for_id_path
         self.num_calls_to_function = num_calls_to_function
         self.param_id_obs_path = param_id_obs_path
         self.sim_time = sim_time
@@ -33,11 +34,12 @@ class SequentialParamID:
 
 
         self.param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
-                                input_params_path=input_params_path,
+                                params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG)
+                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
 
         self.param_id.set_genetic_algorithm_parameters(num_calls_to_function)
@@ -230,11 +232,12 @@ class SequentialParamID:
         
         mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
                             self.file_name_prefix,
-                            input_params_path=self.input_params_path,
+                            params_for_id_path=self.params_for_id_path,
                             param_id_obs_path=self.param_id_obs_path,
                             sim_time=self.sim_time, pre_time=self.pre_time,
                             sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
                             maximum_step=self.maximum_step, mcmc_options=self.mcmc_options, dt=self.dt,
+                            param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
                             DEBUG=self.DEBUG)
 
         mcmc.remove_params_by_idx(param_idxs_to_remove_array)
@@ -257,10 +260,11 @@ class SequentialParamID:
             print('creating mcmc object')
             mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
                                 self.file_name_prefix,
-                                input_params_path=self.input_params_path,
+                                params_for_id_path=self.params_for_id_path,
                                 param_id_obs_path=self.param_id_obs_path,
                                 sim_time=self.sim_time, pre_time=self.pre_time,
                                 sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
+                                param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
                                 maximum_step=self.maximum_step,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:

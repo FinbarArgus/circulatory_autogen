@@ -9,13 +9,10 @@ import os
 import re
 import traceback
 import yaml
-root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
-sys.path.append(os.path.join(root_dir_path, 'src'))
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
 
-resources_dir_path = os.path.join(root_dir_path, 'resources')
-param_id_dir_path = os.path.join(root_dir_path, 'param_id_output')
-output_model_dir_path = os.path.join(root_dir_path, 'generated_models')
-user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
+user_inputs_dir= os.path.join(root_dir, 'user_run_files')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
@@ -24,28 +21,48 @@ from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 def generate_with_new_architecture(do_generation_with_fit_parameters,
                                    inp_data_dict=None):
     if inp_data_dict is None:
-        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+        with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
     file_prefix = inp_data_dict['file_prefix']
     input_param_file = inp_data_dict['input_param_file']
-    vessels_csv_abs_path = os.path.join(resources_dir_path, file_prefix + '_vessel_array.csv')
-    parameters_csv_abs_path = os.path.join(resources_dir_path, input_param_file)
+
+    resources_dir = os.path.join(root_dir, 'resources')
+    param_id_output_dir = os.path.join(root_dir, 'param_id_output')
+    generated_models_dir = os.path.join(root_dir, 'generated_models')
+    
+    # overwrite dir paths if set in user_inputs.yaml
+    if "resources_dir" in inp_data_dict.keys():
+        resources_dir = inp_data_dict['resources_dir']
+    if "generated_models_dir" in inp_data_dict.keys():
+        generated_models_dir = inp_data_dict['generated_models_dir']
+    if "param_id_output_dir" in inp_data_dict.keys():
+        param_id_output_dir = inp_data_dict['param_id_output_dir']
+
+    vessels_csv_abs_path = os.path.join(resources_dir, file_prefix + '_vessel_array.csv')
+    parameters_csv_abs_path = os.path.join(resources_dir, input_param_file)
 
     if do_generation_with_fit_parameters:
         param_id_obs_path = inp_data_dict['param_id_obs_path']
         param_id_method = inp_data_dict['param_id_method']
         data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
-        param_id_dir_abs_path = os.path.join(param_id_dir_path, param_id_method + f'_{file_prefix}_{data_str_addon}')
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, param_id_dir_abs_path)
-        output_model_subdir_path = os.path.join(output_model_dir_path, file_prefix + '_' + data_str_addon)
+        param_id_output_dir_abs_path = os.path.join(param_id_output_dir, param_id_method + f'_{file_prefix}_{data_str_addon}')
+        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
+                                  param_id_output_dir_abs_path)
+        output_model_subdir = os.path.join(generated_models_dir, file_prefix + '_' + data_str_addon)
     else:
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path)
-        output_model_subdir_path = os.path.join(output_model_dir_path, file_prefix)
+        output_model_subdir = os.path.join(generated_models_dir, file_prefix)
 
     model = parser.load_model()
 
-    code_generator = CVS0DCellMLGenerator(model, output_model_subdir_path, file_prefix)
+    if not os.path.exists(generated_models_dir):
+        os.mkdir(generated_models_dir)
+    if not os.path.exists(output_model_subdir):
+        os.mkdir(output_model_subdir)
+
+    code_generator = CVS0DCellMLGenerator(model, output_model_subdir, file_prefix,
+                                          resources_dir=resources_dir)
     code_generator.generate_files()
 
 
