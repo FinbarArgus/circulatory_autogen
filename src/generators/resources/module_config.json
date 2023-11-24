@@ -4980,5 +4980,132 @@
     "variables_and_units":
     [
     ]
+  },
+  {
+    "vessel_type":"SN_pre_synaptic",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"cell_modules.cellml",
+    "module_type":"SN_pre_synaptic",
+    "entrance_ports":
+    [
+      {
+        "port_type":"i_stim",
+        "variables":["I_app"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"synaptic_NE",
+        "variables":["NE"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["iNa_N", "nanoA", "access", "variable"],
+      ["iCa_N", "nanoA", "access", "variable"],
+      ["ikv", "nanoA", "access", "variable"],
+      ["iA", "nanoA", "access", "variable"],
+      ["ikca", "nanoA", "access", "variable"],
+      ["I_app", "nanoA", "access", "boundary_condition"],
+      ["V", "milliV", "access", "variable"],
+      ["V_init", "milliV", "access", "constant"],
+      ["m", "dimensionless", "access", "variable"],
+      ["m_init", "dimensionless", "access", "constant"],
+      ["h", "dimensionless", "access", "variable"],
+      ["h_init", "dimensionless", "access", "constant"],
+      ["c", "dimensionless", "access", "variable"],
+      ["c_init", "dimensionless", "access", "constant"],
+      ["hc", "dimensionless", "access", "variable"],
+      ["hc_init", "dimensionless", "access", "constant"],
+      ["n1", "dimensionless", "access", "variable"],
+      ["n1_init", "dimensionless", "access", "constant"],
+      ["a", "dimensionless", "access", "variable"],
+      ["a_init", "dimensionless", "access", "constant"],
+      ["ah", "dimensionless", "access", "variable"],
+      ["ah_init", "dimensionless", "access", "constant"],
+      ["kcf", "dimensionless", "access", "variable"],
+      ["kcf_init", "dimensionless", "access", "constant"],
+      ["kcs", "dimensionless", "access", "variable"],
+      ["kcs_init", "dimensionless", "access", "constant"],
+      ["tau_m", "millis", "access", "variable"],
+      ["tau_h", "millis", "access", "variable"],
+      ["tau_c", "millis", "access", "variable"],
+      ["tau_hc", "millis", "access", "variable"],
+      ["tau_n1", "millis", "access", "variable"],
+      ["tau_a", "millis", "access", "variable"],
+      ["tau_ah", "millis", "access", "variable"],
+      ["tau_kcf", "millis", "access", "variable"],
+      ["tau_kcs", "millis", "access", "variable"],
+      ["Caz", "millimolar", "access", "variable"],
+      ["Caz_init", "millimolar", "access", "constant"],
+      ["B0", "dimensionless", "access", "variable"],
+      ["B0_init", "dimensionless", "access", "constant"],
+      ["B1", "dimensionless", "access", "variable"],
+      ["B1_init", "dimensionless", "access", "constant"],
+      ["B2", "dimensionless", "access", "variable"],
+      ["B2_init", "dimensionless", "access", "constant"],
+      ["B3", "dimensionless", "access", "variable"],
+      ["B3_init", "dimensionless", "access", "constant"],
+      ["B4", "dimensionless", "access", "variable"],
+      ["B4_init", "dimensionless", "access", "constant"],
+      ["B5", "dimensionless", "access", "variable"],
+      ["B5_init", "dimensionless", "access", "constant"],
+      ["NE", "dimensionless", "access", "variable"],
+      ["NE_init", "dimensionless", "access", "constant"],
+      ["a_cleft", "dimensionless", "access", "global_constant"],
+      ["n_cleft", "dimensionless", "access", "global_constant"],
+      ["V_cleft", "litre", "access", "global_constant"],
+      ["N_avo", "per_mol", "access", "global_constant"],
+      ["R", "J_per_mol_K", "access", "global_constant"],
+      ["F", "C_per_mol", "access", "global_constant"],
+      ["T", "kelvin", "access", "global_constant"],
+      ["gna", "microS", "access", "constant"],
+      ["b", "picoF", "access", "constant"],
+      ["Cm", "picoF", "access", "constant"],
+      ["Cm1", "picoF", "access", "constant"],
+      ["eca1", "milliV", "access", "constant"],
+      ["ek1", "milliV", "access", "constant"],
+      ["ena1", "milliV", "access", "constant"],
+      ["gamma", "per_s", "access", "constant"],
+      ["pCa", "m3_per_s", "access", "constant"],
+      ["gkv", "microS", "access", "constant"],
+      ["gA", "microS", "access", "constant"],
+      ["gkcf", "microS", "access", "constant"],
+      ["gkcs", "microS", "access", "constant"],
+      ["kon", "per_milliM_s", "access", "constant"],
+      ["koff", "per_s", "access", "constant"],
+      ["Vz", "litre", "access", "constant"],
+      ["Cao", "millimolar", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"i_stim_periodic",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"input_stimulation_modules.cellml",
+    "module_type":"i_stim_periodic",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"i_stim",
+        "variables":["i"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["i", "nanoA", "access", "variable"],
+      ["stim_flag", "dimensionless", "access", "constant"],
+      ["t_start", "second", "access", "constant"],
+      ["t_end", "second", "access", "constant"],
+      ["period", "second", "access", "constant"],
+      ["pulse_duration", "second", "access", "constant"],
+      ["i_amplitude", "nanoA", "access", "constant"]
+    ]
   }
 ]

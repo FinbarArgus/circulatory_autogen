@@ -64,6 +64,11 @@
         <unit prefix="nano" units="coulomb"/>
         <unit exponent="-1" units="second"/>
     </units>
+    <units name="Cm_per_millis">
+        <unit units="coulomb"/>
+        <unit units="metre"/>
+        <unit exponent="-1" prefix="milli" units="second"/>
+    </units>
     <!-- flow (velocity)-->
     <units name="m_per_s">
         <unit units="metre"/>
@@ -94,6 +99,10 @@
         <unit units="second"/>
         <unit exponent="-1" prefix="milli" units="volt"/>
     </units>
+    <units name="s_per_millis">
+        <unit units="second"/>
+        <unit exponent="-1" prefix="milli" units="second"/>
+    </units>
     <units name="mm3_per_s">
         <unit exponent="3" prefix="milli" units="metre"/>
         <unit exponent="-1" units="second"/>
@@ -109,6 +118,11 @@
     <units name="J_per_mol">
         <unit units="joule"/>
         <unit exponent="-1" units="mole"/>
+    </units>
+    <units name="J_per_kmol_K">
+        <unit units="joule"/>
+        <unit exponent="-1" prefix="kilo" units="mole"/>
+        <unit exponent="-1" units="kelvin"/>
     </units>
     <units name="J_per_M">
         <unit units="J_per_mol"/>
@@ -424,6 +438,10 @@
     <units name="per_milliV">
         <unit exponent="-1" units="milliV"/>
     </units>
+    <units name="millis_per_milliV">
+        <unit exponent="-1" units="milliV"/>
+        <unit units="millis"/>
+    </units>
     <units name="per_V">
         <unit exponent="-1" units="volt"/>
     </units>
@@ -441,6 +459,9 @@
     <units name="milliV2">
         <unit exponent="2" prefix="milli" units="volt"/>
     </units>
+    <units name="milliM">
+        <unit prefix="milli" units="mole"/>
+    </units>
     <units name="millimolar">
         <unit prefix="milli" units="mole"/>
         <unit exponent="-1" units="litre"/>
@@ -450,6 +471,18 @@
     </units>
     <units name="millimolar_per_s">
         <unit units="millimolar"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="per_milliM_milliS">
+        <unit exponent="-1" prefix="milli" units="mole"/>
+        <unit exponent="-1" prefix="milli" units="siemens"/>
+    </units>
+    <units name="per_milliM_millis">
+        <unit exponent="-1" prefix="milli" units="mole"/>
+        <unit exponent="-1" prefix="milli" units="second"/>
+    </units>
+    <units name="per_milliM_s">
+        <unit exponent="-1" prefix="milli" units="mole"/>
         <unit exponent="-1" units="second"/>
     </units>
     <units name="microm">
@@ -483,6 +516,10 @@
     </units>
     <units name="nanoA">
         <unit prefix="nano" units="ampere"/>
+    </units>
+    <units name="nanoA_per_milliA">
+        <unit prefix="nano" units="ampere"/>
+        <unit exponent="-1" prefix="milli" units="ampere"/>
     </units>
     <units name="J_per_MK">
         <unit units="joule"/>
