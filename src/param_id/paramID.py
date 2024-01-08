@@ -1490,7 +1490,7 @@ class OpencorParamID():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                maximumNumberofSteps=100000000,
+                                maximumNumberofSteps=500,
                                 maximum_step=self.maximum_step, pre_time=self.pre_time)
     
     def set_best_param_vals(self, best_param_vals):
@@ -2598,7 +2598,7 @@ class OpencorMCMC():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                maximumNumberofSteps=100000000,
+                                maximumNumberofSteps=500,
                                 maximum_step=self.maximum_step, pre_time=self.pre_time)
 
     def set_best_param_vals(self, best_param_vals):

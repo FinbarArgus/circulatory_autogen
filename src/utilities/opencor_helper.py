@@ -6,7 +6,7 @@ import sys
 
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
-                 sim_time, maximumNumberofSteps=100000,
+                 sim_time, maximumNumberofSteps=500,
                  maximum_step=0.001, pre_time=0.0):
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt  # time step

@@ -2981,7 +2981,6 @@
     "variables_and_units":
     [
       ["P_CO2_a_nom", "J_per_m3", "access", "global_constant"],
-      ["G_pn", "dimensionless", "access", "global_constant"],
       ["C_O2_vb_nom", "dimensionless", "access", "global_constant"],
       ["tau_O2", "second", "access", "global_constant"],
       ["tau_CO2", "second", "access", "global_constant"],
