@@ -1541,7 +1541,6 @@
         <variable name="B_b_lc" public_interface="in" units="dimensionless"/>
         <variable name="C_b_lc" public_interface="in" units="dimensionless"/>
         <variable name="D_b_lc" public_interface="in" units="dimensionless"/>
-        <variable name="G_pn" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1660,21 +1659,17 @@
                 <eq/>
                 <ci>G_p</ci>
                 <apply>
-                    <times/>
-                    <ci>G_pn</ci>
+                    <plus/>
                     <apply>
-                        <plus/>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <minus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <times/>
-                                <ci>g_O2_b</ci>
-                                <ci>x_O2</ci>
-                            </apply>
+                            <times/>
+                            <ci>g_O2_b</ci>
+                            <ci>x_O2</ci>
                         </apply>
-                        <ci>x_CO2</ci>
                     </apply>
+                    <ci>x_CO2</ci>
                 </apply>
             </apply>
             <apply>

@@ -603,10 +603,9 @@ C_O2_vm_nom,dimensionless,0.155,Magosso2001AndUrsino2000
 tau_O2,second,10,Magosso2001AndUrsino2000
 tau_CO2,second,20,Magosso2001AndUrsino2000
 g_O2_m,dimensionless,30,Magosso2001AndUrsino2000
-G_pn,dimensionless,2.0,user_defined
 C_O2_vb_nom,dimensionless,0.14,Magosso2001AndUrsino2000
 g_O2_b,dimensionless,10,Magosso2001AndUrsino2000
 A_b_lc,dimensionless,20.9,Magosso2001AndUrsino2000
 B_b_lc,dimensionless,92.8,Magosso2001AndUrsino2000
-C_b_lc,dimensionless,10570,Magosso2001AndUrsino2000
+C_b_lc,dimensionless,1.53e15,Magosso2001AndUrsino2000
 D_b_lc,dimensionless,-5.2551,Magosso2001AndUrsino2000
