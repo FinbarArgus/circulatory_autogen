@@ -3,7 +3,7 @@ DEBUG: false
 MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
-file_prefix: lung_ROM
+# file_prefix: lung_ROM
 # file_prefix: lung_control
 # file_prefix: simple_physiological
 # file_prefix: physiological
@@ -15,12 +15,13 @@ file_prefix: lung_ROM
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
+file_prefix: SN_to_cAMP
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
-input_param_file: lung_ROM_parameters.csv
+# input_param_file: lung_ROM_parameters.csv
 # input_param_file: cpp_coupling_parameters.csv 
 # input_param_file: aortic_bif_1d_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
@@ -31,6 +32,7 @@ input_param_file: lung_ROM_parameters.csv
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv 
 # input_param_file: simple_physiological_parameters.csv
+input_param_file: SN_to_cAMP_parameters.csv
 
 #__________ parameter identification inputs __________
 # param_id_method can be any of [genetic_algorithm]
@@ -50,9 +52,9 @@ pre_heart_periods: 14
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
 sim_heart_periods: 14
 
-resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/resources
-generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/generated_models
-param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/param_id_output
+  # resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/resources
+  # generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/generated_models
+  # param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/param_id_output
 
 # Maximum time step for solver
 maximum_step: 0.01
