@@ -44,7 +44,7 @@ C_T_middle_cerebral_R,m6_per_J,10e-12,to_be_identified
 C_T_posterior_cerebral_L,m6_per_J,10e-12,to_be_identified
 C_T_posterior_cerebral_R,m6_per_J,10e-12,to_be_identified
 C_T_trunk_C,m6_per_J,4e-9,to_be_identified
-C_b_lc,dimensionless,10570,Magosso2001AndUrsino2000
+C_b_lc,dimensionless,1.53e15,Magosso2001AndUrsino2000
 C_b_lung,J_per_m6,1.3367e-6,YasuhiroFukui1972
 C_inlet_connector,m6_per_J,1e-9,small_chosen
 C_l_lung,J_per_m6,1.2959e-8,YasuhiroFukui1972
@@ -165,7 +165,6 @@ F_CO2_i_respiratory_gt,dimensionless,0.000421,WestPulmonaryPhysiology2008
 F_O2_i_respiratory_gt,dimensionless,0.210379,WestPulmonaryPhysiology2008
 G_Ts_heart_period_effector,second,-0.13,Magosso2001AndUrsino2000
 G_Tv_heart_period_effector,second,0.09,Magosso2001AndUrsino2000
-G_pn,dimensionless,2.0,user_defined
 G_theta_arm_leg_resistance_effector,Js_per_m6,329e6,Magosso2001AndUrsino2000
 G_theta_lv_elastance_effector,J_per_m6,63.33e6,Magosso2001AndUrsino2000
 G_theta_rv_elastance_effector,J_per_m6,37.6e6,Magosso2001AndUrsino2000
