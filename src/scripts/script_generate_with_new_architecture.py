@@ -67,8 +67,16 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
                                           resources_dir=resources_dir)
         code_generator.generate_files()
     elif inp_data_dict['model_type'] == 'cpp':
-        code_generator = CVS0DCppGenerator(model, output_model_subdir, file_prefix,
-                                          resources_dir=resources_dir, solver=inp_data_dict['solver'])
+        if inp_data_dict['couple_to_1d']:
+            code_generator = CVS0DCppGenerator(model, output_model_subdir, file_prefix,
+                                            resources_dir=resources_dir, solver=inp_data_dict['solver'], 
+                                            couple_to_1d=inp_data_dict['couple_to_1d'],
+                                            cpp_generated_models_dir=inp_data_dict['cpp_generated_models_dir'],
+                                            cpp_1d_model_config_path=inp_data_dict['cpp_1d_model_config_path'])
+        else:
+            code_generator = CVS0DCppGenerator(model, output_model_subdir, file_prefix,
+                                            resources_dir=resources_dir, solver=inp_data_dict['solver'])
+
         code_generator.generate_cellml()
         code_generator.annotate_cellml()
         code_generator.generate_cpp()

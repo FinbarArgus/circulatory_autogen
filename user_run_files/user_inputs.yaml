@@ -7,11 +7,11 @@ MPI_DEBUG: false
 # file_prefix: lung_control
 # file_prefix: simple_physiological
 # file_prefix: physiological
-# file_prefix: 3compartment
+file_prefix: 3compartment
 # file_prefix: delay_test
 # file_prefix: neonatal
 # file_prefix: neonatal_test
-file_prefix: cpp_coupling
+# file_prefix: cpp_coupling
 # file_prefix: aortic_bif_1d
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
@@ -21,12 +21,12 @@ file_prefix: cpp_coupling
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
 # input_param_file: lung_CVS_coupled_parameters.csv
-input_param_file: cpp_coupling_parameters.csv 
+# input_param_file: cpp_coupling_parameters.csv 
 # input_param_file: aortic_bif_1d_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
-# input_param_file: 3compartment_parameters.csv 
+input_param_file: 3compartment_parameters.csv 
 # input_param_file: cardiomyocyte_paci_2013_parameters.csv 
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
@@ -35,9 +35,11 @@ input_param_file: cpp_coupling_parameters.csv
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
 # TODO make this also change the solver in the opencor sims when not generating cpp.
-solver: RK4
+# solver: RK4
+solver: CVODE
 # model_type can be cellml_only or cpp atm 
-model_type: cpp
+# model_type: cpp
+model_type: cellml_only
 
 #__________ parameter identification inputs __________
 # param_id_method can be any of [genetic_algorithm]
@@ -60,8 +62,9 @@ sim_time: 2.0
 # param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/param_id_output
 
 # This is for cpp_coupling
-# cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/cellml_coupling/elastic_o3_fv_dx_2.0/input1d.dat
-# cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
+couple_to_1d: True
+cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/cellml_coupling/elastic_o3_fv_dx_2.0/input1d.dat
+cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
 
 # Maximum time step for solver
 maximum_step: 0.001
@@ -71,6 +74,7 @@ dt: 0.01
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB044_wout_lv.json
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
 #
 #
 # param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB044_wout_lv.json
@@ -106,7 +110,7 @@ dt: 0.01
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-param_id_obs_path: /home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
+# param_id_obs_path: /home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 #_______ sensitivity analysis inputs __________
