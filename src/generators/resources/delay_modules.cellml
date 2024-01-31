@@ -3,12 +3,12 @@
     <component name="delay_test">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="f_a" units="per_s"/>
-        <variable name="V_delay" units="per_s"/>
-        <variable initial_value="0.0" name="V" units="dimensionless"/>
+        <variable name="V_delay" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="V" public_interface="out" units="dimensionless"/>
         <variable name="out" units="dimensionless"/>
         <variable name="delay" public_interface="in" units="second"/>
         <!-- Constants-->
-        <variable name="k_e" public_interface="in" units="dimensionless"/>
+        <variable name="k_e" public_interface="in" units="per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -41,7 +41,7 @@
                             <sin/>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless">10</cn>
+                                <cn cellml:units="per_s">10</cn>
                                 <ci>t</ci>
                             </apply>
                         </apply>
@@ -53,7 +53,7 @@
                             <sin/>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless">1</cn>
+                                <cn cellml:units="per_s">1</cn>
                                 <ci>t</ci>
                             </apply>
                         </apply>

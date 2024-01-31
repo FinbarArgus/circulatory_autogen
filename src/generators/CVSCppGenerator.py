@@ -491,6 +491,11 @@ class CVS0DCppGenerator(object):
         importer = cellml.resolve_imports(model, model_dir, False)
         # need a flattened model for analysing
         flat_model = cellml.flatten_model(model, importer)
+        
+        model_string = cellml.print_model(flat_model)
+        
+        with open(os.path.join(self.generated_model_subdir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+            f.write(model_string)
 
         # analyse the model
         a = Analyser()
@@ -583,6 +588,7 @@ class CVS0DCppGenerator(object):
 
         a.analyseModel(flat_model)
         analysed_model = a.model()
+
         print(analysed_model.type())
         if analysed_model.type() != AnalyserModel.Type.ODE:
             print("model is not a valid ODE model, aborting...")

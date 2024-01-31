@@ -5020,7 +5020,7 @@
       ["V", "dimensionless", "access", "variable"],
       ["V_delay", "dimensionless", "access", "variable"],
       ["delay", "second", "access", "constant"],
-      ["k_e", "dimensionless", "access", "constant"]
+      ["k_e", "per_s", "access", "constant"]
     ],
     "delay_info":
     {
