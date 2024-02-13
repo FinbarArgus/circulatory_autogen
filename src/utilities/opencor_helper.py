@@ -47,7 +47,7 @@ class SimulationHelper():
         self.simulation.reset()
         self.simulation.clear_results()
 
-    def get_results(self, variables_list_of_lists):
+    def get_results(self, variables_list_of_lists, flatten=False):
         """
         gets results after a simulation
         inputs:
@@ -81,6 +81,8 @@ class SimulationHelper():
                     print('exiting')
                     exit()
 
+        if flatten:
+            results = [item for sublist in results for item in sublist]
         return results
 
     def get_init_param_vals(self, param_names):
@@ -174,12 +176,12 @@ class SimulationHelper():
 
     def update_times(self, dt, start_time, sim_time, pre_time):
         self.dt = dt
-        self.stop_time= pre_time + sim_time # full time of simulation
+        self.stop_time= start_time + pre_time + sim_time # full time of simulation
         self.pre_steps = int(pre_time/self.dt)  # number of steps to do before storing data (used to reach steady state)
         self.n_steps = int(sim_time/self.dt)  # number of steps for storing data
         self.data.set_starting_point(start_time)
-        self.data.set_ending_point(start_time + self.stop_time)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
+        self.data.set_ending_point(self.stop_time)
+        self.tSim = np.linspace(start_time + pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
 
     def close_simulation(self):
         oc.close_simulation(self.simulation)

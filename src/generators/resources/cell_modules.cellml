@@ -2248,7 +2248,7 @@
         <variable name="w_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="w_init" name="w" public_interface="out" units="dimensionless"/>
         <variable name="w_inf" units="dimensionless"/>
-        <variable name="cAMP" units="dimensionless"/>
+        <variable name="cAMP" public_interface="in" units="dimensionless"/>
         <variable name="tau_w" units="millis"/>
         <variable name="delta_gM" public_interface="in" units="microS"/>
         <!-- var theta_w: milliV {pub: in};
@@ -2261,23 +2261,6 @@
  TODO calculate cAMP concentration
  TODO figure out what units cAMP is supposed to have. is it between 0 and 1?-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>cAMP</ci>
-                <piecewise>
-                    <piece>
-                        <cn cellml:units="millimolar">0.01</cn>
-                        <apply>
-                            <lt/>
-                            <ci>t</ci>
-                            <cn cellml:units="second">2</cn>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="millimolar">0.8</cn>
-                    </otherwise>
-                </piecewise>
-            </apply>
             <apply>
                 <eq/>
                 <ci>w_inf</ci>
@@ -2690,6 +2673,7 @@
         <variable name="j_IP3" units="millimolar_per_s"/>
         <variable name="j_leak" units="millimolar_per_s"/>
         <variable name="j_SERCA" units="millimolar_per_s"/>
+        <variable name="j_RyR" units="millimolar_per_s"/>
         <!-- c_1 is the ratio between ER volume and cytosol volume. TODO remove overconstraint with Vz and V_ER-->
         <variable name="c_1" public_interface="in" units="dimensionless"/>
         <variable name="v_1" public_interface="in" units="per_s"/>
@@ -2709,6 +2693,7 @@
         <variable name="d_5" public_interface="in" units="millimolar"/>
         <variable name="Q_2" units="millimolar"/>
         <variable name="V_ER" units="microm3"/>
+        <variable name="k_RyR" public_interface="in" units="per_millimolar_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -2773,24 +2758,24 @@
                 <eq/>
                 <ci>m_IP3_inf</ci>
                 <apply>
-                    <times/>
+                    <divide/>
                     <apply>
-                        <divide/>
-                        <ci>IP3</ci>
+                        <times/>
                         <apply>
-                            <plus/>
+                            <divide/>
                             <ci>IP3</ci>
-                            <ci>d_1</ci>
+                            <apply>
+                                <plus/>
+                                <ci>IP3</ci>
+                                <ci>d_1</ci>
+                            </apply>
                         </apply>
+                        <ci>Cai</ci>
                     </apply>
                     <apply>
-                        <divide/>
+                        <plus/>
                         <ci>Cai</ci>
-                        <apply>
-                            <plus/>
-                            <ci>Cai</ci>
-                            <ci>d_5</ci>
-                        </apply>
+                        <ci>d_5</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2894,6 +2879,23 @@
                     </apply>
                 </apply>
             </apply>
+            <apply>
+                <eq/>
+                <ci>j_RyR</ci>
+                <apply>
+                    <times/>
+                    <apply>
+                        <minus/>
+                        <ci>k_RyR</ci>
+                    </apply>
+                    <ci>Cai</ci>
+                    <apply>
+                        <minus/>
+                        <ci>Cai</ci>
+                        <ci>Ca_ER</ci>
+                    </apply>
+                </apply>
+            </apply>
         </math>
         <!--
  todo there are no calcium pumps, potentially needs improving.
@@ -2962,10 +2964,10 @@
                     <ci>j_IP3</ci>
                     <ci>j_leak</ci>
                     <ci>j_SERCA</ci>
+                    <ci>j_RyR</ci>
                 </apply>
             </apply>
         </math>
-        <!-- + j_RyR + j_SERCA;;-->
         <!---(Cai-Cai_init)*5{per_second};-->
         <variable name="Ca_ER_init" public_interface="in" units="millimolar"/>
         <variable initial_value="Ca_ER_init" name="Ca_ER" public_interface="out" units="millimolar"/>
@@ -2992,11 +2994,15 @@
                             <minus/>
                             <apply>
                                 <minus/>
-                                <ci>j_IP3</ci>
+                                <apply>
+                                    <minus/>
+                                    <ci>j_IP3</ci>
+                                </apply>
+                                <ci>j_leak</ci>
                             </apply>
-                            <ci>j_leak</ci>
+                            <ci>j_SERCA</ci>
                         </apply>
-                        <ci>j_SERCA</ci>
+                        <ci>j_RyR</ci>
                     </apply>
                 </apply>
             </apply>

@@ -469,6 +469,10 @@
     <units name="per_millimolar">
         <unit exponent="-1" units="millimolar"/>
     </units>
+    <units name="per_millimolar_s">
+        <unit exponent="-1" units="millimolar"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <units name="millimolar_per_s">
         <unit units="millimolar"/>
         <unit exponent="-1" units="second"/>
