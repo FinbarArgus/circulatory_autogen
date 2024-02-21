@@ -6,7 +6,8 @@
     <component name="baroreceptor_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="P_sys" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.0" name="P_baro" public_interface="out" units="J_per_m3"/>
+        <variable name="P_baro_init" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="P_baro_init" name="P_baro" public_interface="out" units="J_per_m3"/>
         <variable name="f_ab" public_interface="out" units="per_s"/>
         <variable name="dP_sys_dt" public_interface="in" units="J_per_m3s"/>
         <!-- Constants-->
@@ -908,7 +909,7 @@
             </apply>
         </math>
     </component>
-    <component name="efferent_venous_compliance_effector_type">
+    <component name="efferent_venous_us_volume_effector_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- IMPORTANT: THIS MODULE HAS BEEN MODIFIED TO CONTROL COMPLIANCE INSTEAD OF UNSTRESSED VOLUME. PARAMS ARE UNVALIDATED-->

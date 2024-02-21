@@ -3,6 +3,9 @@
     <units name="s2">
         <unit exponent="2" units="second"/>
     </units>
+    <units name="Hz">
+        <unit exponent="-1" units="second"/>
+    </units>
     <units name="millis">
         <unit prefix="milli" units="second"/>
     </units>
@@ -91,6 +94,9 @@
         <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="second"/>
     </units>
+    <units name="milliL">
+        <unit prefix="milli" units="litre"/>
+    </units>
     <units name="s_per_m3">
         <unit units="second"/>
         <unit exponent="-3" units="metre"/>
@@ -109,6 +115,10 @@
     </units>
     <units name="l_per_s">
         <unit units="litre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="per_ml_s">
+        <unit exponent="-1" prefix="milli" units="litre"/>
         <unit exponent="-1" units="second"/>
     </units>
     <!--//////////////////////
@@ -146,6 +156,9 @@
     <units name="J_per_m3">
         <unit units="joule"/>
         <unit exponent="-3" units="metre"/>
+    </units>
+    <units name="mmHg">
+        <unit multiplier="133.32" units="pascal"/>
     </units>
     <units name="m3_per_J">
         <unit exponent="-1" units="joule"/>
@@ -395,6 +408,12 @@
         <unit units="joule"/>
         <unit exponent="2" units="second"/>
         <unit exponent="-9" units="metre"/>
+    </units>
+    <!-- misc-->
+    <units name="m6s_per_J">
+        <unit units="second"/>
+        <unit exponent="6" units="metre"/>
+        <unit exponent="-1" units="joule"/>
     </units>
     <!-- Resistance-->
     <units name="Js_per_m6">

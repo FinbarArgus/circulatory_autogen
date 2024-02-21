@@ -62,9 +62,9 @@ class CSVFileParser(object):
         :param has_header: If CSV file has a header
         '''
         if( has_header ):
-            csv_dataframe = pd.read_csv(filename, dtype=str)
+            csv_dataframe = pd.read_csv(filename, dtype=str, na_filter=False)
         else:
-            csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
+            csv_dataframe = pd.read_csv(filename, dtype=str, header=None, na_filter=False)
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
         for II in range(csv_dataframe.shape[0]):
