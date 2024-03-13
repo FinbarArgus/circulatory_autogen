@@ -10,7 +10,7 @@ class SequentialParamID:
     to reduce the parameter set to ensure identifiability.
     """
 
-    def __init__(self, model_path, param_id_model_type, param_id_method, file_name_prefix,
+    def __init__(self, model_path, model_type, param_id_method, file_name_prefix,
                  params_for_id_path=None, num_calls_to_function=1000,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, sim_heart_periods=None, pre_heart_periods=None,
                  maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None,
@@ -18,7 +18,7 @@ class SequentialParamID:
                  DEBUG=False):
 
         self.model_path = model_path
-        self.param_id_model_type = param_id_model_type
+        self.model_type = model_type
         self.param_id_method = param_id_method
         self.file_name_prefix = file_name_prefix
         self.params_for_id_path = params_for_id_path
@@ -33,7 +33,7 @@ class SequentialParamID:
         self.DEBUG =DEBUG
 
 
-        self.param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_name_prefix,
+        self.param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_name_prefix,
                                 params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
@@ -230,7 +230,7 @@ class SequentialParamID:
         self.best_param_vals = self.param_id.get_best_param_vals()
         self.param_id.close_simulation()
         
-        mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
+        mcmc = CVS0DParamID(self.model_path, self.model_type, self.param_id_method, True,
                             self.file_name_prefix,
                             params_for_id_path=self.params_for_id_path,
                             param_id_obs_path=self.param_id_obs_path,
@@ -258,7 +258,7 @@ class SequentialParamID:
     def plot_mcmc_and_predictions(self, mcmc=None):
         if mcmc == None:
             print('creating mcmc object')
-            mcmc = CVS0DParamID(self.model_path, self.param_id_model_type, self.param_id_method, True,
+            mcmc = CVS0DParamID(self.model_path, self.model_type, self.param_id_method, True,
                                 self.file_name_prefix,
                                 params_for_id_path=self.params_for_id_path,
                                 param_id_obs_path=self.param_id_obs_path,

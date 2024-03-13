@@ -62,9 +62,9 @@ class CSVFileParser(object):
         :param has_header: If CSV file has a header
         '''
         if( has_header ):
-            csv_dataframe = pd.read_csv(filename, dtype=str)
+            csv_dataframe = pd.read_csv(filename, dtype=str, na_filter=False)
         else:
-            csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
+            csv_dataframe = pd.read_csv(filename, dtype=str, header=None, na_filter=False)
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
         for II in range(csv_dataframe.shape[0]):
@@ -225,7 +225,13 @@ class JSONFileParser(object):
                 exit()
             for column in add_on_lists:
                 # deepcopy to make sure that the lists for different vessel same module are not linked
-                add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
+                try:
+                    if np.isnan(this_vessel_module_df[column]):
+                        add_on_lists[column].append("None")
+                    else:
+                        add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
+                except:
+                    add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
 
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]

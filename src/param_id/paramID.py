@@ -64,7 +64,7 @@ class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, param_id_model_type, param_id_method, mcmc_instead, file_name_prefix,
+    def __init__(self, model_path, model_type, param_id_method, mcmc_instead, file_name_prefix,
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
                  pre_heart_periods=None, sim_heart_periods=None,
@@ -73,7 +73,7 @@ class CVS0DParamID():
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
-        self.param_id_model_type = param_id_model_type
+        self.model_type = model_type
         self.file_name_prefix = file_name_prefix
 
         self.comm = MPI.COMM_WORLD
@@ -169,7 +169,7 @@ class CVS0DParamID():
                                            DEBUG=self.DEBUG)
             self.n_steps = mcmc_object.n_steps
         else:
-            if param_id_model_type == 'cellml_only':
+            if model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_names, self.data_types, self.obs_freqs,
                                                self.obs_operations, self.obs_operands,

@@ -66,7 +66,7 @@ if __name__ == '__main__':
         generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
         model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
 
-        param_id_model_type = inp_data_dict['param_id_model_type']
+        model_type = inp_data_dict['model_type']
 
         input_params_path = os.path.join(resources_dir, f'{file_prefix}_params_for_id.csv')
         if not os.path.exists(input_params_path):
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             comm.Barrier()
 
 
-            param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
+            param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time,
@@ -175,7 +175,7 @@ if __name__ == '__main__':
             #     mcmc_options = inp_data_dict['mcmc_options']
             #
             # if do_mcmc:
-            #     mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_prefix,
+            #     mcmc = CVS0DParamID(model_path, model_type, param_id_method, True, file_prefix,
             #                             input_params_path=input_params_path,
             #                             param_id_obs_path=param_id_obs_path,
             #                             sim_time=sim_time, pre_time=pre_time,

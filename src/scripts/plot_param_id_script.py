@@ -65,7 +65,7 @@ if __name__ == '__main__':
         # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
 
         model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
-        param_id_model_type = inp_data_dict['param_id_model_type']
+        model_type = inp_data_dict['model_type']
 
         if 'params_for_id_file' in inp_data_dict.keys():
             params_for_id_path = os.path.join(resources_dir, inp_data_dict['params_for_id_file'])
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         dt = inp_data_dict['dt']
         ga_options = inp_data_dict['ga_options']
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
+        param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                                 params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
@@ -141,7 +141,7 @@ if __name__ == '__main__':
         param_id.close_simulation()
 
         if plot_predictions:
-            seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
+            seq_param_id = SequentialParamID(model_path, model_type, param_id_method, file_prefix,
                                              params_for_id_path=params_for_id_path,
                                              param_id_obs_path=param_id_obs_path,
                                              num_calls_to_function=1,

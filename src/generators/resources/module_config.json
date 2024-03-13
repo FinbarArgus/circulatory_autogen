@@ -125,7 +125,8 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["v_in", "m3_per_s", "access", "boundary_condition"]
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -253,7 +254,8 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["v_out", "m3_per_s", "access", "boundary_condition"]
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -389,7 +391,8 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -953,7 +956,8 @@
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"]
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -1146,7 +1150,8 @@
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -1418,10 +1423,14 @@
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
       ["q_lv", "m3", "access", "variable"],
-      ["q_ra_0", "m3", "access", "global_constant"],
-      ["q_rv_0", "m3", "access", "global_constant"],
-      ["q_la_0", "m3", "access", "global_constant"],
-      ["q_lv_0", "m3", "access", "global_constant"],
+      ["q_ra_us", "m3", "access", "global_constant"],
+      ["q_rv_us", "m3", "access", "global_constant"],
+      ["q_la_us", "m3", "access", "global_constant"],
+      ["q_lv_us", "m3", "access", "global_constant"],
+      ["q_ra_init", "m3", "access", "global_constant"],
+      ["q_rv_init", "m3", "access", "global_constant"],
+      ["q_la_init", "m3", "access", "global_constant"],
+      ["q_lv_init", "m3", "access", "global_constant"],
       ["T_ac", "second", "access", "global_constant"],
       ["T_ar", "second", "access", "global_constant"],
       ["t_astart", "second", "access", "global_constant"],
@@ -1526,10 +1535,14 @@
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
       ["q_lv", "m3", "access", "variable"],
-      ["q_ra_0", "m3", "access", "global_constant"],
-      ["q_rv_0", "m3", "access", "global_constant"],
-      ["q_la_0", "m3", "access", "global_constant"],
-      ["q_lv_0", "m3", "access", "global_constant"],
+      ["q_ra_us", "m3", "access", "global_constant"],
+      ["q_rv_us", "m3", "access", "global_constant"],
+      ["q_la_us", "m3", "access", "global_constant"],
+      ["q_lv_us", "m3", "access", "global_constant"],
+      ["q_ra_init", "m3", "access", "global_constant"],
+      ["q_rv_init", "m3", "access", "global_constant"],
+      ["q_la_init", "m3", "access", "global_constant"],
+      ["q_lv_init", "m3", "access", "global_constant"],
       ["T_ac", "second", "access", "global_constant"],
       ["T_ar", "second", "access", "global_constant"],
       ["t_astart", "second", "access", "global_constant"],
@@ -1624,10 +1637,14 @@
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
       ["q_lv", "m3", "access", "variable"],
-      ["q_ra_0", "m3", "access", "global_constant"],
-      ["q_rv_0", "m3", "access", "global_constant"],
-      ["q_la_0", "m3", "access", "global_constant"],
-      ["q_lv_0", "m3", "access", "global_constant"],
+      ["q_ra_us", "m3", "access", "global_constant"],
+      ["q_rv_us", "m3", "access", "global_constant"],
+      ["q_la_us", "m3", "access", "global_constant"],
+      ["q_lv_us", "m3", "access", "global_constant"],
+      ["q_ra_init", "m3", "access", "global_constant"],
+      ["q_rv_init", "m3", "access", "global_constant"],
+      ["q_la_init", "m3", "access", "global_constant"],
+      ["q_lv_init", "m3", "access", "global_constant"],
       ["T_ac", "second", "access", "global_constant"],
       ["T_ar", "second", "access", "global_constant"],
       ["t_astart", "second", "access", "global_constant"],
@@ -1724,10 +1741,14 @@
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
       ["q_lv", "m3", "access", "variable"],
-      ["q_ra_0", "m3", "access", "global_constant"],
-      ["q_rv_0", "m3", "access", "global_constant"],
-      ["q_la_0", "m3", "access", "global_constant"],
-      ["q_lv_0", "m3", "access", "global_constant"],
+      ["q_ra_us", "m3", "access", "global_constant"],
+      ["q_rv_us", "m3", "access", "global_constant"],
+      ["q_la_us", "m3", "access", "global_constant"],
+      ["q_lv_us", "m3", "access", "global_constant"],
+      ["q_ra_init", "m3", "access", "global_constant"],
+      ["q_rv_init", "m3", "access", "global_constant"],
+      ["q_la_init", "m3", "access", "global_constant"],
+      ["q_lv_init", "m3", "access", "global_constant"],
       ["T_ac", "second", "access", "global_constant"],
       ["T_ar", "second", "access", "global_constant"],
       ["t_astart", "second", "access", "global_constant"],
@@ -1925,7 +1946,8 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":["v_in","u"]
+        "variables":["v_in","u"],
+        "multi_port":"True"
       }
     ],
     "exit_ports":
@@ -1971,7 +1993,7 @@
         "multi_port":"True"
       },
       {
-        "port_type":"venous_compliance_delta_port",
+        "port_type":"venous_us_volume_delta_port",
         "variables":["Delta_q_us"]
       }
     ],
@@ -2051,7 +2073,8 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -2178,7 +2201,8 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"]
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"]
     ]
   },
   {
@@ -2564,6 +2588,7 @@
     [
       ["P_sys", "J_per_m3", "access", "boundary_condition"],
       ["P_baro", "J_per_m3", "access", "variable"],
+      ["P_baro_init", "J_per_m3", "access", "constant"],
       ["P_nom", "J_per_m3", "access", "constant"],
       ["dP_sys_dt", "J_per_m3s", "access", "boundary_condition"],
       ["f_ab", "per_s", "access", "variable"],
@@ -2723,6 +2748,11 @@
         "port_type":"sympathetic_efferent_firing_rate_port",
         "variables":["f_s"],
         "multi_port":"True"
+      },
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
+        "variables":["f_s"],
+        "multi_port":"True"
       }
     ],
     "variables_and_units":
@@ -2770,11 +2800,11 @@
     ]
   },
   {
-    "vessel_type":"efferent_venous_compliance_effector",
+    "vessel_type":"efferent_venous_us_volume_effector",
     "BC_type":"nn",
     "module_format":"cellml",
     "module_file":"control_modules.cellml",
-    "module_type":"efferent_venous_compliance_effector_type",
+    "module_type":"efferent_venous_us_volume_effector_type",
     "entrance_ports":
     [
       {
@@ -2785,7 +2815,7 @@
     "exit_ports":
     [
       {
-        "port_type":"venous_compliance_delta_port",
+        "port_type":"venous_us_volume_delta_port",
         "variables":["Delta_theta"],
         "multi_port":"True"
       }
@@ -2870,6 +2900,10 @@
     [
       {
         "port_type":"sympathetic_efferent_firing_rate_port",
+        "variables":["f_s"]
+      },
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
         "variables":["f_s"]
       },
       {
@@ -4985,6 +5019,854 @@
     ],
     "variables_and_units":
     [
+    ]
+  },
+  {
+    "vessel_type":"delay_test",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"delay_modules.cellml",
+    "module_type":"delay_test",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+    ],
+    "variables_and_units":
+    [
+      ["V", "dimensionless", "access", "variable"],
+      ["V_delay", "dimensionless", "access", "variable"],
+      ["delay", "second", "access", "constant"],
+      ["k_e", "per_s", "access", "constant"]
+    ],
+    "delay_info":
+    {
+      "variables_to_delay":["V"],
+      "delayed_variables":["V_delay"],
+      "delay_amounts":["delay"]
+    }
+  },
+  {
+    "vessel_type":"FV1D_vessel",
+    "BC_type":"vp",
+    "module_format":"cpp",
+    "module_file":"",
+    "module_type":"Muller_1d",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "variables_and_units":
+    [
+    ]
+  },
+  {
+    "vessel_type":"SN_pre_synaptic",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"cell_modules.cellml",
+    "module_type":"SN_pre_synaptic",
+    "entrance_ports":
+    [
+      {
+        "port_type":"i_stim",
+        "variables":["I_app"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"synaptic_NE",
+        "variables":["NE"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["iNa_N", "nanoA", "access", "variable"],
+      ["iCa_N", "nanoA", "access", "variable"],
+      ["ikv", "nanoA", "access", "variable"],
+      ["iA", "nanoA", "access", "variable"],
+      ["ikca", "nanoA", "access", "variable"],
+      ["I_app", "nanoA", "access", "boundary_condition"],
+      ["V", "milliV", "access", "variable"],
+      ["V_init", "milliV", "access", "constant"],
+      ["m", "dimensionless", "access", "variable"],
+      ["m_init", "dimensionless", "access", "constant"],
+      ["h", "dimensionless", "access", "variable"],
+      ["h_init", "dimensionless", "access", "constant"],
+      ["c", "dimensionless", "access", "variable"],
+      ["c_init", "dimensionless", "access", "constant"],
+      ["hc", "dimensionless", "access", "variable"],
+      ["hc_init", "dimensionless", "access", "constant"],
+      ["n1", "dimensionless", "access", "variable"],
+      ["n1_init", "dimensionless", "access", "constant"],
+      ["a", "dimensionless", "access", "variable"],
+      ["a_init", "dimensionless", "access", "constant"],
+      ["ah", "dimensionless", "access", "variable"],
+      ["ah_init", "dimensionless", "access", "constant"],
+      ["kcf", "dimensionless", "access", "variable"],
+      ["kcf_init", "dimensionless", "access", "constant"],
+      ["kcs", "dimensionless", "access", "variable"],
+      ["kcs_init", "dimensionless", "access", "constant"],
+      ["tau_m", "millis", "access", "variable"],
+      ["tau_h", "millis", "access", "variable"],
+      ["tau_c", "millis", "access", "variable"],
+      ["tau_hc", "millis", "access", "variable"],
+      ["tau_n1", "millis", "access", "variable"],
+      ["tau_a", "millis", "access", "variable"],
+      ["tau_ah", "millis", "access", "variable"],
+      ["tau_kcf", "millis", "access", "variable"],
+      ["tau_kcs", "millis", "access", "variable"],
+      ["Cai", "millimolar", "access", "variable"],
+      ["Cai_init", "millimolar", "access", "constant"],
+      ["B0", "dimensionless", "access", "variable"],
+      ["B0_init", "dimensionless", "access", "constant"],
+      ["B1", "dimensionless", "access", "variable"],
+      ["B1_init", "dimensionless", "access", "constant"],
+      ["B2", "dimensionless", "access", "variable"],
+      ["B2_init", "dimensionless", "access", "constant"],
+      ["B3", "dimensionless", "access", "variable"],
+      ["B3_init", "dimensionless", "access", "constant"],
+      ["B4", "dimensionless", "access", "variable"],
+      ["B4_init", "dimensionless", "access", "constant"],
+      ["B5", "dimensionless", "access", "variable"],
+      ["B5_init", "dimensionless", "access", "constant"],
+      ["NE", "dimensionless", "access", "variable"],
+      ["NE_init", "dimensionless", "access", "constant"],
+      ["a_cleft", "dimensionless", "access", "global_constant"],
+      ["n_cleft", "dimensionless", "access", "global_constant"],
+      ["V_cleft", "litre", "access", "global_constant"],
+      ["N_avo", "per_mol", "access", "global_constant"],
+      ["R", "J_per_mol_K", "access", "global_constant"],
+      ["F", "C_per_mol", "access", "global_constant"],
+      ["T", "kelvin", "access", "global_constant"],
+      ["gna", "microS", "access", "constant"],
+      ["b", "picoF", "access", "constant"],
+      ["Cm_Neuron", "picoF", "access", "constant"],
+      ["eca1", "milliV", "access", "constant"],
+      ["ek1", "milliV", "access", "constant"],
+      ["ena1", "milliV", "access", "constant"],
+      ["gamma", "per_s", "access", "constant"],
+      ["pCa", "m3_per_s", "access", "constant"],
+      ["gkv", "microS", "access", "constant"],
+      ["gA", "microS", "access", "constant"],
+      ["gkcf", "microS", "access", "constant"],
+      ["gkcs", "microS", "access", "constant"],
+      ["kon", "per_milliM_s", "access", "constant"],
+      ["koff", "per_s", "access", "constant"],
+      ["Vz", "microm3", "access", "constant"],
+      ["Cao", "millimolar", "access", "constant"],
+      ["iM", "nanoA", "access", "variable"],
+      ["g_M", "microS", "access", "constant"],
+      ["delta_gM", "microS", "access", "constant"],
+      ["w", "dimensionless", "access", "variable"],
+      ["w_inf", "dimensionless", "access", "variable"],
+      ["w_init", "dimensionless", "access", "constant"],
+      ["tau_w", "millis", "access", "variable"],
+      ["cAMP", "dimensionless", "access", "constant"],
+      ["iHCN", "nanoA", "access", "variable"],
+      ["g_HCN", "microS", "access", "constant"],
+      ["delta_gHCN", "microS", "access", "constant"],
+      ["r", "dimensionless", "access", "variable"],
+      ["r_inf", "dimensionless", "access", "variable"],
+      ["r_init", "dimensionless", "access", "constant"],
+      ["tau_r", "millis", "access", "variable"],
+      ["eHCN", "milliV", "access", "constant"],
+      ["I_const", "nanoA", "access", "constant"],
+      ["i_NaCa", "nanoA", "access", "variable"],
+      ["Nao", "millimolar", "access", "constant"],
+      ["Nai", "millimolar", "access", "constant"],
+      ["k_NaCa", "nanoA", "access", "constant"],
+      ["alpha_NaCa", "dimensionless", "access", "constant"],
+      ["gamma_NaCa", "dimensionless", "access", "constant"],
+      ["Ksat", "dimensionless", "access", "constant"],
+      ["KmCa", "millimolar", "access", "constant"],
+      ["KmNai", "millimolar", "access", "constant"],
+      ["Ca_ER", "millimolar", "access", "variable"],
+      ["Ca_ER_init", "millimolar", "access", "constant"],
+      ["j_Ca_N", "millimolar_per_s", "access", "variable"],
+      ["j_NaCa", "millimolar_per_s", "access", "variable"],
+      ["j_IP3", "millimolar_per_s", "access", "variable"],
+      ["j_leak", "millimolar_per_s", "access", "variable"],
+      ["j_SERCA", "millimolar_per_s", "access", "variable"],
+      ["j_RyR", "millimolar_per_s", "access", "variable"],
+      ["k_RyR", "per_millimolar_s", "access", "constant"],
+      ["c_1", "dimensionless", "access", "constant"],
+      ["v_1", "per_s", "access", "constant"],
+      ["v_2", "per_s", "access", "constant"],
+      ["v_3", "millimolar_per_s", "access", "constant"],
+      ["m_IP3_inf", "dimensionless", "access", "variable"],
+      ["k_3", "millimolar", "access", "constant"],
+      ["h_IP3_init", "dimensionless", "access", "constant"],
+      ["h_IP3", "dimensionless", "access", "variable"],
+      ["h_IP3_inf", "dimensionless", "access", "variable"],
+      ["tau_hIP3", "millis", "access", "variable"],
+      ["IP3", "millimolar", "access", "constant"],
+      ["a_2", "per_millimolar", "access", "constant"],
+      ["d_1", "millimolar", "access", "constant"],
+      ["d_2", "millimolar", "access", "constant"],
+      ["d_3", "millimolar", "access", "constant"],
+      ["d_5", "millimolar", "access", "constant"],
+      ["Q_2", "millimolar", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_stim_periodic",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"input_stimulation_modules.cellml",
+    "module_type":"i_stim_periodic",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"i_stim",
+        "variables":["i"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["i", "nanoA", "access", "variable"],
+      ["stim_flag", "dimensionless", "access", "constant"],
+      ["t_start", "second", "access", "constant"],
+      ["t_end", "second", "access", "constant"],
+      ["period", "second", "access", "constant"],
+      ["pulse_duration", "second", "access", "constant"],
+      ["i_amplitude", "nanoA", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"lung_stretch_receptor_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"lung_stretch_receptor_Gee2023",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"lung_stretch_firing_rate_port",
+        "variables":["f_ls"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_ls", "Hz", "access", "variable"],
+      ["tau_lung", "second", "access", "constant"],
+      ["G_al", "per_ml_s", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"cardiopulmonary_receptor_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"cardiopulmonary_receptor_Gee2023",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"cardiopulmonary_firing_rate_port",
+        "variables":["f_cp"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_cp", "Hz", "access", "variable"],
+      ["P_pv_P_thor", "mmHg", "access", "variable"],
+      ["tau_cp", "second", "access", "constant"],
+      ["P_l_init", "mmHg", "access", "constant"],
+      ["P_l", "mmHg", "access", "variable"],
+      ["f_maxl", "Hz", "access", "constant"],
+      ["P_tn", "mmHg", "access", "constant"],
+      ["k_l", "mmHg", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"sympathetic_afferent_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"sympathetic_afferent_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"lung_stretch_firing_rate_port",
+        "variables":["f_ls"]
+      },
+      {
+        "port_type":"baroreceptor_firing_rate_port",
+        "variables":["f_br"]
+      },
+      {
+        "port_type":"cardiopulmonary_firing_rate_port",
+        "variables":["f_cp"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"sympathetic_afferent_heart_freq",
+        "variables":["f_ash"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"sympathetic_afferent_peripheral_freq",
+        "variables":["f_asp"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"sympathetic_afferent_venous_freq",
+        "variables":["f_asv"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_ash", "Hz", "access", "variable"],
+      ["f_asp", "Hz", "access", "variable"],
+      ["f_asv", "Hz", "access", "variable"],
+      ["f_ls", "Hz", "access", "boundary_condition"],
+      ["f_br", "Hz", "access", "boundary_condition"],
+      ["f_cp", "Hz", "access", "boundary_condition"],
+      ["G_abh", "dimensionless", "access", "constant"],
+      ["G_alh", "dimensionless", "access", "constant"],
+      ["G_ach", "dimensionless", "access", "constant"],
+      ["G_abp", "dimensionless", "access", "constant"],
+      ["G_alp", "dimensionless", "access", "constant"],
+      ["G_acp", "dimensionless", "access", "constant"],
+      ["G_abv", "dimensionless", "access", "constant"],
+      ["G_alv", "dimensionless", "access", "constant"],
+      ["G_acv", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"sympathetic_efferent_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"sympathetic_efferent_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_afferent_heart_freq",
+        "variables":["f_ash"]
+      },
+      {
+        "port_type":"sympathetic_afferent_peripheral_freq",
+        "variables":["f_asp"]
+      },
+      {
+        "port_type":"sympathetic_afferent_venous_freq",
+        "variables":["f_asv"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
+        "variables":["f_esh"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"sympathetic_efferent_peripheral_freq",
+        "variables":["f_esp"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"sympathetic_efferent_venous_freq",
+        "variables":["f_esv"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_esh", "Hz", "access", "variable"],
+      ["f_esp", "Hz", "access", "variable"],
+      ["f_esv", "Hz", "access", "variable"],
+      ["f_ash", "Hz", "access", "boundary_condition"],
+      ["f_asp", "Hz", "access", "boundary_condition"],
+      ["f_asv", "Hz", "access", "boundary_condition"],
+      ["f_esinf", "Hz", "access", "constant"],
+      ["f_es0", "Hz", "access", "constant"],
+      ["k_es", "second", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"peripheral_resistance_effector_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"peripheral_resistance_effector_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_peripheral_freq",
+        "variables":["f_esp"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["delta_Rsp"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["delta_Rsp", "Js_per_m6", "access", "variable"],
+      ["tau_Rsp", "second", "access", "constant"],
+      ["sigma_Rsp", "Hz", "access", "variable"],
+      ["f_esp", "Hz", "access", "boundary_condition"],
+      ["f_es_min", "per_s", "access", "global_constant"],
+      ["G_Rsp", "Js_per_m6", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"unstressed_volume_effector_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"unstressed_volume_effector_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_venous_freq",
+        "variables":["f_esv"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["delta_Vusv"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["delta_Vusv", "m3", "access", "variable"],
+      ["tau_Vusv", "second", "access", "constant"],
+      ["sigma_Vusv", "Hz", "access", "variable"],
+      ["f_esv", "Hz", "access", "boundary_condition"],
+      ["f_es_min", "per_s", "access", "global_constant"],
+      ["G_Vusv", "m3", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"NTS_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"NTS_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"lung_stretch_firing_rate_port",
+        "variables":["f_ls"]
+      },
+      {
+        "port_type":"baroreceptor_firing_rate_port",
+        "variables":["f_br"]
+      },
+      {
+        "port_type":"cardiopulmonary_firing_rate_port",
+        "variables":["f_cp"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"NTS_br_freq",
+        "variables":["f_NTS_br"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"NTS_ls_freq",
+        "variables":["f_NTS_ls"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"NTS_cp_freq",
+        "variables":["f_NTS_cp"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_NTS_br", "Hz", "access", "variable"],
+      ["f_NTS_ls", "Hz", "access", "variable"],
+      ["f_NTS_cp", "Hz", "access", "variable"],
+      ["f_ls", "Hz", "access", "boundary_condition"],
+      ["f_br", "Hz", "access", "boundary_condition"],
+      ["f_cp", "Hz", "access", "boundary_condition"],
+      ["f_min_br", "Hz", "access", "constant"],
+      ["f_max_br", "Hz", "access", "constant"],
+      ["f_mid_br", "Hz", "access", "constant"],
+      ["f_min_ls", "Hz", "access", "constant"],
+      ["f_max_ls", "Hz", "access", "constant"],
+      ["f_mid_ls", "Hz", "access", "constant"],
+      ["f_min_cp", "Hz", "access", "constant"],
+      ["f_max_cp", "Hz", "access", "constant"],
+      ["f_mid_cp", "Hz", "access", "constant"],
+      ["k_NTS_br", "dimensionless", "access", "constant"],
+      ["k_NTS_ls", "dimensionless", "access", "constant"],
+      ["k_NTS_cp", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"DMV_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"DMV_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"NTS_ls_freq",
+        "variables":["f_NTS_ls"]
+      },
+      {
+        "port_type":"NTS_cp_freq",
+        "variables":["f_NTS_cp"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"DMV_freq",
+        "variables":["f_DMV"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_DMV", "Hz", "access", "variable"],
+      ["f_NTS_ls", "Hz", "access", "boundary_condition"],
+      ["f_NTS_cp", "Hz", "access", "boundary_condition"],
+      ["f_min_DMV", "Hz", "access", "constant"],
+      ["f_max_DMV", "Hz", "access", "constant"],
+      ["f_mid_DMV", "Hz", "access", "constant"],
+      ["k_DMV", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"NA_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"NA_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"NTS_ls_freq",
+        "variables":["f_NTS_ls"]
+      },
+      {
+        "port_type":"NTS_cp_freq",
+        "variables":["f_NTS_cp"]
+      },
+      {
+        "port_type":"NTS_br_freq",
+        "variables":["f_NTS_br"]
+      },
+      {
+        "port_type":"s_gating",
+        "variables":["s"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"NA_freq",
+        "variables":["f_NA"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["s", "dimensionless", "access", "boundary_condition"],
+      ["f_NA", "Hz", "access", "variable"],
+      ["f_NTS_output", "Hz", "access", "variable"],
+      ["f_NA_input", "Hz", "access", "variable"],
+      ["f_NTS_ls", "Hz", "access", "boundary_condition"],
+      ["f_NTS_cp", "Hz", "access", "boundary_condition"],
+      ["f_NTS_br", "Hz", "access", "boundary_condition"],
+      ["f_min_NA", "Hz", "access", "constant"],
+      ["f_max_NA", "Hz", "access", "constant"],
+      ["f_mid_NA", "Hz", "access", "constant"],
+      ["k_RSA", "dimensionless", "access", "constant"],
+      ["k_NA", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"NActr_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"NActr_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"NA_freq",
+        "variables":["f_NA"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"NActr_freq",
+        "variables":["f_NActr"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_NActr", "Hz", "access", "variable"],
+      ["f_NA", "Hz", "access", "boundary_condition"],
+      ["f_min_NActr", "Hz", "access", "constant"],
+      ["f_max_NActr", "Hz", "access", "constant"],
+      ["f_mid_NActr", "Hz", "access", "constant"],
+      ["k_NActr", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"LCN_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"LCN_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"NActr_freq",
+        "variables":["f_NActr"]
+      },
+      {
+        "port_type":"DMV_freq",
+        "variables":["f_DMV"]
+      },
+      {
+        "port_type":"baroreceptor_firing_rate_port",
+        "variables":["f_br"]
+      },
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
+        "variables":["f_esh"]
+      },
+      {
+        "port_type":"cardiopulmonary_firing_rate_port",
+        "variables":["f_cp"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"LCN_freq",
+        "variables":["f_LCN"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_LCN", "Hz", "access", "variable"],
+      ["f_input_LCN_sum", "Hz", "access", "variable"],
+      ["f_input_LCN", "Hz", "access", "variable"],
+      ["f_NActr", "Hz", "access", "boundary_condition"],
+      ["f_DMV", "Hz", "access", "boundary_condition"],
+      ["f_esh", "Hz", "access", "boundary_condition"],
+      ["f_br", "Hz", "access", "boundary_condition"],
+      ["f_cp", "Hz", "access", "boundary_condition"],
+      ["f_min_LCN", "Hz", "access", "constant"],
+      ["f_max_LCN", "Hz", "access", "constant"],
+      ["f_mid_LCN", "Hz", "access", "constant"],
+      ["k_evEmax_gainLCN", "dimensionless", "access", "constant"],
+      ["k_br_gainLCN", "dimensionless", "access", "constant"],
+      ["k_esh_gainLCN", "dimensionless", "access", "constant"],
+      ["k_cp_gainLCN", "dimensionless", "access", "constant"],
+      ["k_LCN", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"PNNA_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"PNNA_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"NA_freq",
+        "variables":["f_NA"]
+      },
+      {
+        "port_type":"LCN_freq",
+        "variables":["f_LCN"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vagal_efferent_firing_rate_port",
+        "variables":["f_PNNA"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_PNNA", "Hz", "access", "variable"],
+      ["f_NA", "Hz", "access", "boundary_condition"],
+      ["f_LCN", "Hz", "access", "boundary_condition"],
+      ["f_min_PNNA", "Hz", "access", "constant"],
+      ["f_max_PNNA", "Hz", "access", "constant"],
+      ["f_mid_PNNA", "Hz", "access", "constant"],
+      ["k_PNNA", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"PNDMV_Gee2023",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"parasympathetic_modules.cellml",
+    "module_type":"PNDMV_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"DMV_freq",
+        "variables":["f_DMV"]
+      },
+      {
+        "port_type":"LCN_freq",
+        "variables":["f_LCN"]
+      },
+      {
+        "port_type":"NActr_freq",
+        "variables":["f_NActr"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vagal_efferent_filt_firing_rate_port",
+        "variables":["f_PNDMV_filt"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["f_PNDMV", "Hz", "access", "variable"],
+      ["f_PNDMV_filt", "Hz", "access", "variable"],
+      ["f_DMV", "Hz", "access", "boundary_condition"],
+      ["f_LCN", "Hz", "access", "boundary_condition"],
+      ["f_NActr", "Hz", "access", "boundary_condition"],
+      ["f_min_PNDMV", "Hz", "access", "constant"],
+      ["f_max_PNDMV", "Hz", "access", "constant"],
+      ["f_mid_PNDMV", "Hz", "access", "constant"],
+      ["k_PNDMV", "dimensionless", "access", "constant"],
+      ["tau_PNDMV", "second", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"heart_effector_Gee2023",
+    "BC_type":"nn_lv",
+    "module_format":"cellml",
+    "module_file":"control_modules.cellml",
+    "module_type":"heart_effector_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
+        "variables":["f_esh"]
+      },
+      {
+        "port_type":"vagal_efferent_filt_firing_rate_port",
+        "variables":["f_PNDMV_filt"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"Elastance_delta_port_lv",
+        "variables":["delta_Emax"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["inv_G_Es", "m6_per_J", "access", "constant"],
+      ["f_es_min", "per_s", "access", "global_constant"],
+      ["tau_Es", "second", "access", "constant"],
+      ["f_esh", "Hz", "access", "boundary_condition"],
+      ["inv_delta_Es", "m6_per_J", "access", "variable"],
+      ["inv_sigma_Es", "m6_per_J", "access", "variable"],
+      ["inv_G_Ev", "m6s_per_J", "access", "constant"],
+      ["tau_Ev", "second", "access", "constant"],
+      ["f_PNDMV_filt", "Hz", "access", "boundary_condition"],
+      ["inv_delta_Ev", "m6_per_J", "access", "variable"],
+      ["inv_sigma_Ev", "m6_per_J", "access", "variable"],
+      ["delta_Emax", "m6_per_J", "access", "variable"],
+      ["scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"heart_effector_Gee2023",
+    "BC_type":"nn_rv",
+    "module_format":"cellml",
+    "module_file":"control_modules.cellml",
+    "module_type":"heart_effector_Gee2023",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_heart_freq",
+        "variables":["f_esh"]
+      },
+      {
+        "port_type":"vagal_efferent_filt_firing_rate_port",
+        "variables":["f_PNDMV_filt"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"Elastance_delta_port_rv",
+        "variables":["delta_Emax"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["inv_G_Es", "m6_per_J", "access", "constant"],
+      ["f_es_min", "per_s", "access", "global_constant"],
+      ["tau_Es", "second", "access", "constant"],
+      ["f_esh", "Hz", "access", "boundary_condition"],
+      ["inv_delta_Es", "m6_per_J", "access", "variable"],
+      ["inv_sigma_Es", "m6_per_J", "access", "variable"],
+      ["inv_G_Ev", "m6s_per_J", "access", "constant"],
+      ["tau_Ev", "second", "access", "constant"],
+      ["f_PNDMV_filt", "Hz", "access", "boundary_condition"],
+      ["inv_delta_Ev", "m6_per_J", "access", "variable"],
+      ["inv_sigma_Ev", "m6_per_J", "access", "variable"],
+      ["delta_Emax", "m6_per_J", "access", "variable"],
+      ["scale", "dimensionless", "access", "constant"]
     ]
   }
 ]

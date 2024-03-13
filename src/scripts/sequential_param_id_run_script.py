@@ -67,7 +67,7 @@ if __name__ == '__main__':
         
         generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
         model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
-        param_id_model_type = inp_data_dict['param_id_model_type']
+        model_type = inp_data_dict['model_type']
 
         input_params_path = os.path.join(resources_dir, f'{file_prefix}_params_for_id.csv')
         if not os.path.exists(input_params_path):
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         else:
             mcmc_options = inp_data_dict['mcmc_options']
 
-        seq_param_id = SequentialParamID(model_path, param_id_model_type, param_id_method, file_prefix,
+        seq_param_id = SequentialParamID(model_path, model_type, param_id_method, file_prefix,
                                 input_params_path=input_params_path,
                                 param_id_obs_path=param_id_obs_path,
                                 num_calls_to_function=num_calls_to_function,

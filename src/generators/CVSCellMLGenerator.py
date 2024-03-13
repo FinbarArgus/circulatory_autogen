@@ -18,14 +18,14 @@ class CVS0DCellMLGenerator(object):
     '''
 
 
-    def __init__(self, model, output_path, filename_prefix, resources_dir=None):
+    def __init__(self, model, output_dir, filename_prefix, resources_dir=None):
         '''
         Constructor
         '''
         self.model = model
-        self.output_path = output_path
-        if not os.path.exists(self.output_path):
-            os.mkdir(self.output_path)
+        self.output_dir = output_dir
+        if not os.path.exists(self.output_dir):
+            os.mkdir(self.output_dir)
         self.filename_prefix = filename_prefix
         if resources_dir is None:
             self.resources_dir = os.path.join(generators_dir_path, '../../resources')
@@ -39,13 +39,16 @@ class CVS0DCellMLGenerator(object):
         self.all_parameters_defined = False
         self.BC_set = {}
         self.all_units = []
+        
+        # this is a temporary hack to include zero flow ivc if only one input to heart TODO make more robust
+        self.ivc_connection_done = 0
 
     def generate_files(self):
         if(type(self.model).__name__ != "CVS0DModel"):
             print("Error: The model should be a CVS0DModel representation")
             return
         
-        print("Generating model files at {}".format(self.output_path))
+        print("Generating model files at {}".format(self.output_dir))
         
         #    Code to generate model files
         self.__generate_units_file()
@@ -66,7 +69,7 @@ class CVS0DCellMLGenerator(object):
             opencor_available = False
             pass
         if opencor_available:
-            sim = oc.open_simulation(os.path.join(self.output_path, f'{self.filename_prefix}.cellml'))
+            sim = oc.open_simulation(os.path.join(self.output_dir, f'{self.filename_prefix}.cellml'))
             if sim.valid():
                 print('Model generation has been successful.')
             else:
@@ -87,7 +90,7 @@ class CVS0DCellMLGenerator(object):
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
         with open(self.base_script, 'r') as rf:
-            with open(os.path.join(self.output_path,f'{self.filename_prefix}.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_dir,f'{self.filename_prefix}.cellml'), 'w') as wf:
                 for line in rf:
                     if 'import xlink:href="units.cellml"' in line:
                         line = re.sub('units', f'{self.filename_prefix}_units', line)
@@ -150,7 +153,7 @@ class CVS0DCellMLGenerator(object):
         Takes in a data frame of the params and generates the parameter_cellml file
         """
 
-        with open(os.path.join(self.output_path, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
 
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
@@ -192,7 +195,7 @@ class CVS0DCellMLGenerator(object):
         # check if all the required parameters have been defined, if not we make an "unfinished"
         # csv file which makes it easy for the user to include the required parameters
         if self.all_parameters_defined:
-            file_to_create = os.path.join(self.output_path, f'{self.filename_prefix}_parameters.csv')
+            file_to_create = os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.csv')
         else:
             file_to_create = os.path.join(self.resources_dir,
                                           f'{self.filename_prefix}_parameters_unfinished.csv')
@@ -210,7 +213,7 @@ class CVS0DCellMLGenerator(object):
         #  This function simply copies the units file
         print(f'Generating CellML file {self.filename_prefix}_units.cellml')
         with open(self.units_script, 'r') as rf:
-            with open(os.path.join(self.output_path, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
                 for line in rf:
                     wf.write(line)
                     if "units name" in line:
@@ -221,7 +224,7 @@ class CVS0DCellMLGenerator(object):
             # create list to check if all states get modified to param_id values
             state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
-        with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
             # write first two lines
             wf.write("<?xml version='1.0' encoding='UTF-8'?>\n")
             wf.write("<model name=\"modules\" xmlns=\"http://www.cellml.org/cellml/1.1#\" xmlns:cellml=\"http://www.cellml.org/cellml/1.1#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n")
@@ -380,10 +383,12 @@ class CVS0DCellMLGenerator(object):
 
     def __write_module_mapping_for_row(self, module_row, module_df, entrance_ports_connected, wf):
         """This function maps between ports of the modules in a one row of a module dataframe."""
+
         # input and output modules
         main_module = module_row["name"]
         main_module_BC_type = module_row["BC_type"]
         main_module_type = module_row["module_type"]
+        
 
         # create a list of dicts that stores info for the exit ports of this main module
         # entrance_port_types is the corresponding connection check for entrance ports and is stored in 
@@ -482,28 +487,23 @@ class CVS0DCellMLGenerator(object):
                     #             entrance_port_idx = entrance_port_types[entrance_port_type_idx]["entrance_port_idxs"][II]
                     #             break
 
-                    # TODO this part is kind of hacky, but it works, is there a better way to do the mapping with the
-                    #  heart module?
+                    # TODO this part is kind of hacky, but it works, there is definitely a better way to do the mapping with the
+                    #  heart module!
                     if out_module_type.startswith('heart'):
-                        if len(out_module_row["inp_vessels"]) == 2:
+                        if len(out_module_row["inp_vessels"]) == 2 and self.ivc_connection_done == 0:
                             # this is the case if there is only one vc and one pulmonary
                             # We map the ivc to a zero flow mapping
-                            if entrance_port_idx == 0:
-                                self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
-                            # if only two inputs are defined, then that means there is one vc and one pulmonary vein
-                            # we increase the entrance_port_idx by 1 to ignore the ivc port of the heart. The vc defined in
-                            # the module array will be connected to the svc entrance port, which is equivalent to connecting
-                            # it to the ivc port. the ivc, is the 0'th entrance_port_idx, so adding one avoids it.
-                            entrance_port_idx += 1
+                            self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
+                            self.ivc_connection_done = 1
                             # TODO the above isnt robust
                         
-                        else:
-                            for heart_inp_idx in range(3):
-                                # there are three vessel_port entrances to the heart, ivc, svc, and pulmonary
-                                # in the vessel_array file, they must be ordered ivc, svc, pulmonary
-                                if main_module == out_module_row["inp_vessels"][heart_inp_idx]:
-                                    entrance_port_idx = heart_inp_idx
-                                    break
+                        for heart_inp_idx in range(3):
+                            # there are three vessel_port entrances to the heart, ivc, svc, and pulmonary
+                            # in the vessel_array file, they must be ordered ivc, svc, pulmonary
+                            if main_module == out_module_row["inp_vessels"][heart_inp_idx]:
+                                # if the ivc connection was done artificially, then we need to skip it
+                                entrance_port_idx = heart_inp_idx + self.ivc_connection_done
+                                break
                         
                     variables_1 = module_row["exit_ports"][out_port_idx]['variables']
                     variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
@@ -517,7 +517,8 @@ class CVS0DCellMLGenerator(object):
                         main_module_module = main_module + '_module'
                         out_module_module = out_module + '_module'
 
-                        self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+                        if module_row['module_format'] == 'cellml' and out_module_row['module_format'] == 'cellml':
+                            self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
                     # only assign connected if the port doesnt have a multi_ports flag
                     if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
@@ -571,7 +572,8 @@ class CVS0DCellMLGenerator(object):
                                 main_module_module = main_module + '_module'
                                 out_module_module = out_module + '_module'
 
-                                self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
+                                if module_row['module_format'] == 'cellml' and out_module_row['module_format'] == 'cellml':
+                                    self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
                             for II in range(len(variables_1)):
                                 if variables_1[II] in self.BC_set[main_module].keys():
@@ -750,6 +752,9 @@ class CVS0DCellMLGenerator(object):
         vessel_df.apply(self.__write_access_variables_for_row, args=(wf,), axis=1)
 
     def __write_access_variables_for_row(self, vessel_row, wf):
+        if vessel_row["module_format"] != 'cellml':
+            # if not cellml then don't do anything for this vessel/module
+            return
         wf.write(f'<component name="{vessel_row["name"]}">\n')
         lines_to_write = []
         for variable, unit, access_str, _ in vessel_row["variables_and_units"]:
@@ -762,6 +767,9 @@ class CVS0DCellMLGenerator(object):
         vessel_df.apply(self.__write_comp_to_module_mappings_for_row, args=(wf,), axis=1)
 
     def __write_comp_to_module_mappings_for_row(self, vessel_row, wf):
+        if vessel_row["module_format"] != 'cellml':
+            # if not cellml then don't do anything for this vessel/module
+            return
         vessel_name = vessel_row["name"]
         inp_vars = [vessel_row["variables_and_units"][i][0] for i in
                     range(len(vessel_row["variables_and_units"])) if
@@ -774,6 +782,10 @@ class CVS0DCellMLGenerator(object):
         vessel_df.apply(self.__write_param_mappings_for_row, args=(wf,), params_array=params_array, axis=1)
 
     def __write_param_mappings_for_row(self, vessel_row, wf, params_array=None):
+        if vessel_row["module_format"] != 'cellml':
+            # if not cellml then don't do anything for this vessel/module
+            return
+        
         vessel_name = vessel_row["name"]
         module_addon = '_module'
 
@@ -815,6 +827,10 @@ class CVS0DCellMLGenerator(object):
     def __write_time_mappings_for_row(self, vessel_row, wf):
         vessel_name = vessel_row["name"]
         module_addon = '_module'
+
+        if vessel_row["module_format"] != 'cellml':
+            # if not cellml then don't do anything for this vessel/module
+            return
 
         self.__write_mapping(wf, 'environment', vessel_name + module_addon,
                              ['time'], ['t'])
