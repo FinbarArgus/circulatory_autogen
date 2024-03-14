@@ -18,9 +18,9 @@ import matplotlib.ticker as tick
 import paperPlotSetup
 import stat_distributions
 import diagnostics
-import utilities
+import utility_funcs
 import traceback
-from utilities import Normalise_class
+from utility_funcs import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from opencor_helper import SimulationHelper
 from parsers.PrimitiveParsers import scriptFunctionParser
@@ -2380,9 +2380,9 @@ class OpencorParamID():
 
 
                 # now interpolate to defined frequencies
-                obs_amp_list_of_arrays[freq_count][:] = utilities.bin_resample(amp, freqs, self.obs_freqs[JJ])
+                obs_amp_list_of_arrays[freq_count][:] = utility_funcs.bin_resample(amp, freqs, self.obs_freqs[JJ])
                 # and phase
-                obs_phase_list_of_arrays[freq_count][:] = utilities.bin_resample(phase, freqs, self.obs_freqs[JJ])
+                obs_phase_list_of_arrays[freq_count][:] = utility_funcs.bin_resample(phase, freqs, self.obs_freqs[JJ])
 
                 # TODO remove this plotting
                 # fig, ax = plt.subplots()
@@ -2993,9 +2993,9 @@ class OpencorMCMC():
 
 
                 # now interpolate to defined frequencies
-                obs_amp_list_of_arrays[freq_count][:] = utilities.bin_resample(amp, freqs, self.obs_freqs[JJ])
+                obs_amp_list_of_arrays[freq_count][:] = utility_funcs.bin_resample(amp, freqs, self.obs_freqs[JJ])
                 # and phase
-                obs_phase_list_of_arrays[freq_count][:] = utilities.bin_resample(phase, freqs, self.obs_freqs[JJ])
+                obs_phase_list_of_arrays[freq_count][:] = utility_funcs.bin_resample(phase, freqs, self.obs_freqs[JJ])
 
                 # TODO remove this plotting
                 # fig, ax = plt.subplots()

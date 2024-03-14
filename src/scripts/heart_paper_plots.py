@@ -25,7 +25,7 @@ user_plots_path = os.path.join(root_dir_path, 'user_plots')
 generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
 
 from param_id.paramID import CVS0DParamID
-from utilities import obj_to_string
+from utility_funcs import obj_to_string
 import traceback
 from opencor_helper import *
 
