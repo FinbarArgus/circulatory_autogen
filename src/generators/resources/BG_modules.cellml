@@ -1185,6 +1185,7 @@
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
         <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_simple_or_not_flag" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
