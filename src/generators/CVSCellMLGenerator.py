@@ -604,14 +604,30 @@ class CVS0DCellMLGenerator(object):
         first_venous_names = [] # stores name of venous compartments that take flow from terminals
         tissue_GE_names = [] # stores name of venous compartments that take flow from terminals
         for vessel_tup in vessel_df.itertuples():
-            if vessel_tup.vessel_type == 'terminal':
+            if vessel_tup.module_format != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
+            if vessel_tup.vessel_type.endswith('terminal'):
                 vessel_name = vessel_tup.name
-                out_vessel_name = vessel_tup.out_vessels[0]
-                # first map pressure between terminal and first venous compartment
-                u_1 = 'u_out'
-                u_2 = 'u'
-                self.__write_mapping(wf, vessel_name+'_module', out_vessel_name+'_module',
-                                     [u_1], [u_2])
+                
+                out_vessel_names = []
+                for out_vessel_name in vessel_tup.out_vessels:
+                    if vessel_df.loc[vessel_df["name"] == out_vessel_name].squeeze()["vessel_type"] == 'venous':
+                        # This finds the venous module connection
+                        out_vessel_names.append(out_vessel_name)
+                if len(out_vessel_names) == 0:
+                    # there is no venous compartment connected to this terminal but still create a terminal venous section
+                    pass
+                elif len(out_vessel_names) > 1:
+                    print(f'Terminal {vessel_name} has more than one venous compartment connected to it, '
+                          f'which is currently not allowed. Exiting')
+                    exit()
+                else:
+                    # map pressure between terminal and first venous compartment
+                    u_1 = 'u_out'
+                    u_2 = 'u'
+                    self.__write_mapping(wf, vessel_name+'_module', out_vessel_name+'_module',
+                                        [u_1], [u_2])
 
                 # then map variables between connection and the venous sections
                 v_1 = 'v_T'
@@ -663,8 +679,9 @@ class CVS0DCellMLGenerator(object):
         # loop through vessels to get the terminals to add up for each first venous section
         terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
         terminal_names_with_GE = []
+        terminal_names = []
         for vessel_tup in vessel_df.itertuples():
-            if vessel_tup.vessel_type == 'terminal':
+            if vessel_tup.vessel_type.endswith('terminal'):
                 vessel_name = vessel_tup.name
                 for idx, venous_name in enumerate(first_venous_names):
                     for II in range(len(vessel_tup.out_vessels)):
@@ -679,6 +696,7 @@ class CVS0DCellMLGenerator(object):
                     for II in range(len(vessel_tup.out_vessels)):
                         if vessel_tup.out_vessels[II] == tissue_GE_name:
                             terminal_names_with_GE.append(vessel_name)
+                terminal_names.append(vessel_name)
 
         # create computation environment for connection and write the
         # variable definition and calculation of flow to each first venous module.
@@ -686,12 +704,13 @@ class CVS0DCellMLGenerator(object):
         variables = []
         units = []
         in_outs = []
-        for idx, venous_name in enumerate(first_venous_names):
-            for terminal_name in terminal_names_for_first_venous[idx]:
-                variables.append(f'v_{terminal_name}')
-                units.append('m3_per_s')
-                in_outs.append('in')
+        
+        for terminal_name in terminal_names:
+            variables.append(f'v_{terminal_name}')
+            units.append('m3_per_s')
+            in_outs.append('in')
 
+        for idx, venous_name in enumerate(first_venous_names):
             variables.append(f'v_{venous_name}')
             units.append('m3_per_s')
             # TODO check this for full CVS case
@@ -858,7 +877,7 @@ class CVS0DCellMLGenerator(object):
         if not out_vessel:
             print(f'connection modules incorrectly defined for {main_vessel}')
             exit()
-        if main_vessel_type == 'terminal':
+        if main_vessel_type.endswith('terminal'):
             pass
         elif main_vessel not in vessel_df.loc[vessel_df["name"] == out_vessel].inp_vessels.values[0]:
             print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '

@@ -535,7 +535,7 @@
     ]
   },
   {
-    "vessel_type":"single_terminal",
+    "vessel_type":"terminal",
     "BC_type":"pp_RCR_wCont",
     "module_format":"cellml",
     "module_file":"BG_modules.cellml",
@@ -620,6 +620,14 @@
       {
         "port_type":"vessel_port",
         "variables":["v_in","u"]
+      },
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["Delta_R"]
+      },
+      {
+        "port_type":"resistance_multiplier_port",
+        "variables":["R_local_multiplier"]
       }
     ],
     "exit_ports":
@@ -627,12 +635,69 @@
       {
         "port_type":"vessel_port",
         "variables":["v_T", "u_out"]
+      },
+      {
+        "port_type":"flow_port",
+        "variables":["v_T"]
       }
     ],
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v_T", "m3_per_s", "access", "variable"],
+      ["R_T2", "Js_per_m6", "access", "constant"],
+      ["C_T", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["q_T_init", "m3", "access", "constant"],
+      ["q_T", "m3", "access", "variable"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+      ["R_local_multiplier", "dimensionless", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"single_terminal",
+    "BC_type":"vp_R1CR2_wCont",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_T_R1CR2_wCont_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      },
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["Delta_R"]
+      },
+      {
+        "port_type":"resistance_multiplier_port",
+        "variables":["R_local_multiplier"]
+      },
+      {
+        "port_type":"FV_resistance_port",
+        "variables":["R_T1_wCont"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_T", "u_out"]
+      },
+      {
+        "port_type":"flow_port",
+        "variables":["v_T"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v_T", "m3_per_s", "access", "variable"],
+      ["R_T1", "Js_per_m6", "access", "constant"],
+      ["R_T1_wCont", "Js_per_m6", "access", "variable"],
       ["R_T2", "Js_per_m6", "access", "constant"],
       ["C_T", "m6_per_J", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
@@ -724,6 +789,56 @@
       ["R_T_wCont", "Js_per_m6", "access", "variable"],
       ["C_T", "m6_per_J", "access", "constant"],
       ["I_T", "Js2_per_m6", "access", "constant"],
+      ["q_T", "m3", "access", "variable"],
+      ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["R_local_multiplier", "dimensionless", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"terminal",
+    "BC_type":"pp_R1CR2_wCont",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pp_T_R1CR2_wCont_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      },
+      {
+        "port_type":"resistance_delta_port",
+        "variables":["Delta_R"]
+      },
+      {
+        "port_type":"resistance_multiplier_port",
+        "variables":["R_local_multiplier"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_T", "u_out"]
+      },
+      {
+        "port_type":"flow_port",
+        "variables":["v_T"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_T", "m3_per_s", "access", "variable"],
+      ["R_T1", "Js_per_m6", "access", "constant"],
+      ["R_T1_wCont", "Js_per_m6", "access", "variable"],
+      ["R_T2", "Js_per_m6", "access", "constant"],
+      ["R_T2_wCont", "Js_per_m6", "access", "variable"],
+      ["C_T", "m6_per_J", "access", "constant"],
       ["q_T", "m3", "access", "variable"],
       ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
@@ -2964,8 +3079,8 @@
       ["x_CO2", "dimensionless", "access", "variable"],
       ["P_CO2_a", "J_per_m3", "access", "variable"],
       ["phi_P_CO2_a", "dimensionless", "access", "variable"],
-      ["C_O2_a", "dimensionless", "access", "variable"],
-      ["C_CO2_a", "dimensionless", "access", "variable"],
+      ["C_O2_a", "dimensionless", "access", "boundary_condition"],
+      ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
       ["C_O2_p", "dimensionless", "access", "variable"],
       ["R_local_multiplier", "dimensionless", "access", "variable"],
       ["k_1", "J_per_m3", "access", "global_constant"],
@@ -4983,38 +5098,6 @@
     ]
   },
   {
-    "vessel_type":"arterial",
-    "BC_type":"1D",
-    "module_format":"FV_1D_Muller",
-    "module_file":"",
-    "module_type":"1",
-    "entrance_ports":
-    [
-      {
-        "port_type":"1D_1D_arterial_port",
-        "variables":["None"]
-      },
-      {
-        "port_type":"vessel_port",
-        "variables":["qBC","pC"]
-      }
-    ],
-    "exit_ports":
-    [
-      {
-        "port_type":"1D_1D_arterial_port",
-        "variables":["None"]
-      },
-      {
-        "port_type":"vessel_port",
-        "variables":["qBC","pC"]
-      }
-    ],
-    "variables_and_units":
-    [
-    ]
-  },
-  {
     "vessel_type":"delay_test",
     "BC_type":"nn",
     "module_format":"cellml",
@@ -5043,6 +5126,30 @@
   {
     "vessel_type":"FV1D_vessel",
     "BC_type":"vp",
+    "module_format":"cpp",
+    "module_file":"",
+    "module_type":"Muller_1d",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["",""]
+      }
+    ],
+    "variables_and_units":
+    [
+    ]
+  },
+  {
+    "vessel_type":"FV1D_vessel",
+    "BC_type":"vv",
     "module_format":"cpp",
     "module_file":"",
     "module_type":"Muller_1d",

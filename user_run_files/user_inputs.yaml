@@ -14,7 +14,7 @@ MPI_DEBUG: false
 # file_prefix: neonatal
 # file_prefix: neonatal_test
 # file_prefix: cpp_coupling
-file_prefix: aortic_bif_1d
+file_prefix: aortic_bif_1d_wCont
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
@@ -29,7 +29,7 @@ file_prefix: aortic_bif_1d
 # input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: lung_ROM_parameters.csv
 # input_param_file: cpp_coupling_parameters.csv 
-input_param_file: aortic_bif_1d_parameters.csv 
+input_param_file: aortic_bif_1d_wCont_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 

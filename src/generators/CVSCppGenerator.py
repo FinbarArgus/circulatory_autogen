@@ -20,6 +20,11 @@ from urllib.parse import urlparse
 class CVS0DCppGenerator(object):
     '''
     Generates Cpp files from CellML files and annotations for a 0D model
+
+    # TODO This code is not good. it needs a complete re-write. 
+    # The class could be made much much simpler. Don't try to 
+    # work with this without talking to Finbar. Make him simplify it before you
+    # work with this.
     '''
 
 
@@ -76,6 +81,7 @@ class CVS0DCppGenerator(object):
         # these are for two-way coupling
         self.port_input_variables = []
         self.port_output_variables = []
+        self.control_variables = [] # This is for extra control_variables, e.g. resistance in a 1D FV model
         self.connection_vessel_indices = []
         self.connection_vessel_types = []
         self.connection_vessel_inlet_or_outlet = []
@@ -107,6 +113,7 @@ class CVS0DCppGenerator(object):
         self.input_variable_uri = URIRef('http://identifiers.org/mamo/MAMO_0000017')
         # TODO this is randomly chosen for now, update this
         self.external_variable_uri = URIRef('http://identifiers.org/mamo/MAMO_9239430432')
+        self.control_variable_uri = URIRef('http://identifiers.org/mamo/MAMO_9239430433')
 
         self.g = Graph()
 
@@ -188,6 +195,9 @@ class CVS0DCppGenerator(object):
                             else:
                                 print("unknown BC type of {vessel_tup.BC_type} connecting to a "
                                       "1D FV model")
+                        elif exit_port["port_type"] == "FV_resistance_port":
+                            self.control_variables.append(self.cellml_model.component(vessel_tup.name \
+                                                                ).variable(exit_port["variables"][0]).id())
                         # TODO other port types will be added here! 
                         else:
                             print("unknown port type of {exit_port['port_type']} connecting to a "
@@ -215,7 +225,7 @@ class CVS0DCppGenerator(object):
                                                                 ).variable(entrance_port["variables"][1]).id())
                                 # TODO include a variable for the pressure or flow input
                             elif vessel_tup.BC_type[0] == 'p': 
-                                self.connection_vessel_bc_flow_or_pressure_bc.append("pressure") 
+                                self.connection_vessel_flow_or_pressure_bc.append("pressure") 
                                 self.port_input_variables.append(self.cellml_model.component(vessel_tup.name \
                                                                 ).variable(entrance_port["variables"][1]).id())
                                 self.port_output_variables.append(self.cellml_model.component(vessel_tup.name \
@@ -224,11 +234,14 @@ class CVS0DCppGenerator(object):
                                 print("unknown BC type of {vessel_tup.BC_type} connecting to a "
                                       "1D FV model")
                                 exit()
+                        elif entrance_port["port_type"] == "FV_resistance_port":
+                            self.control_variables.append(self.cellml_model.component(vessel_tup.name \
+                                                                ).variable(entrance_port["variables"][0]).id())
                         # TODO other port types will be added here! 
                         else:
-                            print("unknown port type of {entrance_port['port_type']} connecting to a "
-                                  "1D FV model")
-                            exit()
+                            # if this port_type isn't one of the above, it wont be connected to
+                            # the FV1D model
+                            pass
 
         # self.input_variables = [model.component(vessel_tup.name).variable('v_in').id()]
         # self.output_variables = [model.component(vessel_tup.name).variable('u').id()]
@@ -248,6 +261,8 @@ class CVS0DCppGenerator(object):
                                                '#' + variable) for variable in self.port_input_variables]
         port_output_variable_name_uri = [URIRef(self.generated_wID_model_file_path + 
                                                 '#' + variable) for variable in self.port_output_variables]
+        control_variable_name_uri = [URIRef(self.generated_wID_model_file_path +
+                                            '#' + variable) for variable in self.control_variables]
 
         external_variable_idx_uri = []                                        
         for idx, type, inlet_or_outlet, flow_or_pressure_bc in zip(self.connection_vessel_indices, self.connection_vessel_types, 
@@ -273,6 +288,8 @@ class CVS0DCppGenerator(object):
             self.g.add((port_input_variable_name_uri[II], DCTERMS.type, self.input_variable_uri))
             self.g.add((port_input_variable_name_uri[II], self.output_variable_uri, port_output_variable_name_uri[II]))
             self.g.add((port_input_variable_name_uri[II], self.external_variable_uri, external_variable_idx_uri[II]))
+            if len(control_variable_name_uri) > 0:
+                self.g.add((port_input_variable_name_uri[II], self.control_variable_uri, control_variable_name_uri[II]))
         
         for II in range(len(self.output_variables)):
             self.g.add((output_variable_name_uri[II], DCTERMS.type, self.output_variable_uri))
@@ -322,15 +339,21 @@ class CVS0DCppGenerator(object):
         input_variable_info= []
         output_variable_info= []
         for d in self.g.subjects(DCTERMS.type, self.input_variable_uri):
+            # TODO most of the below for-loops could be done in this one to simplify this script
             port_output_variable_readout = self.g.value(d, self.output_variable_uri)
             external_variable_readout = self.g.value(d, self.external_variable_uri)
+            control_variable_readout = self.g.value(d, self.control_variable_uri)
+            info_list = [str(d)]
             if port_output_variable_readout is not None:
+                info_list.append(str(port_output_variable_readout))
                 if external_variable_readout is not None:
-                    port_input_variable_info.append([str(d), str(port_output_variable_readout), str(external_variable_readout)])
-                else:
-                    port_input_variable_info.append([str(d), str(port_output_variable_readout)])
+                    info_list.append(str(external_variable_readout))
+                    if control_variable_readout is not None:
+                        info_list.append(str(control_variable_readout))
+                port_input_variable_info.append(info_list)
             else:
-                input_variable_info.append(str(d))
+                input_variable_info.append(info_list)
+
         for d in self.g.subjects(DCTERMS.type, self.output_variable_uri):
             output_variable_info.append(str(d))
             
@@ -342,7 +365,6 @@ class CVS0DCppGenerator(object):
         print(output_variable_info)
 
         # We're going to use the "model" file from the first variable to delay and only continue if all annotations use the same model...
-
 
         delayed_ids = []
         for vtd, dv, d_amount in variables_to_delay_info:
@@ -373,8 +395,12 @@ class CVS0DCppGenerator(object):
             if len(entry) == 2:
                 port_input_var, port_output_var = entry
                 external_var = None
+                control_var = None
             elif len(entry) == 3:
                 port_input_var, port_output_var, external_var = entry
+                control_var = None
+            elif len(entry) == 4:
+                port_input_var, port_output_var, external_var, control_var = entry
             
             port_input_var_url = urlparse(port_input_var)
             if port_input_var_url.path != self.generated_wID_model_file_path:
@@ -389,7 +415,16 @@ class CVS0DCppGenerator(object):
                 if external_var_url.path != self.cpp_generated_models_dir:
                     print("found an unexpected model file for readout variable?!")
                     exit()
-                port_input_variable_ids.append([port_input_var_url.fragment, port_output_var_url.fragment, external_var_url.fragment])
+                if control_var is not None:
+                    control_var_url = urlparse(control_var)
+                    if control_var_url.path != self.generated_wID_model_file_path:
+                        print("found an unexpected model file for readout variable?!")
+                        exit()
+                    port_input_variable_ids.append([port_input_var_url.fragment, port_output_var_url.fragment, 
+                                                    external_var_url.fragment, control_var_url.fragment])
+                else:
+                    port_input_variable_ids.append([port_input_var_url.fragment, port_output_var_url.fragment, 
+                                                    external_var_url.fragment])
             else:
                 port_input_variable_ids.append([port_input_var_url.fragment, port_output_var_url.fragment])
 
@@ -417,6 +452,7 @@ class CVS0DCppGenerator(object):
         model = cellml.parse_model(self.generated_wID_model_file_path, False)
 
         # and make an annotator for this model
+        # TODO this could be done before all of the loops when I turn it into one for loop.
         annotator = Annotator()
         annotator.setModel(model)
 
@@ -451,6 +487,13 @@ class CVS0DCppGenerator(object):
                 port_input_var_id, port_output_var_id = entry
             elif len(entry) == 3:
                 port_input_var_id, port_output_var_id, external_var_id = entry
+            elif len(entry) == 4:
+                port_input_var_id, port_output_var_id, external_var_id, control_var_id = entry
+                control_var = annotator.variable(control_var_id)
+                if control_var == None:
+                    print('Unable to find a readout variable with the id '
+                          '{} in the given model...'.format(control_var_id))
+                    exit()
             # get the variable (will fail if id doesn't correspond to a variable in the model)
             port_input_var = annotator.variable(port_input_var_id)
             if port_input_var == None:
@@ -465,6 +508,8 @@ class CVS0DCppGenerator(object):
                 annotated_variables.append([[port_input_var, port_output_var], self.input_variable_uri])
             elif len(entry) == 3:
                 annotated_variables.append([[port_input_var, port_output_var, external_var_id], self.input_variable_uri])
+            elif len(entry) == 4:
+                annotated_variables.append([[port_input_var, port_output_var, external_var_id, control_var], self.input_variable_uri])
 
         for input_var_id in input_variable_ids:
             # get the variable (will fail if id doesn't correspond to a variable in the model)
@@ -482,6 +527,9 @@ class CVS0DCppGenerator(object):
                 exit()
             annotated_variables.append([[output_var], self.output_variable_uri])
 
+        # TODO everything above needs to be simplified and put into a single for loop.
+        #  Even the below loop could be in the same for loop.
+        
         # Need to work out how to map the annotations through to the variables in the generated code....
         # Generate C code for the model.
 
@@ -574,6 +622,39 @@ class CVS0DCppGenerator(object):
                         'bc_inlet0_or_outlet1': 0 if ext_variable_inlet_or_outlet == 'inlet' else 1,
                         'flow_or_pressure_bc': ext_variable_flow_or_pressure_bc,
                         'analyser_variable': aev,
+                        'control_variable': None,
+                        'control_variable_index': None,
+                        'variable_type': 'input'
+                    })
+                elif len(vv) == 4:
+                    # TODO simplify so i'm not rewriting all of this for each case
+                    input_var = vv[0]
+                    output_var = vv[1]
+                    ext_variable = vv[2]
+                    cont_var = vv[3]
+                    input_variable = flat_model.component(input_var.parent().name()).variable(input_var.name())
+                    output_variable = flat_model.component(output_var.parent().name()).variable(output_var.name())
+                    cont_variable = flat_model.component(cont_var.parent().name()).variable(cont_var.name())
+                    splt = ext_variable.split('#')
+                    ext_variable_type = splt[0]
+                    ext_variable_idx = splt[1]
+                    ext_variable_inlet_or_outlet = splt[2]
+                    ext_variable_flow_or_pressure_bc = splt[3]
+            
+                    aev = AnalyserExternalVariable(input_variable)
+                    a.addExternalVariable(aev)
+                    external_variable_info.append({
+                        'variable': input_variable,
+                        'port_variable': output_variable,
+                        'ext_variable_idx': ext_variable_idx,
+                        'ext_variable_type': ext_variable_type,
+                        'coupled_to_type': 'FV_1d' if ext_variable_type.startswith('FV_1d') else 'unknown',
+                        'inlet_or_outlet': ext_variable_inlet_or_outlet,
+                        'bc_inlet0_or_outlet1': 0 if ext_variable_inlet_or_outlet == 'inlet' else 1,
+                        'flow_or_pressure_bc': ext_variable_flow_or_pressure_bc,
+                        'analyser_variable': aev,
+                        'control_variable': cont_variable,
+                        'control_variable_index': None,
                         'variable_type': 'input'
                     })
             elif uri == self.output_variable_uri:
@@ -611,6 +692,10 @@ class CVS0DCppGenerator(object):
                 if 'port_variable' in ext_variable.keys():
                     if analysed_model.areEquivalentVariables(v, ext_variable['port_variable']):
                         ext_variable['port_variable_index'] = av.index()
+
+                if 'control_variable' in ext_variable.keys() and ext_variable['control_variable'] != None:
+                    if analysed_model.areEquivalentVariables(v, ext_variable['control_variable']):
+                        ext_variable['control_variable_index'] = av.index()
 
                 if ext_variable['variable_type'] == 'delay':
                     if analysed_model.areEquivalentVariables(v, ext_variable['delay_variable']):
@@ -687,117 +772,117 @@ class CVS0DCppGenerator(object):
 
         if self.solver == 'CVODE':
             classInitHeader += """
-        //forward declare the userOdeData class
-        class UserOdeData;
+//forward declare the userOdeData class
+class UserOdeData;
         """
 
         classInitHeader += """
-        // this is the the 0D model class definition
-        // it contains the model variables and the functions to compute the rates and variables
-        class Model0d {
-        public:
-            // constructor
-            Model0d();
-            // destructor
-            ~Model0d();
+// this is the the 0D model class definition
+// it contains the model variables and the functions to compute the rates and variables
+class Model0d {
+public:
+    // constructor
+    Model0d();
+    // destructor
+    ~Model0d();
         """
 
         otherHeaderInits = f"""
-            double externalVariable(double voi, double *states, double *rates, double *variables, size_t index);
-            void computeNonExternalVariables(double voi, double *states, double *rates, double *variables);
-            void solveOneStep(double dt);
-            double voi;
-            double dt;
-            double eps;
-            double * states;
-            double * rates;
-            double * variables;
-            double time_dof_0d;
+    double externalVariable(double voi, double *states, double *rates, double *variables, size_t index);
+    void computeNonExternalVariables(double voi, double *states, double *rates, double *variables);
+    void solveOneStep(double dt);
+    double voi;
+    double dt;
+    double eps;
+    double * states;
+    double * rates;
+    double * variables;
+    double time_dof_0d;
         """
 
         bufferPartsHeader = f"""
-            bool buffersInitialised = false;
+    bool buffersInitialised = false;
 
-            void initBuffers(double dt);
-            
-            std::map<std::string, circular_buffer*> circular_buffer_dict;
-            void storeBufferVariable(int index, double value);
-            double getBufferVariable(int index, double dt_fraction, int pop_bool);
+    void initBuffers(double dt);
+    
+    std::map<std::string, circular_buffer*> circular_buffer_dict;
+    void storeBufferVariable(int index, double value);
+    double getBufferVariable(int index, double dt_fraction, int pop_bool);
         """
 
         if self.couple_to_1d:
             otherHeaderInits += """
-            std::map<std::string, std::map<std::string, int>> cellml_index_to_vessel1d_info;
-            std::vector<std::map<std::string, int>> vessel1d_info;
-            Model1d * model1d_ptr;
-            int num_vessel1d_connections;
+    std::map<std::string, std::map<std::string, int>> cellml_index_to_vessel1d_info;
+    std::vector<std::map<std::string, int>> vessel1d_info;
+    Model1d * model1d_ptr;
+    int num_vessel1d_connections;
             """
 
 
         if self.solver == 'RK4':
             otherHeaderInits += """
-            double * k1;
-            double * k2;
-            double * k3;
-            double * k4;
-            double * temp_states;
+    double * k1;
+    double * k2;
+    double * k3;
+    double * k4;
+    double * temp_states;
             """
 
         if self.solver == 'CVODE':
             otherHeaderInits += """
-            double voiEnd;
-            SUNContext context;
-            void *solver;
-            N_Vector y; 
-            UserOdeData *userData= nullptr;
-            SUNMatrix matrix;
-            SUNLinearSolver linearSolver;
+    double voiEnd;
+    SUNContext context;
+    void *solver;
+    N_Vector y; 
+    UserOdeData *userData= nullptr;
+    SUNMatrix matrix;
+    SUNLinearSolver linearSolver;
         """
 
         otherHeaderInits += """
-            using FunctionType = std::function<void(double, double*, double*, double*)>;
+    using FunctionType = std::function<void(double, double*, double*, double*)>;
         """
 
         # using computeRatesType = void (*)(double, double *, double *, double *);
         # static int func(double voi, N_Vector y, N_Vector ydot, void *userData);
 
         classFinisherHeader = """
-        };
+};
         """
 
         preSourceStuff = f"""
-        #include <stddef.h>
-        #include <stdio.h>
-        #include <iostream>
+#include <stddef.h>
+#include <stdio.h>
+#include <iostream>
         """
         if self.solver == 'CVODE':
             preSourceStuff += """
-        #include <cvodes/cvodes.h>
-        #include <nvector/nvector_serial.h>
-        #include <sunlinsol/sunlinsol_dense.h> 
+#include <cvodes/cvodes.h>
+#include <nvector/nvector_serial.h>
+#include <sunlinsol/sunlinsol_dense.h> 
         """
 
         # split implementation code in two so we can change it into a class
         preClassStuff = ''
         classInit = """
-        Model0d::Model0d() :
+Model0d::Model0d() :
         """
         postClassInit = ''
         classInit += """    voi(0.0),
-            dt(0.0),
-            eps(1e-08),
-            states(nullptr),
-            rates(nullptr),
-            variables(nullptr),
-            time_dof_0d(-1),
+    dt(0.0),
+    eps(1e-08),
+    states(nullptr),
+    rates(nullptr),
+    variables(nullptr),
+    time_dof_0d(-1),
         """
 
         if self.solver == 'RK4':
             classInit += """    k1(nullptr),
-            k2(nullptr),
-            k3(nullptr),
-            k4(nullptr),
-            temp_states(nullptr),
+    k2(nullptr),
+    k3(nullptr),
+    k4(nullptr),
+    temp_states(nullptr),
         """
             
         if self.couple_to_1d:
@@ -823,6 +908,9 @@ class CVS0DCppGenerator(object):
                     elif 'port_state_index' in ext_variable.keys():
                         classInit += f""",
                         {{ "port_state_idx", {ext_variable["port_state_index"]}, }}"""
+                    if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                        classInit += f""",
+                        {{ "control_variable_idx", {ext_variable["control_variable_index"]}, }}"""
                     classInit += """}}"""
                     num_vessel1d_connections += 1
             classInit += '},\n'
@@ -845,6 +933,10 @@ class CVS0DCppGenerator(object):
                     elif 'port_state_index' in ext_variable.keys():
                         classInit += f""",
                         {{ "port_state_idx", {ext_variable["port_state_index"]}, }}
+                        """
+                    if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                        classInit += f""",
+                        {{ "control_variable_idx", {ext_variable["control_variable_index"]}, }}
                         """
                     classInit += "}"
             classInit += '    },\n'
@@ -1022,13 +1114,13 @@ class CVS0DCppGenerator(object):
 
         # and generate a function to compute external variables
         computeEV = f"""
-        double Model0d::externalVariable(double voi_, double *states_, double *rates_, double *variables_, size_t index)
-        {{
-            // if voi is zero we may need to calculate the non_external_variables
-            // because they can be needed for the external variables
-            if (voi_ == 0.0) {{
-                computeNonExternalVariables(voi_, states_, rates_, variables_);
-            }}
+double Model0d::externalVariable(double voi_, double *states_, double *rates_, double *variables_, size_t index)
+{{
+    // if voi is zero we may need to calculate the non_external_variables
+    // because they can be needed for the external variables
+    if (voi_ == 0.0) {{
+        computeNonExternalVariables(voi_, states_, rates_, variables_);
+    }}
         """
         for ext_variable in external_variable_info:
             print(ext_variable.keys())
@@ -1097,10 +1189,18 @@ class CVS0DCppGenerator(object):
                             computeEV += f'    int inlet0_or_outlet1_bc = cellml_index_to_vessel1d_info["{variable_index}"]["bc_inlet0_or_outlet1"];\n'
                             if 'port_variable_index' in ext_variable.keys():
                                 port_variable_index = ext_variable['port_variable_index']
-                                computeEV += f'    double value = get_model1d_flow(vessel1d_idx, variables_[{port_variable_index}], inlet0_or_outlet1_bc);\n' 
+                                if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                                    control_variable_index = ext_variable['control_variable_index']
+                                    computeEV += f'    double value = get_model1d_flow(vessel1d_idx, variables_[{port_variable_index}], inlet0_or_outlet1_bc, variables_[{control_variable_index}]);\n'
+                                else:
+                                    computeEV += f'    double value = get_model1d_flow(vessel1d_idx, variables_[{port_variable_index}], inlet0_or_outlet1_bc);\n' 
                             elif 'port_state_index' in ext_variable.keys():
                                 port_state_index = ext_variable['port_state_index']
-                                computeEV += f'    double value = get_model1d_flow(vessel1d_idx, states_[{port_state_index}], inlet0_or_outlet1_bc);\n'
+                                if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                                    control_variable_index = ext_variable['control_variable_index']
+                                    computeEV += f'    double value = get_model1d_flow(vessel1d_idx, states_[{port_state_index}], inlet0_or_outlet1_bc, variables_[{control_variable_index}]);\n'
+                                else:
+                                    computeEV += f'    double value = get_model1d_flow(vessel1d_idx, states_[{port_state_index}], inlet0_or_outlet1_bc);\n'
                         elif ext_variable['flow_or_pressure_bc'] == 'pressure':
                             computeEV += f'    int vessel1d_idx = cellml_index_to_vessel1d_info["{variable_index}"]["vessel1d_idx"];\n'
                             computeEV += f'    int inlet0_or_outlet1_bc = cellml_index_to_vessel1d_info["{variable_index}"]["bc_inlet0_or_outlet1"];\n'
@@ -1110,322 +1210,394 @@ class CVS0DCppGenerator(object):
                             elif 'port_state_index' in ext_variable.keys():
                                 port_state_index = ext_variable['port_state_index']
                                 computeEV += f'    double value = get_model1d_pressure(vessel1d_idx, states_[{port_state_index}], inlet0_or_outlet1_bc);\n'
-                            # TODO Finbar, pressure BCs
-                            print('Pressure BC inputs to 0D model not yet implemented, exiting')
+                            print("Currently we don't implement the pressure coupling. ",
+                                  "As it would require solving a DAE in CellML")
                             exit()
                         computeEV += f'    return value;\n'
                         computeEV += f'  }}\n'
 
         computeEV += f"""
-        return 0.0;
-        }}
+return 0.0;
+}}
         """
 
         if self.couple_to_1d:
             # external interaction functions
             externalInteractionFunctions = """
-            void Model0d::connect_to_model1d(Model1d* model1d){
-                model1d_ptr = model1d; 
-            }
+void Model0d::connect_to_model1d(Model1d* model1d){
+    model1d_ptr = model1d; 
+}
+            """
+            if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                externalInteractionFunctions += """
+double Model0d::get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc, double R_T1_wCont){
+                """
+            else:
+                externalInteractionFunctions += """
+double Model0d::get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc){
+                """
+            externalInteractionFunctions += """
+    // get the flow from the 1d model
 
-            double Model0d::get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc){
-                // get the flow from the 1d model
-
-                // get qBC and step forward the fluctuation
+    // get qBC and step forward the fluctuation
             """
             
             if self.solver == 'RK4':
                 externalInteractionFunctions += """
-                int add_to_fluct = 1;
-                double time_int_weight = 0.0;
-                double time_0d = 0.0;
-                if (time_dof_0d == 0) {
-                    time_int_weight = 1.0/6.0;
-                    time_0d = voi;
-                }
-                else if (time_dof_0d == 1 || time_dof_0d == 2) {
-                    time_int_weight = 1.0/3.0;
-                    time_0d = voi + dt/2.0;
-                }
-                else if (time_dof_0d == 3) {
-                    time_int_weight = 1.0/6.0;
-                    time_0d = voi + dt;
-                }
-                else if (time_dof_0d == -1) {
-                    time_int_weight = 0.0;
-                    add_to_fluct = 0;
-                    time_0d = voi + dt;
-                }
-                else {
-                    std::cout << "time_dof_0d is not set correctly" << std::endl;
-                    exit(1);
-                }
+    int add_to_fluct = 1;
+    double time_int_weight = 0.0;
+    double time_0d = 0.0;
+    if (time_dof_0d == 0) {
+        time_int_weight = 1.0/6.0;
+        time_0d = voi;
+    }
+    else if (time_dof_0d == 1 || time_dof_0d == 2) {
+        time_int_weight = 1.0/3.0;
+        time_0d = voi + dt/2.0;
+    }
+    else if (time_dof_0d == 3) {
+        time_int_weight = 1.0/6.0;
+        time_0d = voi + dt;
+    }
+    else if (time_dof_0d == -1) {
+        time_int_weight = 0.0;
+        add_to_fluct = 0;
+        time_0d = voi + dt;
+    }
+    else {
+        std::cout << "time_dof_0d is not set correctly" << std::endl;
+        exit(1);
+    }
             """
 
-            externalInteractionFunctions += """
-                double flow = model1d_ptr->getqBCAndAddToFluct(vessel_idx, add_to_fluct, 
-                                                            time_0d, time_int_weight, 
-                                                            p_C, input0_output1_bc)/pow(10,6); 
-                // divide by 10^6 to get m3/s from ml/s
+            if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                externalInteractionFunctions += """
+    double flow = model1d_ptr->getqBCAndAddToFluctWrap(vessel_idx, add_to_fluct, 
+                                                time_0d, time_int_weight, 
+                                                p_C, input0_output1_bc, R_T1_wCont)/pow(10,6); 
+    // divide by 10^6 to get m3/s from ml/s
+    return flow;
+}
+                """
+            else:
+                externalInteractionFunctions += """
+    double flow = model1d_ptr->getqBCAndAddToFluctWrap(vessel_idx, add_to_fluct, 
+                                                time_0d, time_int_weight, 
+                                                p_C, input0_output1_bc)/pow(10,6); 
+    // divide by 10^6 to get m3/s from ml/s
+    return flow;
+}
+                """
                 
-                // below is what I did previously
-                // double * all_vals = (double *) malloc(10*sizeof(double));
-                // if (input0_output1_bc == 0){
-                //     // TODO Finbar, should be evalSolSpaceTime, where the time is an input and 
-                //     // it interpolates the solution
-                //     model1d_ptr->evalSol(vessel_idx, 0.0, 0, all_vals); 
-                // } else {
-                //     double xSample = model1d_ptr->vess[vessel_idx].L;
-                //     int iSample = model1d_ptr->vess[vessel_idx].NCELLS - 1;
-                //     model1d_ptr->evalSol(vessel_idx, xSample, iSample, all_vals); 
-                // }
-                // double flow = all_vals[1]/pow(10,6); // index 1 is the flow, divide by 10^6 to get m3/s from ml/s
-                // // TODO make the conversion of units more generic
-                // // std::cout << "flow: " << std::scientific << flow << std::endl;
-                return flow; // 
-            }
+            # externalInteractionFunctions += """
+                
+            #     // below is what I did previously
+            #     // double * all_vals = (double *) malloc(10*sizeof(double));
+            #     // if (input0_output1_bc == 0){
+            #     //     // TODO Finbar, should be evalSolSpaceTime, where the time is an input and 
+            #     //     // it interpolates the solution
+            #     //     model1d_ptr->evalSol(vessel_idx, 0.0, 0, all_vals); 
+            #     // } else {
+            #     //     double xSample = model1d_ptr->vess[vessel_idx].L;
+            #     //     int iSample = model1d_ptr->vess[vessel_idx].NCELLS - 1;
+            #     //     model1d_ptr->evalSol(vessel_idx, xSample, iSample, all_vals); 
+            #     // }
+            #     // double flow = all_vals[1]/pow(10,6); // index 1 is the flow, divide by 10^6 to get m3/s from ml/s
+            #     // // TODO make the conversion of units more generic
+            #     // // std::cout << "flow: " << std::scientific << flow << std::endl;
+            #     return flow; // 
+            # } 
+            # """
 
+            # Currently we don't implement the pressure coupling
+            # double Model0d::get_model1d_pressure(int vessel_idx, double qBC, int input0_output1_bc){
+            #     // get the pressure from the 1d model
+            # """ 
+            
+            # if self.solver == 'RK4':
+            #     externalInteractionFunctions += """
+                
+            #     int add_to_fluct = 1;
+            #     double time_int_weight = 0.0;
+            #     double time_0d = 0.0;
+            #     if (time_dof_0d == 0) {
+            #         time_int_weight = 1.0/6.0;
+            #         time_0d = voi;
+            #     }
+            #     else if (time_dof_0d == 1 || time_dof_0d == 2) {
+            #         time_int_weight = 1.0/3.0;
+            #         time_0d = voi + dt/2.0;
+            #     }
+            #     else if (time_dof_0d == 3) {
+            #         time_int_weight = 1.0/6.0;
+            #         time_0d = voi + dt;
+            #     }
+            #     else if (time_dof_0d == -1) {
+            #         time_int_weight = 0.0;
+            #         add_to_fluct = 0;
+            #         time_0d = voi + dt;
+            #     }
+            #     else {
+            #         std::cout << "time_dof_0d is not set correctly" << std::endl;
+            #         exit(1);
+            #     }
+            # """
 
-            double Model0d::get_model1d_pressure(int vessel_idx, int input0_output1_bc){
-                // get the flow from the 1d model
-                double * all_vals = (double *) malloc(8*sizeof(double));
-                if (input0_output1_bc == 0){
-                    model1d_ptr->sampleMid(vessel_idx, all_vals, 0.0); 
-                } else {
-                    double xSample = model1d_ptr->vess[vessel_idx].L;
-                    model1d_ptr->sampleMid(vessel_idx, all_vals, xSample); 
-                }
-                return all_vals[4]; // index 4 is the pressure 
-            }
-            """
+            # externalInteractionFunctions += """
+            #     double pressure = model1d_ptr->getPressureAndAddToFluct(vessel_idx, add_to_fluct, 
+            #                                                 time_0d, time_int_weight, 
+            #                                                 qBC, input0_output1_bc)/10; 
+            #     # divide by 10 to go from dynes/cm^2 to Pa
+            #     return pressure;
+
+            #     // below is what I did previously
+            #     // double * all_vals = (double *) malloc(8*sizeof(double));
+            #     // if (input0_output1_bc == 0){
+            #     //     model1d_ptr->sampleMid(vessel_idx, all_vals, 0.0); 
+            #     // } else {
+            #     //     double xSample = model1d_ptr->vess[vessel_idx].L;
+            #     //     model1d_ptr->sampleMid(vessel_idx, all_vals, xSample); 
+            #     // }
+            #     // return all_vals[4]; // index 4 is the pressure 
+            # }
+            # """
 
         else:
             externalInteractionFunctions = ""
 
         externalInteractionFunctions += """
 
-        void Model0d::initialiseVariablesAndComputeConstants() {
-            initialiseVariables(voi, states, rates, variables);
-            computeComputedConstants(variables);
-            computeRates(voi, states, rates, variables);
-            computeVariables(voi, states, rates, variables);
+void Model0d::initialiseVariablesAndComputeConstants() {
+    initialiseVariables(voi, states, rates, variables);
+    computeComputedConstants(variables);
+    computeRates(voi, states, rates, variables);
+    computeVariables(voi, states, rates, variables);
         """
         if self.solver == 'CVODE':
             externalInteractionFunctions += """
-            // reinitialise the CVODE solver with the initialised state variables 
-            y = N_VMake_Serial(STATE_COUNT, states, context);
+    // reinitialise the CVODE solver with the initialised state variables 
+    y = N_VMake_Serial(STATE_COUNT, states, context);
 
-            CVodeReInit(solver, voi, y);
+    CVodeReInit(solver, voi, y);
         """
 
         externalInteractionFunctions += """
-            }
+}
         """
 
 
         # external interaction headers 
         externalInteractionHeaders= """
-            void initialiseVariablesAndComputeConstants();
+    void initialiseVariablesAndComputeConstants();
         """
         if self.couple_to_1d:
             externalInteractionHeaders += """
-            void connect_to_model1d(Model1d* model1d);
-            double get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc);
-            double get_model1d_pressure(int vessel_idx, int input0_output1_bc);
-        """
+    void connect_to_model1d(Model1d* model1d);
+            """
+            if 'control_variable_index' in ext_variable.keys() and ext_variable['control_variable_index'] != None:
+                externalInteractionHeaders += """
+    double get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc, double R_T1_wCont);
+    double get_model1d_pressure(int vessel_idx, double qBC, int input0_output1_bc);
+                """
+            else:
+                externalInteractionHeaders += """
+    double get_model1d_flow(int vessel_idx, double p_C, int input0_output1_bc);
+    double get_model1d_pressure(int vessel_idx, double qBC, int input0_output1_bc);
+                """
+                
 
         # TODO make the integration scheme implementation general
         solveOneStepFunction = """
-        void Model0d::solveOneStep(double dt_) {
-            dt = dt_;
+void Model0d::solveOneStep(double dt_) {
+    dt = dt_;
         """
         if self.solver == 'forward_euler':
             solveOneStepFunction += """
             
-            time_dof_0d = 0;
-            computeRates(voi, states, rates, variables);
+    time_dof_0d = 0;
+    computeRates(voi, states, rates, variables);
 
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                // simple forward Euler integration
-                states[i] = states[i] + dt * rates[i];
-            time_dof_0d = -1;
-            computeVariables(voi, states, rates, variables);
-            voi += dt;
-            }
-        }
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        // simple forward Euler integration
+        states[i] = states[i] + dt * rates[i];
+    time_dof_0d = -1;
+    computeVariables(voi, states, rates, variables);
+    voi += dt;
+    }
+}
             """
         elif self.solver == 'RK4':
             solveOneStepFunction += """
-            // RK4 integration
-            // first step: calculate k1
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                temp_states[i] = states[i];
-            }
-            time_dof_0d = 0;
-            computeRates(voi, temp_states, k1, variables);
+    // RK4 integration
+    // first step: calculate k1
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        temp_states[i] = states[i];
+    }
+    time_dof_0d = 0;
+    computeRates(voi, temp_states, k1, variables);
 
-            // second step: calculate k2
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                temp_states[i] = states[i] + dt/2.0 * k1[i];
-            }
-            time_dof_0d = 1;
-            computeRates(voi+dt/2.0, temp_states, k2, variables);
-            
-            // third step: calculate k3
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                temp_states[i] = states[i] + dt/2.0 * k2[i];
-            }
-            time_dof_0d = 2;
-            computeRates(voi+dt/2.0, temp_states, k3, variables);
-            
-            // third step: calculate k4
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                temp_states[i] = states[i] + dt * k3[i];
-            }
-            time_dof_0d = 3;
-            computeRates(voi+dt, temp_states, k4, variables);
+    // second step: calculate k2
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        temp_states[i] = states[i] + dt/2.0 * k1[i];
+    }
+    time_dof_0d = 1;
+    computeRates(voi+dt/2.0, temp_states, k2, variables);
+    
+    // third step: calculate k3
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        temp_states[i] = states[i] + dt/2.0 * k2[i];
+    }
+    time_dof_0d = 2;
+    computeRates(voi+dt/2.0, temp_states, k3, variables);
+    
+    // third step: calculate k4
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        temp_states[i] = states[i] + dt * k3[i];
+    }
+    time_dof_0d = 3;
+    computeRates(voi+dt, temp_states, k4, variables);
 
-            for (size_t i = 0; i < STATE_COUNT; ++i) {
-                rates[i] = 1.0/6.0 * (k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i]);
-                states[i] = states[i] + dt * rates[i];
-            }
-            // when we set time_dof_0d to -1, we only get q_BC
-            // from the ones evaluated at the 4 time dofs. we dont step the fluct
-            time_dof_0d = -1;
-            computeVariables(voi, states, rates, variables);
-            voi += dt;
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        rates[i] = 1.0/6.0 * (k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i]);
+        states[i] = states[i] + dt * rates[i];
+    }
+    // when we set time_dof_0d to -1, we only get q_BC
+    // from the ones evaluated at the 4 time dofs. we dont step the fluct
+    time_dof_0d = -1;
+    computeVariables(voi, states, rates, variables);
+    voi += dt;
         """
             if self.couple_to_1d:
                 solveOneStepFunction += """
-            // TODO Finbar, is the below correct? it was used in the 1d code.
-        model1d_ptr->correctTimeLTS(voi,model1d_ptr->dtMaxLTS);
-        }
+        // TODO Finbar, is the below correct? it was used in the 1d code.
+    model1d_ptr->correctTimeLTS(voi,model1d_ptr->dtMaxLTS);
+}
         """
             else:
                 solveOneStepFunction += """
-        }
+}
         """
 
         elif self.solver == 'CVODE':
             solveOneStepFunction += """ 
 
-            voiEnd = voi + dt;
-            // CVodeSetStopTime(solver, voiEnd);
+    voiEnd = voi + dt;
+    // CVodeSetStopTime(solver, voiEnd);
 
-            CVode(solver, voiEnd, y, &voi, CV_NORMAL);
+    CVode(solver, voiEnd, y, &voi, CV_NORMAL);
 
-            // Compute our variables.
+    // Compute our variables.
 
-            states = N_VGetArrayPointer_Serial(y);
-            computeVariables(voiEnd, states, rates, variables);
-            voi += dt;
-        }
+    states = N_VGetArrayPointer_Serial(y);
+    computeVariables(voiEnd, states, rates, variables);
+    voi += dt;
+    }
             """
             
 
         # typedef void (*computeRatesType)(double, double *, double *, double *);
         userDataHeader = """
-        class UserOdeData
-        {
-        public:
+class UserOdeData
+{
+public:
 
-            explicit UserOdeData(double *pVariables, Model0d::FunctionType pComputeRates);
+    explicit UserOdeData(double *pVariables, Model0d::FunctionType pComputeRates);
 
-            double* variables() const;
-            Model0d::FunctionType computeRates() const;
+    double* variables() const;
+    Model0d::FunctionType computeRates() const;
 
-        private:
-            double *mVariables;
-            Model0d::FunctionType mComputeRates;
-        };
+private:
+    double *mVariables;
+    Model0d::FunctionType mComputeRates;
+};
 
         """
 
         UserDataCC = """
-        UserOdeData::UserOdeData(double *pVariables, Model0d::FunctionType pComputeRates) :
-            mVariables(pVariables),
-            mComputeRates(pComputeRates)
-        {
-        }
+UserOdeData::UserOdeData(double *pVariables, Model0d::FunctionType pComputeRates) :
+    mVariables(pVariables),
+    mComputeRates(pComputeRates)
+{
+}
 
-        //==============================================================================
+//==============================================================================
 
-        double * UserOdeData::variables() const
-        {
-            // Return our algebraic array
+double * UserOdeData::variables() const
+{
+    // Return our algebraic array
 
-            return mVariables;
-        }
+    return mVariables;
+}
 
-        //==============================================================================
+//==============================================================================
 
-        Model0d::FunctionType UserOdeData::computeRates() const
-        {
-            // Return our compute rates function
+Model0d::FunctionType UserOdeData::computeRates() const
+{
+    // Return our compute rates function
 
-            return mComputeRates;
-        }
+    return mComputeRates;
+}
         """
 
         if self.solver == 'CVODE':
             funcCC = """
-        int func(double voi_, N_Vector y, N_Vector yDot, void *userData)
-        {
-            UserOdeData *realUserData = static_cast<UserOdeData*>(userData);
-            realUserData->computeRates()(voi_, N_VGetArrayPointer_Serial(y), 
-                                    N_VGetArrayPointer_Serial(yDot), realUserData->variables());
-            return 0;
-        }
+int func(double voi_, N_Vector y, N_Vector yDot, void *userData)
+{
+    UserOdeData *realUserData = static_cast<UserOdeData*>(userData);
+    realUserData->computeRates()(voi_, N_VGetArrayPointer_Serial(y), 
+                            N_VGetArrayPointer_Serial(yDot), realUserData->variables());
+    return 0;
+}
             
         """
 
         circularBufferHeader = f"""
 
-        class circular_buffer {{
-        private:
-            int size;
-            int head;
-            int tail;
-            double *buffer;
+class circular_buffer {{
+private:
+    int size;
+    int head;
+    int tail;
+    double *buffer;
 
-        public:
-            circular_buffer(int size);
-            void put(double value);
-            double get();
-            double access(int index_back);
-        }};
+public:
+    circular_buffer(int size);
+    void put(double value);
+    double get();
+    double access(int index_back);
+}};
         """
 
         circularBuffer = f"""
-        // circular buffer implementation
-        circular_buffer::circular_buffer(int size)
-        {{
-        this->size = size;
-        this->head = 0;
-        this->tail = 0;
-        this->buffer = new double[size];
-        }}
+// circular buffer implementation
+circular_buffer::circular_buffer(int size)
+{{
+this->size = size;
+this->head = 0;
+this->tail = 0;
+this->buffer = new double[size];
+}}
 
-        void circular_buffer::put(double value)
-        {{
-        buffer[head] = value;
-        head = (head + 1) % size;
-        // if (head == tail)
-        //  tail = (tail + 1) % size;
-        }}
+void circular_buffer::put(double value)
+{{
+buffer[head] = value;
+head = (head + 1) % size;
+// if (head == tail)
+//  tail = (tail + 1) % size;
+}}
 
-        double circular_buffer::get()
-        {{
-        double value = buffer[tail];
-        tail = (tail + 1) % size;
-        return value;
-        }}
+double circular_buffer::get()
+{{
+double value = buffer[tail];
+tail = (tail + 1) % size;
+return value;
+}}
 
-        double circular_buffer::access(int index_back)
-        {{
-        double value = buffer[tail + index_back];
-        return value;
-        }}
+double circular_buffer::access(int index_back)
+{{
+double value = buffer[tail + index_back];
+return value;
+}}
 
         """
 
@@ -1433,9 +1605,9 @@ class CVS0DCppGenerator(object):
         # generate a global singleton class to store external variables
         bufferParts = f"""
 
-        void Model0d::initBuffers(double dt)
-        {{
-        // Here I need to initialise circular buffers for each external variable   
+void Model0d::initBuffers(double dt)
+{{
+// Here I need to initialise circular buffers for each external variable   
         """
         if len(variables_to_delay_info) > 0:
             for ext_variable in external_variable_info:
@@ -1457,64 +1629,64 @@ class CVS0DCppGenerator(object):
 
         bufferParts += f""" 
 
-        void Model0d::storeBufferVariable(int index, double value)
-        {{
-        // Here I need to store the value in the correct circular buffer    
-        std::ostringstream ss;
-        ss << index;
-        circular_buffer_dict[ss.str()]->put(value);
-        }}
+void Model0d::storeBufferVariable(int index, double value)
+{{
+// Here I need to store the value in the correct circular buffer    
+std::ostringstream ss;
+ss << index;
+circular_buffer_dict[ss.str()]->put(value);
+}}
 
-        double Model0d::getBufferVariable(int index, double dt_fraction, int pop_bool)
-        {{
-        // Here I need to get the value from the correct circular buffer
-        std::ostringstream ss;
-        ss << index;
-        if (pop_bool == 1) {{
-            return circular_buffer_dict[ss.str()]->get();
-        }} else {{
-            double value_one_back = circular_buffer_dict[ss.str()]->access(-1);
-            double value = circular_buffer_dict[ss.str()]->access(0);
-            double interp_value = value_one_back + dt_fraction*(value - value_one_back);
-            return interp_value;
-        }}
-        }}
+double Model0d::getBufferVariable(int index, double dt_fraction, int pop_bool)
+{{
+// Here I need to get the value from the correct circular buffer
+std::ostringstream ss;
+ss << index;
+if (pop_bool == 1) {{
+    return circular_buffer_dict[ss.str()]->get();
+}} else {{
+    double value_one_back = circular_buffer_dict[ss.str()]->access(-1);
+    double value = circular_buffer_dict[ss.str()]->access(0);
+    double interp_value = value_one_back + dt_fraction*(value - value_one_back);
+    return interp_value;
+}}
+}}
 
         """
 
         # TODO modify below with respect to circulatory_autogen inputs
         # When coupling with a Cpp model that does the simulation, this isn't needed
         mainScript = """
-        int main(void){
-            double end_time = 5.0;
-            double dt = 0.1;
-            Model0d model0d_inst;
-            model0d_inst.initialiseVariablesAndComputeConstants();
-            model0d_inst.initBuffers(dt);
-            double eps = 1e-12;
+int main(void){
+    double end_time = 5.0;
+    double dt = 0.1;
+    Model0d model0d_inst;
+    model0d_inst.initialiseVariablesAndComputeConstants();
+    model0d_inst.initBuffers(dt);
+    double eps = 1e-12;
 
-            while (model0d_inst.voi < end_time-eps) {
-                model0d_inst.solveOneStep(dt);
-                std::cout << "time: " << model0d_inst.voi << " V: " << model0d_inst.states[0] << std::endl;
-                std::cout << "time: " << model0d_inst.voi << " V_delay: " << model0d_inst.variables[2] << std::endl;
-            }
+    while (model0d_inst.voi < end_time-eps) {
+        model0d_inst.solveOneStep(dt);
+        std::cout << "time: " << model0d_inst.voi << " V: " << model0d_inst.states[0] << std::endl;
+        std::cout << "time: " << model0d_inst.voi << " V_delay: " << model0d_inst.variables[2] << std::endl;
+    }
 
-            // TODO autogenerate a dict of variable names to print with variables
+    // TODO autogenerate a dict of variable names to print with variables
 
-            printf("Final values:");
-            printf("  time: ");
-            printf("%f", model0d_inst.voi);
-            printf("  states:");
-            for (size_t i = 0; i < model0d_inst.STATE_COUNT; ++i) {
-                printf("%f\\n", model0d_inst.states[i]);
-            }
-            printf("  variables:");
-            for (size_t i = 0; i < model0d_inst.VARIABLE_COUNT; ++i) {
-                printf("%f\\n", model0d_inst.variables[i]);
-            }
+    printf("Final values:");
+    printf("  time: ");
+    printf("%f", model0d_inst.voi);
+    printf("  states:");
+    for (size_t i = 0; i < model0d_inst.STATE_COUNT; ++i) {
+        printf("%f\\n", model0d_inst.states[i]);
+    }
+    printf("  variables:");
+    for (size_t i = 0; i < model0d_inst.VARIABLE_COUNT; ++i) {
+        printf("%f\\n", model0d_inst.variables[i]);
+    }
 
-        return 0;
-        }
+return 0;
+}
         """
 
         # save header to file

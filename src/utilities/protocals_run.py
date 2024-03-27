@@ -25,14 +25,6 @@ sim_times = [[1,2], [1,2],
              [1,2], [1,2],
              [10, 60, 180, 60, 60],
              [4, 4, 4]]
-pre_times = [1.0, 1.0, 1.0, 1.0, 30.0, 1.0]
-num_experiments = len(sim_times)
-experiment_colors = ['r', 'b', 'r', 'b', 'r', 'r']
-experiment_labels = ['SHR', 'SHR $3\mu$M Retigabine', 'SHR', 'SHR ICA-121431', 'SHR', 'SHR']
-mM_to_uM = 1000
-
-max_times = [np.sum(sim_times[II]) for II in range(num_experiments)]
-# TODO make the SHR less depolarised, so that more M activation and Na block is needed.
 params_to_change_dict = {'SN/I_const': [[0, -0.15],   [0, -0.15],  
                                         [0, -0.15],   [0, -0.15],
                                         [-0.15, -0.15, -0.15, -0.15, -0.15],
