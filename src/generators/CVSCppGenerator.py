@@ -13,6 +13,7 @@ generators_dir_path = os.path.dirname(__file__)
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
 import utilities.libcellml_helper_funcs as cellml
+import utilities.libcellml_utilities as libcellml_utils
 from rdflib import Graph, Literal, RDF, URIRef
 from rdflib.namespace import DCTERMS
 from urllib.parse import urlparse
