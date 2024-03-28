@@ -18,7 +18,7 @@ user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 from param_id.paramID import CVS0DParamID
 from param_id.sequential_paramID import SequentialParamID
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
-from utilities import obj_to_string
+from utilities.utility_funcs import obj_to_string
 import traceback
 from distutils import util
 import yaml

@@ -8,8 +8,11 @@ import numpy as np
 import re
 import pandas as pd
 import os
+import sys
 from sys import exit
 generators_dir_path = os.path.dirname(__file__)
+root_dir = os.path.join(generators_dir_path, '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
 import utilities.libcellml_helper_funcs as cellml
