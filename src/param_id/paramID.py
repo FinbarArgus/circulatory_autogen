@@ -133,6 +133,7 @@ class CVS0DParamID():
         self.param_names_for_plotting = None
         self.num_obs = None
         self.gt_df = None
+        self.protocal_info = None
         self.params_for_id_path = params_for_id_path
         if param_id_obs_path:
             self.__set_obs_names_and_df(param_id_obs_path)
@@ -986,9 +987,16 @@ class CVS0DParamID():
         # ground truth data.
         with open(param_id_obs_path, encoding='utf-8-sig') as rf:
             json_obj = json.load(rf)
-        self.gt_df = pd.DataFrame(json_obj)
-        if self.gt_df.columns[0] == 'data_item':
-            self.gt_df = self.gt_df['data_item']
+        gt_df_full= pd.DataFrame(json_obj)
+        if 'data_item' in gt_df_full.columns:
+            self.gt_df = gt_df_full['data_item']
+        else:
+            self.gt_df = gt_df_full
+        
+        if 'protocal_info' in gt_df_full.columns:
+            self.protocal_info = gt_df_full['protocal_info']
+        else:
+            self.protocal_info = None
 
         self.obs_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])]
 
@@ -1628,8 +1636,8 @@ class OpencorParamID():
                         res = opt.get_result()
                         progress_bar.call(res)
 
-                        if res.fun < self.best_cost and iter_num > 20:
-                            # save if cost improves and its not right at the start
+                        if res.fun < self.best_cost:
+                            # save if cost improves
                             self.best_cost = res.fun
                             self.best_param_vals = res.x
                             print('parameters improved! SAVING COST AND PARAM VALUES')

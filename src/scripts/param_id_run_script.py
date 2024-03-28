@@ -52,7 +52,7 @@ def run_param_id(inp_data_dict=None):
     file_prefix = inp_data_dict['file_prefix']
 
     resources_dir = os.path.join(root_dir, 'resources')
-    param_id_output_dir = os.path.join(root_dir, 'src/param_id')
+    param_id_output_dir = os.path.join(root_dir, 'param_id_output')
     generated_models_dir = os.path.join(root_dir, 'generated_models')
 
     # overwrite dir paths if set in user_inputs.yaml

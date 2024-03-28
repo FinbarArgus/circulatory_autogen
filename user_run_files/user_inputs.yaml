@@ -56,10 +56,10 @@ model_type: cellml_only
 param_id_method: genetic_algorithm
 
 # pre_time is the amount of time simulated to get to steady state
-pre_time: 10.0
+pre_time: 3.0
 # pre_time: 15.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 2.0
+sim_time: 0.5
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
 # pre_heart_periods: 40
@@ -85,7 +85,7 @@ dt: 0.01
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB044_wout_lv.json
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
 #
 #
 # param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB044_wout_lv.json
@@ -124,6 +124,10 @@ param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/reso
 # param_id_obs_path: /home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
+
+# this for Sympathetic Neuron
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
+
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false
 
