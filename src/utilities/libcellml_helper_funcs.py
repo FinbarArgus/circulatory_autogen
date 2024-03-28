@@ -1,6 +1,7 @@
 import os
 from libcellml import Analyser, AnalyserModel, AnalyserExternalVariable, Component, Generator, GeneratorProfile, \
                       Parser, Importer, Model, Printer, Validator
+import utilities.libcellml_utilities as libcellml_utils
 
 
 # Wrappers for the libCellML python API to give some convenient methods.
@@ -19,6 +20,7 @@ def parse_model(filename, strict_mode):
     parser = Parser(strict_mode)
     model = parser.parseModel(cellml_file.read())
     _dump_issues("parse_model", parser)
+    libcellml_utils.print_issues(parser)
     return model
 
 def print_model(model):
