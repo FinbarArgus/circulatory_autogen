@@ -266,6 +266,8 @@
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
+        <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -289,6 +291,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <ci>I_scale</ci>
                         <ci>rho</ci>
                         <ci>l</ci>
                     </apply>
@@ -348,6 +351,7 @@
                             </apply>
                             <apply>
                                 <times/>
+                                <ci>R_flag</ci>
                                 <ci>R</ci>
                                 <ci>v</ci>
                             </apply>
@@ -702,6 +706,8 @@
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
+        <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -725,6 +731,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <ci>I_scale</ci>
                         <ci>rho</ci>
                         <ci>l</ci>
                     </apply>
@@ -784,6 +791,7 @@
                             </apply>
                             <apply>
                                 <times/>
+                                <ci>R_flag</ci>
                                 <ci>R</ci>
                                 <ci>v</ci>
                             </apply>
@@ -1180,6 +1188,8 @@
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
+        <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1203,6 +1213,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <ci>I_scale</ci>
                         <ci>rho</ci>
                         <ci>l</ci>
                     </apply>
@@ -1264,7 +1275,11 @@
                                 <times/>
                                 <apply>
                                     <divide/>
-                                    <ci>R</ci>
+                                    <apply>
+                                        <times/>
+                                        <ci>R_flag</ci>
+                                        <ci>R</ci>
+                                    </apply>
                                     <cn cellml:units="dimensionless">2</cn>
                                 </apply>
                                 <ci>v</ci>
@@ -1377,7 +1392,11 @@
                             <times/>
                             <apply>
                                 <divide/>
-                                <ci>R</ci>
+                                <apply>
+                                    <times/>
+                                    <ci>R_flag</ci>
+                                    <ci>R</ci>
+                                </apply>
                                 <cn cellml:units="dimensionless">2</cn>
                             </apply>
                             <ci>v_d</ci>
@@ -3383,6 +3402,8 @@
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
+        <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3406,6 +3427,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <ci>I_scale</ci>
                         <ci>rho</ci>
                         <ci>l</ci>
                     </apply>
@@ -3465,6 +3487,7 @@
                             </apply>
                             <apply>
                                 <times/>
+                                <ci>R_flag</ci>
                                 <ci>R</ci>
                                 <ci>v</ci>
                             </apply>
@@ -5119,6 +5142,8 @@
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="q_total" public_interface="out" units="m3"/>
         <variable name="q_us" public_interface="out" units="m3"/>
+        <variable name="R_flag" public_interface="in" units="dimensionless"/>
+        <variable name="I_scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5142,6 +5167,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <ci>I_scale</ci>
                         <ci>rho</ci>
                         <ci>l</ci>
                     </apply>
@@ -5201,6 +5227,7 @@
                             </apply>
                             <apply>
                                 <times/>
+                                <ci>R_flag</ci>
                                 <ci>R</ci>
                                 <ci>v</ci>
                             </apply>

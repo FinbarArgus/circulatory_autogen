@@ -125,7 +125,9 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["v_in", "m3_per_s", "access", "boundary_condition"]
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -253,7 +255,9 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["v_out", "m3_per_s", "access", "boundary_condition"]
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -389,7 +393,9 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -953,7 +959,9 @@
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"]
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -1146,7 +1154,9 @@
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -2068,7 +2078,9 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -2195,7 +2207,9 @@
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"]
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
