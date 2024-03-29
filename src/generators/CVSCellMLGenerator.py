@@ -626,7 +626,7 @@ class CVS0DCellMLGenerator(object):
                     # map pressure between terminal and first venous compartment
                     u_1 = 'u_out'
                     u_2 = 'u'
-                    self.__write_mapping(wf, vessel_name+'_module', out_vessel_name+'_module',
+                    self.__write_mapping(wf, vessel_name+'_module', out_vessel_names[0]+'_module',
                                         [u_1], [u_2])
 
                 # then map variables between connection and the venous sections

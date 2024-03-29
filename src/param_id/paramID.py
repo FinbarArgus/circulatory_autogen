@@ -316,6 +316,12 @@ class CVS0DParamID():
                         obs_name_for_plot = self.gt_df.iloc[II]["name_for_plotting"]
                     else:
                         obs_name_for_plot = self.obs_names[II]
+                    
+                    if obs_name_for_plot.count('_') > 1:
+                        print(f'obs_data variable "{obs_name_for_plot}" has too many underscores',
+                              'for plotting a label. Include a "name_for_plotting" key in the ',
+                              'obs_data json file entry')
+                        exit()
 
                     if self.gt_df.iloc[JJ]["unit"] == 'm3_per_s':
                         conversion = m3_to_cm3
@@ -695,11 +701,16 @@ class CVS0DParamID():
         tau = self.calculate_autocorrelation_time(samples)
 
         # check geweke convergence
-        acceptable = self.calculate_geweke_convergence(samples)
-        if acceptable:
-            print('chain passed geweke diagnostic with p>0.05')
+        if not self.DEBUG:
+            # the chain is too short when running debug to do geweke diagnostics
+            # TODO test this another way
+            acceptable = self.calculate_geweke_convergence(samples)
+            if acceptable:
+                print('chain passed geweke diagnostic with p>0.05')
+            else:
+                print('chain failed geweke diagnostic with p<0.05, USE CHAIN RESULTS WITH CARE')
         else:
-            print('chain failed geweke diagnostic with p<0.05, USE CHAIN RESULTS WITH CARE')
+            print("DEBUG mode, skipping geweke diagnostic becuase chain is too short in DEBUG")
 
     def calculate_autocorrelation_time(self, samples):
         tau = emcee.autocorr.integrated_time(samples, quiet=True)
@@ -2558,6 +2569,9 @@ class OpencorMCMC():
         self.param_prior_types = param_prior_types
         self.param_norm_obj = Normalise_class(self.param_mins, self.param_maxs)
         
+        sfp = scriptFunctionParser()
+        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
+        
         for type, operation in zip(self.data_types, self.obs_operations):
             if type == 'frequency' and operation != None:
                 print('have not implemented frequency with operations in mcmc yet. EXITING')
@@ -2840,7 +2854,7 @@ class OpencorMCMC():
             cost = np.inf
 
         # TODO implement operands with frequency domain in MCMC
-        return cost, obs
+        return cost, obs_operands_outputs
 
     def get_cost_from_obs_operands(self, obs_operands_outputs):
 

@@ -3,6 +3,7 @@ from param_id.paramID import CVS0DParamID
 from mpi4py import MPI
 import os
 import csv
+import re
 
 class SequentialParamID:
     """
@@ -31,6 +32,31 @@ class SequentialParamID:
         self.maximum_step = maximum_step
         self.dt = dt
         self.DEBUG =DEBUG
+        
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        
+        self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
+        if self.rank == 0:
+            if param_id_output_dir is None:
+                self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
+            else:
+                self.param_id_output_dir = param_id_output_dir
+            
+            if not os.path.exists(self.param_id_output_dir):
+                os.mkdir(self.param_id_output_dir)
+            self.output_dir = os.path.join(self.param_id_output_dir, f'{case_type}')
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
+            if not os.path.exists(self.plot_dir):
+                os.mkdir(self.plot_dir)
+        
+        if resources_dir is None:
+            self.resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
+        else:
+            self.resources_dir = resources_dir
 
 
         self.param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_name_prefix,
@@ -39,7 +65,7 @@ class SequentialParamID:
                                 sim_time=sim_time, pre_time=pre_time,
                                 sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
                                 maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
-                                param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
+                                param_id_output_dir=self.param_id_output_dir, resources_dir=resources_dir)
 
 
         self.param_id.set_genetic_algorithm_parameters(num_calls_to_function)
@@ -237,7 +263,7 @@ class SequentialParamID:
                             sim_time=self.sim_time, pre_time=self.pre_time,
                             sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
                             maximum_step=self.maximum_step, mcmc_options=self.mcmc_options, dt=self.dt,
-                            param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
+                            param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                             DEBUG=self.DEBUG)
 
         mcmc.remove_params_by_idx(param_idxs_to_remove_array)
@@ -264,7 +290,7 @@ class SequentialParamID:
                                 param_id_obs_path=self.param_id_obs_path,
                                 sim_time=self.sim_time, pre_time=self.pre_time,
                                 sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
-                                param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
+                                param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                                 maximum_step=self.maximum_step,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:

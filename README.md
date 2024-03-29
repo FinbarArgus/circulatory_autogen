@@ -111,11 +111,14 @@ you must do the following...
 ### Required packages for parameter identification
 mpi4py
 scikit-optimize
+sympy
+
+### Required packages for mcmc bayesian identification
 emcee
 corner
 schwimmbad
 tqdm
-sympy
+statsmodels
 
 ### Required packages for autogeneration
 pandas

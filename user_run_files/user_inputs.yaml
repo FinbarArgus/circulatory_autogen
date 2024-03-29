@@ -44,11 +44,11 @@ input_param_file: aortic_bif_1d_wCont_parameters.csv
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
 # TODO make this also change the solver in the opencor sims when not generating cpp.
-solver: RK4
-# solver: CVODE
+# solver: RK4
+solver: CVODE
 # model_type can be cellml_only or cpp atm 
-model_type: cpp
-# model_type: cellml_only
+# model_type: cpp
+model_type: cellml_only
 
 #__________ parameter identification inputs __________
 # param_id_method can be any of [genetic_algorithm]
