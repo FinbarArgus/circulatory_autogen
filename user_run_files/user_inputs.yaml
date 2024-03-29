@@ -6,7 +6,7 @@ MPI_DEBUG: false
 # file_prefix: control_parasymp
 # file_prefix: lung_ROM
 # file_prefix: lung_control
-file_prefix: lung_CVS_coupled
+# file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
 # file_prefix: physiological
 # file_prefix: 3compartment
@@ -18,14 +18,14 @@ file_prefix: lung_CVS_coupled
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
-# file_prefix: SN_to_cAMP
+file_prefix: SN_to_cAMP
 # file_prefix: parasympathetic_model
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
-input_param_file: lung_CVS_coupled_parameters.csv
+# input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: physiological_parameters.csv 
 # input_param_file: cpp_coupling_parameters.csv 
 # input_param_file: aortic_bif_1d_wCont_parameters.csv 
@@ -38,7 +38,7 @@ input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
-# input_param_file: SN_to_cAMP_parameters.csv
+input_param_file: SN_to_cAMP_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 
 # cpp generation inputs
@@ -58,13 +58,13 @@ param_id_method: genetic_algorithm
 pre_time: 3.0
 # pre_time: 15.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 0.5
+sim_time: 2.0
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
-pre_heart_periods: 30
+# pre_heart_periods: 30
 # if sim_heart_periods is defined, pre_time will be calculated by multiplying
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
-sim_heart_periods: 2
+# sim_heart_periods: 2
 
 # resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/resources
 # generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/generated_models
@@ -78,8 +78,8 @@ couple_to_1d: False
 
 # Maximum time step for solver
 maximum_step: 0.0001
-# Output time step (sampling) # TODO this hasn't been tested for anything other than 0.01
-dt: 0.01
+# Output time step (sampling) 
+dt: 0.0001
 # This for 3compartment
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
@@ -119,8 +119,8 @@ dt: 0.01
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-param_id_obs_path: 
-  /hpc/farg967/pulmonary_workspace/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
+# param_id_obs_path: 
+#   /hpc/farg967/pulmonary_workspace/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 

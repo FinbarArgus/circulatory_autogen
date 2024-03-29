@@ -987,16 +987,21 @@ class CVS0DParamID():
         # ground truth data.
         with open(param_id_obs_path, encoding='utf-8-sig') as rf:
             json_obj = json.load(rf)
-        gt_df_full= pd.DataFrame(json_obj)
-        if 'data_item' in gt_df_full.columns:
-            self.gt_df = gt_df_full['data_item']
+        if type(json_obj) == list:
+            self.gt_df = pd.DataFrame(json_obj)
+        elif type(json_obj) == dict:
+            if 'data_item' in json_obj.keys():
+                self.gt_df = pd.DataFrame(json_obj['data_item'])
+            else:
+                print("data_item not found in json object. ",
+                      "Please check that data_item is the key for the list of data items")
+            if 'protocal_info' in json_obj.keys():
+                self.protocal_info = pd.DataFrame(json_obj['protocal_info'])
+            else:
+                self.protocal_info = None
         else:
-            self.gt_df = gt_df_full
+            print(f"unknown data type for imported json object of {type(json_obj)}")
         
-        if 'protocal_info' in gt_df_full.columns:
-            self.protocal_info = gt_df_full['protocal_info']
-        else:
-            self.protocal_info = None
 
         self.obs_names = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])]
 
@@ -1757,7 +1762,7 @@ class OpencorParamID():
                     send_buf = None
                     send_buf_bools = None
                     send_buf_cost = None
-                
+
                 comm.Bcast(pop_per_proc, root=0)
                 # initialise receive buffer for each proc
                 recv_buf = np.zeros((pop_per_proc[rank], self.num_params))

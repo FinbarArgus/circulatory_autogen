@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
         
         resources_dir = os.path.join(root_dir, 'resources')
-        param_id_dir = os.path.join(root_dir, 'src/param_id')
+        param_id_output_dir = os.path.join(root_dir, 'param_id_output')
         generated_models_dir = os.path.join(root_dir, 'generated_models')
         
         # overwrite dir paths if set in user_inputs.yaml

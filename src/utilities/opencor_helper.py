@@ -66,7 +66,9 @@ class SimulationHelper():
         for JJ, variables_list in enumerate(variables_list_of_lists):
             results.append([])
             for variable_name in variables_list:
-                if variable_name in self.simulation.results().states():
+                if variable_name == 'time':
+                    results[JJ].append(self.tSim)
+                elif variable_name in self.simulation.results().states():
                     results[JJ].append(self.simulation.results().states()[variable_name].values()[-self.n_steps - 1:])
                 elif variable_name in self.simulation.results().algebraic():
                     results[JJ].append(self.simulation.results().algebraic()[variable_name].values()[-self.n_steps-1:])
