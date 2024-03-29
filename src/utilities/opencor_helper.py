@@ -1,10 +1,12 @@
 import opencor as oc
 import numpy as np
+import os
+import sys
 # from func_timeout import func_timeout, FunctionTimedOut
 
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
-                 sim_time, maximumNumberofSteps=100000,
+                 sim_time, maximumNumberofSteps=500,
                  maximum_step=0.001, pre_time=0.0):
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt  # time step
@@ -22,8 +24,6 @@ class SimulationHelper():
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1) # time values for stored part of simulation
-        self.operation_obs_dict = {}
-        self.operation_obs_names = []
 
     def run(self):
         try:
@@ -47,73 +47,45 @@ class SimulationHelper():
         self.simulation.reset()
         self.simulation.clear_results()
 
-    def get_results(self, obs_names, output_temp_results=False):
+    def get_results(self, variables_list_of_lists, flatten=False):
         """
         gets results after a simulation
         inputs:
-        obs_names: list of strings, stores the names of state and algebraic variables you wish to access
+        obs_names: list of list of strings, stores the names of state, algebraic, and constant variables you wish to access
         outputs:
-        results: numpy array of size (nStates + nAlgs, n_steps). This will store
+        results: list of lists where the first index is the observable index
+        and the second is the operand index for that observable. The same shape as 
+        the input (except list inputs get turned into list of lists). 
+        Each entry can be float or numpy array 
         """
-        n_obs = len(obs_names)
-        results = np.zeros((n_obs, self.n_steps + 1))
-        # temp results stores results that are operated together
-        # TODO this temporarily is a fixed size of 10, but should be changed to be dynamic
-        temp_results = np.zeros((n_obs, 10, self.n_steps + 1))
-        for JJ, obs_name in enumerate(obs_names):
-            if obs_name in self.simulation.results().states():
-                results[JJ, :] = self.simulation.results().states()[obs_name].values()[-self.n_steps - 1:]
-            elif obs_name in self.simulation.results().algebraic():
-                results[JJ, :] = self.simulation.results().algebraic()[obs_name].values()[-self.n_steps-1:]
-            elif obs_name in self.operation_obs_names:
-            # check if the obs name is in the created operation observables.
-                # loop through operands
-                for II in range(len(self.operation_obs_dict[obs_name]["operands"])):
-                    operand_name = self.operation_obs_dict[obs_name]["operands"][II]
-                    if operand_name in self.simulation.results().states():
-                        temp_results[JJ, II] = self.simulation.results().states()[operand_name].values()[-self.n_steps - 1:]
-                    elif operand_name in self.simulation.results().algebraic():
-                        temp_results[JJ, II] = self.simulation.results().algebraic()[operand_name].values()[-self.n_steps - 1:]
-                    else:
-                        print(f'variable {self.operation_obs_dict[obs_name]["operands"][II]} is not a '
-                              f'model variable. model variables are')
-                        print([name for name in self.simulation.results().states()])
-                        print([name for name in self.simulation.results().algebraic()])
-                        print('exiting')
-                        exit()
+        # if the input is a list of variables, turn it into a list of lists
+        if type(variables_list_of_lists[0]) is not list:
+            variables_list_of_lists = [[entry] for entry in variables_list_of_lists]
 
-                if self.operation_obs_dict[obs_name]["operation"] == "multiplication":
-                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
-                        print('multiplication operation must have exactly 2 operands')
-                        exit()
-                    results[JJ, :] = temp_results[JJ, 0] * temp_results[JJ, 1]
-                elif self.operation_obs_dict[obs_name]["operation"] == "division":
-                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
-                        print('division operation must have exactly 2 operands')
-                        exit()
-                    results[JJ, :] = temp_results[JJ, 0] / temp_results[JJ, 1] # TODO careful here with divide by zero
-                elif self.operation_obs_dict[obs_name]["operation"] == "addition":
-                    results[JJ, :] = np.sum(temp_results[JJ, :], axis=0)
-                elif self.operation_obs_dict[obs_name]["operation"] == "subtraction":
-                    if len(self.operation_obs_dict[obs_name]["operands"]) != 2:
-                        print('subtraction operation must have exactly 2 operands')
-                        exit()
-                    results[JJ, :] = temp_results[JJ, 0] - temp_results[JJ, 1]
+        results = []
+        for JJ, variables_list in enumerate(variables_list_of_lists):
+            results.append([])
+            for variable_name in variables_list:
+                if variable_name == 'time':
+                    results[JJ].append(self.tSim)
+                elif variable_name in self.simulation.results().states():
+                    results[JJ].append(self.simulation.results().states()[variable_name].values()[-self.n_steps - 1:])
+                elif variable_name in self.simulation.results().algebraic():
+                    results[JJ].append(self.simulation.results().algebraic()[variable_name].values()[-self.n_steps-1:])
+                elif variable_name in self.data.constants():
+                    results[JJ].append(self.data.constants()[variable_name])
                 else:
-                    print(f'operation {self.operation_obs_dict[obs_name]["operation"]} is not a valid'
-                          f'operation, must be multiplication, division, addition, or subtraction')
+                    print(f'variable {variable_name} is not a model variable. model variables are')
+                    print([name for name in self.simulation.results().states()])
+                    print([name for name in self.simulation.results().algebraic()])
+                    print([name for name in self.data.constants()])
+                    # TODO(Finbar) does this work for computed constants?
+                    print('exiting')
+                    exit()
 
-            else:
-                print(f'variable {obs_name} is not a model variable. model variables are')
-                print([name for name in self.simulation.results().states()])
-                print([name for name in self.simulation.results().algebraic()])
-                print('exiting')
-                exit()
-
-        if output_temp_results:
-            return results, temp_results
-        else:
-            return results
+        if flatten:
+            results = [item for sublist in results for item in sublist]
+        return results
 
     def get_init_param_vals(self, param_names):
         param_init = []
@@ -206,23 +178,14 @@ class SimulationHelper():
 
     def update_times(self, dt, start_time, sim_time, pre_time):
         self.dt = dt
-        self.stop_time= pre_time + sim_time # full time of simulation
+        self.stop_time= start_time + pre_time + sim_time # full time of simulation
         self.pre_steps = int(pre_time/self.dt)  # number of steps to do before storing data (used to reach steady state)
         self.n_steps = int(sim_time/self.dt)  # number of steps for storing data
         self.data.set_starting_point(start_time)
-        self.data.set_ending_point(start_time + self.stop_time)
-        self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
+        self.data.set_ending_point(self.stop_time)
+        self.tSim = np.linspace(start_time + pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
 
     def close_simulation(self):
         oc.close_simulation(self.simulation)
-
-    def create_operation_variables(self, obs_names, operations, operands):
-        for II in range(len(obs_names)):
-            if operations[II] is not None:
-                self.operation_obs_names.append(obs_names[II])
-                self.operation_obs_dict[obs_names[II]] = {"operation": operations[II],
-                                                          "operands": operands[II]}
-
-
 
 

@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 
 def run_opencor_param_id_and_sensitivity(*args, **kwargs):
     
-    model_path, param_id_model_type, param_id_method, file_name_prefix = args
+    model_path, model_type, param_id_method, file_name_prefix = args
 
     input_params_path=kwargs['input_params_path']
     sensitivity_params_path=kwargs['sensitivity_params_path']
@@ -28,7 +28,7 @@ def run_opencor_param_id_and_sensitivity(*args, **kwargs):
     dt=kwargs['dt']
     DEBUG=kwargs['DEBUG']
 
-    param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, 
+    param_id = CVS0DParamID(model_path, model_type, param_id_method, 
                             False, file_name_prefix,
                             input_params_path=input_params_path,
                             sensitivity_params_path=sensitivity_params_path,
@@ -113,7 +113,7 @@ def run_opencor_param_id_and_sensitivity(*args, **kwargs):
 def parse_input():
     ap = ArgumentParser()
     ap.add_argument('model_path', type=str, default=None)
-    ap.add_argument('param_id_model_type', type=str, default=None)
+    ap.add_argument('model_type', type=str, default=None)
     ap.add_argument('param_id_method', type=str, default=None)
     ap.add_argument('file_name_prefix', type=str, default=None)
     ap.add_argument('--input_params_path', type=str, default=None)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     ns = parse_input()
 
     kwargs = vars(ns)
-    args = [kwargs.pop(a) for a in ['model_path', 'param_id_model_type', 
+    args = [kwargs.pop(a) for a in ['model_path', 'model_type', 
                        'param_id_method', 'file_name_prefix']] 
 
     run_opencor_param_id_and_sensitivity(*args, **kwargs) 

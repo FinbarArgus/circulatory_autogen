@@ -9,14 +9,8 @@ import os
 from mpi4py import MPI
 from distutils import util, dir_util
 
-
-root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
-sys.path.append(os.path.join(root_dir_path, 'src'))
-
-resources_dir_path = os.path.join(root_dir_path, 'resources')
-user_inputs_path = os.path.join(root_dir_path, 'user_run_files')
-param_id_dir_path = os.path.join(root_dir_path, 'src/param_id')
-generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
 
 from param_id.paramID import CVS0DParamID
 from scripts.read_and_insert_parameters import insert_parameters
@@ -27,7 +21,7 @@ import yaml
 if __name__ == '__main__':
 
     try:
-        with open(os.path.join(user_inputs_path, 'user_inputs.yaml'), 'r') as file:
+        with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
         DEBUG = inp_data_dict['DEBUG']
@@ -53,13 +47,28 @@ if __name__ == '__main__':
             port_mapping = [37979, 34075]
             pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
+        resources_dir= os.path.join(root_dir, 'resources')
+        user_inputs_dir= os.path.join(root_dir, 'user_run_files')
+        param_id_dir = os.path.join(root_dir, 'src/param_id')
+        generated_models_dir = os.path.join(root_dir, 'generated_models')
+
         param_id_method = inp_data_dict['param_id_method']
         file_prefix = inp_data_dict['file_prefix']
-        generated_models_subdir_path = os.path.join(generated_models_dir_path, file_prefix)
-        model_path = os.path.join(generated_models_subdir_path, f'{file_prefix}.cellml')
-        param_id_model_type = inp_data_dict['param_id_model_type']
 
-        input_params_path = os.path.join(resources_dir_path, f'{file_prefix}_params_for_id.csv')
+        # overwrite dir paths if set in user_inputs.yaml
+        if "resources_dir" in inp_data_dict.keys():
+            resources_dir = inp_data_dict['resources_dir']
+        if "param_id_output_dir" in inp_data_dict.keys():
+            param_id_output_dir = inp_data_dict['param_id_output_dir']
+        if "generated_models_dir" in inp_data_dict.keys():
+            generated_models_dir = inp_data_dict['generated_models_dir']
+
+        generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
+        model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
+
+        model_type = inp_data_dict['model_type']
+
+        input_params_path = os.path.join(resources_dir, f'{file_prefix}_params_for_id.csv')
         if not os.path.exists(input_params_path):
             print(f'input_params_path of {input_params_path} doesn\'t exist, user must create this file')
             exit()
@@ -120,7 +129,7 @@ if __name__ == '__main__':
                 print(f'consts_path={consts_path} does not exist')
                 exit()
 
-            parameters_csv_abs_path = os.path.join(resources_dir_path, inp_data_dict['input_param_file'])
+            parameters_csv_abs_path = os.path.join(resources_dir, inp_data_dict['input_param_file'])
 
             inp_data_dict['param_id_obs_path'] = param_id_obs_path
             if rank == 0:
@@ -129,12 +138,13 @@ if __name__ == '__main__':
             comm.Barrier()
 
 
-            param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, False, file_prefix,
+            param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time,
                                     sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                    maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG)
+                                    maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                    param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
             if rank == 0:
                 if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
@@ -165,7 +175,7 @@ if __name__ == '__main__':
             #     mcmc_options = inp_data_dict['mcmc_options']
             #
             # if do_mcmc:
-            #     mcmc = CVS0DParamID(model_path, param_id_model_type, param_id_method, True, file_prefix,
+            #     mcmc = CVS0DParamID(model_path, model_type, param_id_method, True, file_prefix,
             #                             input_params_path=input_params_path,
             #                             param_id_obs_path=param_id_obs_path,
             #                             sim_time=sim_time, pre_time=pre_time,

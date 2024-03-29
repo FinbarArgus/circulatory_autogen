@@ -25,7 +25,7 @@ user_plots_path = os.path.join(root_dir_path, 'user_plots')
 generated_models_dir_path = os.path.join(root_dir_path, 'generated_models')
 
 from param_id.paramID import CVS0DParamID
-from utilities import obj_to_string
+from utility_funcs import obj_to_string
 import traceback
 from opencor_helper import *
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         file_name_prefix_phys = 'physiological'
         model_path_phys = os.path.join(generated_models_dir_path, f'{file_name_prefix_phys}.cellml')
 
-        param_id_model_type = 'CVS0D' # TODO make this an input variable eventually
+        model_type = 'CVS0D' # TODO make this an input variable eventually
 
         input_params_to_id = True
         if input_params_to_id:
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         dt = 0.01
         max_step = 0.001
 
-        param_id = CVS0DParamID(model_path, param_id_model_type, param_id_method, file_name_prefix,
+        param_id = CVS0DParamID(model_path, model_type, param_id_method, file_name_prefix,
                                 input_params_path=input_params_path, param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time, maximumStep=max_step, dt=dt)
 
