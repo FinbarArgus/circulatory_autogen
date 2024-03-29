@@ -725,12 +725,14 @@ class CVS0DCellMLGenerator(object):
                 exit()
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
-        wf.writelines(['<connection>\n',
-        f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n'])
+        mapping = ['<connection>\n', f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n']
         for inp_var, out_var in zip(inp_vars_list, out_vars_list):
             if inp_var and out_var:
-                wf.write(f'   <map_variables variable_1="{inp_var}" variable_2="{out_var}"/>\n')
-        wf.write('</connection>\n')
+                mapping.append(f'   <map_variables variable_1="{inp_var}" variable_2="{out_var}"/>\n')
+
+        mapping.append('</connection>\n')
+        if len(mapping) > 3:
+            wf.writelines(mapping)
 
     def __write_variable_declarations(self, wf, variables, units, in_outs):
         for variable, unit, in_out in zip(variables, units, in_outs):
