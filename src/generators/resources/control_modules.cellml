@@ -1111,7 +1111,7 @@
         <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
-        <variable name="P_CO2_a" public_interface="out" units="dimensionless"/>
+        <variable name="P_CO2_a" public_interface="out" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>
         <variable name="P_O2_a" public_interface="out" units="J_per_m3"/>
         <!-- Constants-->

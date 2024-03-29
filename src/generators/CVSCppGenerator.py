@@ -674,6 +674,7 @@ class CVS0DCppGenerator(object):
         a.analyseModel(flat_model)
         analysed_model = a.model()
 
+        libcellml_utils.print_issues(a)
         print(analysed_model.type())
         if analysed_model.type() != AnalyserModel.Type.ODE:
             print("model is not a valid ODE model, aborting...")
