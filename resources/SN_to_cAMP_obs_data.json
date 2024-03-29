@@ -1,0 +1,27 @@
+{"protocal_info":[
+    { "sim_times":[0.5]
+    }
+  ],
+  "data_item": [
+    { "variable": "SN/V",
+      "data_type": "constant",
+      "operation": "max",
+      "operands":["SN/V"],
+      "unit": "milliV",
+      "weight": 1.0,
+      "obs_type": "constant",
+      "value": 20,
+      "std": 2
+    },
+    { "variable": "spike period",
+      "data_type": "constant",
+      "operation": "calc_spike_period",
+      "operands":["time", "SN/V"],
+      "unit": "second",
+      "weight": 1.0,
+      "obs_type": "constant",
+      "value": 0.2,
+      "std": 0.02
+    }
+  ]
+}
