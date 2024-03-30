@@ -22,6 +22,8 @@ class CVS0DCellMLGenerator(object):
         '''
         Constructor
         '''
+        self._units_line_re = re.compile('[ \t]*<units .*/>')
+
         self.model = model
         self.output_path = output_path
         if not os.path.exists(self.output_path):
@@ -77,15 +79,18 @@ class CVS0DCellMLGenerator(object):
             print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
                   'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
 
+    def __adjust_units_import_line(self, line):
+        if 'import xlink:href="units.cellml"' in line:
+            line = re.sub('units', f'{self.filename_prefix}_units', line)
+        return line
 
     def __generate_CellML_file(self):
         print("Generating CellML file {}.cellml".format(self.filename_prefix))
         with open(self.base_script, 'r') as rf:
             with open(os.path.join(self.output_path,f'{self.filename_prefix}.cellml'), 'w') as wf:
                 for line in rf:
-                    if 'import xlink:href="units.cellml"' in line:
-                        line = re.sub('units', f'{self.filename_prefix}_units', line)
-                    elif 'import xlink:href="parameters_autogen.cellml"' in line:
+                    line = self.__adjust_units_import_line(line)
+                    if 'import xlink:href="parameters_autogen.cellml"' in line:
                         line = re.sub('parameters_autogen', f'{self.filename_prefix}_parameters', line)
 
                     # copy the start of the basescript until line that says #STARTGENBELOW
@@ -132,7 +137,14 @@ class CVS0DCellMLGenerator(object):
                 # Finalise the file
                 wf.write('</model>\n')
             
-    
+    def __write_units_import(self, wf, units):
+        units_imports = [f'<import xlink:href="{self.filename_prefix}_units.cellml">\n']
+        for u in units:
+            units_imports.append(f'    <units name="{u}" units_ref="{u}"/>')
+        units_imports.append('</import>\n')
+        if len(units_imports) > 2:
+            wf.writelines(units_imports)
+
     def __generate_parameters_file(self):
         print("Generating CellML file {}_parameters.cellml".format(self.filename_prefix))
         """
@@ -143,12 +155,23 @@ class CVS0DCellMLGenerator(object):
 
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
-                     '" xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n')
+                     '" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">\n')
     
             global_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
-                                                                      'global_constant')]
+                                                                       'global_constant')]
             module_params_array = self.model.parameters_array[np.where(self.model.parameters_array["const_type"] ==
-                                                                         'constant')]
+                                                                       'constant')]
+
+            units_set = set(global_params_array["units"])
+            units_set.update(set(module_params_array["units"]))
+
+            # Remove any pre-defined units that we don't want to import.
+            for u in ['dimensionless', 'metre', 'second']:
+                if u in units_set:
+                    units_set.remove(u)
+
+            if units_set:
+                self.__write_units_import(wf, units_set)
 
             wf.write('<component name="parameters_global">\n')
             self.__write_constant_declarations(wf, global_params_array["variable_name"],
@@ -173,7 +196,6 @@ class CVS0DCellMLGenerator(object):
                 f'{self.model.param_id_date}_identified'
 
     def __generate_parameters_csv(self):
-
         # check if all the required parameters have been defined, if not we make an "unfinished"
         # csv file which makes it easy for the user to include the required parameters
         if self.model.all_parameters_defined:
@@ -199,12 +221,20 @@ class CVS0DCellMLGenerator(object):
                 for line in rf:
                     wf.write(line)
 
+    def __is_units_line(self, line):
+        result = self._units_line_re.search(line)
+        if result:
+            return result.group(0)
+
+        return None
+
     def __generate_modules_file(self):
         if self.model.param_id_states:
             # create list to check if all states get modified to param_id values
             state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(os.path.join(self.output_path, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
+            units_lines = set()
             for II, module_file_path in enumerate(self.module_scripts):
                 with open(module_file_path, 'r') as rf:
                     if II == 0:
@@ -218,7 +248,6 @@ class CVS0DCellMLGenerator(object):
                         # skip first two lines
                         lines = rf.readlines()[2:-1]
 
-
                     if module_file_path.endswith('heart_modules.cellml'):
                         for line in lines:
                             if self.model.param_id_states:
@@ -227,7 +256,15 @@ class CVS0DCellMLGenerator(object):
                                         inp_string = f'initial_value="{val:.4e}"'
                                         line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
                                         state_modified[idx] = True
-                            wf.write(line)
+
+                            line = self.__adjust_units_import_line(line)
+                            line_units = self.__is_units_line(line)
+                            if line_units:
+                                if line_units not in units_lines:
+                                    units_lines.add(line_units)
+                                    wf.write(line)
+                            else:
+                                wf.write(line)
 
                             # check if each state was modified
                         if self.model.param_id_states:
@@ -240,7 +277,15 @@ class CVS0DCellMLGenerator(object):
                                 exit()
                     else:
                         for line in lines:
-                            wf.write(line)
+
+                            line = self.__adjust_units_import_line(line)
+                            line_units = self.__is_units_line(line)
+                            if line_units:
+                                if line_units not in units_lines:
+                                    units_lines.add(line_units)
+                                    wf.write(line)
+                            else:
+                                wf.write(line)
 
     def __write_section_break(self, wf, text):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
@@ -498,7 +543,6 @@ class CVS0DCellMLGenerator(object):
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
                                      vars_1, vars_2)
 
-
             if vessel_tup.vessel_type == 'tissue_GE_simple':
                 vessel_name = vessel_tup.name
                 tissue_GE_names.append(vessel_name)
@@ -508,8 +552,6 @@ class CVS0DCellMLGenerator(object):
 
                 self.__write_mapping(wf, 'terminal_venous_connection', vessel_name+'_module',
                                      C_1, C_2)
-
-
 
         # loop through vessels to get the terminals to add up for each first venous section
         terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
