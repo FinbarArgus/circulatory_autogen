@@ -45,6 +45,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
 
     model = parser.load_model()
 
+    output_model_subdir_path = os.path.realpath(output_model_subdir_path)
     code_generator = CVS0DCellMLGenerator(model, output_model_subdir_path, file_prefix)
     code_generator.generate_files()
 
