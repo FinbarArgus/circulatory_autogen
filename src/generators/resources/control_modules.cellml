@@ -17,7 +17,8 @@
     <component name="baroreceptor_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="P_sys" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.0" name="P_baro" public_interface="out" units="J_per_m3"/>
+        <variable name="P_baro_init" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="P_baro_init" name="P_baro" public_interface="out" units="J_per_m3"/>
         <variable name="f_ab" public_interface="out" units="per_s"/>
         <variable name="dP_sys_dt" public_interface="in" units="J_per_m3s"/>
         <!-- Constants-->
@@ -919,7 +920,7 @@
             </apply>
         </math>
     </component>
-    <component name="efferent_venous_compliance_effector_type">
+    <component name="efferent_venous_us_volume_effector_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- IMPORTANT: THIS MODULE HAS BEEN MODIFIED TO CONTROL COMPLIANCE INSTEAD OF UNSTRESSED VOLUME. PARAMS ARE UNVALIDATED-->
@@ -1121,7 +1122,7 @@
         <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
-        <variable name="P_CO2_a" public_interface="out" units="dimensionless"/>
+        <variable name="P_CO2_a" public_interface="out" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>
         <variable name="P_O2_a" public_interface="out" units="J_per_m3"/>
         <!-- Constants-->
@@ -1552,7 +1553,6 @@
         <variable name="B_b_lc" public_interface="in" units="dimensionless"/>
         <variable name="C_b_lc" public_interface="in" units="dimensionless"/>
         <variable name="D_b_lc" public_interface="in" units="dimensionless"/>
-        <variable name="G_pn" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1671,21 +1671,17 @@
                 <eq/>
                 <ci>G_p</ci>
                 <apply>
-                    <times/>
-                    <ci>G_pn</ci>
+                    <plus/>
                     <apply>
-                        <plus/>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <minus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <times/>
-                                <ci>g_O2_b</ci>
-                                <ci>x_O2</ci>
-                            </apply>
+                            <times/>
+                            <ci>g_O2_b</ci>
+                            <ci>x_O2</ci>
                         </apply>
-                        <ci>x_CO2</ci>
                     </apply>
+                    <ci>x_CO2</ci>
                 </apply>
             </apply>
             <apply>

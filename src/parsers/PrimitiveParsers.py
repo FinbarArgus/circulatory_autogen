@@ -7,8 +7,42 @@ Created on 29/10/2021
 import pandas as pd
 import numpy as np
 import os
+import sys
 import csv
 import json
+import copy
+src_dir = os.path.join(os.path.dirname(__file__), '..')
+param_id_dir = os.path.join(src_dir, 'param_id')
+base_dir = os.path.join(src_dir, '..')
+operation_funcs_user_dir = os.path.join(base_dir, 'operation_funcs_user')
+
+class scriptFunctionParser(object):
+    '''
+    Parses scripts with functions into objects (dicts) which holds the functions
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+    
+    def get_operation_funcs_dict(self):
+        sys.path.append(param_id_dir)
+        sys.path.append(operation_funcs_user_dir)
+        import operation_funcs
+        import operation_funcs_user
+        operation_funcs_dict = {}
+        funcs = [item for item in dir(operation_funcs) if callable(getattr(operation_funcs, item))]
+        funcs_user = [item for item in dir(operation_funcs_user) if callable(getattr(operation_funcs_user, item))]
+
+        # create dict with keys of string of function names
+        for func in funcs:
+            operation_funcs_dict[func] = getattr(operation_funcs, func)
+        for func in funcs_user:
+            operation_funcs_dict[func] = getattr(operation_funcs_user, func)
+        
+        return operation_funcs_dict
+        
 
 class CSVFileParser(object):
     '''
@@ -28,9 +62,9 @@ class CSVFileParser(object):
         :param has_header: If CSV file has a header
         '''
         if( has_header ):
-            csv_dataframe = pd.read_csv(filename, dtype=str)
+            csv_dataframe = pd.read_csv(filename, dtype=str, na_filter=False)
         else:
-            csv_dataframe = pd.read_csv(filename, dtype=str, header=None)
+            csv_dataframe = pd.read_csv(filename, dtype=str, header=None, na_filter=False)
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
         for II in range(csv_dataframe.shape[0]):
@@ -185,8 +219,19 @@ class JSONFileParser(object):
                 exit()
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
+            if this_vessel_module_df.empty:
+                print(f'combination of vessel_type = {vessel_type} and BC_type = {BC_type} doesn\'t exist, check module_config.json',
+                        'for this combination')
+                exit()
             for column in add_on_lists:
-                add_on_lists[column].append(this_vessel_module_df[column])
+                # deepcopy to make sure that the lists for different vessel same module are not linked
+                try:
+                    if np.isnan(this_vessel_module_df[column]):
+                        add_on_lists[column].append("None")
+                    else:
+                        add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
+                except:
+                    add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
 
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]

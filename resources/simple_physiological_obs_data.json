@@ -1,5 +1,6 @@
 {"data_item": [
     { "variable": "leg_L_T/v",
+      "name_for_plotting": "v_{LTleg}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -9,6 +10,7 @@
       "std": 7.327e-7
     },
     { "variable": "leg_R_T/v",
+      "name_for_plotting": "v_{RTleg}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -18,6 +20,7 @@
       "std": 7.291e-7
     },
     { "variable": "arm_L_T/v",
+      "name_for_plotting": "v_{LTarm}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -27,6 +30,7 @@
       "std": 1.565e-7
     },
     { "variable": "arm_R_T/v",
+      "name_for_plotting": "v_{RTarm}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -36,6 +40,7 @@
       "std": 1.548e-7
     },
     { "variable": "head_L_T/v",
+      "name_for_plotting": "v_{LThead}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -45,6 +50,7 @@
       "std": 7.34e-7
     },
     { "variable": "head_R_T/v",
+      "name_for_plotting": "v_{RThead}",
       "data_type": "constant",
       "state_or_alg": "state",
       "unit": "m3_per_s",
@@ -54,6 +60,7 @@
       "std": 7.31e-7
     },
     { "variable": "trunk_C_T/v",
+      "name_for_plotting": "v_{Ttrunk}",
       "state_or_alg": "state",
       "unit": "m3_per_s",
       "data_type": "constant",
@@ -63,6 +70,7 @@
       "std": 37.28e-7
     },
     { "variable": "aortic_arch_C46/u",
+      "name_for_plotting": "u_{aa}",
       "data_type": "constant",
       "state_or_alg": "alg",
       "unit": "J_per_m3",

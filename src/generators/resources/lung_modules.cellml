@@ -60,7 +60,7 @@
         <variable name="C_pl" public_interface="in" units="J_per_m6"/>
         <!-- periods/times-->
         <variable name="t_floor" public_interface="out" units="second"/>
-        <variable name="T" public_interface="in" units="second"/>
+        <variable name="T_resp" public_interface="in" units="second"/>
         <variable name="T_I" public_interface="out" units="second"/>
         <variable name="T_E" public_interface="out" units="second"/>
         <variable name="tau" public_interface="out" units="second"/>
@@ -76,7 +76,7 @@
                 <ci>T_E</ci>
                 <apply>
                     <divide/>
-                    <ci>T</ci>
+                    <ci>T_resp</ci>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -357,10 +357,10 @@
                             <apply>
                                 <divide/>
                                 <ci>t</ci>
-                                <ci>T</ci>
+                                <ci>T_resp</ci>
                             </apply>
                         </apply>
-                        <ci>T</ci>
+                        <ci>T_resp</ci>
                     </apply>
                 </apply>
             </apply>
@@ -399,7 +399,7 @@
                                     <apply>
                                         <times/>
                                         <ci>P_mus_min</ci>
-                                        <ci>T</ci>
+                                        <ci>T_resp</ci>
                                     </apply>
                                     <apply>
                                         <times/>

@@ -34,7 +34,7 @@ if __name__ == '__main__':
         param_id_method = sys.argv[3]
         file_name_prefix = sys.argv[4]
         model_path = os.path.join(generated_models_dir_path, f'{file_name_prefix}.cellml')
-        param_id_model_type = 'CVS0D'  # TODO make this an input variable eventually
+        model_type = 'CVS0D'  # TODO make this an input variable eventually
 
         input_params_path = os.path.join(resources_dir_path, f'{file_name_prefix}_params_for_id.csv')
         if not os.path.exists(input_params_path):
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         python_commands = ['mpiexec', '-n', str(num_procs), opencor_python_path]
             
         # run_param_id_script_path
-        args = [model_path, param_id_model_type, 
+        args = [model_path, model_type, 
                      param_id_method, file_name_prefix]
         if input_params_path:
             args.extend(['--input_params_path', input_params_path])
