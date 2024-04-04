@@ -418,7 +418,7 @@ class CVS0DParamID():
                         this_sub_idx == self.obs_info["subexperiment_idxs"][II]:
                     if self.obs_info["data_types"][II] == "constant":
                         percent_error_vec[II] = 100*(best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
-                                                        self.obs_info["ground_truth_const"][const_idx]
+                                                        (self.obs_info["ground_truth_const"][const_idx] + 1e-10) # add eps to avoid div by 0
                         std_error_vec[II] = (best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
                                                         self.obs_info["std_const_vec"][const_idx]
                     elif self.obs_info["data_types"][II] == "series":
