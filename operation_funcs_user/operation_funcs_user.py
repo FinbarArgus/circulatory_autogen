@@ -8,6 +8,7 @@ from scipy.signal import find_peaks
 # Needed if you want to plot the series ontop of estimated constants
 def series_to_constant(func):
     func.series_to_constant = True
+    return func
 
 # example function
 def ml_to_m3(x):
@@ -78,7 +79,10 @@ def RICRI_get_zero_freq_3_Hz(C_T, I_1, I_2, R_T, frac_R_T_1_of_R_T):
     assert isinstance(freq, float)
     return freq
 
-def calc_spike_period(t, V):
+@series_to_constant
+def calc_spike_period(t, V, series_output=False):
+    if series_output:
+        return V
     peak_idxs, peak_properties = find_peaks(V)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
@@ -89,3 +93,36 @@ def calc_spike_period(t, V):
         # calculate the average period between peaks
         period = np.sum([t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)])/(len(peak_idxs) - 1)
     return period
+
+@series_to_constant
+def calc_spike_frequency_windowed(t, V, series_output=False):
+    """
+    this calculates the number of spikes per 
+    second in the given window. Not an accurate actual 
+    frequency, but useful for some applications.
+    """
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    # TODO maybe check peak properties here
+    spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
+    return spikes_per_s
+
+@series_to_constant
+def first_peak_time(t, V, series_output=False):
+    """ 
+    returns the time value (time from start of pre_time, NOT the start of 
+    experiment or subexperiment) that the first peak occurs
+
+    It is the time from the start, but it only checks in the subexperiment defined in obs_data.
+    """
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    
+    if len(peak_idxs) == 0:
+        # there are no peaks
+        return np.inf
+    # t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
+    t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
+    return t_first_peak

@@ -13,8 +13,10 @@ paperPlotSetup.Setup_Plot(3)
 # USER SHOULD ONLY NEED TO CHANGE BETWEEN HERE
 ##########################################################
 
-model_path = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP/SN_to_cAMP.cellml"
-plot_dir = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP/plots"
+# model_path = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP/SN_to_cAMP.cellml"
+# plot_dir = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP/plots"
+model_path = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP_SN_to_cAMP_obs_data/SN_to_cAMP.cellml"
+plot_dir = "/home/farg967/Documents/git_projects/circulatory_autogen/generated_models/SN_to_cAMP_SN_to_cAMP_obs_data/plots"
 if not os.path.exists(plot_dir):
     os.mkdir(plot_dir)
 
@@ -25,6 +27,16 @@ sim_times = [[1,2], [1,2],
              [1,2], [1,2],
              [10, 60, 180, 60, 60],
              [4, 4, 4]]
+pre_times = [1.0, 1.0, 1.0, 1.0, 30.0, 1.0]
+experiment_colors = ['r', 'b', 'r', 'b', 'r', 'r']
+experiment_labels = ['SHR', 'SHR $3\mu$M Retigabine', 'SHR', 'SHR ICA-121431', 'SHR', 'SHR']
+mM_to_uM = 1000
+num_experiments = len(sim_times)
+if num_experiments != len(pre_times):
+    raise ValueError('pre_times and sim_times must be the same length')
+    
+max_times = [np.sum(sim_times[II]) for II in range(num_experiments)]
+
 params_to_change_dict = {'SN/I_const': [[0, -0.15],   [0, -0.15],  
                                         [0, -0.15],   [0, -0.15],
                                         [-0.15, -0.15, -0.15, -0.15, -0.15],

@@ -86,7 +86,7 @@ if __name__ == '__main__':
         u_lv_idx = 3
 
         # get ground truth values
-        for II in range(param_id.num_obs):
+        for II in range(param_id.obs_info["num_obs"]):
             if param_id.gt_df.iloc[II]['data_type'] == 'series':
                 if param_id.gt_df.iloc[II]['variable'] == 'heart/q_lv':
                     gt_q_lv = np.array(param_id.gt_df.iloc[II]['series'])

@@ -132,12 +132,14 @@ do_sensitivity: false
 
 #______ genetic algorithm inputs ___________
 ga_options:
-  cost_type: AE
+  # TODO Should we move cost_type to obs_data.json file so each observable can have a specified cost function calculation?
+  # TODO This should eventually be a user_defined cost_function. 
+  cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
   num_calls_to_function: 150000
 
 debug_ga_options:
-  cost_type: AE
+  cost_type: MSE
   num_calls_to_function: 1500
 
 #______ mcmc inputs ___________
@@ -145,12 +147,13 @@ do_mcmc: false
 mcmc_options:
   num_steps: 40000
   num_walkers: 64
-  cost_type: AE
+  # TODO As above for cost_type
+  cost_type: MSE
 
 debug_mcmc_options:
   num_steps: 5
   num_walkers: 40
-  cost_type: AE
+  cost_type: MSE
 
 # For plotting core predictions after mcmc
 plot_predictions: true
