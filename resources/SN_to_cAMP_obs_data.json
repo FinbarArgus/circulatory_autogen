@@ -13,6 +13,24 @@
       "unit": "millimolar",
       "name_for_plotting": "Ca_{ter}",
       "experiment_idx": 0
+    },
+    {
+      "variable": "SN/Ca_ter",
+      "unit": "millimolar",
+      "name_for_plotting": "Ca_{ter}",
+      "experiment_idx": 1
+    },
+    {
+      "variable": "SN/V",
+      "unit": "milliV",
+      "name_for_plotting": "V",
+      "experiment_idx": 0
+    },
+    {
+      "variable": "SN/V",
+      "unit": "milliV",
+      "name_for_plotting": "V",
+      "experiment_idx": 1
     }
   ],
   "data_items": [

@@ -140,7 +140,7 @@ ga_options:
 
 debug_ga_options:
   cost_type: MSE
-  num_calls_to_function: 1500
+  num_calls_to_function: 30
 
 #______ mcmc inputs ___________
 do_mcmc: True

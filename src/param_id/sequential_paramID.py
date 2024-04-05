@@ -288,7 +288,7 @@ class SequentialParamID:
                                 self.file_name_prefix,
                                 params_for_id_path=self.params_for_id_path,
                                 param_id_obs_path=self.param_id_obs_path,
-                                sim_time=self.sim_time, pre_time=self.pre_time,
+                                sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
                                 sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                                 maximum_step=self.maximum_step,

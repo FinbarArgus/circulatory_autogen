@@ -108,6 +108,7 @@ def plot_param_id(inp_data_dict=None):
     maximum_step = inp_data_dict['maximum_step']
     dt = inp_data_dict['dt']
     ga_options = inp_data_dict['ga_options']
+    mcmc_options = inp_data_dict['mcmc_options']
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
@@ -148,7 +149,8 @@ def plot_param_id(inp_data_dict=None):
                                             num_calls_to_function=1,
                                             sim_time=sim_time, pre_time=pre_time,
                                             sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                            maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                            maximum_step=maximum_step, dt=dt, ga_options=ga_options, 
+                                            mcmc_options=mcmc_options, DEBUG=DEBUG,
                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
         if do_mcmc:
