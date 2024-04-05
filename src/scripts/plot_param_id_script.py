@@ -126,7 +126,7 @@ def plot_param_id(inp_data_dict=None):
                 param_names_to_remove.append(name_list)
         param_id.remove_params_by_name(param_names_to_remove)
 
-
+    # simulate with best values first to check cost
     param_id.simulate_with_best_param_vals()
     param_id.plot_outputs()
     if do_mcmc:

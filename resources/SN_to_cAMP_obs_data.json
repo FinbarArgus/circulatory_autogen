@@ -7,8 +7,15 @@
       "experiment_colors": ["r", "b"],
       "experiment_labels": ["SHR", "SHR M-activation"]
   },
-  "prediction_data_info":[{"TODO":"TODO Move this here instead of in prediction_variables_csv_files"}],
-  "data_item": [
+  "prediction_items":[
+    {
+      "variable": "SN/Ca_ter",
+      "unit": "millimolar",
+      "name_for_plotting": "Ca_{ter}",
+      "experiment_idx": 0
+    }
+  ],
+  "data_items": [
     { "variable": "SN/V",
       "name_for_plotting": "V_{max}",
       "data_type": "constant",

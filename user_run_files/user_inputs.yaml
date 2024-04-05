@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: false
+DEBUG: True
 MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
@@ -143,7 +143,7 @@ debug_ga_options:
   num_calls_to_function: 1500
 
 #______ mcmc inputs ___________
-do_mcmc: false
+do_mcmc: True
 mcmc_options:
   num_steps: 40000
   num_walkers: 64

@@ -127,9 +127,8 @@ class CVS0DParamID():
         self.__get_ground_truth_values()
 
         # get prediction variables
-        self.pred_var_names = None
-        # TODO update this to access prediction variables from obs_data.json instead of {}_pred_variables.csv
-        self.__set_prediction_var()
+        self.__set_prediction_var() # To be made obsolete, as prediction_info gets 
+                                    # parsed in __set_obs_names_and_df
 
         if self.mcmc_instead:
             # This mcmc_object will be an instance of the OpencorParamID class
@@ -139,7 +138,7 @@ class CVS0DParamID():
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_info, self.param_id_info,
-                                           self.protocal_info, self.pred_var_names,
+                                           self.protocal_info, self.prediction_info,
                                            pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                            dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
                                            DEBUG=self.DEBUG)
@@ -148,7 +147,7 @@ class CVS0DParamID():
             if model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocal_info,
-                                               self.pred_var_names,
+                                               self.prediction_info,
                                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
                                                dt=self.dt, maximum_step=maximum_step, ga_options=ga_options,
                                                DEBUG=self.DEBUG)
@@ -211,12 +210,6 @@ class CVS0DParamID():
             self.param_id.set_best_param_vals(best_param_vals)
 
     def plot_outputs(self):
-        if not self.best_output_calculated:
-            print('simulate_with_best_param_vals must be done first '
-                  'before plotting output values')
-            print('running simulate_with_best_param_vals ')
-            self.simulate_with_best_param_vals()
-
         print('plotting best observables')
         m3_to_cm3 = 1e6
         Pa_to_kPa = 1e-3
@@ -344,21 +337,21 @@ class CVS0DParamID():
                                 temp_series_per_sub = list_of_all_series[temp_subexp_count]
                                 if temp_sub_idx == 0:
                                     axs.plot(tSim_per_sub[temp_sub_idx], conversion*temp_series_per_sub[II][:], 
-                                             color='r', label='output')
+                                             color=self.protocal_info["experiment_colors"][exp_idx], label='output')
                                 else:
                                     axs.plot(tSim_per_sub[temp_sub_idx], conversion*temp_series_per_sub[II][:], 
-                                             color='r')
+                                             color=self.protocal_info["experiment_colors"][exp_idx])
                                     
                             
                             axs.set_xlim(0.0, sim_time_tot)
                             axs.set_xlabel('Time [$s$]', fontsize=18)
                         else:
                             axs.plot(self.obs_info["freqs"][II], conversion * best_fit_obs_amp[freq_idx],
-                                                    color='r', marker='v', 
+                                                    color=self.protocal_info["experiment_colors"][exp_idx], marker='v', 
                                                     linestyle='', label='model output')
                             if phase:
                                 axs_phase.plot(self.obs_info["freqs"][II], conversion * best_fit_obs_phase[freq_idx],
-                                                        color='r', marker='v', 
+                                                        color=self.protocal_info["experiment_colors"][exp_idx], marker='v', 
                                                         linestyle='', label='model output')
                                 axs_phase.set_ylabel(f'${obs_name_for_plot}$ phase', fontsize=18)
 
@@ -366,7 +359,7 @@ class CVS0DParamID():
                             axs.set_xlabel('frequency [$Hz$]', fontsize=18)
                         this_obs_waveform_plotted = True
 
-
+ 
                     if self.obs_info["data_types"][II] == 'constant':
                         if self.obs_info['plot_type'][II] == 'horizontal':
                             # TODO allow operation_funcs to define how we plot variables
@@ -984,28 +977,36 @@ class CVS0DParamID():
         if self.rank !=0:
             return
 
-        # TODO change this to access from prediction_data_info within the obs_data.json file
-        tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-        # TODO currently this can't take pred variables with multiple operands
-        pred_output = np.array(self.param_id.sim_helper.get_results(self.pred_var_names))
-        time_and_pred = np.concatenate((tSim.reshape(1, -1), pred_output[:, 0, :]))
-        return time_and_pred
+
+        time_and_pred_per_exp_dict = {}
+        for exp_idx in list(set(self.prediction_info['experiment_idxs'])):
+            self.param_id.simulate_once(reset=False, only_one_exp=exp_idx)
+            tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
+            pred_names = [name for II, name in enumerate(self.prediction_info['names']) if 
+                                  self.prediction_info['experiment_idxs'][II] == exp_idx]
+            pred_output = np.array(self.param_id.sim_helper.get_results(pred_names))
+                    
+            time_and_pred_per_exp_dict[exp_idx] = np.concatenate((tSim.reshape(1, -1), 
+                                                         pred_output[:, 0, :]))
+        return time_and_pred_per_exp_dict
 
     def save_prediction_data(self):
         if self.rank !=0:
             return
-        if self.pred_var_names is not None:
+        if self.prediction_info['names'] is not None:
             print('Saving prediction data')
-            time_and_pred = self.__get_prediction_data()
+            time_and_pred_per_exp_dict = self.__get_prediction_data()
 
             #save the prediction output
-            np.save(os.path.join(self.output_dir, 'prediction_variable_data'), time_and_pred)
-            print('single prediction data saved')
+            for exp_idx in time_and_pred_per_exp_dict.keys():
+                time_and_pred = time_and_pred_per_exp_dict[exp_idx]
+                np.save(os.path.join(self.output_dir, f'prediction_variable_data_exp_{exp_idx}'), 
+                        time_and_pred)
+            print('prediction data saved')
 
         else:
-            pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
             print(f'prediction variables have not been defined, if you want to save predicition variables,',
-                  f'create a file {pred_var_path}, with the names of the desired prediction variables')
+                  f'create a prediction_items entry in the obs_data.json file')
 
         return
 
@@ -1025,6 +1026,7 @@ class CVS0DParamID():
     def __set_obs_names_and_df(self, param_id_obs_path, pre_time=None, sim_time=None):
         # TODO this function should be in the parsing section. as it parses the 
         # ground truth data.
+        # TODO it should also be cleaned up substantially.
         """_summary_
 
         Args:
@@ -1036,12 +1038,18 @@ class CVS0DParamID():
             json_obj = json.load(rf)
         if type(json_obj) == list:
             self.gt_df = pd.DataFrame(json_obj)
+            self.protocal_info = {"pre_times": [pre_time], 
+                                    "sim_times": [[sim_time]],
+                                    "params_to_change": [[None]]}
+            self.prediction_info = None
         elif type(json_obj) == dict:
-            if 'data_item' in json_obj.keys():
-                self.gt_df = pd.DataFrame(json_obj['data_item'])
+            if 'data_items' in json_obj.keys():
+                self.gt_df = pd.DataFrame(json_obj['data_items'])
+            elif 'data_item' in json_obj.keys():
+                self.gt_df = pd.DataFrame(json_obj['data_item']) # should be data_items but accept this
             else:
-                print("data_item not found in json object. ",
-                      "Please check that data_item is the key for the list of data items")
+                print("data_items not found in json object. ",
+                      "Please check that data_items is the key for the list of data items")
             if 'protocal_info' in json_obj.keys():
                 self.protocal_info = json_obj['protocal_info']
                 if "sim_times" not in self.protocal_info.keys():
@@ -1057,9 +1065,37 @@ class CVS0DParamID():
 
                 self.protocal_info = {"pre_times": [pre_time], 
                                       "sim_times": [[sim_time]],
-                                      "params_to_change": None,
-                                      "experiment_colours": ['b'],
-                                      "experiment_labels": None}
+                                      "params_to_change": [[None]]}
+            if 'prediction_items' in json_obj.keys():
+                self.prediction_info = {'names': [],
+                                        'units': [],
+                                        'names_for_plotting': [],
+                                        'experiment_idxs': []}
+
+                for entry in json_obj['prediction_items']:
+                    if 'variable' in entry.keys():
+                        self.prediction_info['names'].append(entry['variable'])
+                    else:
+                        print('"variable" not found in prediction item in obs_data.json file, ',
+                              'exitiing') 
+                        exit()
+                    if 'unit' in entry.keys():
+                        self.prediction_info['units'].append(entry['unit'])
+                    else:
+                        print('"unit" not found in prediction item in obs_data.json file, ',
+                              'exitiing') 
+                        exit()
+                    if 'name_for_plotting' in entry.keys():
+                        self.prediction_info['names_for_plotting'].append(entry['name_for_plotting'])
+                    else:
+                        self.prediction_info['names_for_plotting'].append(entry['variable'])
+                    if 'experiment_idx' in entry.keys():
+                        self.prediction_info['experiment_idxs'].append(entry['experiment_idx'])
+                    else:
+                        self.prediction_info['experiment_idxs'].append(0)
+
+            else:
+                self.prediction_info = None
         else:
             print(f"unknown data type for imported json object of {type(json_obj)}")
         
@@ -1086,11 +1122,14 @@ class CVS0DParamID():
 
         # get plotting type
         # TODO make the plot_types operation_funcs so the user can defined how they are plotted.
+        warning_printed = False
         for II in range(self.gt_df.shape[0]):
             if "plot_type" not in self.gt_df.iloc[II].keys():
                 if self.gt_df.iloc[II]["data_type"] == "constant":
-                    print('constant data types plot type defaults to horizontal lines',
-                          'chanhge "plot_type" in obs_data.json to change this')
+                    if not warning_printed:
+                        print('constant data types plot type defaults to horizontal lines',
+                            'change "plot_type" in obs_data.json to change this')
+                        warning_printed = True
                     self.obs_info["plot_type"].append("horizontal")
                 elif self.gt_df.iloc[II]["data_type"] == "series":
                     self.obs_info["plot_type"].append("series")
@@ -1169,23 +1208,25 @@ class CVS0DParamID():
         self.protocal_info['num_experiments'] = len(self.protocal_info["sim_times"])
         self.protocal_info['num_sub_per_exp'] = [len(self.protocal_info["sim_times"][II]) for II in range(self.protocal_info["num_experiments"])]
         self.protocal_info['num_sub_total'] = sum(self.protocal_info['num_sub_per_exp'])
+            
 
-        if "experiment_colours" not in self.protocal_info.keys():
-            self.protocal_info["experiment_colours"] = ['b']
+        if "experiment_colors" not in self.protocal_info.keys():
+            self.protocal_info["experiment_colors"] = ['r']
             if self.protocal_info['num_experiments'] > 1:
-                self.protocal_info["experiment_colours"] = ['b']*self.protocal_info['num_experiments']
-
-        if "experiment_labels" not in self.protocal_info.keys():
-            self.protocal_info["experiment_labels"] = None
-
-        if "experiment_colours" in self.protocal_info.keys():
-            if len(self.protocal_info["experiment_colours"]) < self.protocal_info['num_experiments']:
-                print('experiment_colours in obs_data.json not the same length as num_experiments, exiting')
+                self.protocal_info["experiment_colors"] = ['r']*self.protocal_info['num_experiments']
+        else:
+            if len(self.protocal_info["experiment_colors"]) != self.protocal_info['num_experiments']:
+                print('experiment_colors in obs_data.json not the same length as num_experiments, exiting')
                 exit()
+
         if "experiment_labels" in self.protocal_info.keys():
-            if len(self.protocal_info["experiment_labels"]) < self.protocal_info['num_experiments']:
+            if len(self.protocal_info["experiment_labels"]) != self.protocal_info['num_experiments']:
                 print('experiment_labels in obs_data.json not the same length as num_experiments, exiting')
                 exit()
+        else:
+            self.protocal_info["experiment_labels"] = [None]
+            if self.protocal_info['num_experiments'] > 1:
+                self.protocal_info["experiment_labels"] = [None]*self.protocal_info['num_experiments']
         
         # set experiment and subexperiment idxs to 0 if they are not defined. print warning if multiple subexperiments
         for II in range(self.gt_df.shape[0]):
@@ -1459,38 +1500,36 @@ class CVS0DParamID():
         self.remove_params_by_idx(param_idxs_to_remove)
 
     def __set_prediction_var(self):
-        # TODO redo this for new prediction_data_info in obs_data.json
-        # prediction variables
-        pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
-        if os.path.exists(pred_var_path):
-            # TODO change this to loading with parser
-            csv_parser = CSVFileParser()
-            self.pred_var_df = csv_parser.get_data_as_dataframe_multistrings(pred_var_path)
-            self.pred_var_names = [self.pred_var_df["name"][II].strip()
-                                            for II in range(self.pred_var_df.shape[0])]
-            self.pred_var_units = [self.pred_var_df["unit"][II].strip()
-                                            for II in range(self.pred_var_df.shape[0])]
-            self.pred_var_names_for_plotting = np.array([self.pred_var_df["name_for_plotting"][II].strip()
-                                            for II in range(self.pred_var_df.shape[0])])
+        # TODO make the prediction_variables csv obsolete. Should be in obs_data.json
+        # TODO when done this function will also be obsolete
+
+        if self.prediction_info is not None:
+            # prediction_info has already been parsed from obs_data.json file
+            pass
         else:
-            self.pred_var_names = None
-            self.pred_var_units = None
-            self.pred_var_names_for_plotting = None
+            pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
+            if os.path.exists(pred_var_path):
+                # TODO change this to loading with parser
+                csv_parser = CSVFileParser()
+                pred_var_df = csv_parser.get_data_as_dataframe_multistrings(pred_var_path)
+                self.prediction_info['names'] = [pred_var_df["name"][II].strip()
+                                                for II in range(pred_var_df.shape[0])]
+                self.prediction_info['units'] = [pred_var_df["unit"][II].strip()
+                                                for II in range(pred_var_df.shape[0])]
+                self.prediction_info['names_for_plotting'] = np.array([pred_var_df["name_for_plotting"][II].strip()
+                                                for II in range(pred_var_df.shape[0])])
+            else:
+                self.prediction_info['names'] = None
+                self.prediction_info['units'] = None
+                self.prediction_info['names_for_plotting'] = None
 
-        #if len(self.pred_var_names) < 1:
-        #    self.pred_var_names = None
-        #    self.pred_var_units = None
-        #    self.pred_var_names_for_plotting = None
-
-        if self.pred_var_names is None:
-            self.pred_var_names = None
-            self.pred_var_units = None
-            self.pred_var_names_for_plotting = None
+            self.prediction_info['experiment_idxs'] = [0] # only functionality for first experiment 
+                                                          # when using (to be obsolete) csv file
 
     def postprocess_predictions(self):
-        # TODO redo this for new prediction_data_info in obs_data.json 
+        # TODO redo this for new prediction_info in obs_data.json 
         # TODO This should be straight forward
-        if self.pred_var_names == None:
+        if self.prediction_info['names'] == None:
             print('no prediction variables, not plotting predictions')
             return 0
         m3_to_cm3 = 1e6
@@ -1503,33 +1542,34 @@ class CVS0DParamID():
         else:
             n_sims = 100
 
-        pred_array = mcmc_object.calculate_var_from_posterior_samples(self.pred_var_names, flat_samples, n_sims=n_sims)
+        pred_array = mcmc_object.calculate_var_from_posterior_samples(self.prediction_info['names'], flat_samples, n_sims=n_sims)
         if self.mcmc_instead:
             tSim = mcmc_object.sim_helper.tSim - mcmc_object.pre_time
         else:
             tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
 
-        fig, axs = plt.subplots(len(self.pred_var_names))
-        if len(self.pred_var_names) == 1:
+        fig, axs = plt.subplots(len(self.prediction_info['names']))
+        if len(self.prediction_info['names']) == 1:
             axs = [axs]
 
         save_list = []
-        for pred_idx in range(len(self.pred_var_names)):
+        for pred_idx in range(len(self.prediction_info['names'])):
             #TODO conversion
-            if self.pred_var_units[pred_idx] == 'm3_per_s':
+            if self.prediction_info['units'][pred_idx] == 'm3_per_s':
                 conversion = m3_to_cm3
                 unit_for_plot = '$cm^3/s$'
-            elif self.pred_var_units[pred_idx] == 'm_per_s':
+            elif self.prediction_info['units'][pred_idx] == 'm_per_s':
                 conversion = 1.0
                 unit_for_plot = '$m/s$'
-            elif self.pred_var_units[pred_idx] == 'm3':
+            elif self.prediction_info['units'][pred_idx] == 'm3':
                 conversion = m3_to_cm3
                 unit_for_plot = '$cm^3$'
-            elif self.pred_var_units[pred_idx] == 'J_per_m3':
+            elif self.prediction_info['units'][pred_idx] == 'J_per_m3':
                 conversion = Pa_to_kPa
                 unit_for_plot = '$kPa$'
             else:
-                print(f'unit of {self.pred_var_units} not yet implemented for prediction variables plotting.')
+                print(f'unit of {self.prediction_info["units"]} not yet implemented ',
+                      'for prediction variables plotting.')
                 exit()
             # calculate mean and std of the ensemble
             pred_mean = np.mean(pred_array[pred_idx, :, :], axis=0)
@@ -1540,7 +1580,7 @@ class CVS0DParamID():
                                 np.argmin(np.abs(pred_mean - np.mean(pred_mean)))]
             # TODO put units in prediction file and use it here
             axs[pred_idx].set_xlabel('Time [$s$]', fontsize=14)
-            axs[pred_idx].set_ylabel(f'${self.pred_var_names_for_plotting[pred_idx]}$ [{unit_for_plot}]', fontsize=14)
+            axs[pred_idx].set_ylabel(f'${self.prediction_info["names_for_plotting"][pred_idx]}$ [{unit_for_plot}]', fontsize=14)
             # for sample_idx in range(pred_array.shape[1]):
             #     axs[pred_idx].plot(tSim, conversion*pred_array[pred_idx, sample_idx, :], 'k')
 
@@ -1586,7 +1626,7 @@ class OpencorParamID():
     Class for doing parameter identification on opencor models
     """
     def __init__(self, model_path, param_id_method,
-                 obs_info, param_id_info, protocal_info, pred_var_names,
+                 obs_info, param_id_info, protocal_info, prediction_info,
                  pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, ga_options=None, DEBUG=False):
 
@@ -1596,7 +1636,7 @@ class OpencorParamID():
 
         self.obs_info = obs_info
         self.param_id_info = param_id_info
-        self.pred_var_names = pred_var_names
+        self.prediction_info = prediction_info # currently not used
         self.num_params = len(self.param_id_info["param_names"])
 
         self.protocal_info = protocal_info
@@ -2115,6 +2155,8 @@ class OpencorParamID():
     def run_single_sensitivity(self, sensitivity_output_path, do_triples_and_quads):
         # TODO this may need to be cleaned up or removed
         #  Doesn't work with frequency based obs
+        print('sensitivity analysis needs to be updated to new version. Exiting')
+        exit()
         if sensitivity_output_path == None:
             output_path = self.output_dir
         else:
@@ -2140,10 +2182,10 @@ class OpencorParamID():
 
 
         jacobian_sensitivity = np.zeros((self.num_params,self.obs_info["num_obs"]))
-        if self.pred_var_names == None:
+        if self.prediction_info['names'] == None:
             num_preds = 0
         else:
-            num_preds = len(self.pred_var_names)*3 # *3 for the min max and mean of the pred trace
+            num_preds = len(self.prediction_info['names'])*3 # *3 for the min max and mean of the pred trace
             pred_jacobian_sensitivity = np.zeros((self.num_params, num_preds))
 
         for i in range(self.num_params):
@@ -2159,7 +2201,7 @@ class OpencorParamID():
                 up_operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
                 up_obs = self.get_obs_output_dict(up_operands_outputs)
                 if num_preds > 0:
-                    up_preds = self.sim_helper.get_results(self.pred_var_names)
+                    up_preds = self.sim_helper.get_results(self.prediction_info['names'])
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_up')
@@ -2171,7 +2213,7 @@ class OpencorParamID():
                 up_operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
                 up_obs = self.get_obs_output_dict(up_operands_outputs)
                 if num_preds > 0:
-                    up_preds = self.sim_helper.get_results(self.pred_var_names)
+                    up_preds = self.sim_helper.get_results(self.prediction_info['names'])
                 self.sim_helper.reset_and_clear()
 
             self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vec_down)
@@ -2179,7 +2221,7 @@ class OpencorParamID():
             if success:
                 down_obs = self.sim_helper.get_results(self.obs_info["obs_names"])
                 if num_preds > 0:
-                    down_preds = self.sim_helper.get_results(self.pred_var_names)
+                    down_preds = self.sim_helper.get_results(self.prediction_info['names'])
                 self.sim_helper.reset_and_clear()
             else:
                 print('sim failed on sensitivity run, reseting to new param_vec_down')
@@ -2190,11 +2232,9 @@ class OpencorParamID():
                     success = self.sim_helper.run()
                 down_obs = self.sim_helper.get_results(self.obs_info["obs_names"])
                 if num_preds > 0:
-                    down_preds = self.sim_helper.get_results(self.pred_var_names)
+                    down_preds = self.sim_helper.get_results(self.prediction_info['names'])
                 self.sim_helper.reset_and_clear()
 
-            print('sensitivity analysis needs to be updated to new version. Exiting')
-            exit()
             up_obs_const_vec, up_obs_series_array = self.get_obs_output_dict(up_obs)
             down_obs_const_vec, down_obs_series_array = self.get_obs_output_dict(down_obs)
             for j in range(len(up_obs_const_vec)+len(up_obs_series_array)):
@@ -2375,16 +2415,19 @@ class OpencorParamID():
             if only_one_exp == -1:
                 # unless the user wants to just to one experiment, reset must be true
                 reset = True
+                exp_idxs_to_run = range(self.protocal_info["num_experiments"])
+            else:
+                exp_idxs_to_run = [only_one_exp]
                 
-            subexp_count = -1
             operands_outputs_list = []
-            for exp_idx in range(self.protocal_info["num_experiments"]):
+            for exp_idx in exp_idxs_to_run:
                 if only_one_exp != -1 and exp_idx != only_one_exp:
                     # the user can set a only_one_exp idx to only simulate that one experiment
                     continue
                 current_time = 0
                 for this_sub_idx in range(self.protocal_info["num_sub_per_exp"][exp_idx]):
-                    subexp_count += 1
+                    subexp_count = int(np.sum([num_sub for num_sub in 
+                                               self.protocal_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
             
                     self.sim_time = self.protocal_info["sim_times"][exp_idx][this_sub_idx]
                     self.pre_time = self.protocal_info["pre_times"][exp_idx]
@@ -2424,10 +2467,10 @@ class OpencorParamID():
                         return np.inf, []
 
             cost = 0
-            subexp_count = -1
-            for exp_idx in range(self.protocal_info["num_experiments"]):
+            for exp_idx in exp_idxs_to_run:
                 for this_sub_idx in range(self.protocal_info["num_sub_per_exp"][exp_idx]):
-                    subexp_count += 1
+                    subexp_count = int(np.sum([num_sub for num_sub in 
+                                               self.protocal_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
 
                     sub_cost = self.get_cost_from_operands(operands_outputs_list[subexp_count], 
                                                                exp_idx=exp_idx, sub_idx=this_sub_idx)   
@@ -2778,7 +2821,7 @@ def calculate_lnlikelihood(param_vals):
     """
     return mcmc_object.get_lnlikelihood_from_params(param_vals)
 
-class OpencorMCMC(): # (OpencorParamID) TODO inherit
+class OpencorMCMC(OpencorParamID): 
     """
     Class for doing mcmc on opencor models
     TODO make this a class that inherits all from the ParamID class so I don't
@@ -2786,12 +2829,11 @@ class OpencorMCMC(): # (OpencorParamID) TODO inherit
     """
 
     def __init__(self, model_path,
-                 obs_info, param_id_info, protocal_info, pred_var_names,
+                 obs_info, param_id_info, protocal_info, prediction_info,
                  pre_heart_periods=None, sim_heart_periods=None,
                  dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
-        # TODO when inheriting
         # super().__init__(model_path, "MCMC",
-        #         obs_info, param_id_info, protocal_info, pred_var_names,
+        #         obs_info, param_id_info, protocal_info, prediction_info,
         #         pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
         #         dt=dt, maximum_step=maximum_step, DEBUG=DEBUG):
         # delete nearly all of the below when I inherit
@@ -2802,6 +2844,7 @@ class OpencorMCMC(): # (OpencorParamID) TODO inherit
         self.obs_info = obs_info
         self.param_id_info = param_id_info
         self.protocal_info = protocal_info
+        self.prediction_info = prediction_info # currently not used
         self.num_params = len(self.param_id_info["param_names"])
 
         self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
