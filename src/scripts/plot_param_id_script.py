@@ -107,8 +107,12 @@ def plot_param_id(inp_data_dict=None):
         
     maximum_step = inp_data_dict['maximum_step']
     dt = inp_data_dict['dt']
-    ga_options = inp_data_dict['ga_options']
-    mcmc_options = inp_data_dict['mcmc_options']
+    if DEBUG:
+        ga_options = inp_data_dict['debug_ga_options']
+        mcmc_options = inp_data_dict['debug_mcmc_options']
+    else:
+        ga_options = inp_data_dict['ga_options']
+        mcmc_options = inp_data_dict['mcmc_options']
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,

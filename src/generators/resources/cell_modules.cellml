@@ -1113,13 +1113,14 @@
         <variable name="iA" units="nanoA"/>
         <variable name="ikCa" units="nanoA"/>
         <variable name="I_app" public_interface="in" units="nanoA"/>
+        <variable name="V_midm" public_interface="in" units="milliV"/>
         <variable name="m_inf" units="dimensionless"/>
         <variable name="h_inf" units="dimensionless"/>
         <variable name="tau_m" units="millis"/>
         <variable name="tau_h" units="millis"/>
         <variable name="c_inf" units="dimensionless"/>
         <variable name="hc_inf" units="dimensionless"/>
-        <variable name="tau_c" units="millis"/>
+        <variable name="tau_c" public_interface="in" units="millis"/>
         <variable name="tau_hc" units="millis"/>
         <variable name="n1_inf" units="dimensionless"/>
         <variable name="tau_n1" units="millis"/>
@@ -1221,7 +1222,9 @@
                     <ci>Cm_Neuron</ci>
                 </apply>
             </apply>
-            <!-- iNa_N-->
+            <!-- iNa_N
+ Made V_midm a parameter (was 36 mV) to allow the modification of the depolarising voltage
+ threshold-->
             <apply>
                 <eq/>
                 <ci>m_inf</ci>
@@ -1240,7 +1243,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <cn cellml:units="milliV">36</cn>
+                                        <ci>V_midm</ci>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">7.2</cn>
@@ -1498,48 +1501,8 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>tau_c</ci>
-                <apply>
-                    <plus/>
-                    <cn cellml:units="millis">0.1</cn>
-                    <apply>
-                        <divide/>
-                        <cn cellml:units="dimensionless">1</cn>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="per_millis">0.343</cn>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <times/>
-                                        <cn cellml:units="per_milliV">0.0925</cn>
-                                        <ci>V</ci>
-                                    </apply>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="per_millis">1.88</cn>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <times/>
-                                        <apply>
-                                            <minus/>
-                                            <cn cellml:units="per_milliV">0.00732</cn>
-                                        </apply>
-                                        <ci>V</ci>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- identify tau_c instead, as it is very important for the membrane voltage shape and the calcium dynamics
+tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V)+1.88{per_millis}*exp(-0.00732{per_milliV}*V));-->
             <apply>
                 <eq/>
                 <ci>tau_hc</ci>

@@ -4,10 +4,11 @@ gna_SN_OLD, microS, 9.28, Tau2011
 b_SN, picoF, 0.25, Tau2011
 Cm_Neuron_SN, picoF, 240, Tau2011
 gamma_SN, per_s, 6000, Tau2011
-pCa_ter_SN, m3_per_s, 1e-15, to_be_identified
-pCa_soma_SN, m3_per_s, 1e-15, to_be_identified
+pCa_ter_SN, m3_per_s, 1e-13, to_be_identified
+pCa_soma_SN, m3_per_s, 3e-12, to_be_identified
 gkv_SN, microS, 0.44, Tau2011
-gA_SN, microS, 0.2, Tau2011
+gA_SN, microS, 0.5, to_be_identified
+gA_SN_OLD, microS, 0.2, Tau2011
 gkcf_SN, microS, 0.15, Tau2011
 gkcs_SN, microS, 0.22, Tau2011
 kon_SN, per_milliM_s, 90000, Tau2011
@@ -38,11 +39,14 @@ m_init_SN, dimensionless, 0.01, Tau2011
 h_init_SN, dimensionless, 0.9, Tau2011
 c_init_SN, dimensionless, 0.01, Tau2011
 hc_init_SN, dimensionless, 0.9, Tau2011
+tau_c_SN, millis, 20, to_be_identified
 n1_init_SN, dimensionless, 0.01, Tau2011
 a_init_SN, dimensionless, 0.01, Tau2011
 ah_init_SN, dimensionless, 0.9, Tau2011
 kcf_init_SN, dimensionless, 0.01, Tau2011
 kcs_init_SN, dimensionless, 0.01, Tau2011
+V_midm_SN, milliV, 46, to_be_identified
+V_midm_SN_OLD, milliV, 36, Tau2011
 B0_init_SN, dimensionless, 1e-6, Tau2011
 B1_init_SN, dimensionless, 1e-6, Tau2011
 B2_init_SN, dimensionless, 1e-6, Tau2011
@@ -60,15 +64,14 @@ delta_gHCN_SN,microS, 0.3,to_be_identified
 r_init_SN,dimensionless, 0.01,user_defined 
 eHCN_SN, milliV, -30, Martin2023Modelling
 #, #, #, #
-Nao_SN,millimolar,145,BoronBoulpaep2017
 Nai_SN,millimolar,15,BoronBoulpaep2017
 Ksat_SN,dimensionless,0.1,Paci_2013_CHECK_FOR_SN 
 KmCa_SN,millimolar,1.38,Paci_2013_CHECK_FOR_SN 
 KmNai_SN,millimolar,87.5,Paci_2013_CHECK_FOR_SN 
 alpha_NaCa_SN,dimensionless,2.8571432,Paci_2013_CHECK_FOR_SN
 gamma_NaCa_SN,dimensionless,0.35,Paci_2013_CHECK_FOR_SN
-k_NaCa_ter_SN,nanoA,3,to_be_identified
-k_NaCa_soma_SN,nanoA,3,to_be_identified
+k_NaCa_ter_SN,nanoA,10,to_be_identified
+k_NaCa_soma_SN,nanoA,10,to_be_identified
 #, #, #, #
 Ca_ER_init_SN,millimolar,0.1,Paci_2013
 h_IP3_init_SN,dimensionless, 0.99,user_defined 

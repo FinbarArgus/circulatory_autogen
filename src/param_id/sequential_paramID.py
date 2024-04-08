@@ -291,7 +291,7 @@ class SequentialParamID:
                                 sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
                                 sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
-                                maximum_step=self.maximum_step,
+                                maximum_step=self.maximum_step, mcmc_options=self.mcmc_options,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
                 if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):

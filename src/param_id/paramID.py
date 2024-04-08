@@ -260,15 +260,15 @@ class CVS0DParamID():
                                             start_time_sum + self.protocal_info["sim_times"][exp_idx][II], 
                                             n_steps_per_sub[II] + 1))
 
+        percent_error_vec = np.zeros((self.obs_info["num_obs"],))
+        phase_error_vec = np.zeros((self.obs_info["num_obs"],))
+        std_error_vec = np.zeros((self.obs_info["num_obs"],))
         series_label_set = False
         for unique_obs_count in range(len(obs_tuples_unique)):
             this_obs_waveform_plotted = False
             const_idx = -1
             series_idx = -1
             freq_idx = -1
-            percent_error_vec = np.zeros((self.obs_info["num_obs"],))
-            phase_error_vec = np.zeros((self.obs_info["num_obs"],))
-            std_error_vec = np.zeros((self.obs_info["num_obs"],))
             for II in range(self.obs_info["num_obs"]):
                 if self.obs_info["data_types"][II] == "constant":
                     const_idx += 1
@@ -406,31 +406,31 @@ class CVS0DParamID():
                                                     conversion*self.obs_info["ground_truth_phase"][freq_idx],
                                                     'kx', label='measurement')
 
-                #also calculate the RMS error for each observable
-                if exp_idx == self.obs_info["experiment_idxs"][II] and \
-                        this_sub_idx == self.obs_info["subexperiment_idxs"][II]:
-                    if self.obs_info["data_types"][II] == "constant":
-                        percent_error_vec[II] = 100*(best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
-                                                        (self.obs_info["ground_truth_const"][const_idx] + 1e-10) # add eps to avoid div by 0
-                        std_error_vec[II] = (best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
-                                                        self.obs_info["std_const_vec"][const_idx]
-                    elif self.obs_info["data_types"][II] == "series":
-                        percent_error_vec[II] = 100*np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                                best_fit_obs_series[series_idx, :min_len_series]) /
-                                                                (np.mean(self.obs_info["ground_truth_series"][series_idx, :min_len_series]))))/min_len_series
-                        std_error_vec[II] = np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                        best_fit_obs_series[series_idx, :min_len_series]) /
-                                                        (self.obs_info["std_series_vec"][series_idx]))/min_len_series)
-                    elif self.obs_info["data_types"][II] == "frequency":
-                        std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) *
-                                                self.obs_info["weight_amp_vec"][freq_idx] /
-                                                self.obs_info["std_amp_vec"][freq_idx]) / len(best_fit_obs_amp[freq_idx]))
-                        percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) /
-                                                        np.mean(self.obs_info["ground_truth_amp"][freq_idx]))
-                                                        / len(best_fit_obs_amp[freq_idx]))
-                        if phase:
-                            phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.obs_info["ground_truth_phase"][freq_idx])*
-                                                                self.obs_info["weight_phase_vec"][freq_idx]))/len(best_fit_obs_phase[freq_idx])
+                    #also calculate the RMS error for each observable
+                    if exp_idx == self.obs_info["experiment_idxs"][II] and \
+                            this_sub_idx == self.obs_info["subexperiment_idxs"][II]:
+                        if self.obs_info["data_types"][II] == "constant":
+                            percent_error_vec[II] = 100*(best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
+                                                            (self.obs_info["ground_truth_const"][const_idx] + 1e-10) # add eps to avoid div by 0
+                            std_error_vec[II] = (best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
+                                                            self.obs_info["std_const_vec"][const_idx]
+                        elif self.obs_info["data_types"][II] == "series":
+                            percent_error_vec[II] = 100*np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
+                                                                    best_fit_obs_series[series_idx, :min_len_series]) /
+                                                                    (np.mean(self.obs_info["ground_truth_series"][series_idx, :min_len_series]))))/min_len_series
+                            std_error_vec[II] = np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
+                                                            best_fit_obs_series[series_idx, :min_len_series]) /
+                                                            (self.obs_info["std_series_vec"][series_idx]))/min_len_series)
+                        elif self.obs_info["data_types"][II] == "frequency":
+                            std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) *
+                                                    self.obs_info["weight_amp_vec"][freq_idx] /
+                                                    self.obs_info["std_amp_vec"][freq_idx]) / len(best_fit_obs_amp[freq_idx]))
+                            percent_error_vec[II] = 100*np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) /
+                                                            np.mean(self.obs_info["ground_truth_amp"][freq_idx]))
+                                                            / len(best_fit_obs_amp[freq_idx]))
+                            if phase:
+                                phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.obs_info["ground_truth_phase"][freq_idx])*
+                                                                    self.obs_info["weight_phase_vec"][freq_idx]))/len(best_fit_obs_phase[freq_idx])
 
 
             # axs.set_ylim(ymin=0.0)
@@ -438,9 +438,9 @@ class CVS0DParamID():
 
             plot_saved = False
 
-            axs.legend(loc='upper right', fontsize=12)
+            axs.legend(fontsize=10)
             if phase:
-                axs_phase.legend(loc='upper right', fontsize=12)
+                axs_phase.legend(loc='upper right', fontsize=10)
             fig.tight_layout()
             if phase:
                 fig_phase.tight_layout()
@@ -1725,7 +1725,6 @@ class OpencorParamID():
 
         # bayesian optimisation constants TODO add more of the constants to this so they can be modified by the user
         # TODO or remove bayesian optimisation, as it is untested
-        self.n_calls = 10000
         self.acq_func = 'EI'  # the acquisition function
         self.n_initial_points = 5
         self.acq_func_kwargs = {}
@@ -1739,9 +1738,19 @@ class OpencorParamID():
         self.pred_collinearity_idx_pairs = None
 
         if ga_options is not None:
-            self.cost_type = ga_options['cost_type']
+            self.ga_options = ga_options
+            if 'cost_type' not in self.ga_options.keys():
+                self.ga_options['cost_type'] = 'MSE'
+            if 'cost_convergence' not in self.ga_options.keys():
+                self.ga_options['cost_convergence'] = 0.0001
+            if 'num_calls_to_function' not in self.ga_options.keys():
+                self.ga_options['num_calls_to_function'] = 10000
         else:
-            self.cost_type = 'MSE'
+            self.ga_options = {}
+            self.ga_options['cost_type'] = 'MSE'
+            self.ga_options['cost_convergence'] = 0.0001
+            self.ga_options['num_calls_to_function'] = 10000
+        self.cost_type = self.ga_options['cost_type']
 
         self.DEBUG = DEBUG
 
@@ -1804,8 +1813,6 @@ class OpencorParamID():
 
         # C_T min and max was 1e-9 and 1e-5 before
 
-
-        cost_convergence = 0.0001
         if self.param_id_method == 'bayesian':
             print('WARNING bayesian will be deprecated and is untested')
             if rank == 0:
@@ -1816,11 +1823,11 @@ class OpencorParamID():
                 res = gp_minimize(self.get_cost_from_params,  # the function to minimize
                                   param_ranges,  # the bounds on each dimension of x
                                   acq_func=self.acq_func,  # the acquisition function
-                                  n_calls=self.n_calls,  # the number of evaluations of f
+                                  n_calls=self.ga_options['num_calls_to_function'],  # the number of evaluations of f
                                   n_initial_points=self.n_initial_points,  # the number of random initialization points
                                   random_state=self.random_state, # random seed
                                   **self.acq_func_kwargs,
-                                  callback=[ProgressBar(self.n_calls)])
+                                  callback=[ProgressBar(self.ga_options['num_calls_to_function'])])
                               # noise=0.1**2,  # the noise level (optional)
             else:
                 # using Optimizer is more flexible and may be needed to implement a parallel usage
@@ -1835,11 +1842,11 @@ class OpencorParamID():
                                     n_jobs=num_procs)
 
 
-                progress_bar = ProgressBar(self.n_calls, n_jobs=num_procs)
+                progress_bar = ProgressBar(self.ga_options['num_calls_to_function'], n_jobs=num_procs)
                 call_num = 0
                 iter_num = 0
                 cost = np.zeros(num_procs)
-                while call_num < self.n_calls:
+                while call_num < self.ga_options['num_calls_to_function']:
                     if rank == 0:
                         if self.DEBUG:
                             zero_time = time.time()
@@ -1914,9 +1921,9 @@ class OpencorParamID():
 
         elif self.param_id_method == 'genetic_algorithm':
             if self.DEBUG:
-                num_elite = 1
-                num_survivors = 2
-                num_mutations_per_survivor = 2
+                num_elite = 1 # 1
+                num_survivors = 2 # 2
+                num_mutations_per_survivor = 2 # 2
                 num_cross_breed = 0
             else:
                 num_elite = 12
@@ -1925,14 +1932,14 @@ class OpencorParamID():
                 num_cross_breed = 120
             num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
                    num_cross_breed
-            if self.n_calls < num_pop:
-                print(f'Number of calls (n_calls={self.n_calls}) must be greater than the '
+            if self.ga_options['num_calls_to_function'] < num_pop:
+                print(f'Number of calls (n_calls={self.ga_options["num_calls_to_function"]}) must be greater than the '
                       f'gen alg population (num_pop={num_pop}), exiting')
                 exit()
             if num_procs > num_pop:
                 print(f'Number of processors must be less than number of population, exiting')
                 exit()
-            self.max_generations = math.floor(self.n_calls/num_pop)
+            self.max_generations = math.floor(self.ga_options['num_calls_to_function']/num_pop)
             if rank == 0:
                 print(f'Running genetic algorithm with a population size of {num_pop},\n'
                       f'and a maximum number of generations of {self.max_generations}')
@@ -1945,10 +1952,12 @@ class OpencorParamID():
             else:
                 param_vals = None
 
+            finished_ga = np.empty(1, dtype=bool)
+            finished_ga[0] = False
             cost = np.zeros(num_pop)
             cost[0] = np.inf
 
-            while cost[0] > cost_convergence and gen_count < self.max_generations:
+            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations:
                 mutation_weight = 0.1
                 # TODO make the default just a mutation weight of 0.1
                 # if gen_count > 30:
@@ -2091,64 +2100,73 @@ class OpencorParamID():
                     with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
                         np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
                     
+                    # if cost is small enough then exit
+                    if cost[0] < self.ga_options["cost_convergence"]:
+                        print('Cost is less than cost aim, success!')
+                        finished_ga[0] = True
+                    else:
 
-                    # At this stage all of the population has been simulated
-                    simulated_bools = [True]*num_pop
-                    # keep the num_survivors best param_vals, replace these with mutations
-                    param_idx = num_elite
+                        # At this stage all of the population has been simulated
+                        simulated_bools = [True]*num_pop
+                        # keep the num_survivors best param_vals, replace these with mutations
+                        param_idx = num_elite
 
-                    # for idx in range(num_elite, num_survivors):
-                    #     survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
-                    #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
-                    #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
-                    #
-                    survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
-                    rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
-                                                         size=num_survivors-num_elite, p=survive_prob)
-                    param_vals_norm[:, num_elite:num_survivors] = param_vals_norm[:, rand_survivor_idxs]
+                        # for idx in range(num_elite, num_survivors):
+                        #     survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                        #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
+                        #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
+                        #
+                        survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
+                        rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
+                                                            size=num_survivors-num_elite, p=survive_prob)
+                        param_vals_norm[:, num_elite:num_survivors] = param_vals_norm[:, rand_survivor_idxs]
 
-                    param_idx = num_survivors
+                        param_idx = num_survivors
 
-                    for survivor_idx in range(num_survivors):
-                        for JJ in range(num_mutations_per_survivor):
+                        for survivor_idx in range(num_survivors):
+                            for JJ in range(num_mutations_per_survivor):
+                                simulated_bools[param_idx] = False
+                                fifty_fifty = np.random.rand()
+                                if fifty_fifty < 0.5:
+                                    ## This accounts for smaller changes when the value is smaller
+                                    param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx]* \
+                                                                (1.0 + mutation_weight*np.random.randn(self.num_params))
+                                else:
+                                    ## This doesn't account for smaller changes when the value is smaller
+                                    param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
+                                                                mutation_weight*np.random.randn(self.num_params)
+                                param_idx += 1
+
+                        # now do cross breeding
+                        cross_breed_indices = np.random.randint(0, num_survivors, (num_cross_breed, 2))
+                        for couple in cross_breed_indices:
+                            if couple[0] == couple[1]:
+                                couple[1] += 1  # this allows crossbreeding out of the survivors but that's ok
                             simulated_bools[param_idx] = False
+
                             fifty_fifty = np.random.rand()
                             if fifty_fifty < 0.5:
-                              ## This accounts for smaller changes when the value is smaller
-                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx]* \
-                                                              (1.0 + mutation_weight*np.random.randn(self.num_params))
+                                ## This accounts for smaller changes when the value is smaller
+                                param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                            param_vals_norm[:, couple[1]])/2* \
+                                                            (1 + mutation_weight*np.random.randn(self.num_params))
                             else:
-                              ## This doesn't account for smaller changes when the value is smaller
-                              param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
-                                                              mutation_weight*np.random.randn(self.num_params)
+                                ## This doesn't account for smaller changes when the value is smaller,
+                                ## which is needed to make sure values dont get stuck when they are small
+                                param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
+                                                                param_vals_norm[:, couple[1]])/2 + \
+                                                                mutation_weight*np.random.randn(self.num_params)
                             param_idx += 1
 
-                    # now do cross breeding
-                    cross_breed_indices = np.random.randint(0, num_survivors, (num_cross_breed, 2))
-                    for couple in cross_breed_indices:
-                        if couple[0] == couple[1]:
-                            couple[1] += 1  # this allows crossbreeding out of the survivors but that's ok
-                        simulated_bools[param_idx] = False
-
-                        fifty_fifty = np.random.rand()
-                        if fifty_fifty < 0.5:
-                          ## This accounts for smaller changes when the value is smaller
-                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                           param_vals_norm[:, couple[1]])/2* \
-                                                          (1 + mutation_weight*np.random.randn(self.num_params))
-                        else:
-                          ## This doesn't account for smaller changes when the value is smaller,
-                          ## which is needed to make sure values dont get stuck when they are small
-                          param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                           param_vals_norm[:, couple[1]])/2 + \
-                                                          mutation_weight*np.random.randn(self.num_params)
-                        param_idx += 1
-
-                    param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
+                        param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
 
                 else:
                     # non zero ranks don't do any of the ordering or mutations
                     pass
+                
+                comm.Bcast(finished_ga, root=0)
+                if finished_ga[0]:
+                    break
 
             if rank == 0:
                 self.best_cost = cost[0]
@@ -2416,13 +2434,12 @@ class OpencorParamID():
     def get_cost_obs_and_pred_from_params(self, param_vals, reset=True, 
                                           only_one_exp=-1, pred_names=None):
 
-        self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
-        
         pred_outputs_list = []
         if self.protocal_info["num_sub_total"] == 1:
             # do normal cost calculation
             # TODO technically this if chunk isn't needed, as the below works for general experiment numbers
             # TODO but I have left it because it is much simpler and easier to understand
+            self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
             success = self.sim_helper.run()
             if success:
                 operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
@@ -2453,6 +2470,8 @@ class OpencorParamID():
                 
             operands_outputs_list = []
             for exp_idx in range(self.protocal_info["num_experiments"]):
+                # set param vals for this iteration of param_id
+                self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
                 current_time = 0
                 for this_sub_idx in range(self.protocal_info["num_sub_per_exp"][exp_idx]):
                     if exp_idx not in exp_idxs_to_run:
@@ -2502,6 +2521,7 @@ class OpencorParamID():
                         print(param_vals)
                         print('failed subexperiment idx = {}'.format(subexp_count))
                         return np.inf, [], []
+
 
             cost = 0
             for exp_idx in exp_idxs_to_run:
@@ -2568,9 +2588,8 @@ class OpencorParamID():
         return cost
 
     def cost_calc(self, obs_dict, exp_idx=0, sub_idx=0):
-        # cost = np.sum(np.power(self.obs_info["weight_const_vec"]*(const -
-        #                        self.obs_info["ground_truth_const"])/np.minimum(const,
-        #                                                             self.obs_info["ground_truth_const"]), 2))/(self.obs_info["num_obs"])
+        
+
         const = obs_dict['const']
         series = obs_dict['series']
         amp = obs_dict['amp']
@@ -2581,6 +2600,16 @@ class OpencorParamID():
         updated_weight_series_vec = self.protocal_info["scaled_weight_series_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_amp_vec = self.protocal_info["scaled_weight_amp_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_phase_vec = self.protocal_info["scaled_weight_phase_from_exp_sub"][exp_idx][sub_idx]
+        
+        # get number of obs that don't have zero weights
+        num_weighted_obs = np.sum(updated_weight_const_vec != 0) + \
+                            np.sum(updated_weight_series_vec != 0) + \
+                            np.sum(updated_weight_amp_vec != 0) + \
+                            np.sum(updated_weight_phase_vec != 0)
+        
+        # this subexperiment doesn't have any weighted observables, so no cost
+        if num_weighted_obs == 0.0:
+            return 0.0
         
         if len(self.obs_info["ground_truth_phase"]) == 0:
             phase = None
@@ -2646,11 +2675,7 @@ class OpencorParamID():
                                      range(len(phase))])
         else:
             phase_cost = 0
-        # get number of obs that don't have zero weights
-        num_weighted_obs = np.sum(updated_weight_const_vec != 0) + \
-                            np.sum(updated_weight_series_vec != 0) + \
-                            np.sum(updated_weight_amp_vec != 0) + \
-                            np.sum(updated_weight_phase_vec != 0)
+
         cost = (cost + series_cost + amp_cost + phase_cost) / num_weighted_obs
 
         return cost
@@ -2822,7 +2847,8 @@ class OpencorParamID():
             # only print out results if doing all experiments, otherwise cost will be strange
             return None, None
 
-        print(f'cost should be {self.best_cost}')
+        best_cost = np.load(os.path.join(self.output_dir, 'best_cost.npy'))
+        print(f'cost should be {best_cost}')
         print('cost check after single simulation is {}'.format(cost_check))
 
         print(f'final obs values :')
@@ -2835,14 +2861,14 @@ class OpencorParamID():
         if not self.param_id_method == 'genetic_algorithm':
             print('param_id is not set up as a genetic algorithm')
             exit()
-        self.n_calls= n_calls
+        self.ga_options['num_calls_to_function']= n_calls
         # TODO add more of the gen alg constants here so they can be changed by user.
 
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         if not self.param_id_method == 'bayesian':
             print('param_id is not set up as a bayesian optimization process')
             exit()
-        self.n_calls = n_calls
+        self.ga_options['num_calls_to_function'] = n_calls
         self.n_initial_points = n_initial_points
         self.acq_func = acq_func  # the acquisition function
         self.random_state = random_state  # random seed
@@ -2867,8 +2893,8 @@ def calculate_lnlikelihood(param_vals):
 class OpencorMCMC(OpencorParamID): 
     """
     Class for doing mcmc on opencor models
-    TODO make this a class that inherits all from the ParamID class so I don't
-    have to repeat functions
+    
+    # TODO check the parallelisation for this mcmc
     """
 
     def __init__(self, model_path,

@@ -119,7 +119,7 @@ def calc_spike_frequency_windowed_V(t, V, series_output=False):
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V, height=0.0)
+    peak_idxs, peak_properties = find_peaks(V, height=-20)
 
     # TODO maybe check peak properties here
     spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
@@ -143,3 +143,15 @@ def first_peak_time(t, V, series_output=False):
     # t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
     t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
     return t_first_peak
+
+@series_to_constant
+def steady_state_min(x, series_output=False):
+    """
+    finds the min of the second half of this subexperiment. 
+    The aim of this is to allow the dynamics to reach steady state
+    or periodic steady state before getting the minimum
+    """
+    if series_output:
+        return x
+    else:
+        return np.min(x[len(x)//2:])

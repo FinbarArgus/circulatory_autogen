@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: True
+DEBUG: false
 MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
@@ -125,7 +125,8 @@ dt: 0.0001
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 
 # this for Sympathetic Neuron
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
+param_id_obs_path: /home/farg967/Documents/data/Sympathetic_Neuron/SN_CPVT_obs_data.json
 
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false
@@ -136,7 +137,7 @@ ga_options:
   # TODO This should eventually be a user_defined cost_function. 
   cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
-  num_calls_to_function: 150000
+  num_calls_to_function: 50000
 
 debug_ga_options:
   cost_type: MSE
@@ -145,15 +146,17 @@ debug_ga_options:
 #______ mcmc inputs ___________
 do_mcmc: True
 mcmc_options:
-  num_steps: 40000
+  num_steps: 4000
   num_walkers: 64
   # TODO As above for cost_type
   cost_type: MSE
+  cost_convergence: 0.001
 
 debug_mcmc_options:
   num_steps: 5
   num_walkers: 40
   cost_type: MSE
+  cost_convergence: 0.001
 
 # For plotting core predictions after mcmc
-plot_predictions: true
+plot_predictions: false
