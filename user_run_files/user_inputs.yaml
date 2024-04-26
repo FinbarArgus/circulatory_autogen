@@ -19,6 +19,7 @@ MPI_DEBUG: false
 # file_prefix: temp_channel
 # file_prefix: delay_test 
 file_prefix: SN_to_cAMP
+# file_prefix: test_units
 # file_prefix: parasympathetic_model
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
@@ -39,6 +40,7 @@ file_prefix: SN_to_cAMP
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
 input_param_file: SN_to_cAMP_parameters.csv
+# input_param_file: test_units_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 
 # cpp generation inputs
@@ -77,9 +79,9 @@ couple_to_1d: False
 cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Maximum time step for solver
-maximum_step: 0.0001
+maximum_step: 0.001
 # Output time step (sampling) 
-dt: 0.0001
+dt: 0.0005
 # This for 3compartment
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json

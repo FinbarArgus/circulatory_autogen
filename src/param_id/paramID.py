@@ -38,13 +38,13 @@ else:
 import corner
 import csv
 from datetime import date
-from skopt import gp_minimize, Optimizer
+# from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
 import math
 import scipy.linalg as la
-from scipy.optimize import curve_fit
+# from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
 # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much

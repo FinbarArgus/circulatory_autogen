@@ -668,11 +668,11 @@
         <variable initial_value="0.0" name="V_5Ca" public_interface="out" units="J_per_M"/>
         <variable initial_value="0.0" name="NE" public_interface="out" units="dimensionless"/>
         <variable name="K_off" public_interface="in" units="per_millis"/>
-        <variable name="K_on" public_interface="in" units="m3_per_milliM_s"/>
+        <variable name="K_on" public_interface="in" units="m3_per_millimol_s"/>
         <variable name="K_Ca" public_interface="in" units="per_s"/>
         <variable name="b" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="out" units="per_millis"/>
-        <variable initial_value="0.0" name="Cai" public_interface="out" units="milliM_per_m3"/>
+        <variable initial_value="0.0" name="Cai" public_interface="out" units="millimol_per_m3"/>
         <variable name="gamma" public_interface="in" units="m3_per_M_millis"/>
         <variable name="i_Ca" public_interface="in" units="nanoA"/>
         <variable name="C_m" public_interface="in" units="picoF"/>
@@ -1038,104 +1038,21 @@
         <variable name="T" public_interface="in" units="kelvin"/>
         <variable name="a_cleft" public_interface="in" units="dimensionless"/>
         <variable name="n_cleft" public_interface="in" units="dimensionless"/>
-        <variable name="V_cleft" public_interface="in" units="litre"/>
-        <variable name="N_avo" public_interface="in" units="per_mol"/>
-        <!-- constants-->
-        <variable name="gna" public_interface="in" units="microS"/>
-        <variable name="b" public_interface="in" units="picoF"/>
-        <!-- neuron capacitance-->
-        <variable name="Cm_Neuron" public_interface="in" units="picoF"/>
-        <variable name="ek1" units="milliV"/>
-        <variable name="ena1" units="milliV"/>
-        <variable name="ki_init" public_interface="in" units="millimolar"/>
-        <variable initial_value="ki_init" name="ki" public_interface="out" units="millimolar"/>
-        <variable name="Nai_init" public_interface="in" units="millimolar"/>
-        <variable initial_value="Nai_init" name="Nai" public_interface="out" units="millimolar"/>
-        <variable name="Ca_ter_init" public_interface="in" units="millimolar"/>
-        <variable initial_value="Ca_ter_init" name="Ca_ter" public_interface="out" units="millimolar"/>
-        <variable name="Cai_init" public_interface="in" units="millimolar"/>
-        <variable initial_value="Cai_init" name="Cai" public_interface="out" units="millimolar"/>
-        <variable name="gamma" public_interface="in" units="per_s"/>
-        <variable name="pCa_ter" public_interface="in" units="m3_per_s"/>
-        <variable name="pCa_soma" public_interface="in" units="m3_per_s"/>
-        <variable name="gkv" public_interface="in" units="microS"/>
-        <variable name="gA" public_interface="in" units="microS"/>
-        <variable name="gkcf" public_interface="in" units="microS"/>
-        <variable name="gkcs" public_interface="in" units="microS"/>
-        <variable name="kon" public_interface="in" units="per_milliM_s"/>
-        <variable name="koff" public_interface="in" units="per_s"/>
-        <variable name="Cao" public_interface="in" units="millimolar"/>
-        <variable name="Nao" public_interface="in" units="millimolar"/>
-        <variable name="ko" public_interface="in" units="millimolar"/>
+        <variable name="Vol_cleft" public_interface="in" units="litre"/>
         <variable name="Vol_soma" public_interface="in" units="microm3"/>
-        <!-- active zone-->
         <variable name="Vol_ter" public_interface="in" units="microm3"/>
-        <!-- state variables-->
-        <variable name="V_init" public_interface="in" units="milliV"/>
-        <variable initial_value="V_init" name="V" public_interface="out" units="milliV"/>
-        <variable name="m_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
-        <variable name="h_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
-        <variable name="c_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="c_init" name="c" public_interface="out" units="dimensionless"/>
-        <variable name="hc_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="hc_init" name="hc" public_interface="out" units="dimensionless"/>
-        <variable name="n1_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
-        <variable name="a_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="a_init" name="a" public_interface="out" units="dimensionless"/>
-        <variable name="ah_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="ah_init" name="ah" public_interface="out" units="dimensionless"/>
-        <variable name="kcf_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="kcf_init" name="kcf" public_interface="out" units="dimensionless"/>
-        <variable name="kcs_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="kcs_init" name="kcs" public_interface="out" units="dimensionless"/>
-        <variable name="B0_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B0_init" name="B0" public_interface="out" units="dimensionless"/>
-        <variable name="B1_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B1_init" name="B1" public_interface="out" units="dimensionless"/>
-        <variable name="B2_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B2_init" name="B2" public_interface="out" units="dimensionless"/>
-        <variable name="B3_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B3_init" name="B3" public_interface="out" units="dimensionless"/>
-        <variable name="B4_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B4_init" name="B4" public_interface="out" units="dimensionless"/>
-        <variable name="B5_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B5_init" name="B5" public_interface="out" units="dimensionless"/>
-        <variable name="NE_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="NE_init" name="NE" public_interface="out" units="dimensionless"/>
-        <!--algebraic variables-->
-        <variable name="iNa_N" units="nanoA"/>
-        <variable name="iCa_N_ter" units="nanoA"/>
-        <variable name="iCa_N_soma" units="nanoA"/>
-        <variable name="ikv" units="nanoA"/>
-        <variable name="iA" units="nanoA"/>
-        <variable name="ikCa" units="nanoA"/>
-        <variable name="I_app" public_interface="in" units="nanoA"/>
-        <variable name="V_midm" public_interface="in" units="milliV"/>
-        <variable name="m_inf" units="dimensionless"/>
-        <variable name="h_inf" units="dimensionless"/>
-        <variable name="tau_m" units="millis"/>
-        <variable name="tau_h" units="millis"/>
-        <variable name="c_inf" units="dimensionless"/>
-        <variable name="hc_inf" units="dimensionless"/>
-        <variable name="tau_c" public_interface="in" units="millis"/>
-        <variable name="tau_hc" units="millis"/>
-        <variable name="n1_inf" units="dimensionless"/>
-        <variable name="tau_n1" units="millis"/>
-        <variable name="a_inf" units="dimensionless"/>
-        <variable name="ah_inf" units="dimensionless"/>
-        <variable name="tau_a" units="millis"/>
-        <variable name="tau_ah" units="millis"/>
-        <variable name="kcf_inf" units="dimensionless"/>
-        <variable name="kcs_inf" units="dimensionless"/>
-        <variable name="tau_kcf" units="millis"/>
-        <variable name="tau_kcs" units="millis"/>
-        <variable name="E" units="dimensionless"/>
+        <!-- c_1 is the ratio between ER volume and cytosol volume. TODO remove overconstraint with Vz and V_ER-->
+        <variable name="c_1" public_interface="in" units="dimensionless"/>
+        <!--var Vol_ER: microm3 {pub: out};
+Vol_ER = Vol_ter*c_1;-->
+        <variable name="N_avo" public_interface="in" units="per_mol"/>
         <variable initial_value="1e-4" name="epsilon_tau" units="second"/>
+        <!-- BC inputs-->
         <variable name="I_const" public_interface="in" units="nanoA"/>
+        <variable name="I_app" public_interface="in" units="nanoA"/>
         <!-- Nernst potentials (Calcium currently not needed, due to the form of the Ca_N equations)-->
+        <variable name="ek1" public_interface="out" units="milliV"/>
+        <variable name="ena1" public_interface="out" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1159,7 +1076,7 @@
                             <ci>ki</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless">1000</cn>
+                    <cn cellml:units="milliV_per_V">1000</cn>
                 </apply>
             </apply>
             <apply>
@@ -1184,10 +1101,16 @@
                             <ci>Nai</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless">1000</cn>
+                    <cn cellml:units="milliV_per_V">1000</cn>
                 </apply>
             </apply>
-            <!-- voltage-->
+        </math>
+        <!-- voltage calculation-->
+        <!-- neuron capacitance-->
+        <variable name="Cm_Neuron" public_interface="in" units="picoF"/>
+        <variable name="V_init" public_interface="in" units="milliV"/>
+        <variable initial_value="V_init" name="V" public_interface="out" units="milliV"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <apply>
@@ -1203,7 +1126,7 @@
                         <times/>
                         <apply>
                             <minus/>
-                            <cn cellml:units="mV_per_kV" type="e-notation">1<sep/>6</cn>
+                            <cn cellml:units="milliV_per_kiloV" type="e-notation">1<sep/>6</cn>
                         </apply>
                         <apply>
                             <plus/>
@@ -1222,9 +1145,24 @@
                     <ci>Cm_Neuron</ci>
                 </apply>
             </apply>
-            <!-- iNa_N
+        </math>
+        <!-- iNa_N
  Made V_midm a parameter (was 36 mV) to allow the modification of the depolarising voltage
+ made V_denm a parameter (was 7.2 mV) to allow the modification of the depolarising voltage activation amount during hyperpolarisation
  threshold-->
+        <variable name="iNa_N" public_interface="out" units="nanoA"/>
+        <variable name="gna" public_interface="in" units="microS"/>
+        <variable name="m_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
+        <variable name="h_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
+        <variable name="V_midm" public_interface="in" units="milliV"/>
+        <variable name="V_denm" public_interface="in" units="milliV"/>
+        <variable name="m_inf" public_interface="out" units="dimensionless"/>
+        <variable name="h_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_m" public_interface="out" units="millis"/>
+        <variable name="tau_h" public_interface="out" units="millis"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>m_inf</ci>
@@ -1246,7 +1184,7 @@
                                         <ci>V_midm</ci>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">7.2</cn>
+                                <ci>V_denm</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1268,7 +1206,7 @@
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="miliV">53.2</cn>
+                                    <cn cellml:units="milliV">53.2</cn>
                                 </apply>
                                 <cn cellml:units="milliV">6.5</cn>
                             </apply>
@@ -1391,9 +1329,9 @@
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_m</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -1421,9 +1359,9 @@
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_h</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -1449,7 +1387,21 @@
                     <ci>h</ci>
                 </apply>
             </apply>
-            <!-- I_Ca_N-->
+        </math>
+        <!-- I_Ca_N-->
+        <variable name="iCa_N_ter" public_interface="out" units="nanoA"/>
+        <variable name="iCa_N_soma" public_interface="out" units="nanoA"/>
+        <variable name="pCa_ter" public_interface="in" units="m3_per_s"/>
+        <variable name="pCa_soma" public_interface="in" units="m3_per_s"/>
+        <variable name="c_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="c_init" name="c" public_interface="out" units="dimensionless"/>
+        <variable name="hc_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="hc_init" name="hc" public_interface="out" units="dimensionless"/>
+        <variable name="c_inf" public_interface="out" units="dimensionless"/>
+        <variable name="hc_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_c" public_interface="out" units="millis"/>
+        <variable name="tau_hc" public_interface="out" units="millis"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>c_inf</ci>
@@ -1493,7 +1445,7 @@
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="milli_V">19.91</cn>
+                                    <cn cellml:units="milliV">19.91</cn>
                                 </apply>
                                 <cn cellml:units="milliV">4.5</cn>
                             </apply>
@@ -1501,8 +1453,49 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- identify tau_c instead, as it is very important for the membrane voltage shape and the calcium dynamics
-tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V)+1.88{per_millis}*exp(-0.00732{per_milliV}*V));-->
+            <!-- TODO bring this tau_c back and identify a parameter so we can modify this time dynamics.-->
+            <apply>
+                <eq/>
+                <ci>tau_c</ci>
+                <apply>
+                    <plus/>
+                    <cn cellml:units="millis">0.1</cn>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <plus/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="per_millis">0.343</cn>
+                                <apply>
+                                    <exp/>
+                                    <apply>
+                                        <times/>
+                                        <cn cellml:units="per_milliV">0.0925</cn>
+                                        <ci>V</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="per_millis">1.88</cn>
+                                <apply>
+                                    <exp/>
+                                    <apply>
+                                        <times/>
+                                        <apply>
+                                            <minus/>
+                                            <cn cellml:units="per_milliV">0.00732</cn>
+                                        </apply>
+                                        <ci>V</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>tau_hc</ci>
@@ -1566,9 +1559,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_c</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -1596,9 +1589,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_hc</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -1652,7 +1645,11 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                                             <divide/>
                                             <apply>
                                                 <times/>
-                                                <cn cellml:units="V_per_milliV" type="e-notation">2<sep/>-3</cn>
+                                                <apply>
+                                                    <divide/>
+                                                    <cn cellml:units="dimensionless">2</cn>
+                                                    <cn cellml:units="milliV_per_V">1000</cn>
+                                                </apply>
                                                 <ci>V</ci>
                                                 <ci>F</ci>
                                             </apply>
@@ -1741,7 +1738,11 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                                             <divide/>
                                             <apply>
                                                 <times/>
-                                                <cn cellml:units="V_per_milliV" type="e-notation">2<sep/>-3</cn>
+                                                <apply>
+                                                    <divide/>
+                                                    <cn cellml:units="dimensionless">2</cn>
+                                                    <cn cellml:units="milliV_per_V">1000</cn>
+                                                </apply>
                                                 <ci>V</ci>
                                                 <ci>F</ci>
                                             </apply>
@@ -1786,7 +1787,15 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <ci>hc</ci>
                 </apply>
             </apply>
-            <!-- I_kv-->
+        </math>
+        <!-- I_kv-->
+        <variable name="ikv" public_interface="out" units="nanoA"/>
+        <variable name="gkv" public_interface="in" units="microS"/>
+        <variable name="n1_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
+        <variable name="n1_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_n1" public_interface="out" units="millis"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>n1_inf</ci>
@@ -1877,9 +1886,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_n1</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -1900,7 +1909,24 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <ci>n1</ci>
                 </apply>
             </apply>
-            <!-- iA-->
+        </math>
+        <!-- iA
+ IMPORTANT
+ in Tao's matlab code, this is ek, the cardiomyocyte nernst potential, not ek1, the SN nernst potential, which is an error from them
+ In Belluzi and Sacchi this is calculated differently again from end of cycle concentration. Improve this-->
+        <variable name="iA" public_interface="out" units="nanoA"/>
+        <variable name="gA" public_interface="in" units="microS"/>
+        <variable name="gkcf" public_interface="in" units="microS"/>
+        <variable name="gkcs" public_interface="in" units="microS"/>
+        <variable name="a_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="a_init" name="a" public_interface="out" units="dimensionless"/>
+        <variable name="ah_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="ah_init" name="ah" public_interface="out" units="dimensionless"/>
+        <variable name="a_inf" public_interface="out" units="dimensionless"/>
+        <variable name="ah_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_a" public_interface="out" units="millis"/>
+        <variable name="tau_ah" public_interface="out" units="millis"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>a_inf</ci>
@@ -2067,9 +2093,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_a</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -2097,19 +2123,15 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_ah</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
                     </apply>
                 </apply>
             </apply>
-            <!-- IMPORTANT
- in Tao's matlab code, this is ek, the nernst potential, not ek1, which could be an error from them potentially, check this
- why use the constant or the nernst potential?? ...
- In Belluzi and Sacchi this is calculated differently again from end of cycle concentration. Improve this-->
             <apply>
                 <eq/>
                 <ci>iA</ci>
@@ -2125,7 +2147,19 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <ci>ah</ci>
                 </apply>
             </apply>
-            <!-- I_kca-->
+        </math>
+        <!-- I_kca
+ this ignores a delay that is present in Beluzzi1991  -->
+        <variable name="ikCa" public_interface="out" units="nanoA"/>
+        <variable name="kcf_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="kcf_init" name="kcf" public_interface="out" units="dimensionless"/>
+        <variable name="kcs_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="kcs_init" name="kcs" public_interface="out" units="dimensionless"/>
+        <variable name="kcf_inf" public_interface="out" units="dimensionless"/>
+        <variable name="kcs_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_kcf" public_interface="out" units="millis"/>
+        <variable name="tau_kcs" public_interface="out" units="millis"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>kcf_inf</ci>
@@ -2293,9 +2327,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_kcf</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
@@ -2323,16 +2357,15 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <apply>
                             <abs/>
                             <apply>
-                                <times/>
+                                <divide/>
                                 <ci>tau_kcs</ci>
-                                <cn cellml:units="s_per_millis">0.001</cn>
+                                <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
                         <ci>epsilon_tau</ci>
                     </apply>
                 </apply>
             </apply>
-            <!-- this ignores a delay that is present in Beluzzi1991-->
             <apply>
                 <eq/>
                 <ci>ikCa</ci>
@@ -2362,14 +2395,16 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
             </apply>
         </math>
         <!-- I_M 
- TODO does this do some of the same things as ikv and iA, how do we differentiate these?-->
-        <variable name="iM" units="nanoA"/>
+ TODO does this do some of the same things as ikv and iA, how do we differentiate these?
+ TODO calculate cAMP concentration
+ TODO figure out what units cAMP is supposed to have. is it between 0 and 1?-->
+        <variable name="iM" public_interface="out" units="nanoA"/>
         <variable name="g_M" public_interface="in" units="microS"/>
         <variable name="w_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="w_init" name="w" public_interface="out" units="dimensionless"/>
-        <variable name="w_inf" units="dimensionless"/>
+        <variable name="w_inf" public_interface="out" units="dimensionless"/>
         <variable name="cAMP" public_interface="in" units="dimensionless"/>
-        <variable name="tau_w" units="millis"/>
+        <variable name="tau_w" public_interface="out" units="millis"/>
         <variable name="delta_gM" public_interface="in" units="microS"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
@@ -2377,9 +2412,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
  w_inf = 1{dimensionless}/(1{dimensionless}+exp(-(V+39)/5));
  tau_w = 75{millis};
  cAMP = 0.0{millimolar};-->
-        <!-- (from Martin2023Modelling)
- TODO calculate cAMP concentration
- TODO figure out what units cAMP is supposed to have. is it between 0 and 1?-->
+        <!-- (from Martin2023Modelling)-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -2408,6 +2441,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     </apply>
                 </apply>
             </apply>
+            <!-- tau_w = 400{millis}/(3.3{dimensionless}*exp((V+35{milliV})/10{milliV})+exp(-(V+35{milliV})/20{milliV}));-->
             <apply>
                 <eq/>
                 <ci>tau_w</ci>
@@ -2428,7 +2462,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                                         <ci>V</ci>
                                         <cn cellml:units="milliV">35</cn>
                                     </apply>
-                                    <cn cellml:units="milliV">10</cn>
+                                    <cn cellml:units="milliV">20</cn>
                                 </apply>
                             </apply>
                         </apply>
@@ -2444,12 +2478,15 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                                         <cn cellml:units="milliV">35</cn>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">20</cn>
+                                <cn cellml:units="milliV">30</cn>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!-- TODO I need to make sure tau doesn't go to zero so quickly when positive voltage, probably
+ by changing the 10 denominator to 20 or something similar. I HAVE CHANGED THIS, AND IT WORKS.
+ THIS HELPS CALIBRATE THE M-TYPE potassium channel!!-->
             <!-- general i_M for Golomb and Martin-->
             <apply>
                 <eq/>
@@ -2468,9 +2505,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <ci>w</ci>
                     </apply>
                     <apply>
-                        <times/>
+                        <divide/>
                         <ci>tau_w</ci>
-                        <cn cellml:units="s_per_millis">0.001</cn>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
@@ -2498,17 +2535,17 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
             </apply>
         </math>
         <!-- i_HCN-->
-        <variable name="iHCN" units="nanoA"/>
+        <variable name="iHCN" public_interface="out" units="nanoA"/>
         <variable name="g_HCN" public_interface="in" units="microS"/>
-        <variable name="delta_gHCN" public_interface="in" units="microS"/>
-        <variable name="r_inf" units="dimensionless"/>
+        <variable name="delta_gHCN" public_interface="in" units="dimensionless"/>
+        <variable name="r_inf" public_interface="out" units="dimensionless"/>
         <variable name="r_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="r_init" name="r" units="dimensionless"/>
-        <variable name="tau_r" units="millis"/>
+        <variable initial_value="r_init" name="r" public_interface="out" units="dimensionless"/>
+        <variable name="tau_r" public_interface="out" units="millis"/>
         <variable name="eHCN" public_interface="in" units="milliV"/>
-        <variable name="alpha_r" units="dimensionless"/>
-        <variable name="beta_r" units="dimensionless"/>
-        <variable name="nu_cAMP" units="milliV"/>
+        <variable name="alpha_r" public_interface="out" units="dimensionless"/>
+        <variable name="beta_r" public_interface="out" units="dimensionless"/>
+        <variable name="nu_cAMP" public_interface="out" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -2592,9 +2629,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <ci>r</ci>
                     </apply>
                     <apply>
-                        <times/>
+                        <divide/>
                         <ci>tau_r</ci>
-                        <cn cellml:units="s_per_millis">0.001</cn>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
@@ -2630,9 +2667,10 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                 <ci>iHCN</ci>
                 <apply>
                     <times/>
+                    <ci>g_HCN</ci>
                     <apply>
                         <plus/>
-                        <ci>g_HCN</ci>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
                             <times/>
                             <ci>cAMP</ci>
@@ -2648,8 +2686,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                 </apply>
             </apply>
         </math>
-        <!-- Calcium pump and SR models here!-->
-        <!-- This NaCa pump is from Paci2013 model for a cardiomyocyte. Need to check that it behaves realistically for a neuron.
+        <!-- NaCa pump. This is from Paci2013 model for a cardiomyocyte. Need to check that it behaves realistically for a neuron.
  Why does it not have any time dynamics/delay??. Currently it happens way too quickly.-->
         <variable name="i_NaCa_ter" public_interface="out" units="nanoA"/>
         <variable name="i_NaCa_soma" public_interface="out" units="nanoA"/>
@@ -2910,99 +2947,22 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                 </apply>
             </apply>
         </math>
-        <variable name="j_Na_N" units="millimolar_per_s"/>
-        <variable name="j_kA" units="millimolar_per_s"/>
-        <variable name="j_kv" units="millimolar_per_s"/>
-        <variable name="j_kCa" units="millimolar_per_s"/>
-        <variable name="j_kM" units="millimolar_per_s"/>
-        <!-- iP3 ER channel from Li1994Equations.
- j_leak from Li1994Equations
- j_SERCA from Li1994Equations... TO BE IMPROVED??
- This also includes a leak current.-->
-        <variable name="j_IP3" units="millimolar_per_s"/>
-        <variable name="j_leak" units="millimolar_per_s"/>
-        <variable name="j_SERCA" units="millimolar_per_s"/>
-        <variable name="j_RyR" units="millimolar_per_s"/>
-        <!-- c_1 is the ratio between ER volume and cytosol volume. TODO remove overconstraint with Vz and V_ER-->
-        <variable name="c_1" public_interface="in" units="dimensionless"/>
-        <variable name="v_1" public_interface="in" units="per_s"/>
-        <variable name="m_IP3_inf" units="dimensionless"/>
-        <variable name="v_2" public_interface="in" units="per_s"/>
-        <variable name="v_3" public_interface="in" units="millimolar_per_s"/>
-        <variable name="k_3" public_interface="in" units="millimolar"/>
+        <variable name="j_IP3" public_interface="out" units="millimolar_per_s"/>
+        <variable name="k_IP3" public_interface="in" units="per_s"/>
+        <variable name="k_leak" public_interface="in" units="per_s"/>
+        <variable name="m_IP3_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_IP3_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="h_IP3_init" name="h_IP3" public_interface="out" units="dimensionless"/>
-        <variable name="h_IP3_inf" units="dimensionless"/>
-        <variable name="tau_hIP3" units="millis"/>
+        <variable name="h_IP3_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_hIP3" public_interface="out" units="millis"/>
         <variable name="IP3" public_interface="in" units="millimolar"/>
         <variable name="a_2" public_interface="in" units="per_millimolar"/>
         <variable name="d_1" public_interface="in" units="millimolar"/>
         <variable name="d_2" public_interface="in" units="millimolar"/>
         <variable name="d_3" public_interface="in" units="millimolar"/>
         <variable name="d_5" public_interface="in" units="millimolar"/>
-        <variable name="Q_2" units="millimolar"/>
-        <variable name="V_ER" units="microm3"/>
-        <variable name="k_RyR" public_interface="in" units="per_millimolar_s"/>
+        <variable name="Q_2" public_interface="out" units="millimolar"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>V_ER</ci>
-                <apply>
-                    <times/>
-                    <ci>Vol_ter</ci>
-                    <ci>c_1</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>j_IP3</ci>
-                <apply>
-                    <times/>
-                    <apply>
-                        <minus/>
-                        <ci>c_1</ci>
-                    </apply>
-                    <ci>v_1</ci>
-                    <apply>
-                        <power/>
-                        <ci>m_IP3_inf</ci>
-                        <cn cellml:units="dimensionless">3</cn>
-                    </apply>
-                    <apply>
-                        <power/>
-                        <ci>h_IP3</ci>
-                        <cn cellml:units="dimensionless">3</cn>
-                    </apply>
-                    <apply>
-                        <minus/>
-                        <ci>Ca_ter</ci>
-                        <ci>Ca_ER</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>h_IP3</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>h_IP3_inf</ci>
-                        <ci>h_IP3</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <ci>tau_hIP3</ci>
-                        <cn cellml:units="s_per_millis" type="e-notation">1<sep/>-3</cn>
-                    </apply>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>m_IP3_inf</ci>
@@ -3025,6 +2985,27 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <plus/>
                         <ci>Ca_ter</ci>
                         <ci>d_5</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Q_2</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>d_2</ci>
+                        <apply>
+                            <plus/>
+                            <ci>IP3</ci>
+                            <ci>d_1</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>IP3</ci>
+                        <ci>d_3</ci>
                     </apply>
                 </apply>
             </apply>
@@ -3060,25 +3041,58 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
             </apply>
             <apply>
                 <eq/>
-                <ci>Q_2</ci>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>h_IP3</ci>
+                </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <times/>
-                        <ci>d_2</ci>
-                        <apply>
-                            <plus/>
-                            <ci>IP3</ci>
-                            <ci>d_1</ci>
-                        </apply>
+                        <minus/>
+                        <ci>h_IP3_inf</ci>
+                        <ci>h_IP3</ci>
                     </apply>
                     <apply>
-                        <plus/>
-                        <ci>IP3</ci>
-                        <ci>d_3</ci>
+                        <divide/>
+                        <ci>tau_hIP3</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
+            <apply>
+                <eq/>
+                <ci>j_IP3</ci>
+                <apply>
+                    <times/>
+                    <apply>
+                        <minus/>
+                        <ci>c_1</ci>
+                    </apply>
+                    <ci>k_IP3</ci>
+                    <apply>
+                        <power/>
+                        <ci>m_IP3_inf</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
+                    <apply>
+                        <power/>
+                        <ci>h_IP3</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <ci>Ca_ter</ci>
+                        <ci>Ca_ER</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- leak current from Li1994Equations and equivalent to Shannon2004Mathematical-->
+        <variable name="j_leak" public_interface="out" units="millimolar_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>j_leak</ci>
@@ -3088,7 +3102,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <minus/>
                         <ci>c_1</ci>
                     </apply>
-                    <ci>v_2</ci>
+                    <ci>k_leak</ci>
                     <apply>
                         <minus/>
                         <ci>Ca_ter</ci>
@@ -3096,6 +3110,16 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     </apply>
                 </apply>
             </apply>
+        </math>
+        <!-- SR Ca pump from Shannon2004Mathematical but simplified
+ TODO I think SERCA needs to be delayed, otherwise it stops the Ca buildup from 
+ the Ca_N channel. Maybe this would happen with buffering...-->
+        <variable name="j_SERCA" public_interface="out" units="millimolar_per_s"/>
+        <variable name="K_mf" public_interface="in" units="millimolar"/>
+        <variable name="K_mr" public_interface="in" units="millimolar"/>
+        <variable name="k_SERCA" public_interface="in" units="millimolar_per_s"/>
+        <variable name="H_SERCA" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>j_SERCA</ci>
@@ -3105,25 +3129,302 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                         <times/>
                         <apply>
                             <minus/>
-                            <ci>v_3</ci>
+                            <ci>k_SERCA</ci>
                         </apply>
                         <apply>
-                            <power/>
-                            <ci>Ca_ter</ci>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <minus/>
+                            <apply>
+                                <power/>
+                                <apply>
+                                    <divide/>
+                                    <ci>Ca_ter</ci>
+                                    <ci>K_mf</ci>
+                                </apply>
+                                <ci>H_SERCA</ci>
+                            </apply>
+                            <apply>
+                                <power/>
+                                <apply>
+                                    <divide/>
+                                    <ci>Ca_ER</ci>
+                                    <ci>K_mr</ci>
+                                </apply>
+                                <ci>H_SERCA</ci>
+                            </apply>
                         </apply>
                     </apply>
                     <apply>
                         <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
                             <power/>
-                            <ci>k_3</ci>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <divide/>
+                                <ci>Ca_ter</ci>
+                                <ci>K_mf</ci>
+                            </apply>
+                            <ci>H_SERCA</ci>
                         </apply>
                         <apply>
                             <power/>
+                            <apply>
+                                <divide/>
+                                <ci>Ca_ER</ci>
+                                <ci>K_mr</ci>
+                            </apply>
+                            <ci>H_SERCA</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- Ryanodine receptor channel from Shannon et al.-->
+        <variable name="j_RyR" public_interface="out" units="millimolar_per_s"/>
+        <variable name="Rstate_init" public_interface="in" units="dimensionless"/>
+        <variable name="Ostate_init" public_interface="in" units="dimensionless"/>
+        <variable name="Istate_init" public_interface="in" units="dimensionless"/>
+        <variable name="RIstate_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="Rstate_init" name="Rstate" public_interface="out" units="dimensionless"/>
+        <variable initial_value="Ostate_init" name="Ostate" public_interface="out" units="dimensionless"/>
+        <variable initial_value="Istate_init" name="Istate" public_interface="out" units="dimensionless"/>
+        <variable initial_value="RIstate_init" name="RIstate" public_interface="out" units="dimensionless"/>
+        <!-- k_RyR is k_s in the paper-->
+        <variable name="k_RyR" public_interface="in" units="per_s"/>
+        <variable name="k_oCa" public_interface="in" units="per_millimolar2_s"/>
+        <variable name="k_om" public_interface="in" units="per_s"/>
+        <variable name="k_iCa" public_interface="in" units="per_millimolar_s"/>
+        <variable name="k_im" public_interface="in" units="per_s"/>
+        <variable name="EC_50ER" public_interface="in" units="millimolar"/>
+        <variable name="max_ER" public_interface="in" units="dimensionless"/>
+        <variable name="min_ER" public_interface="in" units="dimensionless"/>
+        <variable name="H_ER" public_interface="in" units="dimensionless"/>
+        <variable name="k_CaER" public_interface="out" units="dimensionless"/>
+        <variable name="k_oERCa" public_interface="out" units="per_millimolar2_s"/>
+        <variable name="k_iERCa" public_interface="out" units="per_millimolar_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>k_CaER</ci>
+                <apply>
+                    <minus/>
+                    <ci>max_ER</ci>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <minus/>
+                            <ci>max_ER</ci>
+                            <ci>min_ER</ci>
+                        </apply>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <apply>
+                                <power/>
+                                <apply>
+                                    <divide/>
+                                    <ci>EC_50ER</ci>
+                                    <ci>Ca_ER</ci>
+                                </apply>
+                                <ci>H_ER</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>k_oERCa</ci>
+                <apply>
+                    <divide/>
+                    <ci>k_oCa</ci>
+                    <ci>k_CaER</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>k_iERCa</ci>
+                <apply>
+                    <times/>
+                    <ci>k_iCa</ci>
+                    <ci>k_CaER</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Rstate</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_im</ci>
+                            <ci>RIstate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_iERCa</ci>
                             <ci>Ca_ter</ci>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <ci>Rstate</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_oERCa</ci>
+                            <apply>
+                                <power/>
+                                <ci>Ca_ter</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <ci>Rstate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_om</ci>
+                            <ci>Ostate</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Ostate</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_oERCa</ci>
+                            <apply>
+                                <power/>
+                                <ci>Ca_ter</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <ci>Rstate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_om</ci>
+                            <ci>Ostate</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_iERCa</ci>
+                            <ci>Ca_ter</ci>
+                            <ci>Ostate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_im</ci>
+                            <ci>Istate</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Istate</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_iERCa</ci>
+                            <ci>Ca_ter</ci>
+                            <ci>Ostate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_im</ci>
+                            <ci>Istate</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_om</ci>
+                            <ci>Istate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_oERCa</ci>
+                            <apply>
+                                <power/>
+                                <ci>Ca_ter</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <ci>RIstate</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>RIstate</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_om</ci>
+                            <ci>Istate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_oERCa</ci>
+                            <apply>
+                                <power/>
+                                <ci>Ca_ter</ci>
+                                <cn cellml:units="dimensionless">2</cn>
+                            </apply>
+                            <ci>RIstate</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <times/>
+                            <ci>k_im</ci>
+                            <ci>RIstate</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>k_iERCa</ci>
+                            <ci>Ca_ter</ci>
+                            <ci>Rstate</ci>
                         </apply>
                     </apply>
                 </apply>
@@ -3133,27 +3434,28 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                 <ci>j_RyR</ci>
                 <apply>
                     <times/>
+                    <ci>k_RyR</ci>
+                    <ci>Ostate</ci>
                     <apply>
                         <minus/>
-                        <ci>k_RyR</ci>
-                    </apply>
-                    <ci>Ca_ter</ci>
-                    <apply>
-                        <minus/>
-                        <ci>Ca_ter</ci>
                         <ci>Ca_ER</ci>
+                        <ci>Ca_ter</ci>
                     </apply>
                 </apply>
             </apply>
         </math>
-        <!-- todo there are no calcium pumps, potentially needs improving.
- TODO I have changed the 2nd term here to make calcium transients last longer.
- TODO do I need to properly model the calcium pump?-->
-        <variable name="j_Ca_N_ter" units="millimolar_per_s"/>
-        <variable name="j_NaCa_ter" units="millimolar_per_s"/>
-        <variable name="j_Ca_N_soma" units="millimolar_per_s"/>
-        <variable name="j_NaCa_soma" units="millimolar_per_s"/>
-        <!-- 1e-9 at the end is to convert to millimolar_per_s-->
+        <!-- Ca concentration calculations in each region-->
+        <variable name="Ca_ter_init" public_interface="in" units="millimolar"/>
+        <variable initial_value="Ca_ter_init" name="Ca_ter" public_interface="out" units="millimolar"/>
+        <variable name="Cai_init" public_interface="in" units="millimolar"/>
+        <variable initial_value="Cai_init" name="Cai" public_interface="out" units="millimolar"/>
+        <variable name="Ca_ER_init" public_interface="in" units="millimolar"/>
+        <variable initial_value="Ca_ER_init" name="Ca_ER" public_interface="out" units="millimolar"/>
+        <variable name="Cao" public_interface="in" units="millimolar"/>
+        <variable name="j_Ca_N_ter" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_NaCa_ter" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_Ca_N_soma" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_NaCa_soma" public_interface="out" units="millimolar_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3173,7 +3475,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_ter</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3190,7 +3492,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_ter</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3207,9 +3509,9 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <ci>j_Ca_N_ter</ci>
                     <ci>j_NaCa_ter</ci>
                     <ci>j_IP3</ci>
-                    <ci>j_leak</ci>
                     <ci>j_SERCA</ci>
                     <ci>j_RyR</ci>
+                    <ci>j_leak</ci>
                 </apply>
             </apply>
             <apply>
@@ -3230,7 +3532,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3247,7 +3549,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3265,10 +3567,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <ci>j_NaCa_soma</ci>
                 </apply>
             </apply>
-        </math>
-        <variable name="Ca_ER_init" public_interface="in" units="millimolar"/>
-        <variable initial_value="Ca_ER_init" name="Ca_ER" public_interface="out" units="millimolar"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <!-- TODO add ER for soma-->
             <apply>
                 <eq/>
                 <apply>
@@ -3295,17 +3594,21 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                                     <minus/>
                                     <ci>j_IP3</ci>
                                 </apply>
-                                <ci>j_leak</ci>
+                                <ci>j_SERCA</ci>
                             </apply>
-                            <ci>j_SERCA</ci>
+                            <ci>j_RyR</ci>
                         </apply>
-                        <ci>j_RyR</ci>
+                        <ci>j_leak</ci>
                     </apply>
                 </apply>
             </apply>
         </math>
         <!-- Na concentration: TODO add the NaK pump instead of the k_Na_return-->
+        <variable name="Nai_init" public_interface="in" units="millimolar"/>
+        <variable initial_value="Nai_init" name="Nai" public_interface="out" units="millimolar"/>
+        <variable name="Nao" public_interface="in" units="millimolar"/>
         <variable name="k_Na_return" public_interface="in" units="per_s"/>
+        <variable name="j_Na_N" public_interface="out" units="millimolar_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3321,7 +3624,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3357,7 +3660,14 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
             </apply>
         </math>
         <!-- k concentration: TODO add the NaK pump instead of the k_k_return-->
+        <variable name="ki_init" public_interface="in" units="millimolar"/>
+        <variable initial_value="ki_init" name="ki" public_interface="out" units="millimolar"/>
+        <variable name="ko" public_interface="in" units="millimolar"/>
         <variable name="k_k_return" public_interface="in" units="per_s"/>
+        <variable name="j_kA" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_kv" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_kCa" public_interface="out" units="millimolar_per_s"/>
+        <variable name="j_kM" public_interface="out" units="millimolar_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3373,7 +3683,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3390,7 +3700,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3407,7 +3717,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3424,7 +3734,7 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                             <ci>Vol_soma</ci>
                         </apply>
                     </apply>
-                    <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                    <cn cellml:units="millimolar_per_megamolar" type="e-notation">1<sep/>9</cn>
                 </apply>
             </apply>
             <apply>
@@ -3456,7 +3766,29 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     </apply>
                 </apply>
             </apply>
-            <!-- Calcium dependent vesicle binding TODO understand these equations better.-->
+        </math>
+        <!-- Calcium dependent vesicle binding TODO understand these equations better.
+ units of b changed from picoF-->
+        <variable name="b" public_interface="in" units="dimensionless"/>
+        <variable name="gamma" public_interface="in" units="dimensionless"/>
+        <variable name="kon" public_interface="in" units="per_millimolar_s"/>
+        <variable name="koff" public_interface="in" units="per_s"/>
+        <variable name="B0_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B0_init" name="B0" public_interface="out" units="dimensionless"/>
+        <variable name="B1_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B1_init" name="B1" public_interface="out" units="dimensionless"/>
+        <variable name="B2_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B2_init" name="B2" public_interface="out" units="dimensionless"/>
+        <variable name="B3_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B3_init" name="B3" public_interface="out" units="dimensionless"/>
+        <variable name="B4_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B4_init" name="B4" public_interface="out" units="dimensionless"/>
+        <variable name="B5_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="B5_init" name="B5" public_interface="out" units="dimensionless"/>
+        <variable name="NE_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="NE_init" name="NE" public_interface="out" units="dimensionless"/>
+        <variable name="E" public_interface="out" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <apply>
@@ -3767,12 +4099,12 @@ tau_c = 0.1{millis}+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V
                     <minus/>
                     <apply>
                         <times/>
-                        <cn cellml:units="dimensionless" type="e-notation">1<sep/>-1</cn>
+                        <cn cellml:units="per_millimolar_s" type="e-notation">1<sep/>-1</cn>
                         <ci>Ca_ter</ci>
                     </apply>
                     <apply>
                         <times/>
-                        <cn cellml:units="dimensionless">10</cn>
+                        <cn cellml:units="per_s">10</cn>
                         <apply>
                             <minus/>
                             <ci>NE</ci>
