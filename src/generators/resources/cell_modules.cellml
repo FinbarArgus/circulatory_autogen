@@ -2947,6 +2947,7 @@ Vol_ER = Vol_ter*c_1;-->
                 </apply>
             </apply>
         </math>
+        <!-- IP3 channel-->
         <variable name="j_IP3" public_interface="out" units="millimolar_per_s"/>
         <variable name="k_IP3" public_interface="in" units="per_s"/>
         <variable name="k_leak" public_interface="in" units="per_s"/>
@@ -3114,15 +3115,17 @@ Vol_ER = Vol_ter*c_1;-->
         <!-- SR Ca pump from Shannon2004Mathematical but simplified
  TODO I think SERCA needs to be delayed, otherwise it stops the Ca buildup from 
  the Ca_N channel. Maybe this would happen with buffering...-->
-        <variable name="j_SERCA" public_interface="out" units="millimolar_per_s"/>
+        <variable initial_value="0.0" name="j_SERCA" public_interface="out" units="millimolar_per_s"/>
         <variable name="K_mf" public_interface="in" units="millimolar"/>
         <variable name="K_mr" public_interface="in" units="millimolar"/>
         <variable name="k_SERCA" public_interface="in" units="millimolar_per_s"/>
         <variable name="H_SERCA" public_interface="in" units="dimensionless"/>
+        <variable name="j_SERCA_inf" public_interface="out" units="millimolar_per_s"/>
+        <variable name="tau_SERCA" public_interface="in" units="millis"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>j_SERCA</ci>
+                <ci>j_SERCA_inf</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -3174,6 +3177,29 @@ Vol_ER = Vol_ter*c_1;-->
                             </apply>
                             <ci>H_SERCA</ci>
                         </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>j_SERCA</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>j_SERCA_inf</ci>
+                        <ci>j_SERCA</ci>
+                    </apply>
+                    <apply>
+                        <divide/>
+                        <ci>tau_SERCA</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>

@@ -92,13 +92,14 @@ d_3_SN,millimolar, 0.943e-3, Li1994Equations
 d_5_SN,millimolar, 0.08234e-3, Li1994Equations
 K_mf_SN,millimolar,0.246e-3,Shannon2004Mathematical
 K_mr_SN,millimolar,1.7,Shannon2004Mathematical
-k_SERCA_SN,millimolar_per_s,1.5,to_be_identified
+k_SERCA_SN,millimolar_per_s,1.0,to_be_identified
 H_SERCA_SN,dimensionless,1.787,Shannon2004Mathematical
+tau_SERCA_SN,millis,1,user_defined
 Rstate_init_SN,dimensionless, 0.1, user_defined
 Ostate_init_SN,dimensionless, 0.0, user_defined
 Istate_init_SN,dimensionless, 0.0, user_defined
 RIstate_init_SN,dimensionless, 0.9, user_defined
-k_RyR_SN,per_s, 200, to_be_identified
+k_RyR_SN,per_s, 40, to_be_identified
 k_oCa_SN,per_millimolar2_s,1e8,Shannon2004Mathematical_was_1e4
 k_om_SN,per_s,100,Shannon2004Mathematical_was_60
 k_iCa_SN,per_millimolar_s,50000,Shannon2004Mathematical_was_500
