@@ -1038,6 +1038,7 @@
         <variable name="T" public_interface="in" units="kelvin"/>
         <!-- c_ER is the ratio between ER volume and total volume.
  c_SL is the ration between sub sarcolemmal volume and total volume.-->
+        <variable name="c_ER_pre" public_interface="in" units="dimensionless"/>
         <variable name="c_ER" public_interface="in" units="dimensionless"/>
         <variable name="c_SL" public_interface="in" units="dimensionless"/>
         <variable name="c_bulk" public_interface="out" units="dimensionless"/>
@@ -1049,10 +1050,14 @@
                     <minus/>
                     <apply>
                         <minus/>
-                        <cn cellml:units="dimensionless">1</cn>
-                        <ci>c_SL</ci>
+                        <apply>
+                            <minus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>c_SL</ci>
+                        </apply>
+                        <ci>c_ER</ci>
                     </apply>
-                    <ci>c_ER</ci>
+                    <ci>c_ER_pre</ci>
                 </apply>
             </apply>
         </math>
@@ -2898,8 +2903,8 @@ Vol_ER = Vol*c_ER;-->
                     </apply>
                     <apply>
                         <minus/>
-                        <ci>Cai</ci>
-                        <ci>Ca_ER</ci>
+                        <ci>Ca_bulk</ci>
+                        <ci>Ca_ER_pre</ci>
                     </apply>
                 </apply>
             </apply>
@@ -2937,7 +2942,7 @@ Vol_ER = Vol*c_ER;-->
                                 <power/>
                                 <apply>
                                     <divide/>
-                                    <ci>Ca_ER</ci>
+                                    <ci>Ca_ER_pre</ci>
                                     <ci>K_mr</ci>
                                 </apply>
                                 <ci>H_SERCA</ci>
@@ -2960,7 +2965,7 @@ Vol_ER = Vol*c_ER;-->
                             <power/>
                             <apply>
                                 <divide/>
-                                <ci>Ca_ER</ci>
+                                <ci>Ca_ER_pre</ci>
                                 <ci>K_mr</ci>
                             </apply>
                             <ci>H_SERCA</ci>
@@ -2970,118 +2975,105 @@ Vol_ER = Vol*c_ER;-->
             </apply>
         </math>
         <!-- Ryanodine receptor channel from Shannon et al.-->
-        <variable name="j_RyR" public_interface="out" units="millimolar_per_s"/>
-        <variable name="Rstate_init" public_interface="in" units="dimensionless"/>
-        <variable name="Ostate_init" public_interface="in" units="dimensionless"/>
-        <variable name="Istate_init" public_interface="in" units="dimensionless"/>
-        <variable name="RIstate_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="Rstate_init" name="Rstate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="Ostate_init" name="Ostate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="Istate_init" name="Istate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="RIstate_init" name="RIstate" public_interface="out" units="dimensionless"/>
+        <!-- var j_RyR: millimolar_per_s {pub: out};
+ var Rstate_init: dimensionless {pub: in};
+ var Ostate_init: dimensionless {pub: in};
+ var Istate_init: dimensionless {pub: in};
+ var RIstate_init: dimensionless {pub: in};
+ var Rstate: dimensionless {init: Rstate_init, pub: out};
+ var Ostate: dimensionless {init: Ostate_init, pub: out};
+ var Istate: dimensionless {init: Istate_init, pub: out};
+ var RIstate: dimensionless {init: RIstate_init, pub: out};-->
         <!-- k_RyR is k_s in the paper-->
+        <!-- var k_RyR: per_s {pub: in};
+ var k_oCa: per_millimolar2_s {pub: in};
+ var k_om: per_s {pub: in};
+ var k_iCa: per_millimolar_s {pub: in};
+ var k_im: per_s {pub: in};
+ var k_RI_to_R: per_s {pub: in};
+ var EC_50ER: millimolar {pub: in};
+ var max_ER: dimensionless {pub: in};
+ var min_ER: dimensionless {pub: in};
+ var H_ER: dimensionless {pub: in};
+ var k_CaER: dimensionless {pub: out};
+ var k_oERCa: per_millimolar2_s {pub: out};
+ var k_iERCa: per_millimolar_s {pub: out};-->
+        <!-- k_CaER = max_ER-(max_ER-min_ER)/(1{dimensionless}+pow(EC_50ER/Ca_ER, H_ER));
+ k_oERCa = k_oCa/k_CaER;
+ k_iERCa = k_iCa*k_CaER;
+ ode(Rstate, t) = k_RI_to_R*RIstate-k_iERCa*Cai*Rstate-(k_oERCa*sqr(Cai)*Rstate-k_om*Ostate);
+ ode(Ostate, t) = k_oERCa*sqr(Cai)*Rstate-k_om*Ostate-(k_iERCa*Cai*Ostate-k_im*Istate);
+ ode(Istate, t) = k_iERCa*Cai*Ostate-k_im*Istate-(k_om*Istate-k_oERCa*sqr(Cai)*RIstate);
+ ode(RIstate, t) = k_om*Istate-k_oERCa*sqr(Cai)*RIstate-(k_RI_to_R*RIstate-k_iERCa*Cai*Rstate);
+ j_RyR = k_RyR*Ostate*(Ca_ER-Cai);-->
+        <!-- Ryanodine receptor model, developed by Finbar Argus-->
+        <variable name="j_RyR" public_interface="out" units="millimolar_per_s"/>
         <variable name="k_RyR" public_interface="in" units="per_s"/>
-        <variable name="k_oCa" public_interface="in" units="per_millimolar2_s"/>
-        <variable name="k_om" public_interface="in" units="per_s"/>
-        <variable name="k_iCa" public_interface="in" units="per_millimolar_s"/>
-        <variable name="k_im" public_interface="in" units="per_s"/>
-        <variable name="k_RI_to_R" public_interface="in" units="per_s"/>
-        <variable name="EC_50ER" public_interface="in" units="millimolar"/>
-        <variable name="max_ER" public_interface="in" units="dimensionless"/>
-        <variable name="min_ER" public_interface="in" units="dimensionless"/>
-        <variable name="H_ER" public_interface="in" units="dimensionless"/>
-        <variable name="k_CaER" public_interface="out" units="dimensionless"/>
-        <variable name="k_oERCa" public_interface="out" units="per_millimolar2_s"/>
-        <variable name="k_iERCa" public_interface="out" units="per_millimolar_s"/>
+        <variable name="c_RyR_inf" public_interface="out" units="dimensionless"/>
+        <variable name="hc_RyR_inf" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="c_RyR" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="hc_RyR" public_interface="out" units="dimensionless"/>
+        <variable name="Cai_RyR_mid" public_interface="in" units="millimolar"/>
+        <variable name="Cai_RyR_den" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_mid" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_den" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_tau_mid" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_tau_den" public_interface="in" units="millimolar"/>
+        <variable name="tau_c_RyR" public_interface="in" units="millis"/>
+        <variable name="tau_hc_RyR" public_interface="in" units="millis"/>
+        <!-- activated by Cai-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>k_CaER</ci>
-                <apply>
-                    <minus/>
-                    <ci>max_ER</ci>
-                    <apply>
-                        <divide/>
-                        <apply>
-                            <minus/>
-                            <ci>max_ER</ci>
-                            <ci>min_ER</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <power/>
-                                <apply>
-                                    <divide/>
-                                    <ci>EC_50ER</ci>
-                                    <ci>Ca_ER</ci>
-                                </apply>
-                                <ci>H_ER</ci>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>k_oERCa</ci>
+                <ci>c_RyR_inf</ci>
                 <apply>
                     <divide/>
-                    <ci>k_oCa</ci>
-                    <ci>k_CaER</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>k_iERCa</ci>
-                <apply>
-                    <times/>
-                    <ci>k_iCa</ci>
-                    <ci>k_CaER</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>Rstate</ci>
-                </apply>
-                <apply>
-                    <minus/>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
-                        <minus/>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <times/>
-                            <ci>k_RI_to_R</ci>
-                            <ci>RIstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Rstate</ci>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>Cai</ci>
+                                        <ci>Cai_RyR_mid</ci>
+                                    </apply>
+                                </apply>
+                                <ci>Cai_RyR_den</ci>
+                            </apply>
                         </apply>
                     </apply>
+                </apply>
+            </apply>
+            <!-- deactivated by Ca_ER decreasing, so also activated by Ca_ER-->
+            <apply>
+                <eq/>
+                <ci>hc_RyR_inf</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
-                        <minus/>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
+                            <exp/>
                             <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>Ca_ER</ci>
+                                        <ci>Ca_ER_RyR_mid</ci>
+                                    </apply>
+                                </apply>
+                                <ci>Ca_ER_RyR_den</ci>
                             </apply>
-                            <ci>Rstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Ostate</ci>
                         </apply>
                     </apply>
                 </apply>
@@ -3093,44 +3085,23 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Ostate</ci>
+                    <ci>c_RyR</ci>
                 </apply>
                 <apply>
-                    <minus/>
+                    <divide/>
                     <apply>
                         <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>Rstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Ostate</ci>
-                        </apply>
+                        <ci>c_RyR_inf</ci>
+                        <ci>c_RyR</ci>
                     </apply>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Ostate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_im</ci>
-                            <ci>Istate</ci>
-                        </apply>
+                        <divide/>
+                        <ci>tau_c_RyR</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
+            <!-- tau_hc_RyR = tau_hc_RyR_min; // + 200{millis}/(exp((Ca_ER-Ca_ER_RyR_tau_mid)/Ca_ER_RyR_tau_den)+exp(-(Ca_ER-Ca_ER_RyR_tau_mid)/Ca_ER_RyR_tau_den));-->
             <apply>
                 <eq/>
                 <apply>
@@ -3138,100 +3109,44 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Istate</ci>
+                    <ci>hc_RyR</ci>
                 </apply>
                 <apply>
-                    <minus/>
+                    <divide/>
                     <apply>
                         <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Ostate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_im</ci>
-                            <ci>Istate</ci>
-                        </apply>
+                        <ci>hc_RyR_inf</ci>
+                        <ci>hc_RyR</ci>
                     </apply>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Istate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>RIstate</ci>
-                        </apply>
+                        <divide/>
+                        <ci>tau_hc_RyR</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>RIstate</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Istate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>RIstate</ci>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_RI_to_R</ci>
-                            <ci>RIstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Rstate</ci>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- TODO include cAMP dependence
+ TODO should it be c_RyR^3, to be more similar to -->
             <apply>
                 <eq/>
                 <ci>j_RyR</ci>
                 <apply>
                     <times/>
                     <ci>k_RyR</ci>
-                    <ci>Ostate</ci>
                     <apply>
                         <minus/>
                         <ci>Ca_ER</ci>
                         <ci>Cai</ci>
+                    </apply>
+                    <apply>
+                        <power/>
+                        <ci>c_RyR</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
+                    <apply>
+                        <power/>
+                        <ci>hc_RyR</ci>
+                        <cn cellml:units="dimensionless">3</cn>
                     </apply>
                 </apply>
             </apply>
@@ -3247,6 +3162,11 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="Cai_init" name="Ca_bulk" public_interface="out" units="millimolar"/>
         <variable name="j_diffCa" public_interface="out" units="millimolar_per_s"/>
         <variable name="tau_Ca" public_interface="in" units="millis"/>
+        <variable name="j_diffCa_ER" public_interface="out" units="millimolar_per_s"/>
+        <!-- TODO change these names from tau. They aren't actually time constants,
+ because they get modulated by the volumes.-->
+        <variable name="tau_Ca_ER" public_interface="in" units="millis"/>
+        <variable initial_value="Ca_ER_init" name="Ca_ER_pre" public_interface="out" units="millimolar"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3308,6 +3228,23 @@ Vol_ER = Vol*c_ER;-->
             </apply>
             <apply>
                 <eq/>
+                <ci>j_diffCa_ER</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>Ca_ER_pre</ci>
+                        <ci>Ca_ER</ci>
+                    </apply>
+                    <apply>
+                        <divide/>
+                        <ci>tau_Ca_ER</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <apply>
                     <diff/>
                     <bvar>
@@ -3363,6 +3300,36 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
+                    <ci>Ca_ER_pre</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>c_ER_pre</ci>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <minus/>
+                                <ci>j_SERCA</ci>
+                            </apply>
+                            <ci>j_leak</ci>
+                        </apply>
+                        <ci>j_diffCa_ER</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
                     <ci>Ca_ER</ci>
                 </apply>
                 <apply>
@@ -3373,20 +3340,16 @@ Vol_ER = Vol*c_ER;-->
                         <ci>c_ER</ci>
                     </apply>
                     <apply>
-                        <minus/>
+                        <plus/>
                         <apply>
                             <minus/>
                             <apply>
                                 <minus/>
-                                <apply>
-                                    <minus/>
-                                    <ci>j_IP3</ci>
-                                </apply>
-                                <ci>j_SERCA</ci>
+                                <ci>j_IP3</ci>
                             </apply>
                             <ci>j_RyR</ci>
                         </apply>
-                        <ci>j_leak</ci>
+                        <ci>j_diffCa_ER</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5457,119 +5420,72 @@ Vol_ER = Vol*c_ER;-->
                 </apply>
             </apply>
         </math>
-        <!-- Ryanodine receptor channel from Shannon et al.-->
+        <!-- Ryanodine receptor model, developed by Finbar Argus-->
         <variable name="j_RyR" public_interface="out" units="millimolar_per_s"/>
-        <variable name="Rstate_init" public_interface="in" units="dimensionless"/>
-        <variable name="Ostate_init" public_interface="in" units="dimensionless"/>
-        <variable name="Istate_init" public_interface="in" units="dimensionless"/>
-        <variable name="RIstate_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="Rstate_init" name="Rstate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="Ostate_init" name="Ostate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="Istate_init" name="Istate" public_interface="out" units="dimensionless"/>
-        <variable initial_value="RIstate_init" name="RIstate" public_interface="out" units="dimensionless"/>
-        <!-- k_RyR is k_s in the Shannon2004Mathematical paper-->
         <variable name="k_RyR" public_interface="in" units="per_s"/>
-        <variable name="k_oCa" public_interface="in" units="per_millimolar2_s"/>
-        <variable name="k_om" public_interface="in" units="per_s"/>
-        <variable name="k_iCa" public_interface="in" units="per_millimolar_s"/>
-        <variable name="k_im" public_interface="in" units="per_s"/>
-        <variable name="k_RI_to_R" public_interface="in" units="per_s"/>
-        <variable name="EC_50ER" public_interface="in" units="millimolar"/>
-        <variable name="max_ER" public_interface="in" units="dimensionless"/>
-        <variable name="min_ER" public_interface="in" units="dimensionless"/>
-        <variable name="H_ER" public_interface="in" units="dimensionless"/>
-        <variable name="k_CaER" public_interface="out" units="dimensionless"/>
-        <variable name="k_oERCa" public_interface="out" units="per_millimolar2_s"/>
-        <variable name="k_iERCa" public_interface="out" units="per_millimolar_s"/>
+        <variable name="c_RyR_inf" public_interface="out" units="dimensionless"/>
+        <variable name="hc_RyR_inf" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="c_RyR" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1.0" name="hc_RyR" public_interface="out" units="dimensionless"/>
+        <variable name="Cai_RyR_mid" public_interface="in" units="millimolar"/>
+        <variable name="Cai_RyR_den" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_mid" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_den" public_interface="in" units="millimolar"/>
+        <variable name="tau_c_RyR" public_interface="in" units="millis"/>
+        <variable name="tau_hc_RyR" public_interface="in" units="millis"/>
+        <!-- activated by Cai-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>k_CaER</ci>
-                <apply>
-                    <minus/>
-                    <ci>max_ER</ci>
-                    <apply>
-                        <divide/>
-                        <apply>
-                            <minus/>
-                            <ci>max_ER</ci>
-                            <ci>min_ER</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <power/>
-                                <apply>
-                                    <divide/>
-                                    <ci>EC_50ER</ci>
-                                    <ci>Ca_ER</ci>
-                                </apply>
-                                <ci>H_ER</ci>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>k_oERCa</ci>
+                <ci>c_RyR_inf</ci>
                 <apply>
                     <divide/>
-                    <ci>k_oCa</ci>
-                    <ci>k_CaER</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>k_iERCa</ci>
-                <apply>
-                    <times/>
-                    <ci>k_iCa</ci>
-                    <ci>k_CaER</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>Rstate</ci>
-                </apply>
-                <apply>
-                    <minus/>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
-                        <minus/>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <times/>
-                            <ci>k_RI_to_R</ci>
-                            <ci>RIstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Rstate</ci>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>Cai</ci>
+                                        <ci>Cai_RyR_mid</ci>
+                                    </apply>
+                                </apply>
+                                <ci>Cai_RyR_den</ci>
+                            </apply>
                         </apply>
                     </apply>
+                </apply>
+            </apply>
+            <!-- deactivated by Ca_ER decreasing, so also activated by Ca_ER-->
+            <apply>
+                <eq/>
+                <ci>hc_RyR_inf</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
-                        <minus/>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
+                            <exp/>
                             <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>Ca_ER</ci>
+                                        <ci>Ca_ER_RyR_mid</ci>
+                                    </apply>
+                                </apply>
+                                <ci>Ca_ER_RyR_den</ci>
                             </apply>
-                            <ci>Rstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Ostate</ci>
                         </apply>
                     </apply>
                 </apply>
@@ -5581,41 +5497,19 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Ostate</ci>
+                    <ci>c_RyR</ci>
                 </apply>
                 <apply>
-                    <minus/>
+                    <divide/>
                     <apply>
                         <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>Rstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Ostate</ci>
-                        </apply>
+                        <ci>c_RyR_inf</ci>
+                        <ci>c_RyR</ci>
                     </apply>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Ostate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_im</ci>
-                            <ci>Istate</ci>
-                        </apply>
+                        <divide/>
+                        <ci>tau_c_RyR</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
@@ -5626,101 +5520,41 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Istate</ci>
+                    <ci>hc_RyR</ci>
                 </apply>
                 <apply>
-                    <minus/>
+                    <divide/>
                     <apply>
                         <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Ostate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_im</ci>
-                            <ci>Istate</ci>
-                        </apply>
+                        <ci>hc_RyR_inf</ci>
+                        <ci>hc_RyR</ci>
                     </apply>
                     <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Istate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>RIstate</ci>
-                        </apply>
+                        <divide/>
+                        <ci>tau_hc_RyR</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>RIstate</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_om</ci>
-                            <ci>Istate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_oERCa</ci>
-                            <apply>
-                                <power/>
-                                <ci>Cai</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                            <ci>RIstate</ci>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <times/>
-                            <ci>k_RI_to_R</ci>
-                            <ci>RIstate</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <ci>k_iERCa</ci>
-                            <ci>Cai</ci>
-                            <ci>Rstate</ci>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- TODO include cAMP dependence
+ TODO should it be c_RyR^3, to be more similar to -->
             <apply>
                 <eq/>
                 <ci>j_RyR</ci>
                 <apply>
                     <times/>
                     <ci>k_RyR</ci>
-                    <ci>Ostate</ci>
                     <apply>
                         <minus/>
                         <ci>Ca_ER</ci>
                         <ci>Cai</ci>
                     </apply>
+                    <apply>
+                        <power/>
+                        <ci>c_RyR</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
+                    <ci>hc_RyR</ci>
                 </apply>
             </apply>
         </math>
