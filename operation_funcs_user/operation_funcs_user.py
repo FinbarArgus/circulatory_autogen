@@ -119,7 +119,7 @@ def calc_spike_frequency_windowed_V(t, V, series_output=False):
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V, height=-20)
+    peak_idxs, peak_properties = find_peaks(V, height=-10)
 
     # TODO maybe check peak properties here
     spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
@@ -155,3 +155,27 @@ def steady_state_min(x, series_output=False):
         return x
     else:
         return np.min(x[len(x)//2:])
+
+@series_to_constant
+def calc_min_to_max_period_diff(t, V, series_output=False):
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        period_diff = t[-1] - t[0]
+    else:
+        # calculate the periods
+        periods = [t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)]
+        # calculate the difference in time between max period and min period
+        period_diff = max(periods) - min(periods)
+
+    return period_diff
+
+
+
+
+
+

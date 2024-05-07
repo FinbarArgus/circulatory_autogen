@@ -79,9 +79,9 @@ couple_to_1d: False
 cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Maximum time step for solver
-maximum_step: 0.001
+maximum_step: 0.0001
 # Output time step (sampling) 
-dt: 0.0005
+dt: 0.0002
 # This for 3compartment
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
@@ -140,10 +140,12 @@ ga_options:
   cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
   num_calls_to_function: 50000
+  cost_convergence: 0.001
 
 debug_ga_options:
   cost_type: MSE
   num_calls_to_function: 30
+  cost_convergence: 0.001
 
 #______ mcmc inputs ___________
 do_mcmc: True

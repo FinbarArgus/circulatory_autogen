@@ -1167,7 +1167,7 @@ Vol_ER = Vol*c_ER;-->
             </apply>
         </math>
         <!-- iNa_N
- Made V_midm a parameter (was 36 mV) to allow the modification of the depolarising voltage
+ Made V_mid_m a parameter (was 36 mV) to allow the modification of the depolarising voltage
  made V_denm a parameter (was 7.2 mV) to allow the modification of the depolarising voltage activation amount during hyperpolarisation
  threshold-->
         <variable name="iNa_N" public_interface="out" units="nanoA"/>
@@ -1176,8 +1176,10 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
         <variable name="h_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
-        <variable name="V_midm" public_interface="in" units="milliV"/>
-        <variable name="V_denm" public_interface="in" units="milliV"/>
+        <variable name="V_mid_m" public_interface="in" units="milliV"/>
+        <variable name="V_den_m" public_interface="in" units="milliV"/>
+        <variable name="V_mid_h" public_interface="in" units="milliV"/>
+        <variable name="V_den_h" public_interface="in" units="milliV"/>
         <variable name="m_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_m" public_interface="out" units="millis"/>
@@ -1201,10 +1203,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <ci>V_midm</ci>
+                                        <ci>V_mid_m</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_denm</ci>
+                                <ci>V_den_m</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1226,14 +1228,16 @@ Vol_ER = Vol*c_ER;-->
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="milliV">53.2</cn>
+                                    <ci>V_mid_h</ci>
                                 </apply>
-                                <cn cellml:units="milliV">6.5</cn>
+                                <ci>V_den_h</ci>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!-- TODO change tau_m so it's dependent on V_mid_m, not sure how important this is
+ becuase tau_m is always pretty small..?-->
             <apply>
                 <eq/>
                 <ci>tau_m</ci>
@@ -1318,7 +1322,7 @@ Vol_ER = Vol*c_ER;-->
                                     <divide/>
                                     <apply>
                                         <plus/>
-                                        <cn cellml:units="milliV">40.94</cn>
+                                        <cn cellml:units="milliV">40</cn>
                                         <ci>V</ci>
                                     </apply>
                                     <cn cellml:units="milliV">1.556</cn>
@@ -1419,6 +1423,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="hc_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_c" public_interface="out" units="millis"/>
         <variable name="tau_hc" public_interface="out" units="millis"/>
+        <variable name="tau_c_min" public_interface="in" units="millis"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1441,12 +1446,13 @@ Vol_ER = Vol*c_ER;-->
                                         <cn cellml:units="milliV">8.1</cn>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">9.85</cn>
+                                <cn cellml:units="milliV">5</cn>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!-- c_inf = 1{dimensionless}/(1{dimensionless}+exp(-(V+8.1{milliV})/9.85{milliV}));-->
             <apply>
                 <eq/>
                 <ci>hc_inf</ci>
@@ -1477,7 +1483,7 @@ Vol_ER = Vol*c_ER;-->
                 <ci>tau_c</ci>
                 <apply>
                     <plus/>
-                    <cn cellml:units="millis">0.1</cn>
+                    <ci>tau_c_min</ci>
                     <apply>
                         <divide/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -1719,6 +1725,8 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
         <variable name="n1_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_n1" public_interface="out" units="millis"/>
+        <variable name="V_mid_n1" public_interface="in" units="milliV"/>
+        <variable name="V_den_n1" public_interface="in" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1738,10 +1746,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <cn cellml:units="milliV">6.084</cn>
+                                        <ci>V_mid_n1</ci>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">8.007</cn>
+                                <ci>V_den_n1</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1850,6 +1858,10 @@ Vol_ER = Vol*c_ER;-->
         <variable name="ah_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_a" public_interface="out" units="millis"/>
         <variable name="tau_ah" public_interface="out" units="millis"/>
+        <variable name="V_mid_a" public_interface="in" units="milliV"/>
+        <variable name="V_den_a" public_interface="in" units="milliV"/>
+        <variable name="V_mid_ah" public_interface="in" units="milliV"/>
+        <variable name="V_den_ah" public_interface="in" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1869,10 +1881,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <cn cellml:units="milliV">49.4</cn>
+                                        <ci>V_mid_a</ci>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">9.9</cn>
+                                <ci>V_den_a</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1894,9 +1906,9 @@ Vol_ER = Vol*c_ER;-->
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="milliV">80.43</cn>
+                                    <ci>V_mid_ah</ci>
                                 </apply>
-                                <cn cellml:units="milliV">7.07</cn>
+                                <ci>V_den_ah</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2073,7 +2085,9 @@ Vol_ER = Vol*c_ER;-->
             </apply>
         </math>
         <!-- I_kca
- this ignores a delay that is present in Beluzzi1991  -->
+ this ignores a delay that is present in Beluzzi1991  
+ TODO THIS ISNT CALCIUM DEPENDENT!!!? WHY DID TAU HAVE A KCA THAT ISNT CALCIUM DEPENDENT?
+ TODO MAKE THIS CALCIUM DEPENDENT.-->
         <variable name="ikCa" public_interface="out" units="nanoA"/>
         <variable name="kcf_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="kcf_init" name="kcf" public_interface="out" units="dimensionless"/>
@@ -2186,50 +2200,51 @@ Vol_ER = Vol*c_ER;-->
                 <apply>
                     <plus/>
                     <apply>
-                        <divide/>
-                        <cn cellml:units="dimensionless">1</cn>
+                        <minus/>
                         <apply>
-                            <plus/>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
                             <apply>
-                                <times/>
-                                <cn cellml:units="per_millis">0.25</cn>
+                                <plus/>
                                 <apply>
-                                    <exp/>
+                                    <times/>
+                                    <cn cellml:units="per_millis">0.25</cn>
                                     <apply>
-                                        <times/>
-                                        <cn cellml:units="per_milliV">0.7</cn>
-                                        <ci>V</ci>
-                                    </apply>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="per_millis" type="e-notation">7.3<sep/>-4</cn>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <times/>
+                                        <exp/>
                                         <apply>
-                                            <minus/>
-                                            <cn cellml:units="per_milliV">0.144</cn>
+                                            <times/>
+                                            <cn cellml:units="per_milliV">0.7</cn>
+                                            <ci>V</ci>
                                         </apply>
-                                        <ci>V</ci>
+                                    </apply>
+                                </apply>
+                                <apply>
+                                    <times/>
+                                    <cn cellml:units="per_millis" type="e-notation">2<sep/>-4</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <times/>
+                                            <apply>
+                                                <minus/>
+                                                <cn cellml:units="per_milliV">0.144</cn>
+                                            </apply>
+                                            <ci>V</ci>
+                                        </apply>
                                     </apply>
                                 </apply>
                             </apply>
                         </apply>
-                    </apply>
-                    <apply>
-                        <times/>
                         <apply>
-                            <minus/>
-                            <cn cellml:units="millis_per_milliV">1.9</cn>
+                            <times/>
+                            <cn cellml:units="millis_per_milliV">0.2</cn>
+                            <ci>V</ci>
                         </apply>
-                        <ci>V</ci>
                     </apply>
-                    <cn cellml:units="millis">92</cn>
+                    <cn cellml:units="millis">10</cn>
                 </apply>
             </apply>
+            <!-- tau_kcs = 1{dimensionless}/(0.25{per_millis}*exp(0.7{per_milliV}*V)+7.3e-4{per_millis}*exp(-0.144{per_milliV}*V))-1.9{millis_per_milliV}*V+92{millis};-->
             <apply>
                 <eq/>
                 <apply>
@@ -2330,6 +2345,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="cAMP" public_interface="in" units="dimensionless"/>
         <variable name="tau_w" public_interface="out" units="millis"/>
         <variable name="delta_gM" public_interface="in" units="microS"/>
+        <variable name="tau_w_num" public_interface="in" units="millis"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
         <!-- (from Golomb2006Contribution, pyramidal rat cells!!) z changed to w
@@ -2371,7 +2387,7 @@ Vol_ER = Vol*c_ER;-->
                 <ci>tau_w</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="millis">400</cn>
+                    <ci>tau_w_num</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -2469,31 +2485,11 @@ Vol_ER = Vol*c_ER;-->
         <variable name="eHCN" public_interface="in" units="milliV"/>
         <variable name="alpha_r" public_interface="out" units="dimensionless"/>
         <variable name="beta_r" public_interface="out" units="dimensionless"/>
-        <variable name="nu_cAMP" public_interface="out" units="milliV"/>
+        <variable name="nu_cAMP" public_interface="in" units="milliV"/>
         <!-- var cAMP: dimensionless {pub: in}; defined in M type block-->
+        <!-- nu_cAMP = 95{milliV}*cAMP+103.5{milliV}*(1{dimensionless}-cAMP);-->
+        <!-- TODO move the 0.007 to a variable infront of tau_r and remove it here.-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu_cAMP</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="milliV">95</cn>
-                        <ci>cAMP</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="milliV">103.5</cn>
-                        <apply>
-                            <minus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <ci>cAMP</ci>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- TODO move the 0.007 to a variable infront of tau_r and remove it here.-->
             <apply>
                 <eq/>
                 <ci>alpha_r</ci>
@@ -3534,6 +3530,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="Vol" public_interface="in" units="microm3"/>
         <!-- c_ER is the ratio between ER volume and total volume.
  c_SL is the ration between sub sarcolemmal volume and total volume.-->
+        <variable name="c_ER_pre" public_interface="in" units="dimensionless"/>
         <variable name="c_ER" public_interface="in" units="dimensionless"/>
         <variable name="c_SL" public_interface="in" units="dimensionless"/>
         <variable name="c_bulk" public_interface="out" units="dimensionless"/>
@@ -3545,10 +3542,14 @@ Vol_ER = Vol*c_ER;-->
                     <minus/>
                     <apply>
                         <minus/>
-                        <cn cellml:units="dimensionless">1</cn>
-                        <ci>c_SL</ci>
+                        <apply>
+                            <minus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>c_SL</ci>
+                        </apply>
+                        <ci>c_ER</ci>
                     </apply>
-                    <ci>c_ER</ci>
+                    <ci>c_ER_pre</ci>
                 </apply>
             </apply>
         </math>
@@ -3613,8 +3614,8 @@ Vol_ER = Vol*c_ER;-->
             </apply>
         </math>
         <!-- iNa_N
- Made V_midm a parameter (was 36 mV) to allow the modification of the depolarising voltage
- made V_denm a parameter (was 7.2 mV) to allow the modification of the depolarising voltage activation amount during hyperpolarisation
+ Made V_mid_m a parameter (was 36 mV) to allow the modification of the depolarising voltage
+ made V_den_m a parameter (was 7.2 mV) to allow the modification of the depolarising voltage activation amount during hyperpolarisation
  threshold-->
         <variable name="iNa_N" public_interface="out" units="nanoA"/>
         <variable name="gna" public_interface="in" units="microS"/>
@@ -3622,8 +3623,10 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
         <variable name="h_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
-        <variable name="V_midm" public_interface="in" units="milliV"/>
-        <variable name="V_denm" public_interface="in" units="milliV"/>
+        <variable name="V_mid_m" public_interface="in" units="milliV"/>
+        <variable name="V_den_m" public_interface="in" units="milliV"/>
+        <variable name="V_mid_h" public_interface="in" units="milliV"/>
+        <variable name="V_den_h" public_interface="in" units="milliV"/>
         <variable name="m_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_m" public_interface="out" units="millis"/>
@@ -3647,10 +3650,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <ci>V_midm</ci>
+                                        <ci>V_mid_m</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_denm</ci>
+                                <ci>V_den_m</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -3672,9 +3675,9 @@ Vol_ER = Vol*c_ER;-->
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="milliV">53.2</cn>
+                                    <ci>V_mid_h</ci>
                                 </apply>
-                                <cn cellml:units="milliV">6.5</cn>
+                                <ci>V_den_h</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -3764,7 +3767,7 @@ Vol_ER = Vol*c_ER;-->
                                     <divide/>
                                     <apply>
                                         <plus/>
-                                        <cn cellml:units="milliV">40.94</cn>
+                                        <cn cellml:units="milliV">40</cn>
                                         <ci>V</ci>
                                     </apply>
                                     <cn cellml:units="milliV">1.556</cn>
@@ -3865,6 +3868,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="hc_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_c" public_interface="out" units="millis"/>
         <variable name="tau_hc" public_interface="out" units="millis"/>
+        <variable name="tau_c_min" public_interface="in" units="millis"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3923,7 +3927,7 @@ Vol_ER = Vol*c_ER;-->
                 <ci>tau_c</ci>
                 <apply>
                     <plus/>
-                    <cn cellml:units="millis">0.1</cn>
+                    <ci>tau_c_min</ci>
                     <apply>
                         <divide/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -4300,6 +4304,8 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
         <variable name="n1_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_n1" public_interface="out" units="millis"/>
+        <variable name="V_mid_n1" public_interface="in" units="milliV"/>
+        <variable name="V_den_n1" public_interface="in" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -4319,10 +4325,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <cn cellml:units="milliV">6.084</cn>
+                                        <ci>V_mid_n1</ci>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">8.007</cn>
+                                <ci>V_den_n1</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -4431,6 +4437,10 @@ Vol_ER = Vol*c_ER;-->
         <variable name="ah_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_a" public_interface="out" units="millis"/>
         <variable name="tau_ah" public_interface="out" units="millis"/>
+        <variable name="V_mid_a" public_interface="in" units="milliV"/>
+        <variable name="V_den_a" public_interface="in" units="milliV"/>
+        <variable name="V_mid_ah" public_interface="in" units="milliV"/>
+        <variable name="V_den_ah" public_interface="in" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -4450,10 +4460,10 @@ Vol_ER = Vol*c_ER;-->
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <cn cellml:units="milliV">49.4</cn>
+                                        <ci>V_mid_a</ci>
                                     </apply>
                                 </apply>
-                                <cn cellml:units="milliV">9.9</cn>
+                                <ci>V_den_a</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -4475,9 +4485,9 @@ Vol_ER = Vol*c_ER;-->
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <cn cellml:units="milliV">80.43</cn>
+                                    <ci>V_mid_ah</ci>
                                 </apply>
-                                <cn cellml:units="milliV">7.07</cn>
+                                <ci>V_den_ah</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -4767,50 +4777,51 @@ Vol_ER = Vol*c_ER;-->
                 <apply>
                     <plus/>
                     <apply>
-                        <divide/>
-                        <cn cellml:units="dimensionless">1</cn>
+                        <minus/>
                         <apply>
-                            <plus/>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
                             <apply>
-                                <times/>
-                                <cn cellml:units="per_millis">0.25</cn>
+                                <plus/>
                                 <apply>
-                                    <exp/>
+                                    <times/>
+                                    <cn cellml:units="per_millis">0.25</cn>
                                     <apply>
-                                        <times/>
-                                        <cn cellml:units="per_milliV">0.7</cn>
-                                        <ci>V</ci>
-                                    </apply>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="per_millis" type="e-notation">7.3<sep/>-4</cn>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <times/>
+                                        <exp/>
                                         <apply>
-                                            <minus/>
-                                            <cn cellml:units="per_milliV">0.144</cn>
+                                            <times/>
+                                            <cn cellml:units="per_milliV">0.7</cn>
+                                            <ci>V</ci>
                                         </apply>
-                                        <ci>V</ci>
+                                    </apply>
+                                </apply>
+                                <apply>
+                                    <times/>
+                                    <cn cellml:units="per_millis" type="e-notation">2<sep/>-4</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <times/>
+                                            <apply>
+                                                <minus/>
+                                                <cn cellml:units="per_milliV">0.144</cn>
+                                            </apply>
+                                            <ci>V</ci>
+                                        </apply>
                                     </apply>
                                 </apply>
                             </apply>
                         </apply>
-                    </apply>
-                    <apply>
-                        <times/>
                         <apply>
-                            <minus/>
-                            <cn cellml:units="millis_per_milliV">1.9</cn>
+                            <times/>
+                            <cn cellml:units="millis_per_milliV">0.2</cn>
+                            <ci>V</ci>
                         </apply>
-                        <ci>V</ci>
                     </apply>
-                    <cn cellml:units="millis">92</cn>
+                    <cn cellml:units="millis">10</cn>
                 </apply>
             </apply>
+            <!-- tau_kcs = 1{dimensionless}/(0.25{per_millis}*exp(0.7{per_milliV}*V)+7.3e-4{per_millis}*exp(-0.144{per_milliV}*V))-1.9{millis_per_milliV}*V+92{millis};-->
             <apply>
                 <eq/>
                 <apply>
@@ -4911,6 +4922,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="cAMP" public_interface="in" units="dimensionless"/>
         <variable name="tau_w" public_interface="out" units="millis"/>
         <variable name="delta_gM" public_interface="in" units="microS"/>
+        <variable name="tau_w_num" public_interface="in" units="millis"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
         <!-- (from Golomb2006Contribution, pyramidal rat cells!!) z changed to w
@@ -4952,7 +4964,7 @@ Vol_ER = Vol*c_ER;-->
                 <ci>tau_w</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="millis">400</cn>
+                    <ci>tau_w_num</ci>
                     <apply>
                         <plus/>
                         <apply>
@@ -5050,31 +5062,11 @@ Vol_ER = Vol*c_ER;-->
         <variable name="eHCN" public_interface="in" units="milliV"/>
         <variable name="alpha_r" public_interface="out" units="dimensionless"/>
         <variable name="beta_r" public_interface="out" units="dimensionless"/>
-        <variable name="nu_cAMP" public_interface="out" units="milliV"/>
+        <variable name="nu_cAMP" public_interface="in" units="milliV"/>
         <!-- var cAMP: dimensionless {pub: in}; defined in M type block-->
+        <!-- nu_cAMP = 95{milliV}*cAMP+103.5{milliV}*(1{dimensionless}-cAMP);-->
+        <!-- TODO move the 0.007 to a variable infront of tau_r and remove it here.-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu_cAMP</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="milliV">95</cn>
-                        <ci>cAMP</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="milliV">103.5</cn>
-                        <apply>
-                            <minus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <ci>cAMP</ci>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- TODO move the 0.007 to a variable infront of tau_r and remove it here.-->
             <apply>
                 <eq/>
                 <ci>alpha_r</ci>
@@ -5349,8 +5341,8 @@ Vol_ER = Vol*c_ER;-->
                     </apply>
                     <apply>
                         <minus/>
-                        <ci>Cai</ci>
-                        <ci>Ca_ER</ci>
+                        <ci>Ca_bulk</ci>
+                        <ci>Ca_ER_pre</ci>
                     </apply>
                 </apply>
             </apply>
@@ -5388,7 +5380,7 @@ Vol_ER = Vol*c_ER;-->
                                 <power/>
                                 <apply>
                                     <divide/>
-                                    <ci>Ca_ER</ci>
+                                    <ci>Ca_ER_pre</ci>
                                     <ci>K_mr</ci>
                                 </apply>
                                 <ci>H_SERCA</ci>
@@ -5411,7 +5403,7 @@ Vol_ER = Vol*c_ER;-->
                             <power/>
                             <apply>
                                 <divide/>
-                                <ci>Ca_ER</ci>
+                                <ci>Ca_ER_pre</ci>
                                 <ci>K_mr</ci>
                             </apply>
                             <ci>H_SERCA</ci>
@@ -5420,6 +5412,38 @@ Vol_ER = Vol*c_ER;-->
                 </apply>
             </apply>
         </math>
+        <!-- Ryanodine receptor channel from Shannon et al.-->
+        <!-- var j_RyR: millimolar_per_s {pub: out};
+ var Rstate_init: dimensionless {pub: in};
+ var Ostate_init: dimensionless {pub: in};
+ var Istate_init: dimensionless {pub: in};
+ var RIstate_init: dimensionless {pub: in};
+ var Rstate: dimensionless {init: Rstate_init, pub: out};
+ var Ostate: dimensionless {init: Ostate_init, pub: out};
+ var Istate: dimensionless {init: Istate_init, pub: out};
+ var RIstate: dimensionless {init: RIstate_init, pub: out};-->
+        <!-- k_RyR is k_s in the paper-->
+        <!-- var k_RyR: per_s {pub: in};
+ var k_oCa: per_millimolar2_s {pub: in};
+ var k_om: per_s {pub: in};
+ var k_iCa: per_millimolar_s {pub: in};
+ var k_im: per_s {pub: in};
+ var k_RI_to_R: per_s {pub: in};
+ var EC_50ER: millimolar {pub: in};
+ var max_ER: dimensionless {pub: in};
+ var min_ER: dimensionless {pub: in};
+ var H_ER: dimensionless {pub: in};
+ var k_CaER: dimensionless {pub: out};
+ var k_oERCa: per_millimolar2_s {pub: out};
+ var k_iERCa: per_millimolar_s {pub: out};-->
+        <!-- k_CaER = max_ER-(max_ER-min_ER)/(1{dimensionless}+pow(EC_50ER/Ca_ER, H_ER));
+ k_oERCa = k_oCa/k_CaER;
+ k_iERCa = k_iCa*k_CaER;
+ ode(Rstate, t) = k_RI_to_R*RIstate-k_iERCa*Cai*Rstate-(k_oERCa*sqr(Cai)*Rstate-k_om*Ostate);
+ ode(Ostate, t) = k_oERCa*sqr(Cai)*Rstate-k_om*Ostate-(k_iERCa*Cai*Ostate-k_im*Istate);
+ ode(Istate, t) = k_iERCa*Cai*Ostate-k_im*Istate-(k_om*Istate-k_oERCa*sqr(Cai)*RIstate);
+ ode(RIstate, t) = k_om*Istate-k_oERCa*sqr(Cai)*RIstate-(k_RI_to_R*RIstate-k_iERCa*Cai*Rstate);
+ j_RyR = k_RyR*Ostate*(Ca_ER-Cai);-->
         <!-- Ryanodine receptor model, developed by Finbar Argus-->
         <variable name="j_RyR" public_interface="out" units="millimolar_per_s"/>
         <variable name="k_RyR" public_interface="in" units="per_s"/>
@@ -5431,6 +5455,8 @@ Vol_ER = Vol*c_ER;-->
         <variable name="Cai_RyR_den" public_interface="in" units="millimolar"/>
         <variable name="Ca_ER_RyR_mid" public_interface="in" units="millimolar"/>
         <variable name="Ca_ER_RyR_den" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_tau_mid" public_interface="in" units="millimolar"/>
+        <variable name="Ca_ER_RyR_tau_den" public_interface="in" units="millimolar"/>
         <variable name="tau_c_RyR" public_interface="in" units="millis"/>
         <variable name="tau_hc_RyR" public_interface="in" units="millis"/>
         <!-- activated by Cai-->
@@ -5513,6 +5539,7 @@ Vol_ER = Vol*c_ER;-->
                     </apply>
                 </apply>
             </apply>
+            <!-- tau_hc_RyR = tau_hc_RyR_min; // + 200{millis}/(exp((Ca_ER-Ca_ER_RyR_tau_mid)/Ca_ER_RyR_tau_den)+exp(-(Ca_ER-Ca_ER_RyR_tau_mid)/Ca_ER_RyR_tau_den));-->
             <apply>
                 <eq/>
                 <apply>
@@ -5554,7 +5581,11 @@ Vol_ER = Vol*c_ER;-->
                         <ci>c_RyR</ci>
                         <cn cellml:units="dimensionless">3</cn>
                     </apply>
-                    <ci>hc_RyR</ci>
+                    <apply>
+                        <power/>
+                        <ci>hc_RyR</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
                 </apply>
             </apply>
         </math>
@@ -5569,6 +5600,11 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="Cai_init" name="Ca_bulk" public_interface="out" units="millimolar"/>
         <variable name="j_diffCa" public_interface="out" units="millimolar_per_s"/>
         <variable name="tau_Ca" public_interface="in" units="millis"/>
+        <variable name="j_diffCa_ER" public_interface="out" units="millimolar_per_s"/>
+        <!-- TODO change these names from tau. They aren't actually time constants,
+ because they get modulated by the volumes.-->
+        <variable name="tau_Ca_ER" public_interface="in" units="millis"/>
+        <variable initial_value="Ca_ER_init" name="Ca_ER_pre" public_interface="out" units="millimolar"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5630,6 +5666,23 @@ Vol_ER = Vol*c_ER;-->
             </apply>
             <apply>
                 <eq/>
+                <ci>j_diffCa_ER</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>Ca_ER_pre</ci>
+                        <ci>Ca_ER</ci>
+                    </apply>
+                    <apply>
+                        <divide/>
+                        <ci>tau_Ca_ER</ci>
+                        <cn cellml:units="millis_per_s">1000</cn>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <apply>
                     <diff/>
                     <bvar>
@@ -5685,6 +5738,36 @@ Vol_ER = Vol*c_ER;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
+                    <ci>Ca_ER_pre</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>c_ER_pre</ci>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <minus/>
+                                <ci>j_SERCA</ci>
+                            </apply>
+                            <ci>j_leak</ci>
+                        </apply>
+                        <ci>j_diffCa_ER</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
                     <ci>Ca_ER</ci>
                 </apply>
                 <apply>
@@ -5695,20 +5778,16 @@ Vol_ER = Vol*c_ER;-->
                         <ci>c_ER</ci>
                     </apply>
                     <apply>
-                        <minus/>
+                        <plus/>
                         <apply>
                             <minus/>
                             <apply>
                                 <minus/>
-                                <apply>
-                                    <minus/>
-                                    <ci>j_IP3</ci>
-                                </apply>
-                                <ci>j_SERCA</ci>
+                                <ci>j_IP3</ci>
                             </apply>
                             <ci>j_RyR</ci>
                         </apply>
-                        <ci>j_leak</ci>
+                        <ci>j_diffCa_ER</ci>
                     </apply>
                 </apply>
             </apply>

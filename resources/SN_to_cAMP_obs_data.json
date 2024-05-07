@@ -1,4 +1,4 @@
-{"protocal_info":
+{"protocol_info":
   { "pre_times": [1.0, 1.0],
       "sim_times": [[1, 2], [1, 2]],
       "params_to_change": {
