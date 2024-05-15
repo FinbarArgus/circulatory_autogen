@@ -949,6 +949,8 @@ Model0d::Model0d() :
 
         pre_class = True
         in_class_init = False
+
+        # TODO The below is all really susceptible to changes in libcellml, I should create my own profile
         for line in gen.implementationCode().split('\n'):
             if line.startswith('const size_t STATE_COUNT'):
                 pre_class = False
@@ -956,7 +958,8 @@ Model0d::Model0d() :
 
             if 'VERSION' in line:
                 line = line.replace('VERSION', 'VERSION_')
-            if line.startswith('double * createStatesArray'):
+            # if line.startswith('double * createStatesArray'):
+            if line.startswith('double max'):
                 in_class_init = False
 
             if pre_class:
