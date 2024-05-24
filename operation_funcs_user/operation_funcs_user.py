@@ -95,31 +95,17 @@ def calc_spike_period(t, V, series_output=False):
     return period
 
 @series_to_constant
-def calc_spike_frequency_windowed(t, V, series_output=False):
-    """
-    this calculates the number of spikes per 
-    second in the given window. Not an accurate actual 
-    frequency, but useful for some applications.
-    """
-    if series_output:
-        return V
-    peak_idxs, peak_properties = find_peaks(V)
-    # TODO maybe check peak properties here
-    spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
-    return spikes_per_s
-
-@series_to_constant
-def calc_spike_frequency_windowed_V(t, V, series_output=False):
+def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10):
     """
     this calculates the number of spikes per 
     second in the given window. Not an accurate actual 
     frequency, but useful for some applications.
 
-    This includes a minimum threshold for peaks of 0
+    This includes a minimum threshold for peaks of spike_min_thresh
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V, height=-10)
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
 
     # TODO maybe check peak properties here
     spikes_per_s = len(peak_idxs)/(t[-1] - t[0])

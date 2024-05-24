@@ -1151,6 +1151,7 @@ class CVS0DParamID():
         self.obs_info["names_for_plotting"] = []
         self.obs_info["operands"] = []
         self.obs_info["freqs"] = []
+        self.obs_info["operation_kwargs"] = []
         # below we remove the need for obs_types, but keep it backwards compatible so 
         # previous specifications of obs_type = mean etc should still work
         for II in range(self.gt_df.shape[0]):
@@ -1188,6 +1189,12 @@ class CVS0DParamID():
                 self.obs_info['names_for_plotting'].append(self.gt_df.iloc[II]["name_for_plotting"])
             else:
                 self.obs_info['names_for_plotting'].append(self.obs_info["obs_names"][II])
+
+            if "operation_kwargs" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["operation_kwargs"] \
+                    not in ["Null", "None", "null", "none", "", np.nan]:
+                self.obs_info["operation_kwargs"].append(self.gt_df.iloc[II]["operation_kwargs"])
+            else:
+                self.obs_info["operation_kwargs"].append({})
 
         self.obs_info["num_obs"] = len(self.obs_info["obs_names"])
 
@@ -2703,10 +2710,10 @@ class OpencorParamID():
             if get_all_series:
                 if hasattr(self.operation_funcs_dict[self.obs_info["operations"][JJ]], 'series_to_constant'):
                     obs_series_array_all[JJ] = self.operation_funcs_dict[
-                            self.obs_info["operations"][JJ]](*operands_outputs[JJ], series_output=True) 
+                            self.obs_info["operations"][JJ]](*operands_outputs[JJ], series_output=True, **self.obs_info["operation_kwargs"][JJ]) 
                 else:
                     val_or_array = self.operation_funcs_dict[
-                            self.obs_info["operations"][JJ]](*operands_outputs[JJ])
+                            self.obs_info["operations"][JJ]](*operands_outputs[JJ], **self.obs_info["operation_kwargs"][JJ])
                     if type(val_or_array) == float:
                         print("an operation func that returns a float (constant) "
                               "Is present. This operation_func should have the header @series_to_constant"
@@ -2723,7 +2730,7 @@ class OpencorParamID():
                 obs = operands_outputs[JJ][0]
             else:
                 if self.obs_info["data_types"][JJ] != 'frequency':
-                    obs = self.operation_funcs_dict[self.obs_info["operations"][JJ]](*operands_outputs[JJ]) 
+                    obs = self.operation_funcs_dict[self.obs_info["operations"][JJ]](*operands_outputs[JJ], **self.obs_info["operation_kwargs"][JJ]) 
                 else:
                     obs = None
             
@@ -2750,7 +2757,7 @@ class OpencorParamID():
                                        KK in range(len(operands_outputs[JJ]))]
 
                     # operations also apply to complex numbers
-                    complex_num = self.operation_funcs_dict[self.obs_info["operations"][JJ]](*complex_operands) 
+                    complex_num = self.operation_funcs_dict[self.obs_info["operations"][JJ]](*complex_operands, **self.obs_info["operation_kwargs"][JJ]) 
                     # TODO check this works for all cases
                     # I am checking the sign of the mean operated on time domain signal to ensure 
                     # the first amplitude is negative if it is a negative signal
