@@ -4,7 +4,7 @@ MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
 # file_prefix: control_parasymp
-# file_prefix: lung_ROM
+file_prefix: lung_ROM
 # file_prefix: lung_control
 # file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
@@ -14,7 +14,7 @@ MPI_DEBUG: false
 # file_prefix: neonatal
 # file_prefix: neonatal_test
 # file_prefix: cpp_coupling
-file_prefix: aortic_bif_1d_wCont
+# file_prefix: aortic_bif_1d_wCont
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
@@ -24,11 +24,12 @@ file_prefix: aortic_bif_1d_wCont
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
+input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
 # input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: physiological_parameters.csv 
 # input_param_file: cpp_coupling_parameters.csv 
-input_param_file: aortic_bif_1d_wCont_parameters.csv 
+# input_param_file: aortic_bif_1d_wCont_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
@@ -55,25 +56,25 @@ model_type: cellml_only
 param_id_method: genetic_algorithm
 
 # pre_time is the amount of time simulated to get to steady state
-pre_time: 3.0
-# pre_time: 15.0
+# pre_time: 3.0
+# pre_time: 30.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 2.0
+# sim_time: 10.0
 # if pre_heart_periods is defined, pre_time will be calculated by multiplying
 # pre_heart_periods with the period and THIS WILL OVERWRITE pre_time
-# pre_heart_periods: 30
+pre_heart_periods: 30
 # if sim_heart_periods is defined, pre_time will be calculated by multiplying
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
-# sim_heart_periods: 2
+sim_heart_periods: 30
 
-# resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/resources
-# generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/generated_models
-# param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/param_id_output
+resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre_23_05_24/resources
+generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre_23_05_24/generated_models
+param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre_23_05_24/param_id_output
 
 # This is for cpp generation
 cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
 # This is for cpp_coupling
-couple_to_1d: True
+couple_to_1d: False
 cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Maximum time step for solver
@@ -119,13 +120,12 @@ dt: 0.0001
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-# param_id_obs_path: 
-#   /hpc/farg967/pulmonary_workspace/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
+param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 
 # this for Sympathetic Neuron
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
 
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false

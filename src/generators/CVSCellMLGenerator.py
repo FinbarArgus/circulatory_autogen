@@ -612,7 +612,7 @@ class CVS0DCellMLGenerator(object):
                 
                 out_vessel_names = []
                 for out_vessel_name in vessel_tup.out_vessels:
-                    if vessel_df.loc[vessel_df["name"] == out_vessel_name].squeeze()["vessel_type"] == 'venous':
+                    if vessel_df.loc[vessel_df["name"] == out_vessel_name].squeeze()["vessel_type"].startswith('venous'):
                         # This finds the venous module connection
                         out_vessel_names.append(out_vessel_name)
                 if len(out_vessel_names) == 0:

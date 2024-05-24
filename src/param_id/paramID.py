@@ -1026,7 +1026,8 @@ class CVS0DParamID():
         # below we remove the need for obs_types, but keep it backwards compatible so 
         # previous specifications of obs_type = mean etc should still work
         for II in range(self.gt_df.shape[0]):
-            if "operation" not in self.gt_df.iloc[II].keys():
+            if "operation" not in self.gt_df.iloc[II].keys() or \
+                    self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", "", "nan", np.nan]:
                 if "obs_type" in self.gt_df.iloc[II].keys():
                     if self.gt_df.iloc[II]["obs_type"] == "series":
                         self.obs_operations.append(None)
@@ -1044,9 +1045,9 @@ class CVS0DParamID():
                     elif self.gt_df.iloc[II]["obs_type"] == "mean":
                         self.obs_operations.append("mean")
                         self.obs_operands.append([self.gt_df.iloc[II]["variable"]])
-            elif self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", ""]:
-                self.obs_operations.append(None)
-                self.obs_operands.append(None)
+                else:
+                    self.obs_operations.append(None)
+                    self.obs_operands.append(None)
             else:
                 self.obs_operations.append(self.gt_df.iloc[II]["operation"])
                 self.obs_operands.append(self.gt_df.iloc[II]["operands"])
@@ -2393,6 +2394,7 @@ class OpencorParamID():
                     #                             [np.mean(entry) for entry in obs_operands_outputs[JJ]]))
 
                     amp = np.abs(complex_num)[0:len(obs_operands_outputs[JJ][0])//2]
+                    print(np.mean(amp))
                     # TODO I don't think I should do the below, commenting out
                     # Just make sure ground truth is abs value
                     # make sure the first amplitude is negative if it is a negative signal
@@ -2408,14 +2410,30 @@ class OpencorParamID():
                 # and phase
                 obs_phase_list_of_arrays[freq_count][:] = utility_funcs.bin_resample(phase, freqs, self.obs_freqs[JJ])
 
+                print(np.mean(amp))
                 # TODO remove this plotting
-                # fig, ax = plt.subplots()
-                # ax.plot(freqs, amp, 'ko')
-                # ax.plot(self.obs_freqs[JJ], obs_amp_list_of_arrays[freq_count][:], 'rx')
+                fig, ax = plt.subplots()
+                ax.plot(freqs, amp, 'ko')
+                ax.plot(self.obs_freqs[JJ], obs_amp_list_of_arrays[freq_count][:], 'rx')
+                ax.set_xlim([0, 10])
+                ax.set_ylim([0, max(amp)*1.1])
+                ax.set_xlabel('freq Hz')
+                ax.set_ylabel('Impedance $Js/m^6$')
 
                 # randnum = np.random.randint(100000)
-                # plt.savefig(f'/home/farg967/Documents/random/rand_plots/{randnum}.png')
-                # plt.close()
+                plt.savefig(f'/home/farg967/Documents/random/rand_plots/amp.png')
+                plt.close()
+                
+                fig, ax = plt.subplots()
+                ax.plot(freqs, phase, 'ko')
+                ax.plot(self.obs_freqs[JJ], obs_phase_list_of_arrays[freq_count][:], 'rx')
+                ax.set_xlim([0, 10])
+                ax.set_xlabel('freq Hz')
+                ax.set_ylabel('Phase')
+
+                # randnum = np.random.randint(100000)
+                plt.savefig(f'/home/farg967/Documents/random/rand_plots/phase.png')
+                plt.close()
 
                 freq_count += 1
 
