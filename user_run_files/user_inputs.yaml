@@ -57,6 +57,8 @@ model_type: cellml_only
 param_id_method: genetic_algorithm
 
 # pre_time is the amount of time simulated to get to steady state
+# TODO this is not important if it is specified in the obs_data.json file
+# TODO should I remove it here and only specify in the obs_data.json file?
 pre_time: 3.0
 # pre_time: 15.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
@@ -68,9 +70,10 @@ sim_time: 2.0
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
 # sim_heart_periods: 2
 
-# resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/resources
-# generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/generated_models
-# param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/param_id_output
+resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/resources/SN_CPVT_obs_data.json
 
 # This is for cpp generation
 cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
@@ -81,7 +84,7 @@ cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aorti
 # Maximum time step for solver
 maximum_step: 0.0001
 # Output time step (sampling) 
-dt: 0.0002
+dt: 0.0001
 # This for 3compartment
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
@@ -126,9 +129,6 @@ dt: 0.0002
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 
-# this for Sympathetic Neuron
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
-param_id_obs_path: /home/farg967/Documents/data/Sympathetic_Neuron/SN_CPVT_obs_data.json
 
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false
