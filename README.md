@@ -110,7 +110,6 @@ you must do the following...
 
 ### Required packages for parameter identification
 mpi4py
-scikit-optimize
 sympy
 
 ### Required packages for mcmc bayesian identification
@@ -122,7 +121,11 @@ statsmodels
 
 ### Required packages for autogeneration
 pandas
-yaml
+pyyaml
+
+### No longer needed
+scikit-optimize
+
 
 ### Potential Errors:
 IMPORTANT if you get an SSL error you must do the following before the pip install

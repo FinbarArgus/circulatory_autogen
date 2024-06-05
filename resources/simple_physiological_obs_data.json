@@ -1,4 +1,12 @@
-{"data_item": [
+{ "prediction_items": [
+    {
+      "variable": "common_carotid_R6_A/u",
+      "unit":     "J_per_m3",
+      "name_for_plotting": "p_{CC}",
+      "experiment_idx": 0
+    }
+  ],
+  "data_items": [
     { "variable": "leg_L_T/v",
       "name_for_plotting": "v_{LTleg}",
       "data_type": "constant",

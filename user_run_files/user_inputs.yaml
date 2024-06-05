@@ -19,6 +19,7 @@ MPI_DEBUG: false
 # file_prefix: temp_channel
 # file_prefix: delay_test 
 # file_prefix: SN_to_cAMP
+# file_prefix: test_units
 # file_prefix: parasympathetic_model
 file_prefix: Lymphatic
 # input_param_file must be stored in resources. If first creating a parameters file 
@@ -40,6 +41,7 @@ file_prefix: Lymphatic
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
 # input_param_file: SN_to_cAMP_parameters.csv
+# input_param_file: test_units_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 input_param_file: Lymphatic_parameters.csv
 
@@ -57,6 +59,8 @@ model_type: cellml_only
 param_id_method: genetic_algorithm
 
 # pre_time is the amount of time simulated to get to steady state
+# TODO this is not important if it is specified in the obs_data.json file
+# TODO should I remove it here and only specify in the obs_data.json file?
 pre_time: 3.0
 # pre_time: 15.0
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
@@ -68,9 +72,10 @@ sim_time: 2.0
 # sim_heart_periods with the period and THIS WILL OVERWRITE sim_time
 # sim_heart_periods: 2
 
-# resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/resources
-# generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/generated_models
-# param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/param_id_output
+# resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/resources
+# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/generated_models
+# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/param_id_output
+# param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_CPVT/resources/SN_CPVT_obs_data.json
 
 resources_dir: /home/farg967/Documents/git_projects/CA_user/Lymphatic_BG_model_1/Lymphatic_BG_model
 generated_models_dir: /home/farg967/Documents/git_projects/CA_user/Lymphatic_BG_model_1/Lymphatic_BG_model
@@ -79,7 +84,7 @@ param_id_output_dir:  /home/farg967/Documents/git_projects/CA_user/Lymphatic_BG_
 # This is for cpp generation
 cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
 # This is for cpp_coupling
-couple_to_1d: false
+couple_to_1d: False
 cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Maximum time step for solver
@@ -138,25 +143,32 @@ do_sensitivity: false
 
 #______ genetic algorithm inputs ___________
 ga_options:
-  cost_type: AE
+  # TODO Should we move cost_type to obs_data.json file so each observable can have a specified cost function calculation?
+  # TODO This should eventually be a user_defined cost_function. 
+  cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
-  num_calls_to_function: 150000
+  num_calls_to_function: 50000
+  cost_convergence: 0.001
 
 debug_ga_options:
-  cost_type: AE
-  num_calls_to_function: 1500
+  cost_type: MSE
+  num_calls_to_function: 30
+  cost_convergence: 0.001
 
 #______ mcmc inputs ___________
-do_mcmc: false
+do_mcmc: True
 mcmc_options:
-  num_steps: 40000
+  num_steps: 4000
   num_walkers: 64
-  cost_type: AE
+  # TODO As above for cost_type
+  cost_type: MSE
+  cost_convergence: 0.001
 
 debug_mcmc_options:
   num_steps: 5
   num_walkers: 40
-  cost_type: AE
+  cost_type: MSE
+  cost_convergence: 0.001
 
 # For plotting core predictions after mcmc
-plot_predictions: true
+plot_predictions: false

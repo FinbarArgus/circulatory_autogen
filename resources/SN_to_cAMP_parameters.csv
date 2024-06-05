@@ -1,0 +1,207 @@
+variable_name,units,value,data_reference
+gna_soma_SN, microS, 6, user_defined
+gna_soma_SN_OLD, microS, 9.28, Tau2011
+Cm_soma_SN, picoF, 120, user_defined
+Cm_SN_OLD, picoF, 240, Tau2011
+pCa_soma_SN, m3_per_s, 2e-13, to_be_identified
+gkv_soma_SN, microS, 0.01, Tau2011_was_0.44
+gA_soma_SN, microS, 0.05, to_be_identified
+gkcf_soma_SN, microS, 0.04, Tau2011_was_0.15
+gkcs_soma_SN, microS, 0.04, Tau2011_was_0.22
+Vol_soma_SN, microm3, 2000.0, Wu2012Soma_Approx
+Cai_init_soma_SN, millimolar, 1e-4, Hagiwara1981
+Nai_init_soma_SN, millimolar, 15, BoronBoulpaep2017
+ki_init_soma_SN, millimolar, 150, BoronBoulpaep2017
+Cao_soma_SN, millimolar, 2, Tau2011
+Nao_soma_SN, millimolar, 145, BoronBoulpaep2017
+ko_soma_SN, millimolar, 4.5, BoronBoulpaep2017
+k_Na_return_soma_SN, per_s, 0.5, to_be_found
+k_k_return_soma_SN, per_s, 0.5, to_be_found
+#, #, #, #
+gna_var_SN, microS, 6, user_defined
+b_var_SN, dimensionless, 0.25, Tau2011
+gamma_var_SN, dimensionless, 6000, Tau2011
+pCa_var_SN, m3_per_s, 1e-14, to_be_identified
+gkv_var_SN, microS, 0.01, Tau2011
+gA_var_SN, microS, 0.05, to_be_identified
+gkcf_var_SN, microS, 0.04, Tau2011
+gkcs_var_SN, microS, 0.04, Tau2011
+kon_var_SN, per_millimolar_s, 90000, Tau2011
+koff_var_SN, per_s, 9500, Tau2011
+Vol_var_SN, microm3, 1000.0,to_be_found 
+Vol_var_SN_OLD, microm3, 50.0,to_be_found 
+Cai_init_var_SN, millimolar, 1e-4, Hagiwara1981
+Nai_init_var_SN, millimolar, 15, BoronBoulpaep2017
+ki_init_var_SN, millimolar, 150, BoronBoulpaep2017
+Cao_var_SN, millimolar, 2, Tau2011
+Nao_var_SN, millimolar, 145, BoronBoulpaep2017
+ko_var_SN, millimolar, 4.5, BoronBoulpaep2017
+k_Na_return_var_SN, per_s, 0.5, to_be_found
+k_k_return_var_SN, per_s, 0.5, to_be_found
+#, #, #, #
+a_cleft,dimensionless,4000,Tao_2011
+n_cleft,dimensionless,12,Tao_2011
+Vol_cleft,litre,1.5e-15,Tao_2011
+N_avo,per_mol,6.02e23,known
+R,J_per_mol_K,8.314,known
+F,C_per_mol,96485,known
+T,kelvin,310.15,Tao2011
+#, #, #, #
+V_init_soma_SN, milliV, -70, Tau2011
+m_init_soma_SN, dimensionless, 0.01, Tau2011
+h_init_soma_SN, dimensionless, 0.9, Tau2011
+c_init_soma_SN, dimensionless, 0.01, Tau2011
+hc_init_soma_SN, dimensionless, 0.9, Tau2011
+n1_init_soma_SN, dimensionless, 0.01, Tau2011
+a_init_soma_SN, dimensionless, 0.01, Tau2011
+ah_init_soma_SN, dimensionless, 0.9, Tau2011
+kcf_init_soma_SN, dimensionless, 0.01, Tau2011
+kcs_init_soma_SN, dimensionless, 0.01, Tau2011
+V_mid_m_soma_SN, milliV, 24, to_be_identified
+V_den_m_soma_SN, milliV, 10, to_be_identified
+V_mid_h_soma_SN, milliV, 46, Tau_2011_was_53.2
+V_den_h_soma_SN, milliV, 5, Tau_2011_was_6.5
+V_mid_m_SN_OLD, milliV, 36, Tau2011
+V_den_m_SN_OLD, milliV, 7.2, Tau2011
+V_mid_a_soma_SN, milliV, 25, Tau2011_was_49.4
+V_den_a_soma_SN, milliV, 5, Tau2011_was_9.9
+V_mid_ah_soma_SN, milliV, 65, Tau2011_was_80.43
+V_den_ah_soma_SN, milliV, 7.07, Tau2011_was_7.07
+V_mid_n1_soma_SN, milliV, 2, Tau2011_was_6
+V_den_n1_soma_SN, milliV, 8, Tau2011_was_8
+tau_c_min_soma_SN, millis, 5, Tau2011_was_0.1
+#, #, #, #
+m_init_var_SN, dimensionless, 0.01, Tau2011
+h_init_var_SN, dimensionless, 0.9, Tau2011
+n1_init_var_SN, dimensionless, 0.01, Tau2011
+a_init_var_SN, dimensionless, 0.01, Tau2011
+ah_init_var_SN, dimensionless, 0.9, Tau2011
+kcf_init_var_SN, dimensionless, 0.01, Tau2011
+kcs_init_var_SN, dimensionless, 0.01, Tau2011
+V_mid_m_var_SN, milliV, 24, to_be_identified
+V_den_m_var_SN, milliV, 10, to_be_identified
+V_mid_h_var_SN, milliV, 46, Tau_2011_was_53.2
+V_den_h_var_SN, milliV, 5, Tau_2011_was_6.5
+V_mid_a_var_SN, milliV, 25, Tau2011_was_49.4
+V_den_a_var_SN, milliV, 5, Tau2011_was_9.9
+V_mid_ah_var_SN, milliV, 65, Tau2011_was_80.43
+V_den_ah_var_SN, milliV, 7.07, Tau2011_was_7.07
+V_mid_n1_var_SN, milliV, 2, Tau2011_was_6
+V_den_n1_var_SN, milliV, 8, Tau2011_was_8
+tau_c_min_var_SN, millis, 5, Tau2011_was_0.1
+c_init_var_SN, dimensionless, 0.01, Tau2011
+hc_init_var_SN, dimensionless, 0.9, Tau2011
+B0_init_var_SN, dimensionless, 1e-6, Tau2011
+B1_init_var_SN, dimensionless, 1e-6, Tau2011
+B2_init_var_SN, dimensionless, 1e-6, Tau2011
+B3_init_var_SN, dimensionless, 1e-6, Tau2011
+B4_init_var_SN, dimensionless, 1e-6, Tau2011
+B5_init_var_SN, dimensionless, 1e-6, Tau2011
+NE_init_var_SN, dimensionless, 1e-6, Tau2011
+#, #, #, #
+g_M_soma_SN,microS, 0.01,to_be_identified
+delta_gM_soma_SN,microS, 0.05,to_be_identified
+w_init_soma_SN,dimensionless, 0.01,user_defined 
+tau_w_num_soma_SN,millis,200,Martin2023Modelling_was_400
+cAMP_soma_SN,dimensionless,0.01,user_defined
+g_HCN_soma_SN,microS, 0.003,to_be_identified
+delta_gHCN_soma_SN,dimensionless, 1.0,to_be_identified
+r_init_soma_SN,dimensionless, 0.01,user_defined 
+eHCN_soma_SN, milliV, -30, Martin2023Modelling
+nu_cAMP_soma_SN, milliV, 80, Martin2023Modelling_was_variable
+#, #, #, #
+g_M_var_SN,microS, 0.01,to_be_identified
+delta_gM_var_SN,microS, 0.05,to_be_identified
+w_init_var_SN,dimensionless, 0.01,user_defined 
+tau_w_num_var_SN,millis,200,Martin2023Modelling_was_400
+cAMP_var_SN,dimensionless,0.01,user_defined
+g_HCN_var_SN,microS, 0.003,to_be_identified
+delta_gHCN_var_SN,dimensionless, 1.0,to_be_identified
+r_init_var_SN,dimensionless, 0.01,user_defined 
+eHCN_var_SN, milliV, -30, Martin2023Modelling
+nu_cAMP_var_SN, milliV, 80, Martin2023Modelling_was_variable
+#, #, #, #
+Ksat_soma_SN,dimensionless,0.1,Paci_2013_CHECK_FOR_SN 
+KmCa_soma_SN,millimolar,1.38,Paci_2013_CHECK_FOR_SN 
+KmNai_soma_SN,millimolar,87.5,Paci_2013_CHECK_FOR_SN 
+alpha_NaCa_soma_SN,dimensionless,2.8571432,Paci_2013_CHECK_FOR_SN
+gamma_NaCa_soma_SN,dimensionless,0.35,Paci_2013_CHECK_FOR_SN
+k_NaCa_soma_SN,nanoA,50,to_be_identified
+#, #, #, #
+Ksat_var_SN,dimensionless,0.1,Paci_2013_CHECK_FOR_SN 
+KmCa_var_SN,millimolar,1.38,Paci_2013_CHECK_FOR_SN 
+KmNai_var_SN,millimolar,87.5,Paci_2013_CHECK_FOR_SN 
+alpha_NaCa_var_SN,dimensionless,2.8571432,Paci_2013_CHECK_FOR_SN
+gamma_NaCa_var_SN,dimensionless,0.35,Paci_2013_CHECK_FOR_SN
+k_NaCa_var_SN,nanoA,5,to_be_identified
+#, #, #, #
+Ca_ER_init_soma_SN,millimolar,0.5,to_be_checked_in_neurons
+h_IP3_init_soma_SN,dimensionless, 0.99,user_defined 
+c_ER_soma_SN,dimensionless, 0.01, user_defined
+c_ER_pre_soma_SN,dimensionless, 0.049, user_defined
+c_SL_soma_SN,dimensionless, 0.02, user_defined_TO_BE_FOUND
+k_IP3_soma_SN,per_s, 0.01, user_defined
+k_leak_soma_SN,per_s, 0.0001, user_defined
+IP3_soma_SN,millimolar, 200e-6, Li1994Equations_from_plot
+IP3_SN_OLD,millimolar, 500e-6, Li1994Equations_from_plot
+a_2_soma_SN,per_millimolar, 200, Li1994Equations
+d_1_soma_SN,millimolar, 0.13e-3, Li1994Equations
+d_2_soma_SN,millimolar, 1.049e-3, Li1994Equations
+d_3_soma_SN,millimolar, 0.943e-3, Li1994Equations
+d_5_soma_SN,millimolar, 0.08234e-3, Li1994Equations
+K_mf_soma_SN,millimolar,0.246e-3,Shannon2004Mathematical_was_0.246e-3
+K_mr_soma_SN,millimolar,0.5,Shannon2004Mathematical_was_1.7
+k_SERCA_soma_SN,millimolar_per_s,1,to_be_identified
+H_SERCA_soma_SN,dimensionless,1.787,Shannon2004Mathematical
+k_RyR_soma_SN,per_s, 50, to_be_identified
+Cai_RyR_mid_soma_SN,millimolar, 8e-4, user_defined
+Cai_RyR_den_soma_SN,millimolar, 1e-4, user_defined
+Ca_ER_RyR_mid_soma_SN,millimolar, 0.5, user_defined
+Ca_ER_RyR_den_soma_SN,millimolar, 0.03, user_defined
+Ca_ER_RyR_tau_mid_soma_SN,millimolar, 0.3, NOT_USED
+Ca_ER_RyR_tau_den_soma_SN,millimolar, 0.01, NOT_USED
+tau_c_RyR_soma_SN, millis, 0.01, user_defined
+tau_hc_RyR_soma_SN, millis, 10, user_defined
+#, #, #, #
+Ca_ER_init_var_SN,millimolar,0.5,to_be_checked_in_neurons
+h_IP3_init_var_SN,dimensionless, 0.99,user_defined 
+c_ER_var_SN,dimensionless, 0.01, Li1994Equations_was_0.185
+c_ER_pre_var_SN,dimensionless, 0.049, user_defined
+c_SL_var_SN,dimensionless, 0.02, user_defined_TO_BE_FOUND
+k_IP3_var_SN,per_s, 0.01, user_defined
+k_leak_var_SN,per_s, 0.0001, user_defined
+IP3_var_SN,millimolar, 200e-6, Li1994Equations_from_plot
+IP3_SN_OLD,millimolar, 500e-6, Li1994Equations_from_plot
+a_2_var_SN,per_millimolar, 200, Li1994Equations
+d_1_var_SN,millimolar, 0.13e-3, Li1994Equations
+d_2_var_SN,millimolar, 1.049e-3, Li1994Equations
+d_3_var_SN,millimolar, 0.943e-3, Li1994Equations
+d_5_var_SN,millimolar, 0.08234e-3, Li1994Equations
+K_mf_var_SN,millimolar,0.246e-3,Shannon2004Mathematical
+K_mr_var_SN,millimolar,0.5,Shannon2004Mathematical
+k_SERCA_var_SN,millimolar_per_s,0.2,to_be_identified
+H_SERCA_var_SN,dimensionless,1.787,Shannon2004Mathematical
+k_RyR_var_SN,per_s, 10, to_be_identified
+Cai_RyR_mid_var_SN,millimolar, 8e-4, user_defined
+Cai_RyR_den_var_SN,millimolar, 1e-4, user_defined
+Ca_ER_RyR_mid_var_SN,millimolar, 0.5, user_defined
+Ca_ER_RyR_den_var_SN,millimolar, 0.03, user_defined
+Ca_ER_RyR_tau_mid_var_SN,millimolar, 0.3, NOT_USED
+Ca_ER_RyR_tau_den_var_SN,millimolar, 0.01, NOT_USED
+tau_c_RyR_var_SN, millis, 0.01, user_defined
+tau_hc_RyR_var_SN, millis, 10, user_defined
+#, #, #, #
+tau_Ca_soma_SN, millis, 2.0, Tomek2020Development_was_0.2
+tau_Ca_var_SN, millis, 2.0, Tomek2020Development_was_0.2
+tau_Ca_ER_soma_SN, millis, 600.0, Tomek2020Development_was_60
+tau_Ca_ER_var_SN, millis, 600.0, Tomek2020Development_was_60
+#, #, #, #
+I_const_soma_SN,nanoA,-0.07,user_defined
+stim_flag_SN_stim,dimensionless,0,user_defined
+t_start_SN_stim,second,2,Tau2011
+t_end_SN_stim,second,20,Tau2011
+i_amplitude_SN_stim,nanoA,0.15,Tau2011
+period_SN_stim,second,20,Tau2011
+pulse_duration_SN_stim,second,2.0,Tau2011
+
+

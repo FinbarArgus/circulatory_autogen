@@ -107,7 +107,10 @@ def run_param_id(inp_data_dict=None):
 
     maximum_step = inp_data_dict['maximum_step']
     dt = inp_data_dict['dt']
-    ga_options = inp_data_dict['ga_options']
+    if DEBUG:
+        ga_options = inp_data_dict['debug_ga_options']
+    else:
+        ga_options = inp_data_dict['ga_options']
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
@@ -121,14 +124,8 @@ def run_param_id(inp_data_dict=None):
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
             os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
 
-    if DEBUG:
-        num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
-    else:
-        num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
 
-    if param_id_method == 'genetic_algorithm':
-        param_id.set_genetic_algorithm_parameters(num_calls_to_function)
-    elif param_id_method == 'bayesian':
+    if param_id_method == 'bayesian':
         acq_func = 'PI'  # 'gp_hedge'
         n_initial_points = 5
         random_seed = 1234
@@ -138,6 +135,11 @@ def run_param_id(inp_data_dict=None):
                                                             # kappa is used when acq_func is "LCB"
                                                             # gp_hedge, chooses the best from "EI", "PI", and "LCB
                                                             # so it needs both xi and kappa
+        # TODO this needs to be defined better if we want to keep bayesian optimiser functionality
+        if DEBUG:
+            num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
+        else:
+            num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
         param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
                                             acq_func_kwargs=acq_func_kwargs)
     param_id.run()
