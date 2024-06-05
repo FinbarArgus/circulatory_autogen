@@ -306,7 +306,7 @@
     <component name="intersttitial_space">
         <variable name="t" public_interface="in" units="second"/>
         <!--var t_01: second {pub: in};-->
-        <variable initial_value="0.01" name="mu" units="viscosity"/>
+        <variable initial_value="0.01" name="mu" units="Js_per_m3"/>
         <variable initial_value="0.0003" name="r" units="meter"/>
         <variable initial_value="0.025" name="D" units="cm"/>
         <!--var P_e: dyn_per_cm2 {init: 2100};           -->

@@ -9,7 +9,8 @@ import re
 import pandas as pd
 import os
 from sys import exit
-generators_dir_path = os.path.dirname(__file__)
+generators_dir = os.path.dirname(__file__)
+base_dir = os.path.join(os.path.dirname(__file__), '../..')
 from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
 import utilities.libcellml_helper_funcs as cellml
 import utilities.libcellml_utilities as libcellml_utils
@@ -31,14 +32,18 @@ class CVS0DCellMLGenerator(object):
             os.mkdir(self.output_dir)
         self.filename_prefix = filename_prefix
         if resources_dir is None:
-            self.resources_dir = os.path.join(generators_dir_path, '../../resources')
+            self.resources_dir = os.path.join(generators_dir, '../../resources')
         else:
             self.resources_dir = resources_dir 
-        self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
-        self.module_scripts = [os.path.join(generators_dir_path, 'resources', filename) for filename in
-                               os.listdir(os.path.join(generators_dir_path, 'resources'))
+        self.base_script = os.path.join(generators_dir, 'resources/base_script.cellml')
+        self.module_scripts = [os.path.join(generators_dir, 'resources', filename) for filename in
+                               os.listdir(os.path.join(generators_dir, 'resources'))
                                if filename.endswith('modules.cellml')]
-        self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
+        self.module_scripts += [os.path.join(base_dir, 'module_config_user', filename) for filename in
+                               os.listdir(os.path.join(base_dir, 'module_config_user'))
+                               if filename.endswith('modules.cellml')]
+        self.units_scripts = [os.path.join(generators_dir, 'resources/units.cellml'),
+                              os.path.join(base_dir, 'module_config_user/user_units.cellml')]
         self.all_parameters_defined = False
         self.BC_set = {}
         self.all_units = []
@@ -242,12 +247,30 @@ class CVS0DCellMLGenerator(object):
         # TODO allow a specific units file to be generated
         #  This function simply copies the units file
         print(f'Generating CellML file {self.filename_prefix}_units.cellml')
-        with open(self.units_script, 'r') as rf:
-            with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
-                for line in rf:
-                    wf.write(line)
-                    if "units name" in line:
-                        self.all_units.append(re.search('units name="(.*?)"', line).group(1))
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
+            for file_idx, units_script in enumerate(self.units_scripts):
+                with open(units_script, 'r') as rf:
+                    for line_idx, line in enumerate(rf):
+                        # if not first file then skip first two lines and last line
+                        if file_idx == 0:
+                            if line.startswith('</model>'):
+                                # don't write the last line
+                                continue
+                        elif file_idx == len(self.units_scripts) - 1:
+                            if line_idx == 0 or line_idx == 1:
+                                # don't write the first two lines
+                                continue
+                        else:
+                            if line_idx == 0 or line_idx == 1:
+                                # don't write the first two lines
+                                continue
+                            if line.startswith('</model>'):
+                                # don't write the last line
+                                continue
+
+                        wf.write(line)
+                        if "units name" in line:
+                            self.all_units.append(re.search('units name="(.*?)"', line).group(1))
 
     def __generate_modules_file(self):
         if self.model.param_id_states:
