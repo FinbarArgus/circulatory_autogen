@@ -6,10 +6,10 @@ import sys
 
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
-                 sim_time, maximumNumberofSteps=500,
-                 maximum_step=0.001, pre_time=0.0):
+                 sim_time, solver_info=None,
+                 pre_time=0.0):
         self.cellml_path = cellml_path  # path to cellml file
-        self.dt = dt  # time step
+        self.dt = dt # time step
         self.stop_time = pre_time + sim_time  # full time of simulation
         self.pre_steps = int(pre_time/dt)  # number of steps to do before storing data (used to reach steady state)
         self.n_steps = int(sim_time/dt)  # number of steps for storing data
@@ -18,9 +18,16 @@ class SimulationHelper():
             print(f'simulation object opened from {cellml_path} is not valid, exiting')
             exit()
         self.data = self.simulation.data()
-        self.data.set_ode_solver_property('MaximumNumberOfSteps', maximumNumberofSteps)
-        self.data.set_ode_solver_property('MaximumStep', maximum_step)
-        self.data.set_point_interval(dt)  # time interval for data storage
+        if solver_info is None:
+            solver_info = {'MaximumNumberofSteps': 5000, 'MaximumStep': 0.0001},
+        for key, value in solver_info.items():
+            if key not in self.data.odeSolverProperties():
+                print(f'{key} is not a valid key for the solver properties in CVODE., valid keys are')
+                print([key for key in self.data.odeSolverProperties()])
+                print('Set these correctly in the user_inputs.yaml file')
+                exit()
+            self.data.set_ode_solver_property(key, value)
+        self.data.set_point_interval(self.dt)  # time interval for data storage
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1) # time values for stored part of simulation
@@ -46,6 +53,9 @@ class SimulationHelper():
     def reset_and_clear(self):
         self.simulation.reset()
         self.simulation.clear_results()
+    
+    def reset_states(self):
+        self.simulation.reset(False) # True resets everything, False resets only the states
 
     def get_results(self, variables_list_of_lists, flatten=False):
         """

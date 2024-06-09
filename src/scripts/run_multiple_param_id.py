@@ -81,20 +81,8 @@ if __name__ == '__main__':
             sim_time = inp_data_dict['sim_time']
         else:
             sim_time = None
-        # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
-        # periods it takes to get to an oscillating steady state before that (pre_heart_periods)
-        # if these exist they overwrite the pre_time and sim_time
-        if 'pre_heart_periods' in inp_data_dict.keys():
-            pre_heart_periods = inp_data_dict['pre_heart_periods']
-        if 'sim_heart_periods' in inp_data_dict.keys():
-            sim_heart_periods = inp_data_dict['sim_heart_periods']
 
-        if pre_time == None and pre_heart_periods == None:
-            print('pre_time and pre_heart_periods are undefined, one of these must be set in user_inputs.yaml')
-        if sim_time == None and sim_heart_periods == None:
-            print('sim_time and sim_heart_periods are undefined, one of these must be set in user_inputs.yaml')
-
-        maximum_step = inp_data_dict['maximum_step']
+        solver_info = inp_data_dict['solver_info']
         dt = inp_data_dict['dt']
         ga_options = inp_data_dict['ga_options']
 
@@ -142,8 +130,7 @@ if __name__ == '__main__':
                                     input_params_path=input_params_path,
                                     param_id_obs_path=param_id_obs_path,
                                     sim_time=sim_time, pre_time=pre_time,
-                                    sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                    maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                    solver_info=solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
                                     param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
             if rank == 0:
@@ -179,8 +166,7 @@ if __name__ == '__main__':
             #                             input_params_path=input_params_path,
             #                             param_id_obs_path=param_id_obs_path,
             #                             sim_time=sim_time, pre_time=pre_time,
-            #                             pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-            #                             maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG)
+            #                             solver_info=solver_info, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG)
             #     mcmc.set_best_param_vals(best_param_vals)
             #     # mcmc.set_mcmc_parameters() TODO
             #     mcmc.run_mcmc()

@@ -220,7 +220,7 @@ class CVS0DCellMLGenerator(object):
         print('modifying constants to values identified from parameter id')
         for const_name, val in self.model.param_id_consts:
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
-                                           const_name)[0][0]]['value'] = f'{val:.4e}'
+                                           const_name)[0][0]]['value'] = f'{val:.10e}'
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
                                            const_name)[0][0]]['data_reference'] = \
                 f'{self.model.param_id_date}_identified'
@@ -287,37 +287,33 @@ class CVS0DCellMLGenerator(object):
 
             for II, module_file_path in enumerate(self.module_scripts):
                 with open(module_file_path, 'r') as rf:
-                    if II == len(self.module_scripts) - 1:
-                        # skip first two lines
-                        lines = rf.readlines()[2:]
-                    else:
-                        # skip last line so enddef; doesn't get written till the end.
-                        # skip first two lines
-                        lines = rf.readlines()[2:-1]
+                    # skip first lines that are either intro lines written above or comments.
+                    lines = rf.readlines()
+                    if not lines:
+                        continue
 
-
-                    if module_file_path.endswith('heart_modules.cellml'):
-                        for line in lines:
-                            if self.model.param_id_states:
-                                for idx, (state_name, val) in enumerate(self.model.param_id_states):
-                                    if state_name in line and 'initial_value' in line:
-                                        inp_string = f'initial_value="{val:.4e}"'
-                                        line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
-                                        state_modified[idx] = True
-                            wf.write(line)
-
-                            # check if each state was modified
-                        if self.model.param_id_states:
-                            if any(state_modified) == False:
-                                false_states = [self.model.param_id_states[JJ][0] for JJ in range(len(state_modified)) if
-                                                state_modified[JJ] == False]
-                                print(f'The parameter id states {false_states} \n'
-                                      f'were not found in the cellml script, check the parameter id state names and the '
-                                      f'base_script.cellml file')
+                    count = 0
+                    while True:
+                        if "component" in lines[count]:
+                            break
+                        else:
+                            count += 1
+                            if count > 50:
+                                print(f'Error in {module_file_path}, no component found')
                                 exit()
-                    else:
-                        for line in lines:
+
+                    # skip last line so enddef; doesn't get written till the end.
+                    # skip first non-component lines
+                    lines = lines[count:-1]
+
+                    for line in lines:
+                        if "<component name" in line:
+                            # check the name of the module we are in
+                            module_type = re.search('name="(.*?)"', line).group(1)
+                        if module_type in self.model.vessels_df.module_type.values or module_type == 'zero_flow':
                             wf.write(line)
+            wf.write('</model>\n')
+                
 
     def __write_section_break(self, wf, text):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +

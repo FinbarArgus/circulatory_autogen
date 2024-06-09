@@ -13,8 +13,9 @@ class SequentialParamID:
 
     def __init__(self, model_path, model_type, param_id_method, file_name_prefix,
                  params_for_id_path=None, num_calls_to_function=1000,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, sim_heart_periods=None, pre_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None,
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, 
+                 solver_info=None, 
+                 dt=0.01, mcmc_options=None, ga_options=None,
                  param_id_output_dir=None, resources_dir=None,
                  DEBUG=False):
 
@@ -27,9 +28,7 @@ class SequentialParamID:
         self.param_id_obs_path = param_id_obs_path
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.sim_heart_periods = sim_heart_periods
-        self.pre_heart_periods = pre_heart_periods
-        self.maximum_step = maximum_step
+        self.solver_info = solver_info
         self.dt = dt
         self.DEBUG =DEBUG
         
@@ -63,8 +62,7 @@ class SequentialParamID:
                                 params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
-                                sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                solver_info=self.solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=resources_dir)
 
 
@@ -261,8 +259,7 @@ class SequentialParamID:
                             params_for_id_path=self.params_for_id_path,
                             param_id_obs_path=self.param_id_obs_path,
                             sim_time=self.sim_time, pre_time=self.pre_time,
-                            sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
-                            maximum_step=self.maximum_step, mcmc_options=self.mcmc_options, dt=self.dt,
+                            solver_info=self.solver_info, mcmc_options=self.mcmc_options, dt=self.dt,
                             param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                             DEBUG=self.DEBUG)
 
@@ -289,9 +286,8 @@ class SequentialParamID:
                                 params_for_id_path=self.params_for_id_path,
                                 param_id_obs_path=self.param_id_obs_path,
                                 sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
-                                sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
-                                maximum_step=self.maximum_step, mcmc_options=self.mcmc_options,
+                                solver_info=self.solver_info, mcmc_options=self.mcmc_options,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
                 if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):

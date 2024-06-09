@@ -15,7 +15,7 @@ output_file_path = "/home/farg967/Documents/git_projects/circulatory_autogen/par
 pre_time = 30.5
 period = 1.0
 
-sim_object = SimulationHelper(file_path, 0.01, period, maximum_step=0.001, maximumNumberofSteps=500000, pre_time=pre_time)
+sim_object = SimulationHelper(file_path, 0.01, period, solver_info={'MaximumStep':0.001, 'MaximumNumberofSteps':500000}, pre_time=pre_time)
 sim_object.run()
 
 y = sim_object.get_results(['LPA_A/u', 'RPA_A/u', 'RPV_V/u', 'heart/u_rv'])

@@ -66,9 +66,8 @@ class CVS0DParamID():
     """
     def __init__(self, model_path, model_type, param_id_method, mcmc_instead, file_name_prefix,
                  params_for_id_path=None,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0,
-                 pre_heart_periods=None, sim_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None, DEBUG=False,
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, dt=0.01,
+                 solver_info=None, mcmc_options=None, ga_options=None, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -80,6 +79,7 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
+        self.solver_info = solver_info
         self.dt = dt
 
         self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
@@ -138,18 +138,16 @@ class CVS0DParamID():
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_info, self.param_id_info,
-                                           self.protocol_info, self.prediction_info,
-                                           pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                           dt=self.dt, maximum_step=maximum_step, mcmc_options=mcmc_options,
+                                           self.protocol_info, self.prediction_info, dt=self.dt,
+                                           solver_info=self.solver_info, mcmc_options=mcmc_options,
                                            DEBUG=self.DEBUG)
             self.n_steps = mcmc_object.n_steps
         else:
             if model_type == 'cellml_only':
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocol_info,
-                                               self.prediction_info,
-                                               pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                               dt=self.dt, maximum_step=maximum_step, ga_options=ga_options,
+                                               self.prediction_info, dt=self.dt,
+                                               solver_info=self.solver_info, ga_options=ga_options,
                                                DEBUG=self.DEBUG)
             self.n_steps = self.param_id.n_steps
         if self.rank == 0:
@@ -376,6 +374,20 @@ class CVS0DParamID():
                             axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_bf,
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
+                        elif self.obs_info['plot_type'][II] == 'horizontal_from_min':
+                            # create a vector equal to the constant value for plotting over the series
+                            min_val = np.min(series_per_sub[II])
+                            const_plot_gt = (min_val + self.obs_info["ground_truth_const"][const_idx])*\
+                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+                            const_plot_bf = (min_val + best_fit_obs_const[const_idx])*\
+                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+
+                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_gt,
+                                                    color=self.obs_info['plot_colors'][II], linestyle='--', 
+                                                    label=f'{self.obs_info["operations"][II]} measurement')
+                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_bf,
+                                                    color=self.obs_info['plot_colors'][II], linestyle='-', 
+                                                    label=f'{self.obs_info["operations"][II]} output')
                         elif self.obs_info['plot_type'][II] == 'vertical':
                             # plot a vertical line at the t (x) value of the constant
                             axs.axvline(x=self.obs_info["ground_truth_const"][const_idx] - 
@@ -391,7 +403,7 @@ class CVS0DParamID():
                         else:
                             print(f'plot_type for {self.obs_info["obs_names"][II]} ',
                                     f'of {self.obs_info["plot_constant_with_series_type"][II]} is not recognised',
-                                    'for constants it must be in [None, horizontal, veritical], exiting')
+                                    'for constants it must be in [None, horizontal, veritical, horizontal_from_min], exiting')
                             exit()
                     elif self.obs_info["data_types"][II] == 'series':
                         axs.plot(tSim_per_sub[this_sub_idx][:min_len_series],
@@ -1046,7 +1058,10 @@ class CVS0DParamID():
             self.protocol_info = {"pre_times": [pre_time], 
                                     "sim_times": [[sim_time]],
                                     "params_to_change": [[None]]}
-            self.prediction_info = None
+            self.prediction_info = {'names': [],
+                                    'units': [],
+                                    'names_for_plotting': [],
+                                    'experiment_idxs': []}
         elif type(json_obj) == dict:
             if 'data_items' in json_obj.keys():
                 self.gt_df = pd.DataFrame(json_obj['data_items'])
@@ -1659,13 +1674,14 @@ class OpencorParamID():
     """
     def __init__(self, model_path, param_id_method,
                  obs_info, param_id_info, protocol_info, prediction_info,
-                 pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximum_step=0.0001, ga_options=None, DEBUG=False):
+                 dt=0.01, solver_info=None, 
+                 ga_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.output_dir = None
 
+        self.solver_info = solver_info
         self.obs_info = obs_info
         self.param_id_info = param_id_info
         self.prediction_info = prediction_info # currently not used
@@ -1678,9 +1694,7 @@ class OpencorParamID():
         self.operation_funcs_dict = sfp.get_operation_funcs_dict()
 
         # set up opencor simulation
-        self.dt = dt  # TODO this could be optimised
-        self.maximum_step = maximum_step
-        self.point_interval = self.dt
+        self.dt = dt
         if self.protocol_info['sim_times'][0][0] is not None:
             self.sim_time = self.protocol_info['sim_times'][0][0]
         else:
@@ -1693,33 +1707,6 @@ class OpencorParamID():
             self.pre_time = 0.001
 
         self.sim_helper = self.initialise_sim_helper()
-        # overwrite pre_time and sim_time if pre_heart_periods and sim_heart_periods are defined
-        if pre_heart_periods is not None or sim_heart_periods is not None:
-            # look for period in model parameters
-            if len(self.protocol_info['sim_times']) > 1 or len(self.protocol_info['sim_times'][0]) > 1:
-                print("sim_heart_periods is set but there are multiple sim_times in the protocol_info. ",
-                      "The functionality for doing sim_heart_periods with multiple sims in protocols hasn't been set up",
-                      "Exiting")
-                exit()
-
-            period_full_name = [name for name in self.sim_helper.data.constants() if name.endswith('/T')]
-
-            if len(period_full_name) == 1:
-                T = self.sim_helper.get_init_param_vals([period_full_name[0]])[0]
-            elif len(period_full_name) > 1:
-                print('ERROR: more than one <module>/T found in model parameters.'
-                    'It is unclear what the model period is for setting the pre_time and'
-                    'sim_time from pre_heart_periods and sim_time_periods')
-                exit()
-            else:
-                print('ERROR: <module>/T not found in model parameters. You should be setting sim_time and pre_time'
-                    'instead of pre_heart_periods and sim_heart_periods in user_inputs.yaml'
-                    'if your model doesn\'t have a heart period. Exiting')
-                exit()
-        if pre_heart_periods is not None:
-            self.pre_time = T*pre_heart_periods
-        if sim_heart_periods is not None:
-            self.sim_time = T*sim_heart_periods
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
 
@@ -1763,8 +1750,7 @@ class OpencorParamID():
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                maximumNumberofSteps=500,
-                                maximum_step=self.maximum_step, pre_time=self.pre_time)
+                                solver_info=self.solver_info, pre_time=self.pre_time)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -1930,7 +1916,7 @@ class OpencorParamID():
             if self.DEBUG:
                 num_elite = 1 # 1
                 num_survivors = 2 # 2
-                num_mutations_per_survivor = 2 # 2
+                num_mutations_per_survivor = 0 # 2
                 num_cross_breed = 0
             else:
                 num_elite = 12
@@ -2451,6 +2437,7 @@ class OpencorParamID():
             # TODO technically this if chunk isn't needed, as the below works for general experiment numbers
             # TODO but I have left it because it is much simpler and easier to understand
             self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+            self.sim_helper.reset_states() # this needs to be done to make sure states defined by a constant are set
             success = self.sim_helper.run()
             if success:
                 operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
@@ -2483,6 +2470,7 @@ class OpencorParamID():
             for exp_idx in range(self.protocol_info["num_experiments"]):
                 # set param vals for this iteration of param_id
                 self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+                self.sim_helper.reset_states() # this needs to be done to make sure states defined by a constant are set
                 current_time = 0
                 for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
                     if exp_idx not in exp_idxs_to_run:
@@ -2910,12 +2898,10 @@ class OpencorMCMC(OpencorParamID):
 
     def __init__(self, model_path,
                  obs_info, param_id_info, protocol_info, prediction_info,
-                 pre_heart_periods=None, sim_heart_periods=None,
-                 dt=0.01, maximum_step=0.0001, mcmc_options=None, DEBUG=False):
+                 dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False):
         super().__init__(model_path, "MCMC",
                 obs_info, param_id_info, protocol_info, prediction_info,
-                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                dt=dt, maximum_step=maximum_step, DEBUG=DEBUG)
+                dt=dt, solver_info=None, DEBUG=DEBUG)
 
         # mcmc init stuff
         self.sampler = None

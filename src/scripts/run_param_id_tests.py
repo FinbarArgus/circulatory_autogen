@@ -41,7 +41,9 @@ if __name__ == '__main__':
         inp_data_dict['solver'] = 'CVODE'
         inp_data_dict['pre_time'] = 20
         inp_data_dict['sim_time'] = 2
-        inp_data_dict['maximum_step'] = 0.001
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
         inp_data_dict['dt'] = 0.01
         inp_data_dict['DEBUG'] = True
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/simple_physiological_obs_data.json')
@@ -64,7 +66,8 @@ if __name__ == '__main__':
         inp_data_dict['solver'] = 'CVODE'
         inp_data_dict['pre_time'] = 999 # this gets overwritten by the obs_data.json file
         inp_data_dict['sim_time'] = 999 # this gets overwritten by the obs_data.json file
-        inp_data_dict['maximum_step'] = 0.001
+        inp_data_dict['solver_info']['maximum_step'] = 0.001
+        inp_data_dict['solver_info']['maximumNumberOfSteps'] = 5000
         inp_data_dict['dt'] = 0.0001
         inp_data_dict['DEBUG'] = True
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_to_cAMP_obs_data.json')

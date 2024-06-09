@@ -160,6 +160,30 @@ def calc_min_to_max_period_diff(t, V, series_output=False):
 
     return period_diff
 
+@series_to_constant
+def E_A_ratio(t, x, T, series_output=False):
+    if series_output:
+        return x
+    peak_idxs, peak_properties = find_peaks(x)
+
+    if len(peak_idxs) < 1:
+        # no peeak idxs found, return big value to make it a big cost
+        return 100
+    elif len(peak_idxs) < 2:
+        # there is only one peak. E and A ontop of eachother. return large cost.
+        return 10
+    if (t[peak_idxs[1]] - t[peak_idxs[0]] > 0.7* T) :
+        # the peaks are too far apart. Probably because there is only one peak per heart beat.
+        # return large value
+        return 10
+
+    # calculate with the first two peaks. This assumes that the E peak comes first
+    E_A_ratio = x[peak_idxs[0]]/x[peak_idxs[1]]
+
+    return E_A_ratio
+
+
+
 
 
 

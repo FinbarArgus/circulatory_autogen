@@ -2248,8 +2248,10 @@
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
-        <variable initial_value="0.0" name="q_T_change" public_interface="out" units="m3"/>
-        <variable name="q_T" public_interface="out" units="m3"/>
+        <variable name="q_C_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_C_init" name="q_C_change" public_interface="out" units="m3"/>
+        <variable name="q_C" public_interface="out" units="m3"/>
+        <variable name="q" public_interface="out" units="m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
@@ -2302,7 +2304,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>q_T_change</ci>
+                    <ci>q_C_change</ci>
                 </apply>
                 <apply>
                     <minus/>
@@ -2310,13 +2312,27 @@
                     <ci>v</ci>
                 </apply>
             </apply>
+            <!-- TODO CHECK THAT CHANGING US VOLUME LIKE THIS CONSERVES VOLUME!!!!-->
             <apply>
                 <eq/>
-                <ci>q_T</ci>
+                <ci>q_C</ci>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <plus/>
+                        <ci>q_C_change</ci>
+                        <ci>q_us_0</ci>
+                    </apply>
+                    <ci>q_us_wCont</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
                 <apply>
                     <plus/>
-                    <ci>q_T_change</ci>
-                    <ci>q_us_0</ci>
+                    <ci>q_C</ci>
+                    <ci>q_us_wCont</ci>
                 </apply>
             </apply>
             <apply>
@@ -2326,11 +2342,7 @@
                     <plus/>
                     <apply>
                         <divide/>
-                        <apply>
-                            <minus/>
-                            <ci>q_T</ci>
-                            <ci>q_us_wCont</ci>
-                        </apply>
+                        <ci>q_C</ci>
                         <ci>C</ci>
                     </apply>
                     <ci>u_ext</ci>
