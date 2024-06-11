@@ -161,6 +161,24 @@ def calc_min_to_max_period_diff(t, V, series_output=False):
     return period_diff
 
 @series_to_constant
+def min_period(t, V, series_output=False, spike_min_thresh=None):
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        period_min = t[-1] - t[0]
+    else:
+        # calculate the periods
+        periods = [t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)]
+        # calculate the difference in time between max period and min period
+        period_min = min(periods)
+
+    return period_min
+
+@series_to_constant
 def E_A_ratio(t, x, T, series_output=False):
     if series_output:
         return x
