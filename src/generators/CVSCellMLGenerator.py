@@ -9,7 +9,11 @@ import re
 import pandas as pd
 import os
 from sys import exit
-generators_dir_path = os.path.dirname(__file__)
+generators_dir = os.path.dirname(__file__)
+base_dir = os.path.join(os.path.dirname(__file__), '../..')
+from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
+import utilities.libcellml_helper_funcs as cellml
+import utilities.libcellml_utilities as libcellml_utils
 
 
 class CVS0DCellMLGenerator(object):
@@ -28,14 +32,18 @@ class CVS0DCellMLGenerator(object):
             os.mkdir(self.output_dir)
         self.filename_prefix = filename_prefix
         if resources_dir is None:
-            self.resources_dir = os.path.join(generators_dir_path, '../../resources')
+            self.resources_dir = os.path.join(generators_dir, '../../resources')
         else:
             self.resources_dir = resources_dir 
-        self.base_script = os.path.join(generators_dir_path, 'resources/base_script.cellml')
-        self.module_scripts = [os.path.join(generators_dir_path, 'resources', filename) for filename in
-                               os.listdir(os.path.join(generators_dir_path, 'resources'))
+        self.base_script = os.path.join(generators_dir, 'resources/base_script.cellml')
+        self.module_scripts = [os.path.join(generators_dir, 'resources', filename) for filename in
+                               os.listdir(os.path.join(generators_dir, 'resources'))
                                if filename.endswith('modules.cellml')]
-        self.units_script = os.path.join(generators_dir_path, 'resources/units.cellml')
+        self.module_scripts += [os.path.join(base_dir, 'module_config_user', filename) for filename in
+                               os.listdir(os.path.join(base_dir, 'module_config_user'))
+                               if filename.endswith('modules.cellml')]
+        self.units_scripts = [os.path.join(generators_dir, 'resources/units.cellml'),
+                              os.path.join(base_dir, 'module_config_user/user_units.cellml')]
         self.all_parameters_defined = False
         self.BC_set = {}
         self.all_units = []
@@ -61,6 +69,33 @@ class CVS0DCellMLGenerator(object):
 
         # TODO check that model generation is succesful, possibly by calling to opencor
         print('Model generation complete.')
+        print('Checking Status of Model')
+
+        # parse the model in non-strict mode to allow non CellML 2.0 models
+        model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
+        # resolve imports, in non-strict mode
+        importer = cellml.resolve_imports(model, self.output_dir, False)
+        # need a flattened model for analysing
+        flat_model = cellml.flatten_model(model, importer)
+        model_string = cellml.print_model(flat_model)
+        
+        # this if we want to create the flat model, for debugging
+        with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+            f.write(model_string)
+
+        # analyse the model
+        a = Analyser()
+
+        a.analyseModel(flat_model)
+        analysed_model = a.model()
+
+        libcellml_utils.print_issues(a)
+        print(analysed_model.type())
+        if analysed_model.type() != AnalyserModel.Type.ODE:
+            print("WARNING model is has some issues, see above. "
+                  "The model might still run with some of the above issues"
+                  "but it is recommended to fix them")
+        
         print('Testing to see if model opens in OpenCOR')
         opencor_available = True
         try:
@@ -185,7 +220,7 @@ class CVS0DCellMLGenerator(object):
         print('modifying constants to values identified from parameter id')
         for const_name, val in self.model.param_id_consts:
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
-                                           const_name)[0][0]]['value'] = f'{val:.4e}'
+                                           const_name)[0][0]]['value'] = f'{val:.10e}'
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
                                            const_name)[0][0]]['data_reference'] = \
                 f'{self.model.param_id_date}_identified'
@@ -212,12 +247,30 @@ class CVS0DCellMLGenerator(object):
         # TODO allow a specific units file to be generated
         #  This function simply copies the units file
         print(f'Generating CellML file {self.filename_prefix}_units.cellml')
-        with open(self.units_script, 'r') as rf:
-            with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
-                for line in rf:
-                    wf.write(line)
-                    if "units name" in line:
-                        self.all_units.append(re.search('units name="(.*?)"', line).group(1))
+        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
+            for file_idx, units_script in enumerate(self.units_scripts):
+                with open(units_script, 'r') as rf:
+                    for line_idx, line in enumerate(rf):
+                        # if not first file then skip first two lines and last line
+                        if file_idx == 0:
+                            if line.startswith('</model>'):
+                                # don't write the last line
+                                continue
+                        elif file_idx == len(self.units_scripts) - 1:
+                            if line_idx == 0 or line_idx == 1:
+                                # don't write the first two lines
+                                continue
+                        else:
+                            if line_idx == 0 or line_idx == 1:
+                                # don't write the first two lines
+                                continue
+                            if line.startswith('</model>'):
+                                # don't write the last line
+                                continue
+
+                        wf.write(line)
+                        if "units name" in line:
+                            self.all_units.append(re.search('units name="(.*?)"', line).group(1))
 
     def __generate_modules_file(self):
         if self.model.param_id_states:
@@ -234,37 +287,33 @@ class CVS0DCellMLGenerator(object):
 
             for II, module_file_path in enumerate(self.module_scripts):
                 with open(module_file_path, 'r') as rf:
-                    if II == len(self.module_scripts) - 1:
-                        # skip first two lines
-                        lines = rf.readlines()[2:]
-                    else:
-                        # skip last line so enddef; doesn't get written till the end.
-                        # skip first two lines
-                        lines = rf.readlines()[2:-1]
+                    # skip first lines that are either intro lines written above or comments.
+                    lines = rf.readlines()
+                    if not lines:
+                        continue
 
-
-                    if module_file_path.endswith('heart_modules.cellml'):
-                        for line in lines:
-                            if self.model.param_id_states:
-                                for idx, (state_name, val) in enumerate(self.model.param_id_states):
-                                    if state_name in line and 'initial_value' in line:
-                                        inp_string = f'initial_value="{val:.4e}"'
-                                        line = re.sub('initial_value=\"\d*\.?\d*e?-?\d*\"', inp_string, line)
-                                        state_modified[idx] = True
-                            wf.write(line)
-
-                            # check if each state was modified
-                        if self.model.param_id_states:
-                            if any(state_modified) == False:
-                                false_states = [self.model.param_id_states[JJ][0] for JJ in range(len(state_modified)) if
-                                                state_modified[JJ] == False]
-                                print(f'The parameter id states {false_states} \n'
-                                      f'were not found in the cellml script, check the parameter id state names and the '
-                                      f'base_script.cellml file')
+                    count = 0
+                    while True:
+                        if "component" in lines[count]:
+                            break
+                        else:
+                            count += 1
+                            if count > 50:
+                                print(f'Error in {module_file_path}, no component found')
                                 exit()
-                    else:
-                        for line in lines:
+
+                    # skip last line so enddef; doesn't get written till the end.
+                    # skip first non-component lines
+                    lines = lines[count:-1]
+
+                    for line in lines:
+                        if "<component name" in line:
+                            # check the name of the module we are in
+                            module_type = re.search('name="(.*?)"', line).group(1)
+                        if module_type in self.model.vessels_df.module_type.values or module_type == 'zero_flow':
                             wf.write(line)
+            wf.write('</model>\n')
+                
 
     def __write_section_break(self, wf, text):
         wf.write('<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;' +
@@ -612,7 +661,7 @@ class CVS0DCellMLGenerator(object):
                 
                 out_vessel_names = []
                 for out_vessel_name in vessel_tup.out_vessels:
-                    if vessel_df.loc[vessel_df["name"] == out_vessel_name].squeeze()["vessel_type"] == 'venous':
+                    if vessel_df.loc[vessel_df["name"] == out_vessel_name].squeeze()["vessel_type"].startswith('venous'):
                         # This finds the venous module connection
                         out_vessel_names.append(out_vessel_name)
                 if len(out_vessel_names) == 0:

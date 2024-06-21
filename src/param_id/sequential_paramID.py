@@ -13,8 +13,9 @@ class SequentialParamID:
 
     def __init__(self, model_path, model_type, param_id_method, file_name_prefix,
                  params_for_id_path=None, num_calls_to_function=1000,
-                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, sim_heart_periods=None, pre_heart_periods=None,
-                 maximum_step=0.0001, dt=0.01, mcmc_options=None, ga_options=None,
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, 
+                 solver_info=None, 
+                 dt=0.01, mcmc_options=None, ga_options=None,
                  param_id_output_dir=None, resources_dir=None,
                  DEBUG=False):
 
@@ -27,9 +28,7 @@ class SequentialParamID:
         self.param_id_obs_path = param_id_obs_path
         self.sim_time = sim_time
         self.pre_time = pre_time
-        self.sim_heart_periods = sim_heart_periods
-        self.pre_heart_periods = pre_heart_periods
-        self.maximum_step = maximum_step
+        self.solver_info = solver_info
         self.dt = dt
         self.DEBUG =DEBUG
         
@@ -63,8 +62,7 @@ class SequentialParamID:
                                 params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
-                                sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                                maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                                solver_info=self.solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=resources_dir)
 
 
@@ -100,8 +98,8 @@ class SequentialParamID:
                 os.remove(os.path.join(self.param_id.output_dir, 'param_names_to_remove.csv'))
         # create dictionary with original param idxs for each name
         # only use first name of each list of names that relates to one parameter.
-        self.param_names = self.param_id.get_param_names()
-        param_name_orig_idx_dict = {name[0]: II for II, name in enumerate(self.param_names)}
+        self.param_id_info["param_names"] = self.param_id.get_param_names()
+        param_name_orig_idx_dict = {name[0]: II for II, name in enumerate(self.param_id_info["param_names"])}
         while not identifiable:
 
             # self.param_id.temp_test()
@@ -112,7 +110,7 @@ class SequentialParamID:
                 self.param_id.run_single_sensitivity(None)
 
                 self.best_param_vals = self.param_id.get_best_param_vals()
-                self.param_names = self.param_id.get_param_names()
+                self.param_id_info["param_names"] = self.param_id.get_param_names()
 
                 param_importance = self.param_id.get_param_importance()
                 # collinearity_idx = self.param_id.get_collinearity_idx()
@@ -123,17 +121,17 @@ class SequentialParamID:
 
                 if np.min(param_importance) > self.threshold_param_importance and \
                             np.max(collinearity_idx_pairs) < self.threshold_collinearity_pairs:
-                    print(f'The model is structurally identifiable with {len(self.param_names)} parameters:')
-                    print(self.param_names)
+                    print(f'The model is structurally identifiable with {len(self.param_id_info["param_names"])} parameters:')
+                    print(self.param_id_info["param_names"])
                     identifiable = True
                 else:
                     # remove parameters that aren't identifiable
                     # and update param_id object
-                    print(f'The model is NOT structurally identifiable with {len(self.param_names)} parameters')
+                    print(f'The model is NOT structurally identifiable with {len(self.param_id_info["param_names"])} parameters')
                     print(f'determining which parameters to remove from identifying set')
                     param_idxs_to_remove = []
-                    for II in range(len(self.param_names)):
-                        param_name = self.param_names[II]
+                    for II in range(len(self.param_id_info["param_names"])):
+                        param_name = self.param_id_info["param_names"][II]
                         if param_importance[II] < self.threshold_param_importance:
                             if pred_param_importance is not None:
                                 print(f'parameter importance of {param_name} is below threshold, '
@@ -158,15 +156,15 @@ class SequentialParamID:
                                 param_names_to_remove_all_iterations.append(param_name)
                                 identifiable = False
                         else:
-                            for JJ in range(len(self.param_names)):
+                            for JJ in range(len(self.param_id_info["param_names"])):
                                 if collinearity_idx_pairs[II, JJ] > self.threshold_collinearity_pairs:
                                     if param_importance[II] < param_importance[JJ]:
                                         if pred_param_importance is not None:
-                                            print(f'collinearity of {self.param_names[II]}, {self.param_names[JJ]} '
+                                            print(f'collinearity of {self.param_id_info["param_names"][II]}, {self.param_id_info["param_names"][JJ]} '
                                               f'is above threshold, '
                                               f'checking collinearity with respect to predictions.')
                                             if pred_collinearity_idx_pairs[II, JJ] > self.threshold_collinearity_pairs:
-                                                print(f'{self.param_names[II]}, {self.param_names[JJ]} '
+                                                print(f'{self.param_id_info["param_names"][II]}, {self.param_id_info["param_names"][JJ]} '
                                                       f'pred collinearity is '
                                                       f'{pred_collinearity_idx_pairs[II, JJ]}, '
                                                       f'which is above threshold of {self.threshold_collinearity_pairs}'
@@ -176,7 +174,7 @@ class SequentialParamID:
                                                 identifiable = False
                                                 break
                                             else:
-                                                print(f'{self.param_names[II]}, {self.param_names[JJ]} '
+                                                print(f'{self.param_id_info["param_names"][II]}, {self.param_id_info["param_names"][JJ]} '
                                                       f'pred collinearity is '
                                                       f'{pred_collinearity_idx_pairs[II, JJ]}, '
                                                       f'which is below threshold of {self.threshold_collinearity_pairs}'
@@ -186,7 +184,7 @@ class SequentialParamID:
                                                 pred_collinearity_idx_pairs[JJ, II] = 0
                                                 identifiable = False
                                         else:
-                                            print(f'{self.param_names[II]}, {self.param_names[JJ]} '
+                                            print(f'{self.param_id_info["param_names"][II]}, {self.param_id_info["param_names"][JJ]} '
                                                   f'collinearity is '
                                                   f'{collinearity_idx_pairs[II, JJ]}, '
                                                   f'which is above threshold of {self.threshold_collinearity_pairs}'
@@ -261,8 +259,7 @@ class SequentialParamID:
                             params_for_id_path=self.params_for_id_path,
                             param_id_obs_path=self.param_id_obs_path,
                             sim_time=self.sim_time, pre_time=self.pre_time,
-                            sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
-                            maximum_step=self.maximum_step, mcmc_options=self.mcmc_options, dt=self.dt,
+                            solver_info=self.solver_info, mcmc_options=self.mcmc_options, dt=self.dt,
                             param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                             DEBUG=self.DEBUG)
 
@@ -288,10 +285,9 @@ class SequentialParamID:
                                 self.file_name_prefix,
                                 params_for_id_path=self.params_for_id_path,
                                 param_id_obs_path=self.param_id_obs_path,
-                                sim_time=self.sim_time, pre_time=self.pre_time,
-                                sim_heart_periods=self.sim_heart_periods, pre_heart_periods=self.pre_heart_periods,
+                                sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
-                                maximum_step=self.maximum_step,
+                                solver_info=self.solver_info, mcmc_options=self.mcmc_options,
                                 DEBUG=self.DEBUG)
             if self.rank == 0:
                 if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):

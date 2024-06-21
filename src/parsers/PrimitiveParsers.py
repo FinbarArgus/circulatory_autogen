@@ -207,9 +207,17 @@ class JSONFileParser(object):
         df = pd.DataFrame(json_obj)
         return df
 
-    def append_module_config_info_to_vessel_df(self, vessel_df, module_config_path):
+    def json_to_dataframe_with_user_dir(self, json_path, json_dir):
+        df = self.json_to_dataframe(json_path)
+        user_module_dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
+                for file in os.listdir(json_dir) if file.endswith('.json')]
+        for user_module_df in user_module_dfs:
+            df = pd.concat([df, user_module_df], ignore_index=True)
+        return df
+
+    def append_module_config_info_to_vessel_df(self, vessel_df, module_df):
         # add columns to vessel_df
-        module_df = self.json_to_dataframe(module_config_path)
+
         add_on_lists = {column:[] for column in module_df.columns[2:]}
         for vessel_tup in vessel_df.itertuples():
             vessel_type = vessel_tup.vessel_type

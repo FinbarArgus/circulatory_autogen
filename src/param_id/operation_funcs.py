@@ -25,6 +25,13 @@ def mean(x, series_output=False):
     else:
         return np.mean(x)
 
+@series_to_constant
+def max_minus_min(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        return np.max(x) - np.min(x)
+
 def addition(x1, x2):
     return x1 + x2
 

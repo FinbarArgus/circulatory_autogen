@@ -447,3 +447,7 @@ q_us_0_venous_ivc,m3,0.0,small_chosen
 Delta_q_us_venous_ivc,m3,0.0,small_chosen
 q_us_0_venous_svc,m3,0.0,small_chosen
 Delta_q_us_venous_svc,m3,0.0,small_chosen
+q_C_init_venous_lb,m3,0.0,user_defined
+q_C_init_venous_ub,m3,0.0,user_defined
+q_C_init_venous_ivc,m3,0.0,user_defined
+q_C_init_venous_svc,m3,0.0,user_defined

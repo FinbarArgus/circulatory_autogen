@@ -88,47 +88,31 @@ def run_param_id(inp_data_dict=None):
         sim_time = inp_data_dict['sim_time']
     else:
         sim_time = None
-    # set the simulation number of periods where the cost is calculated (sim_heart_periods) and the amount of
-    # periods it takes to get to an oscillating steady state before that (pre_heart_periods)
-    # if these exist they overwrite the pre_time and sim_time
-    if 'pre_heart_periods' in inp_data_dict.keys():
-        pre_heart_periods = inp_data_dict['pre_heart_periods']
-    else:
-        pre_heart_periods = None
-    if 'sim_heart_periods' in inp_data_dict.keys():
-        sim_heart_periods = inp_data_dict['sim_heart_periods']
-    else:
-        sim_heart_periods = None
 
-    if pre_time == None and pre_heart_periods == None:
-        print('pre_time and pre_heart_periods are undefined, one of these must be set in user_inputs.yaml')
-    if sim_time == None and sim_heart_periods == None:
-        print('sim_time and sim_heart_periods are undefined, one of these must be set in user_inputs.yaml')
-
-    maximum_step = inp_data_dict['maximum_step']
+    if inp_data_dict['solver_info'] is None:
+        print('solver_info must be defined in user_inputs.yaml',
+              'MaximumStep is now an entry of solver_info in the user_inputs.yaml file')
+        exit()
+    solver_info = inp_data_dict['solver_info']
     dt = inp_data_dict['dt']
-    ga_options = inp_data_dict['ga_options']
+    if DEBUG:
+        ga_options = inp_data_dict['debug_ga_options']
+    else:
+        ga_options = inp_data_dict['ga_options']
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
                             param_id_obs_path=param_id_obs_path,
                             sim_time=sim_time, pre_time=pre_time,
-                            sim_heart_periods=sim_heart_periods, pre_heart_periods=pre_heart_periods,
-                            maximum_step=maximum_step, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                            solver_info=solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
     if rank == 0:
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):
             os.remove(os.path.join(param_id.output_dir, 'param_names_to_remove.csv'))
 
-    if DEBUG:
-        num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
-    else:
-        num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
 
-    if param_id_method == 'genetic_algorithm':
-        param_id.set_genetic_algorithm_parameters(num_calls_to_function)
-    elif param_id_method == 'bayesian':
+    if param_id_method == 'bayesian':
         acq_func = 'PI'  # 'gp_hedge'
         n_initial_points = 5
         random_seed = 1234
@@ -138,6 +122,11 @@ def run_param_id(inp_data_dict=None):
                                                             # kappa is used when acq_func is "LCB"
                                                             # gp_hedge, chooses the best from "EI", "PI", and "LCB
                                                             # so it needs both xi and kappa
+        # TODO this needs to be defined better if we want to keep bayesian optimiser functionality
+        if DEBUG:
+            num_calls_to_function = inp_data_dict['debug_ga_options']['num_calls_to_function']
+        else:
+            num_calls_to_function = inp_data_dict['ga_options']['num_calls_to_function']
         param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
                                             acq_func_kwargs=acq_func_kwargs)
     param_id.run()
@@ -156,8 +145,7 @@ def run_param_id(inp_data_dict=None):
                                 params_for_id_path=params_for_id_path,
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
-                                pre_heart_periods=pre_heart_periods, sim_heart_periods=sim_heart_periods,
-                                maximum_step=maximum_step, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG,
+                                solver_info=solver_info, dt=dt, mcmc_options=mcmc_options, DEBUG=DEBUG,
                                 param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
         mcmc.set_best_param_vals(best_param_vals)
         # mcmc.set_mcmc_parameters() TODO

@@ -15,11 +15,11 @@ def change_patient_num(patient_num, case_type, project_dir):
     # else:
     #     pre_or_post = 'post'
     if case_type in ['pre', 'post']:
-        inp_data_dict['pre_heart_periods'] = 20
-        inp_data_dict['sim_heart_periods'] = 14
+        inp_data_dict['pre_time'] = 20
+        inp_data_dict['sim_time'] = 14
     else:
-        inp_data_dict['pre_heart_periods'] = 30
-        inp_data_dict['sim_heart_periods'] = 2 
+        inp_data_dict['pre_time'] = 30
+        inp_data_dict['sim_time'] = 2 
 
     inp_data_dict['resources_dir'] = os.path.join(project_dir, f"physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{case_type}/resources")
     inp_data_dict['generated_models_dir'] = os.path.join(project_dir, f"physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{case_type}/generated_models")

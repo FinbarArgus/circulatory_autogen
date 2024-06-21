@@ -8,6 +8,7 @@ from scipy.signal import find_peaks
 # Needed if you want to plot the series ontop of estimated constants
 def series_to_constant(func):
     func.series_to_constant = True
+    return func
 
 # example function
 def ml_to_m3(x):
@@ -78,7 +79,10 @@ def RICRI_get_zero_freq_3_Hz(C_T, I_1, I_2, R_T, frac_R_T_1_of_R_T):
     assert isinstance(freq, float)
     return freq
 
-def calc_spike_period(t, V):
+@series_to_constant
+def calc_spike_period(t, V, series_output=False):
+    if series_output:
+        return V
     peak_idxs, peak_properties = find_peaks(V)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
@@ -89,3 +93,117 @@ def calc_spike_period(t, V):
         # calculate the average period between peaks
         period = np.sum([t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)])/(len(peak_idxs) - 1)
     return period
+
+@series_to_constant
+def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10):
+    """
+    this calculates the number of spikes per 
+    second in the given window. Not an accurate actual 
+    frequency, but useful for some applications.
+
+    This includes a minimum threshold for peaks of spike_min_thresh
+    """
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+
+    # TODO maybe check peak properties here
+    spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
+    return spikes_per_s
+
+@series_to_constant
+def first_peak_time(t, V, series_output=False):
+    """ 
+    returns the time value (time from start of pre_time, NOT the start of 
+    experiment or subexperiment) that the first peak occurs
+
+    It is the time from the start, but it only checks in the subexperiment defined in obs_data.
+    """
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    
+    if len(peak_idxs) == 0:
+        # there are no peaks, return a big number but not np.inf, because it causes errors in mcmc
+        return 99999999
+    # t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
+    t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
+    return t_first_peak
+
+@series_to_constant
+def steady_state_min(x, series_output=False):
+    """
+    finds the min of the second half of this subexperiment. 
+    The aim of this is to allow the dynamics to reach steady state
+    or periodic steady state before getting the minimum
+    """
+    if series_output:
+        return x
+    else:
+        return np.min(x[len(x)//2:])
+
+@series_to_constant
+def calc_min_to_max_period_diff(t, V, series_output=False):
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        period_diff = t[-1] - t[0]
+    else:
+        # calculate the periods
+        periods = [t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)]
+        # calculate the difference in time between max period and min period
+        period_diff = max(periods) - min(periods)
+
+    return period_diff
+
+@series_to_constant
+def min_period(t, V, series_output=False, spike_min_thresh=None):
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        period_min = t[-1] - t[0]
+    else:
+        # calculate the periods
+        periods = [t[peak_idxs[II+1]] - t[peak_idxs[II]] for II in range(len(peak_idxs)-1)]
+        # calculate the difference in time between max period and min period
+        period_min = min(periods)
+
+    return period_min
+
+@series_to_constant
+def E_A_ratio(t, x, T, series_output=False):
+    if series_output:
+        return x
+    peak_idxs, peak_properties = find_peaks(x)
+
+    if len(peak_idxs) < 1:
+        # no peeak idxs found, return big value to make it a big cost
+        return 100
+    elif len(peak_idxs) < 2:
+        # there is only one peak. E and A ontop of eachother. return large cost.
+        return 10
+    if (t[peak_idxs[1]] - t[peak_idxs[0]] > 0.7* T) :
+        # the peaks are too far apart. Probably because there is only one peak per heart beat.
+        # return large value
+        return 10
+
+    # calculate with the first two peaks. This assumes that the E peak comes first
+    E_A_ratio = x[peak_idxs[0]]/x[peak_idxs[1]]
+
+    return E_A_ratio
+
+
+
+
+
+
+
+

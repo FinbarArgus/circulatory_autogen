@@ -13,6 +13,7 @@ import re
 import os
 
 generator_resources_dir_path = os.path.join(os.path.dirname(__file__), '../generators/resources')
+base_dir = os.path.join(os.path.dirname(__file__), '../..')
 
 
 class CSV0DModelParser(object):
@@ -24,6 +25,7 @@ class CSV0DModelParser(object):
         self.parameter_filename = parameter_filename
         self.parameter_id_dir = parameter_id_dir
         self.module_config_path = os.path.join(generator_resources_dir_path, 'module_config.json')
+        self.module_config_user_dir = os.path.join(base_dir, 'module_config_user')
         self.csv_parser = CSVFileParser()
         self.json_parser = JSONFileParser()
 
@@ -55,8 +57,9 @@ class CSV0DModelParser(object):
             exit()
 
 
+        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_path, self.module_config_user_dir)
         # add module info to each row of vessel array
-        self.json_parser.append_module_config_info_to_vessel_df(vessels_df, self.module_config_path)
+        self.json_parser.append_module_config_info_to_vessel_df(vessels_df, module_df)
 
         # TODO change to using a pandas dataframe
         parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename, True)
@@ -81,7 +84,6 @@ class CSV0DModelParser(object):
                               param_id_date=param_id_date)
 
         # get the allowable types from the modules_config.json file
-        module_df = self.json_parser.json_to_dataframe(self.module_config_path)
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
 
         if self.parameter_id_dir:
@@ -163,8 +165,11 @@ class CSV0DModelParser(object):
                 new_entry = ([param_tuple[0], param_tuple[1], param_tuple[2],
                                      'EMPTY_MUST_BE_FILLED', 'EMPTY_MUST_BE_FILLED'])
                 parameters_list.append(new_entry)
-
-        if len(set([len(a) for a in parameters_list])) != 1:
+        if len(parameters_list) == 0:
+            return np.empty((len(parameters_list)),
+                                    dtype=[('variable_name', 'U80'), ('units', 'U80'),('const_type', 'U80'),
+                                           ('value', 'U80'), ('data_reference', 'U80')])
+        elif len(set([len(a) for a in parameters_list])) != 1:
             print('parameters rows are of non consistent length, exiting')
             exit()
         parameters_array = np.empty((len(parameters_list)),
