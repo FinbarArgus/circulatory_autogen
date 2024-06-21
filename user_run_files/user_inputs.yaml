@@ -4,7 +4,7 @@ MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
 # file_prefix: control_parasymp
-# file_prefix: lung_ROM
+file_prefix: lung_ROM
 # file_prefix: lung_control
 # file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
@@ -26,6 +26,7 @@ file_prefix: SN_to_cAMP
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
 # input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
+input_param_file: lung_ROM_parameters.csv 
 # input_param_file: lung_control_parameters.csv 
 # input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: physiological_parameters.csv 
@@ -131,8 +132,7 @@ solver_info:
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-# param_id_obs_path: 
-#   /hpc/farg967/pulmonary_workspace/data/pulmonary/ground_truth_for_CA/ground_truth_Alfred_pre_observables_4.json
+param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 

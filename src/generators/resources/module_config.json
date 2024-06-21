@@ -1441,6 +1441,47 @@
     ]
   },
   {
+    "vessel_type":"venous_split_junction_simple",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_split_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_1","u_d"]
+      },
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_2","u_d"]
+      },
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["C", "m6_per_J", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
+      ["v_out_1", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_2", "m3_per_s", "access", "boundary_condition"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"]
+    ]
+  },
+  {
     "vessel_type":"2in2out_junction",
     "BC_type":"vv",
     "module_format":"cellml",

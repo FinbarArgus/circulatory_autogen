@@ -1170,7 +1170,8 @@ class CVS0DParamID():
         # below we remove the need for obs_types, but keep it backwards compatible so 
         # previous specifications of obs_type = mean etc should still work
         for II in range(self.gt_df.shape[0]):
-            if "operation" not in self.gt_df.iloc[II].keys():
+            if "operation" not in self.gt_df.iloc[II].keys() or \
+                    self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", "", "nan", np.nan]:
                 if "obs_type" in self.gt_df.iloc[II].keys():
                     if self.gt_df.iloc[II]["obs_type"] == "series":
                         self.obs_info["operations"].append(None)
@@ -2768,13 +2769,29 @@ class OpencorParamID():
                 # and phase
                 obs_phase_list_of_arrays[freq_count] = utility_funcs.bin_resample(phase, freqs, self.obs_info["freqs"][JJ])
 
+                print(np.mean(amp))
                 # TODO remove this plotting
                 # fig, ax = plt.subplots()
                 # ax.plot(freqs, amp, 'ko')
-                # ax.plot(self.obs_info["freqs"][JJ], obs_amp_list_of_arrays[freq_count][:], 'rx')
+                # ax.plot(self.obs_freqs[JJ], obs_amp_list_of_arrays[freq_count][:], 'rx')
+                # ax.set_xlim([0, 10])
+                # ax.set_ylim([0, max(amp)*1.1])
+                # ax.set_xlabel('freq Hz')
+                # ax.set_ylabel('Impedance $Js/m^6$')
 
-                # randnum = np.random.randint(100000)
-                # plt.savefig(f'/home/farg967/Documents/random/rand_plots/{randnum}.png')
+                # # randnum = np.random.randint(100000)
+                # plt.savefig(f'/home/farg967/Documents/random/rand_plots/amp.png')
+                # plt.close()
+                
+                # fig, ax = plt.subplots()
+                # ax.plot(freqs, phase, 'ko')
+                # ax.plot(self.obs_freqs[JJ], obs_phase_list_of_arrays[freq_count][:], 'rx')
+                # ax.set_xlim([0, 10])
+                # ax.set_xlabel('freq Hz')
+                # ax.set_ylabel('Phase')
+
+                # # randnum = np.random.randint(100000)
+                # plt.savefig(f'/home/farg967/Documents/random/rand_plots/phase.png')
                 # plt.close()
 
                 freq_count += 1
