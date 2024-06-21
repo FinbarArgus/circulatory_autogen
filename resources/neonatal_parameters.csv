@@ -141,3 +141,5 @@ R_pvn,Js_per_m6,2.49E+07,to_be_identified
 C_pvn,m6_per_J,2.10E-09,to_be_identified
 u_ext_pvn,J_per_m3,0.0,user_defined
 I_pvn,Js2_per_m6,1.00E-06,Safaei
+q_C_init_venous_ivc,m3,0.0,user_defined
+q_C_init_venous_svc,m3,0.0,user_defined

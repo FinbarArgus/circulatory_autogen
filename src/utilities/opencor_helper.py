@@ -19,7 +19,7 @@ class SimulationHelper():
             exit()
         self.data = self.simulation.data()
         if solver_info is None:
-            solver_info = {'MaximumNumberofSteps': 5000, 'MaximumStep': 0.0001},
+            solver_info = {'MaximumNumberofSteps': 5000, 'MaximumStep': 0.0001}
         for key, value in solver_info.items():
             if key not in self.data.odeSolverProperties():
                 print(f'{key} is not a valid key for the solver properties in CVODE., valid keys are')

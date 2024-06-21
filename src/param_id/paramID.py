@@ -2918,7 +2918,7 @@ class OpencorMCMC(OpencorParamID):
                  dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False):
         super().__init__(model_path, "MCMC",
                 obs_info, param_id_info, protocol_info, prediction_info,
-                dt=dt, solver_info=None, DEBUG=DEBUG)
+                dt=dt, solver_info=solver_info, DEBUG=DEBUG)
 
         # mcmc init stuff
         self.sampler = None

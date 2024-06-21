@@ -92,8 +92,8 @@ class CVS0DCellMLGenerator(object):
         libcellml_utils.print_issues(a)
         print(analysed_model.type())
         if analysed_model.type() != AnalyserModel.Type.ODE:
-            print("WARNING model is not a valid ODE model, see above errors. "
-                  "The model might still run with some of the above errors "
+            print("WARNING model is has some issues, see above. "
+                  "The model might still run with some of the above issues"
                   "but it is recommended to fix them")
         
         print('Testing to see if model opens in OpenCOR')

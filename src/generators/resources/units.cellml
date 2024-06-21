@@ -27,6 +27,9 @@
     <units name="m3">
         <unit exponent="3" units="metre"/>
     </units>
+    <units name="m4">
+        <unit exponent="4" units="metre"/>
+    </units>
     <units name="mm3">
         <unit exponent="3" prefix="milli" units="metre"/>
     </units>

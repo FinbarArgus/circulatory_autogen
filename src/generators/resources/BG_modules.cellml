@@ -2410,7 +2410,7 @@
             <apply>
                 <eq/>
                 <ci>I_T</ci>
-                <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>-6</cn>
+                <cn cellml:units="Js2_per_m6" type="e-notation">1<sep/>-6</cn>
             </apply>
             <!-- Conservation Laws-->
             <!-- For now terminals don't have a gravity effect, change this for leg terminals-->
@@ -5916,7 +5916,7 @@
             <apply>
                 <eq/>
                 <ci>I_T</ci>
-                <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>-6</cn>
+                <cn cellml:units="Js2_per_m6" type="e-notation">1<sep/>-6</cn>
             </apply>
             <!-- Conservation Laws-->
             <!-- For now terminals don't have a gravity effect, change this for leg terminals
