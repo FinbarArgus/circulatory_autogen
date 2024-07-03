@@ -9,7 +9,7 @@ MPI_DEBUG: false
 # file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
 # file_prefix: physiological
-file_prefix: 3compartment
+# file_prefix: 3compartment
 # file_prefix: delay_test
 # file_prefix: neonatal
 # file_prefix: neonatal_test
@@ -18,7 +18,7 @@ file_prefix: 3compartment
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
-# file_prefix: SN_to_cAMP
+file_prefix: SN_to_cAMP
 # file_prefix: test_units
 # file_prefix: parasympathetic_model
 # file_prefix: Lymphatic
@@ -36,12 +36,12 @@ file_prefix: 3compartment
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: control_parasymp_parameters.csv 
-input_param_file: 3compartment_parameters.csv 
+# input_param_file: 3compartment_parameters.csv 
 # input_param_file: cardiomyocyte_paci_2013_parameters.csv 
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
-# input_param_file: SN_to_cAMP_parameters.csv
+input_param_file: SN_to_cAMP_parameters.csv
 # input_param_file: test_units_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 # input_param_file: Lymphatic_parameters.csv
@@ -70,10 +70,10 @@ sim_time: 2.0
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
-# resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
-# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
-# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
-# param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/SHR_tonic_to_phasic_obs_data.json
+resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/SHR_tonic_to_phasic_obs_data.json
 
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
@@ -91,8 +91,8 @@ dt: 0.0001
 # These are inputs to solver_properties of the solver
 solver_info:
   # Maximum time step for solver
-  MaximumStep: 0.0001
-  MaximumNumberOfSteps: 500
+  MaximumStep: 0.0004
+  MaximumNumberOfSteps: 5000
 
     # This for 3compartment
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
@@ -133,7 +133,7 @@ solver_info:
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 
