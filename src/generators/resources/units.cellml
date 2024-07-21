@@ -557,12 +557,19 @@
         <unit units="ampere"/>
         <unit exponent="-1" units="farad"/>
     </units>
+    <units name="megaOhm">
+        <unit prefix="mega" units="ohm"/>
+    </units>
     <units name="nanoA">
         <unit prefix="nano" units="ampere"/>
     </units>
     <units name="nanoA_per_milliA">
         <unit prefix="nano" units="ampere"/>
         <unit exponent="-1" prefix="milli" units="ampere"/>
+    </units>
+    <units name="A_per_nanoA">
+        <unit exponent="-1" prefix="nano" units="ampere"/>
+        <unit units="ampere"/>
     </units>
     <units name="J_per_MK">
         <unit units="joule"/>
