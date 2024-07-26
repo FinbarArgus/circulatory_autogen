@@ -1646,7 +1646,7 @@
         <variable name="c_inf" public_interface="out" units="dimensionless"/>
         <variable name="hc_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_c" public_interface="out" units="millis"/>
-        <variable name="tau_hc" public_interface="out" units="millis"/>
+        <variable name="tau_hc" public_interface="in" units="millis"/>
         <variable name="tau_c_min" public_interface="in" units="millis"/>
         <variable name="tau_c_max" public_interface="in" units="millis"/>
         <variable name="V_mid_c" public_interface="in" units="milliV"/>
@@ -1770,9 +1770,7 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- TODO bring this tau_c back and identify a parameter so we can modify this time dynamics.
- This has changed a lot from the Belluzi paper. Double check with Harvey's data.
- Both of these don't change a lot in experimental data, so currently model without changing tau_c and tau_hc-->
+            <!-- This has changed a lot from the Belluzi paper. Double check with Harvey's data.-->
             <apply>
                 <eq/>
                 <ci>tau_c</ci>
@@ -1810,11 +1808,6 @@
                 </apply>
             </apply>
             <!--+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V)+1.88{per_millis}*exp(-0.00732{per_milliV}*V));-->
-            <apply>
-                <eq/>
-                <ci>tau_hc</ci>
-                <cn cellml:units="millis">20</cn>
-            </apply>
             <apply>
                 <eq/>
                 <apply>
@@ -4780,8 +4773,9 @@ Vol_ER = Vol*c_ER;-->
         <variable name="c_inf" public_interface="out" units="dimensionless"/>
         <variable name="hc_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_c" public_interface="out" units="millis"/>
-        <variable name="tau_hc" public_interface="out" units="millis"/>
+        <variable name="tau_hc" public_interface="in" units="millis"/>
         <variable name="tau_c_min" public_interface="in" units="millis"/>
+        <variable name="tau_c_max" public_interface="in" units="millis"/>
         <variable name="V_mid_c" public_interface="in" units="milliV"/>
         <variable name="V_den_c" public_interface="in" units="milliV"/>
         <variable name="V_mid_hc" public_interface="out" units="milliV"/>
@@ -4852,18 +4846,43 @@ Vol_ER = Vol*c_ER;-->
                     </apply>
                 </apply>
             </apply>
-            <!-- TODO bring this tau_c back and identify a parameter so we can modify this time dynamics.-->
             <apply>
                 <eq/>
                 <ci>tau_c</ci>
-                <ci>tau_c_min</ci>
+                <apply>
+                    <plus/>
+                    <ci>tau_c_min</ci>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <minus/>
+                            <ci>tau_c_max</ci>
+                            <ci>tau_c_min</ci>
+                        </apply>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <apply>
+                                <exp/>
+                                <apply>
+                                    <divide/>
+                                    <apply>
+                                        <plus/>
+                                        <apply>
+                                            <minus/>
+                                            <ci>V_mid_c</ci>
+                                            <cn cellml:units="milliV">20</cn>
+                                        </apply>
+                                        <ci>V</ci>
+                                    </apply>
+                                    <ci>V_den_c</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
             </apply>
             <!--+1{dimensionless}/(0.343{per_millis}*exp(0.0925{per_milliV}*V)+1.88{per_millis}*exp(-0.00732{per_milliV}*V));-->
-            <apply>
-                <eq/>
-                <ci>tau_hc</ci>
-                <cn cellml:units="millis">20</cn>
-            </apply>
             <!--+1{dimensionless}/(0.242{per_millis}*exp(0.145{per_milliV}*V)+0.0434{per_millis}*exp(-0.0201{per_milliV}*V));-->
             <apply>
                 <eq/>
@@ -5842,7 +5861,7 @@ Vol_ER = Vol*c_ER;-->
         <variable name="B5_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="B5_init" name="B5" public_interface="out" units="dimensionless"/>
         <variable name="NE_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="NE_init" name="NE" public_interface="out" units="dimensionless"/>
+        <variable initial_value="NE_init" name="NE" public_interface="out" units="millimolar"/>
         <variable name="E" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -6154,7 +6173,7 @@ Vol_ER = Vol*c_ER;-->
                     <minus/>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_millimolar_s" type="e-notation">1<sep/>-1</cn>
+                        <cn cellml:units="per_millimolar_s" type="e-notation">1<sep/>4</cn>
                         <ci>Cai</ci>
                     </apply>
                     <apply>
