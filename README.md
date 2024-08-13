@@ -97,7 +97,7 @@ The connections between terminals and the venous system is hardcoded, as a termi
 There is now a test for the autogeneration running. To run the test navigate to user_run_files and do ./run_test_autogeneration.sh
 
 ## requirements  
-
+false
 If the model being generated is a cellml model, OpenCOR must be downloaded 
 and installed from [opencor](https://opencor.ws/downloads/index.html)
 

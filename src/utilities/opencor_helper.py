@@ -2,12 +2,18 @@ import opencor as oc
 import numpy as np
 import os
 import sys
+from importlib import import_module # Only used for debugging
+from utility_funcs import get_size
 # from func_timeout import func_timeout, FunctionTimedOut
 
 class SimulationHelper():
     def __init__(self, cellml_path, dt,
                  sim_time, solver_info=None,
                  pre_time=0.0):
+
+        # TODO comment this out
+        self.resource_module = import_module('psutil')
+
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt # time step
         self.stop_time = pre_time + sim_time  # full time of simulation
@@ -19,7 +25,7 @@ class SimulationHelper():
             exit()
         self.data = self.simulation.data()
         if solver_info is None:
-            solver_info = {'MaximumNumberofSteps': 5000, 'MaximumStep': 0.0001}
+            solver_info = {'MaximumNumberOfSteps': 5000, 'MaximumStep': 0.0001}
         for key, value in solver_info.items():
             if key not in self.data.odeSolverProperties():
                 print(f'{key} is not a valid key for the solver properties in CVODE., valid keys are')
@@ -32,9 +38,19 @@ class SimulationHelper():
         self.data.set_ending_point(self.stop_time)
         self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1) # time values for stored part of simulation
 
+    # inner psutil function # TODO only needed for memory checking 
+    def process_memory(self):
+        process = self.resource_module.Process(os.getpid())
+        mem_info = process.memory_info()
+        return mem_info.rss
+
     def run(self):
         try:
+            mem = self.process_memory()
+            print(f'memory_pre_reset={mem}')
             self.simulation.run()
+            mem = self.process_memory()
+            print(f'memory_post={mem}')
         # except FunctionTimedOut:
         #     print("openCOR timed out")
         #     print('restarting simulation object')
@@ -51,8 +67,12 @@ class SimulationHelper():
         return True
 
     def reset_and_clear(self):
-        self.simulation.reset()
+        mem = self.process_memory()
+        print(f'memory_pre_clear={mem}')
+        self.simulation.reset(True)
         self.simulation.clear_results()
+        mem = self.process_memory()
+        print(f'memory_post_clear={mem}')
     
     def reset_states(self):
         self.simulation.reset(False) # True resets everything, False resets only the states

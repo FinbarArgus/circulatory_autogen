@@ -27,6 +27,7 @@ from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
 import re
 from numpy import genfromtxt
+from importlib import import_module
 # import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
 mcmc_lib = 'emcee' # TODO make this a user variable
 if mcmc_lib == 'emcee':
@@ -1748,6 +1749,10 @@ class OpencorParamID():
         self.cost_type = self.ga_options['cost_type']
 
         self.DEBUG = DEBUG
+        if self.DEBUG:
+            self.resource_module = import_module('resource')
+            # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
+            self.resource_module.setrlimit(self.resource_module.RLIMIT_STACK, (self.resource_module.RLIM_INFINITY,self.resource_module.RLIM_INFINITY))
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
@@ -1899,9 +1904,9 @@ class OpencorParamID():
                     iter_num += 1
 
                     # Check resource usage
-                    # if self.DEBUG:
-                    #     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                    #     print(f'rank={rank} memory={mem}')
+                    if self.DEBUG:
+                        mem = self.resource_module.getrusage(self.resource_module.RUSAGE_SELF).ru_maxrss
+                        print(f'rank={rank} memory={mem}')
 
                     # TODO save results here every few iterations
 
@@ -1917,7 +1922,7 @@ class OpencorParamID():
             if self.DEBUG:
                 num_elite = 1 # 1
                 num_survivors = 2 # 2
-                num_mutations_per_survivor = 0 # 2
+                num_mutations_per_survivor = 2 # 2
                 num_cross_breed = 0
             else:
                 num_elite = 12
@@ -1950,6 +1955,7 @@ class OpencorParamID():
             finished_ga[0] = False
             cost = np.zeros(num_pop)
             cost[0] = np.inf
+                
 
             while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations:
                 mutation_weight = 0.1
@@ -1975,6 +1981,9 @@ class OpencorParamID():
                 #
                 # elif gen_count > 280:
                 #     mutation_weight = 0.0003
+                if self.DEBUG:
+                    mem = self.resource_module.getrusage(self.resource_module.RUSAGE_SELF).ru_maxrss
+                    print(f'rank={rank} memory={mem}')
 
                 gen_count += 1
                 if rank == 0:
