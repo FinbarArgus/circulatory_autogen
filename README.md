@@ -108,6 +108,12 @@ you must do the following...
 /path/to/opencor/dir/python/bin/python -m pip install packagename
 ```
 
+Note: in versions of OpenCOR 2024-08-23 and onwards you can do 
+```bash
+/path/to/opencor/dir/pip install packagename
+```
+instead, which is more robust and doesn't have SSL errors as below.
+
 ### Required packages for parameter identification
 mpi4py
 sympy

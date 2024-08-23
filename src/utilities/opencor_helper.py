@@ -61,6 +61,7 @@ class SimulationHelper():
             print("Failed to converge")
             print('restarting simulation object')
             self.simulation.reset()
+            self.simulation.reset_all_values()
             self.simulation.clear_results()
             return False
 
@@ -70,6 +71,7 @@ class SimulationHelper():
         mem = self.process_memory()
         print(f'memory_pre_clear={mem}')
         self.simulation.reset(True)
+        self.simulation.reset_all_values()
         self.simulation.clear_results()
         mem = self.process_memory()
         print(f'memory_post_clear={mem}')
