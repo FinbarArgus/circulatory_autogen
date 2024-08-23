@@ -70,10 +70,10 @@ sim_time: 2.0
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
-resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
-generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
-param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
-param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/SHR_tonic_to_phasic_obs_data.json
+resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/resources/tonic_to_phasic_obs_data.json
 
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
@@ -149,7 +149,7 @@ ga_options:
   # TODO This should eventually be a user_defined cost_function. 
   cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
-  num_calls_to_function: 50000
+  num_calls_to_function: 20000
   cost_convergence: 0.001
 
 debug_ga_options:
@@ -160,7 +160,7 @@ debug_ga_options:
 #______ mcmc inputs ___________
 do_mcmc: False
 mcmc_options:
-  num_steps: 4000
+  num_steps: 2000
   num_walkers: 64
   # TODO As above for cost_type
   cost_type: MSE

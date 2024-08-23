@@ -161,10 +161,11 @@ def calc_min_to_max_period_diff(t, V, series_output=False):
     return period_diff
 
 @series_to_constant
-def min_period(t, V, series_output=False, spike_min_thresh=None):
+def min_period(t, V, series_output=False, spike_min_thresh=None, distance=None):
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
         # there aren't enough peaks to calculate a period

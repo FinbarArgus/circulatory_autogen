@@ -1256,11 +1256,9 @@
         <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
         <variable name="V_mid_m" public_interface="out" units="milliV"/>
         <variable name="V_mid_m_max" public_interface="in" units="milliV"/>
-        <variable name="V_mid_m_min" public_interface="in" units="milliV"/>
-        <variable name="V_mid_h_max" public_interface="in" units="milliV"/>
-        <variable name="V_mid_h_min" public_interface="in" units="milliV"/>
         <variable name="V_den_m" public_interface="in" units="milliV"/>
         <variable name="V_mid_h" public_interface="out" units="milliV"/>
+        <variable name="V_mid_h_max" public_interface="in" units="milliV"/>
         <variable name="V_den_h" public_interface="in" units="milliV"/>
         <variable name="m_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_inf" public_interface="out" units="dimensionless"/>
@@ -1268,36 +1266,27 @@
         <variable name="tau_h" public_interface="out" units="millis"/>
         <variable name="tau_h_min" public_interface="in" units="millis"/>
         <variable name="tau_h_max" public_interface="in" units="millis"/>
-        <variable name="Cai_I_Na_mid" public_interface="in" units="millimolar"/>
-        <variable name="Cai_I_Na_den" public_interface="in" units="millimolar"/>
+        <!-- var Cai_I_Na_mid: millimolar {pub: in};
+ var Cai_I_Na_den: millimolar {pub: in};-->
+        <variable name="k_thresh_m" public_interface="in" units="milliV"/>
+        <variable name="k_thresh_h" public_interface="in" units="milliV"/>
+        <!-- dynamic threshold equation from platkiewicz2011Impact-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>V_mid_m</ci>
                 <apply>
                     <plus/>
-                    <ci>V_mid_m_min</ci>
+                    <ci>V_mid_m_max</ci>
                     <apply>
-                        <divide/>
+                        <times/>
+                        <ci>k_thresh_m</ci>
                         <apply>
-                            <minus/>
-                            <ci>V_mid_m_max</ci>
-                            <ci>V_mid_m_min</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
+                            <log/>
                             <apply>
-                                <exp/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <minus/>
-                                        <ci>Cai</ci>
-                                        <ci>Cai_I_Na_mid</ci>
-                                    </apply>
-                                    <ci>Cai_I_Na_den</ci>
-                                </apply>
+                                <plus/>
+                                <ci>h</ci>
+                                <cn cellml:units="dimensionless">0.01</cn>
                             </apply>
                         </apply>
                     </apply>
@@ -1308,33 +1297,24 @@
                 <ci>V_mid_h</ci>
                 <apply>
                     <plus/>
-                    <ci>V_mid_h_min</ci>
+                    <ci>V_mid_h_max</ci>
                     <apply>
-                        <divide/>
+                        <times/>
+                        <ci>k_thresh_h</ci>
                         <apply>
-                            <minus/>
-                            <ci>V_mid_h_max</ci>
-                            <ci>V_mid_h_min</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
+                            <log/>
                             <apply>
-                                <exp/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <minus/>
-                                        <ci>Cai</ci>
-                                        <ci>Cai_I_Na_mid</ci>
-                                    </apply>
-                                    <ci>Cai_I_Na_den</ci>
-                                </apply>
+                                <plus/>
+                                <ci>h</ci>
+                                <cn cellml:units="dimensionless">0.01</cn>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!-- Removed calcium dependance of Na channel. the changing threshold is probably due to inactivation causing a more positive threshold.
+ V_mid_m = V_mid_m_min+(V_mid_m_max-V_mid_m_min)/(1{dimensionless}+exp((Cai-Cai_I_Na_mid)/Cai_I_Na_den));
+ V_mid_h = V_mid_h_min+(V_mid_h_max-V_mid_h_min)/(1{dimensionless}+exp((Cai-Cai_I_Na_mid)/Cai_I_Na_den));-->
             <apply>
                 <eq/>
                 <ci>m_init</ci>
@@ -1458,7 +1438,8 @@
                                     <divide/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_mid_h</ci>
+                                        <ci>V_mid_m</ci>
+                                        <cn cellml:units="milliV">10</cn>
                                         <ci>V</ci>
                                     </apply>
                                     <cn cellml:units="milliV">10</cn>
@@ -1472,7 +1453,8 @@
                                         <minus/>
                                         <apply>
                                             <plus/>
-                                            <ci>V_mid_h</ci>
+                                            <ci>V_mid_m</ci>
+                                            <cn cellml:units="milliV">10</cn>
                                             <ci>V</ci>
                                         </apply>
                                     </apply>
@@ -3085,38 +3067,49 @@
             </apply>
         </math>
         <variable name="i_leak_Na" public_interface="out" units="nanoA"/>
+        <variable name="i_leak_K_init" public_interface="out" units="nanoA"/>
         <variable name="i_leak_Na_init" public_interface="out" units="nanoA"/>
         <variable name="i_leak_K" public_interface="out" units="nanoA"/>
-        <variable name="g_leak_Na" public_interface="in" units="microS"/>
-        <variable name="g_leak_K" public_interface="out" units="microS"/>
+        <variable name="g_leak_Na" public_interface="out" units="microS"/>
+        <variable name="g_leak_K" public_interface="in" units="microS"/>
         <!--Currently this changes as E_k and E_Na change...
  This assumes only currents at hyperpolarisation are leak currents, i_Nak, i_Na, and i_M, i_kCa_SK, and i_kv-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>g_leak_K</ci>
+                <ci>g_leak_Na</ci>
                 <apply>
-                    <divide/>
+                    <max/>
                     <apply>
-                        <minus/>
+                        <divide/>
                         <apply>
-                            <plus/>
+                            <minus/>
                             <apply>
-                                <times/>
-                                <ci>g_leak_Na</ci>
-                                <apply>
-                                    <minus/>
-                                    <ci>V_rest</ci>
-                                    <ci>E_Na_init</ci>
-                                </apply>
+                                <plus/>
+                                <ci>i_leak_K_init</ci>
+                                <ci>i_NaK_init</ci>
+                                <ci>i_NaCa_init</ci>
+                                <ci>i_Na_init</ci>
+                                <ci>i_M_init</ci>
+                                <ci>i_KCa_SK_init</ci>
+                                <ci>i_Kv_init</ci>
                             </apply>
-                            <ci>i_NaK_init</ci>
-                            <ci>i_Na_init</ci>
-                            <ci>i_M_init</ci>
-                            <ci>i_KCa_SK_init</ci>
-                            <ci>i_Kv_init</ci>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <ci>V_rest</ci>
+                            <ci>E_Na_init</ci>
                         </apply>
                     </apply>
+                    <cn cellml:units="microS">0</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>i_leak_K_init</ci>
+                <apply>
+                    <times/>
+                    <ci>g_leak_K</ci>
                     <apply>
                         <minus/>
                         <ci>V_rest</ci>
@@ -3450,8 +3443,8 @@
  Note: This is for atrial cardiomyocytes.-->
         <variable name="i_NaK" public_interface="out" units="nanoA"/>
         <variable name="i_NaK_init" public_interface="out" units="nanoA"/>
-        <variable name="i_NaK_part_init" public_interface="out" units="nanoA"/>
-        <variable name="k_NaK" public_interface="out" units="nanoA"/>
+        <!-- var i_NaK_part_init: nanoA {pub: out};-->
+        <variable name="k_NaK" public_interface="in" units="nanoA"/>
         <variable name="Nai_mid_NaK" public_interface="in" units="millimolar"/>
         <variable name="Ko_mid_NaK" public_interface="in" units="millimolar"/>
         <variable name="Nai_power_NaK" public_interface="in" units="dimensionless"/>
@@ -3570,86 +3563,10 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_NaK_part_init</ci>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <divide/>
-                            <apply>
-                                <times/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <plus/>
-                                        <ci>V_rest</ci>
-                                        <cn cellml:units="milliV">150</cn>
-                                    </apply>
-                                    <apply>
-                                        <plus/>
-                                        <ci>V_rest</ci>
-                                        <cn cellml:units="milliV">200</cn>
-                                    </apply>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_init</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <plus/>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_init</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_mid_NaK</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <ci>Ko</ci>
-                    </apply>
-                    <apply>
-                        <plus/>
-                        <ci>Ko</ci>
-                        <ci>Ko_mid_NaK</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- Calculate Nak to ensure that the steady state Na is equal to Na_init-->
-            <apply>
-                <eq/>
-                <ci>k_NaK</ci>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <divide/>
-                                <ci>i_Na_init</ci>
-                                <cn cellml:units="dimensionless">3</cn>
-                            </apply>
-                            <apply>
-                                <divide/>
-                                <ci>i_leak_Na_init</ci>
-                                <cn cellml:units="dimensionless">3</cn>
-                            </apply>
-                            <ci>i_NaCa_init</ci>
-                        </apply>
-                    </apply>
-                    <ci>i_NaK_part_init</ci>
-                </apply>
-            </apply>
         </math>
+        <!-- i_NaK_part_init = (V_rest+150{milliV})/(V_rest+200{milliV})*pow(Nai_init, Nai_power_NaK)/(pow(Nai_init, Nai_power_NaK)+pow(Nai_mid_NaK, Nai_power_NaK))*Ko/(Ko+Ko_mid_NaK);-->
+        <!-- Calculate Nak to ensure that the steady state Na is equal to Na_init-->
+        <!-- k_NaK = -(i_Na_init/3{dimensionless}+i_leak_Na_init/3{dimensionless}+i_NaCa_init)/i_NaK_part_init;-->
         <!-- IP3 channel-->
         <variable name="j_IP3" public_interface="out" units="mol_per_s"/>
         <variable name="k_IP3" public_interface="in" units="m3_per_s"/>
