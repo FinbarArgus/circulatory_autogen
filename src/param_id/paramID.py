@@ -47,7 +47,9 @@ import math
 import scipy.linalg as la
 # from scipy.optimize import curve_fit
 import warnings
-warnings.filterwarnings( "ignore", module = "matplotlib\..*" )
+warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
+# TODO maybe remove matplotlib warnings as above
+
 # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
 # import resource
 # curlimit = resource.getrlimit(resource.RLIMIT_STACK)
@@ -83,7 +85,7 @@ class CVS0DParamID():
         self.solver_info = solver_info
         self.dt = dt
 
-        self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        self.param_id_obs_file_prefix = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
         case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
         if self.rank == 0:
             if param_id_output_dir is None:
@@ -520,7 +522,7 @@ class CVS0DParamID():
         # bar_list[1].set_facecolor('r')
 
         # axs.legend()
-        axs.set_ylabel('E$_{\%}$')
+        axs.set_ylabel(r'E$_{\%}$')
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig(os.path.join(self.plot_dir,
@@ -2448,7 +2450,7 @@ class OpencorParamID():
                     pred_outputs_list.append(pred_outputs)
                 # reset params
                 if reset:
-                    self.sim_helper.reset_and_clear()
+                    self.sim_helper.reset_and_clear(only_one_exp=only_one_exp)
 
             else:
                 # simulation set cost to large,

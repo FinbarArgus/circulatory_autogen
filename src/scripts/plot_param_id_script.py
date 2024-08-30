@@ -55,7 +55,7 @@ def plot_param_id(inp_data_dict=None):
         print(f'param_id_obs_path={param_id_obs_path} does not exist')
         exit()
 
-    data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+    data_str_addon = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
     # here we get the subdir of the generated model that has the fitted params in it.
     generated_models_subdir= os.path.join(generated_models_dir, file_prefix + '_' + data_str_addon)
     # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
