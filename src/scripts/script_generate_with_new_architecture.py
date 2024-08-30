@@ -16,7 +16,8 @@ user_inputs_dir= os.path.join(root_dir, 'user_run_files')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
-from generators.CVSCppGenerator import CVS0DCppGenerator
+# TODO Cpp generator is commented out for now in the no_libcellml version
+# from generators.CVSCppGenerator import CVS0DCppGenerator
 
 
 def generate_with_new_architecture(do_generation_with_fit_parameters,

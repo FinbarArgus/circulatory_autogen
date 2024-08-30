@@ -5753,322 +5753,39 @@ Vol_ER = Vol*c_ER;-->
         </math>
         <!-- Calcium dependent vesicle binding TODO understand these equations better.
  units of b changed from picoF-->
-        <variable name="b" public_interface="in" units="dimensionless"/>
-        <variable name="gamma" public_interface="in" units="dimensionless"/>
-        <variable name="kon" public_interface="in" units="per_millimolar_s"/>
-        <variable name="koff" public_interface="in" units="per_s"/>
-        <variable name="B0_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B0_init" name="B0" public_interface="out" units="dimensionless"/>
-        <variable name="B1_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B1_init" name="B1" public_interface="out" units="dimensionless"/>
-        <variable name="B2_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B2_init" name="B2" public_interface="out" units="dimensionless"/>
-        <variable name="B3_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B3_init" name="B3" public_interface="out" units="dimensionless"/>
-        <variable name="B4_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B4_init" name="B4" public_interface="out" units="dimensionless"/>
-        <variable name="B5_init" public_interface="in" units="dimensionless"/>
-        <variable initial_value="B5_init" name="B5" public_interface="out" units="dimensionless"/>
-        <variable name="NE_init" public_interface="in" units="milimolar"/>
+        <!-- var b: dimensionless {pub: in};
+ var gamma: dimensionless {pub: in};
+ var kon: per_millimolar_s {pub: in};
+ var koff: per_s {pub: in};
+ var B0_init: dimensionless {pub: in};
+ var B0: dimensionless {init: B0_init, pub: out};
+ var B1_init: dimensionless {pub: in};
+ var B1: dimensionless {init: B1_init, pub: out};
+ var B2_init: dimensionless {pub: in};
+ var B2: dimensionless {init: B2_init, pub: out};
+ var B3_init: dimensionless {pub: in};
+ var B3: dimensionless {init: B3_init, pub: out};
+ var B4_init: dimensionless {pub: in};
+ var B4: dimensionless {init: B4_init, pub: out};
+ var B5_init: dimensionless {pub: in};
+ var B5: dimensionless {init: B5_init, pub: out};-->
+        <variable name="NE_init" public_interface="in" units="millimolar"/>
         <variable initial_value="NE_init" name="NE" public_interface="out" units="millimolar"/>
-        <variable name="E" public_interface="out" units="dimensionless"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B0</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <times/>
-                        <ci>koff</ci>
-                        <ci>B1</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="dimensionless">5</cn>
-                        <ci>kon</ci>
-                        <ci>Cai</ci>
-                        <ci>B0</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B1</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">5</cn>
-                            <ci>kon</ci>
-                            <ci>Cai</ci>
-                            <ci>B0</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>koff</ci>
-                            <ci>B2</ci>
-                            <apply>
-                                <power/>
-                                <ci>b</ci>
-                                <cn cellml:units="dimensionless">1</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <times/>
-                                <ci>koff</ci>
-                                <apply>
-                                    <power/>
-                                    <ci>b</ci>
-                                    <cn cellml:units="dimensionless">0</cn>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">4</cn>
-                                <ci>kon</ci>
-                                <ci>Cai</ci>
-                            </apply>
-                        </apply>
-                        <ci>B1</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B2</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">4</cn>
-                            <ci>kon</ci>
-                            <ci>Cai</ci>
-                            <ci>B1</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">3</cn>
-                            <ci>koff</ci>
-                            <ci>B3</ci>
-                            <apply>
-                                <power/>
-                                <ci>b</ci>
-                                <cn cellml:units="dimensionless">2</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">2</cn>
-                                <ci>koff</ci>
-                                <apply>
-                                    <power/>
-                                    <ci>b</ci>
-                                    <cn cellml:units="dimensionless">1</cn>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">3</cn>
-                                <ci>kon</ci>
-                                <ci>Cai</ci>
-                            </apply>
-                        </apply>
-                        <ci>B2</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B3</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">3</cn>
-                            <ci>kon</ci>
-                            <ci>Cai</ci>
-                            <ci>B2</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">4</cn>
-                            <ci>koff</ci>
-                            <ci>B4</ci>
-                            <apply>
-                                <power/>
-                                <ci>b</ci>
-                                <cn cellml:units="dimensionless">3</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">3</cn>
-                                <ci>koff</ci>
-                                <apply>
-                                    <power/>
-                                    <ci>b</ci>
-                                    <cn cellml:units="dimensionless">2</cn>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">2</cn>
-                                <ci>kon</ci>
-                                <ci>Cai</ci>
-                            </apply>
-                        </apply>
-                        <ci>B3</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B4</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
-                            <ci>kon</ci>
-                            <ci>Cai</ci>
-                            <ci>B3</ci>
-                        </apply>
-                        <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">5</cn>
-                            <ci>koff</ci>
-                            <ci>B5</ci>
-                            <apply>
-                                <power/>
-                                <ci>b</ci>
-                                <cn cellml:units="dimensionless">4</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <times/>
-                                <cn cellml:units="dimensionless">4</cn>
-                                <ci>koff</ci>
-                                <apply>
-                                    <power/>
-                                    <ci>b</ci>
-                                    <cn cellml:units="dimensionless">3</cn>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <ci>kon</ci>
-                                <ci>Cai</ci>
-                            </apply>
-                        </apply>
-                        <ci>B4</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>B5</ci>
-                </apply>
-                <apply>
-                    <minus/>
-                    <apply>
-                        <times/>
-                        <ci>kon</ci>
-                        <ci>Cai</ci>
-                        <ci>B4</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="dimensionless">5</cn>
-                        <ci>koff</ci>
-                        <apply>
-                            <power/>
-                            <ci>b</ci>
-                            <cn cellml:units="dimensionless">4</cn>
-                        </apply>
-                        <ci>B5</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- check units of gamma-->
-            <apply>
-                <eq/>
-                <ci>E</ci>
-                <apply>
-                    <times/>
-                    <ci>gamma</ci>
-                    <ci>B5</ci>
-                </apply>
-            </apply>
-            <!-- TODO where does the 500 come from
+        <!-- var E: dimensionless {pub: out};-->
+        <!-- ode(B0, t) = koff*B1-5{dimensionless}*kon*Cai*B0;
+ ode(B1, t) = 5{dimensionless}*kon*Cai*B0+2{dimensionless}*koff*B2*pow(b, 1{dimensionless})-(koff*pow(b, 0{dimensionless})+4{dimensionless}*kon*Cai)*B1;
+ ode(B2, t) = 4{dimensionless}*kon*Cai*B1+3{dimensionless}*koff*B3*sqr(b)-(2{dimensionless}*koff*pow(b, 1{dimensionless})+3{dimensionless}*kon*Cai)*B2;
+ ode(B3, t) = 3{dimensionless}*kon*Cai*B2+4{dimensionless}*koff*B4*pow(b, 3{dimensionless})-(3{dimensionless}*koff*sqr(b)+2{dimensionless}*kon*Cai)*B3;
+ ode(B4, t) = 2{dimensionless}*kon*Cai*B3+5{dimensionless}*koff*B5*pow(b, 4{dimensionless})-(4{dimensionless}*koff*pow(b, 3{dimensionless})+kon*Cai)*B4;
+ ode(B5, t) = kon*Cai*B4-5{dimensionless}*koff*pow(b, 4{dimensionless})*B5;-->
+        <!-- check units of gamma-->
+        <!-- E = gamma*B5;-->
+        <!-- TODO where does the 500 come from
  This is one of the equations I need to improve, to have accurate reuptake of NE
  This needs unit change from millis.-->
-            <!-- ode(NE, t) = 1e3{dimensionless}*n_cleft*E*a_cleft/N_avo/V_cleft-NE*0.001{per_s};
+        <!-- ode(NE, t) = 1e3{dimensionless}*n_cleft*E*a_cleft/N_avo/V_cleft-NE*0.001{per_s};
  TODO improve this equation-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <apply>

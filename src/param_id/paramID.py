@@ -27,6 +27,7 @@ from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
 import re
 from numpy import genfromtxt
+from importlib import import_module
 # import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
 mcmc_lib = 'emcee' # TODO make this a user variable
 if mcmc_lib == 'emcee':
@@ -1113,7 +1114,6 @@ class CVS0DParamID():
                         self.prediction_info['experiment_idxs'].append(entry['experiment_idx'])
                     else:
                         self.prediction_info['experiment_idxs'].append(0)
-
             else:
                 self.prediction_info = None
         else:
@@ -1548,6 +1548,7 @@ class CVS0DParamID():
             # prediction_info has already been parsed from obs_data.json file
             pass
         else:
+            self.prediction_info = {}
             pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
             if os.path.exists(pred_var_path):
                 # TODO change this to loading with parser
@@ -1898,11 +1899,6 @@ class OpencorParamID():
                     call_num += num_procs
                     iter_num += 1
 
-                    # Check resource usage
-                    # if self.DEBUG:
-                    #     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-                    #     print(f'rank={rank} memory={mem}')
-
                     # TODO save results here every few iterations
 
 
@@ -1917,7 +1913,7 @@ class OpencorParamID():
             if self.DEBUG:
                 num_elite = 1 # 1
                 num_survivors = 2 # 2
-                num_mutations_per_survivor = 0 # 2
+                num_mutations_per_survivor = 2 # 2
                 num_cross_breed = 0
             else:
                 num_elite = 12
@@ -1950,6 +1946,7 @@ class OpencorParamID():
             finished_ga[0] = False
             cost = np.zeros(num_pop)
             cost[0] = np.inf
+                
 
             while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations:
                 mutation_weight = 0.1
