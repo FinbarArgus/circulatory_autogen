@@ -174,7 +174,7 @@ class CVS0DCellMLGenerator(object):
 
                 # map between computational environment and module so they can be accessed
                 print('writing mappings between computational environment and modules')
-                self.__write_section_break(wf, 'vessel mappings')
+                self.__write_section_break(wf, 'own vessel mappings')
                 self.__write_comp_to_module_mappings(wf, self.model.vessels_df)
     
                 # map constants to different modules
@@ -432,7 +432,8 @@ class CVS0DCellMLGenerator(object):
             # remove the BC variables from the variables_and_units list
             # these variables will be accesible from the neighbouring
             # modules where they are calculated.
-            module_df.iloc[module_row_idx]["variables_and_units"] = np.delete(module_df.iloc[module_row_idx]["variables_and_units"], indexes_to_remove, axis=0)
+            for index in sorted(indexes_to_remove, reverse=True):
+                del module_df.iloc[module_row_idx]["variables_and_units"][index]
 
         if np.any(self.model.parameters_array["value"] == 'EMPTY_MUST_BE_FILLED'):
             self.all_parameters_defined = False
@@ -834,7 +835,7 @@ class CVS0DCellMLGenerator(object):
             return
         wf.write(f'<component name="{vessel_row["name"]}">\n')
         lines_to_write = []
-        for variable, unit, access_str, _ in vessel_row["variables_and_units"]:
+        for variable, unit, access_str, variable_type in vessel_row["variables_and_units"]:
             if access_str == 'access':
                 lines_to_write.append(f'   <variable name="{variable}" public_interface="in" units="{unit}"/>\n')
         wf.writelines(lines_to_write)
