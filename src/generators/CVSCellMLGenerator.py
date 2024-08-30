@@ -11,9 +11,17 @@ import os
 from sys import exit
 generators_dir = os.path.dirname(__file__)
 base_dir = os.path.join(os.path.dirname(__file__), '../..')
-from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
-import utilities.libcellml_helper_funcs as cellml
-import utilities.libcellml_utilities as libcellml_utils
+LIBCELLML_available = True
+try:
+    from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
+    import utilities.libcellml_helper_funcs as cellml
+    import utilities.libcellml_utilities as libcellml_utils
+except ImportError as e:
+    print("Error -> ", e)
+    print('continuing without LibCellML, Warning code checks will not be available.'
+          'You will need to open generated models in OpenCOR to check for errors.')
+    LIBCELLML_available = False
+
 
 
 class CVS0DCellMLGenerator(object):
@@ -71,30 +79,31 @@ class CVS0DCellMLGenerator(object):
         print('Model generation complete.')
         print('Checking Status of Model')
 
-        # parse the model in non-strict mode to allow non CellML 2.0 models
-        model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
-        # resolve imports, in non-strict mode
-        importer = cellml.resolve_imports(model, self.output_dir, False)
-        # need a flattened model for analysing
-        flat_model = cellml.flatten_model(model, importer)
-        model_string = cellml.print_model(flat_model)
-        
-        # this if we want to create the flat model, for debugging
-        with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
-            f.write(model_string)
+        if LIBCELLML_available:
+            # parse the model in non-strict mode to allow non CellML 2.0 models
+            model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
+            # resolve imports, in non-strict mode
+            importer = cellml.resolve_imports(model, self.output_dir, False)
+            # need a flattened model for analysing
+            flat_model = cellml.flatten_model(model, importer)
+            model_string = cellml.print_model(flat_model)
+            
+            # this if we want to create the flat model, for debugging
+            with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+                f.write(model_string)
 
-        # analyse the model
-        a = Analyser()
+            # analyse the model
+            a = Analyser()
 
-        a.analyseModel(flat_model)
-        analysed_model = a.model()
+            a.analyseModel(flat_model)
+            analysed_model = a.model()
 
-        libcellml_utils.print_issues(a)
-        print(analysed_model.type())
-        if analysed_model.type() != AnalyserModel.Type.ODE:
-            print("WARNING model is has some issues, see above. "
-                  "The model might still run with some of the above issues"
-                  "but it is recommended to fix them")
+            libcellml_utils.print_issues(a)
+            print(analysed_model.type())
+            if analysed_model.type() != AnalyserModel.Type.ODE:
+                print("WARNING model is has some issues, see above. "
+                    "The model might still run with some of the above issues"
+                    "but it is recommended to fix them")
         
         print('Testing to see if model opens in OpenCOR')
         opencor_available = True

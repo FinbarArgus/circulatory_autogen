@@ -29,7 +29,6 @@ if __name__ == '__main__':
         DEBUG = inp_data_dict['DEBUG']
         if DEBUG:
             print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
-        mpi_debug = inp_data_dict['MPI_DEBUG']
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -37,18 +36,6 @@ if __name__ == '__main__':
         print(f'starting script for rank = {rank}')
 
         start_time = time.time()
-
-        # FOR MPI DEBUG WITH PYCHARM
-        # set mpi_debug to True
-        # You have to change the configurations to "python debug server/mpi" and
-        # click the debug button as many times as processes you want. You
-        # must but the ports for each process in port_mapping.
-        # Then simply run through mpiexec
-        if mpi_debug:
-            import pydevd_pycharm
-
-            port_mapping = [39917, 36067]
-            pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
         resources_dir = os.path.join(root_dir, 'resources')
         param_id_dir = os.path.join(root_dir, 'src/param_id')
