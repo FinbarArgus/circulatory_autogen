@@ -1,6 +1,14 @@
 import os
-from libcellml import Analyser, AnalyserModel, AnalyserExternalVariable, Component, Generator, GeneratorProfile, \
-                      Parser, Importer, Model, Printer, Validator
+
+try:
+    from libcellml import Analyser, AnalyserModel, AnalyserExternalVariable, Component, Generator, GeneratorProfile, \
+                          Parser, Importer, Model, Printer, Validator
+    LIBCELLML_available = True
+except ImportError as e:
+    print("Error -> ", e)
+    print('continuing without LibCellML, Warning code checks will not be available.'
+          'You will need to open generated models in OpenCOR to check for errors.')
+    LIBCELLML_available = False
 import utilities.libcellml_utilities as libcellml_utils
 
 

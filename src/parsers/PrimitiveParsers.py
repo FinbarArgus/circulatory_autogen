@@ -87,7 +87,7 @@ class CSVFileParser(object):
                     else:
                         new_entry = sub_entries[0].strip()
 
-                csv_dataframe[column_name][II] = new_entry
+                csv_dataframe.loc[II, column_name] = new_entry
 
         # for column_name in csv_dataframe.columns:
         #     if column_name == 'vessel_name':

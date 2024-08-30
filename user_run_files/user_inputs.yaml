@@ -98,7 +98,7 @@ solver_info:
 # param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
 # param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB044_wout_lv.json
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
 #
 #
 # param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB044_wout_lv.json
@@ -133,7 +133,7 @@ solver_info:
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
 # param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
+# param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 # this is for testing frequency fitting
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
 

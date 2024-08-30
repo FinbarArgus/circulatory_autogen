@@ -1113,7 +1113,6 @@ class CVS0DParamID():
                         self.prediction_info['experiment_idxs'].append(entry['experiment_idx'])
                     else:
                         self.prediction_info['experiment_idxs'].append(0)
-
             else:
                 self.prediction_info = None
         else:
@@ -1548,6 +1547,7 @@ class CVS0DParamID():
             # prediction_info has already been parsed from obs_data.json file
             pass
         else:
+            self.prediction_info = {}
             pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
             if os.path.exists(pred_var_path):
                 # TODO change this to loading with parser
