@@ -12,7 +12,7 @@ class SimulationHelper():
                  pre_time=0.0):
 
         # TODO comment this out
-        self.resource_module = import_module('psutil')
+        # self.resource_module = import_module('psutil')
 
         self.cellml_path = cellml_path  # path to cellml file
         self.dt = dt # time step
@@ -46,11 +46,11 @@ class SimulationHelper():
 
     def run(self):
         try:
-            mem = self.process_memory()
-            print(f'memory_pre_reset={mem}')
+            # mem = self.process_memory()
+            # print(f'memory_pre_reset={mem}')
             self.simulation.run()
-            mem = self.process_memory()
-            print(f'memory_post={mem}')
+            # mem = self.process_memory()
+            # print(f'memory_post={mem}')
         # except FunctionTimedOut:
         #     print("openCOR timed out")
         #     print('restarting simulation object')
@@ -61,20 +61,20 @@ class SimulationHelper():
             print("Failed to converge")
             print('restarting simulation object')
             self.simulation.reset()
-            self.simulation.reset_all_values()
+            self.simulation.release_all_values()
             self.simulation.clear_results()
             return False
 
         return True
 
     def reset_and_clear(self):
-        mem = self.process_memory()
-        print(f'memory_pre_clear={mem}')
+        # mem = self.process_memory()
+        # print(f'memory_pre_clear={mem}')
         self.simulation.reset(True)
-        self.simulation.reset_all_values()
+        self.simulation.release_all_values()
         self.simulation.clear_results()
-        mem = self.process_memory()
-        print(f'memory_post_clear={mem}')
+        # mem = self.process_memory()
+        # print(f'memory_post_clear={mem}')
     
     def reset_states(self):
         self.simulation.reset(False) # True resets everything, False resets only the states

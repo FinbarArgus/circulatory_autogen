@@ -1749,10 +1749,6 @@ class OpencorParamID():
         self.cost_type = self.ga_options['cost_type']
 
         self.DEBUG = DEBUG
-        if self.DEBUG:
-            self.resource_module = import_module('resource')
-            # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
-            self.resource_module.setrlimit(self.resource_module.RLIMIT_STACK, (self.resource_module.RLIM_INFINITY,self.resource_module.RLIM_INFINITY))
 
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
@@ -1903,11 +1899,6 @@ class OpencorParamID():
                     call_num += num_procs
                     iter_num += 1
 
-                    # Check resource usage
-                    if self.DEBUG:
-                        mem = self.resource_module.getrusage(self.resource_module.RUSAGE_SELF).ru_maxrss
-                        print(f'rank={rank} memory={mem}')
-
                     # TODO save results here every few iterations
 
 
@@ -1981,9 +1972,6 @@ class OpencorParamID():
                 #
                 # elif gen_count > 280:
                 #     mutation_weight = 0.0003
-                if self.DEBUG:
-                    mem = self.resource_module.getrusage(self.resource_module.RUSAGE_SELF).ru_maxrss
-                    print(f'rank={rank} memory={mem}')
 
                 gen_count += 1
                 if rank == 0:

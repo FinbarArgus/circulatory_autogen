@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: True
+DEBUG: False
 MPI_DEBUG: false
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
@@ -154,7 +154,7 @@ ga_options:
 
 debug_ga_options:
   cost_type: MSE
-  num_calls_to_function: 50000 # TODO change back to 30 for tests
+  num_calls_to_function: 30 # TODO change back to 30 for tests
   cost_convergence: 0.001
 
 #______ mcmc inputs ___________
