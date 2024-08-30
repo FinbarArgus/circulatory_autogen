@@ -47,7 +47,7 @@ import math
 import scipy.linalg as la
 # from scipy.optimize import curve_fit
 import warnings
-# warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
+warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
 # TODO maybe remove matplotlib warnings as above
 
 # set resource limit to inf to stop seg fault problem #TODO remove this, I don't think it does much
