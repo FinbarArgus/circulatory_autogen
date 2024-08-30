@@ -1,6 +1,5 @@
 #_______ general inputs ________
-DEBUG: False
-MPI_DEBUG: false
+DEBUG: True
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
 # file_prefix: control_parasymp
@@ -158,7 +157,7 @@ debug_ga_options:
   cost_convergence: 0.001
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: True
 mcmc_options:
   num_steps: 4000
   num_walkers: 64

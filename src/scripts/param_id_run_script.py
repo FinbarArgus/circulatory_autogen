@@ -42,11 +42,6 @@ def run_param_id(inp_data_dict=None):
     # click the debug button as many times as processes you want. You
     # must but the ports for each process in port_mapping.
     # Then simply run through mpiexec
-    if mpi_debug:
-        import pydevd_pycharm
-
-        port_mapping = [37979, 34075]
-        pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
     param_id_method = inp_data_dict['param_id_method']
     file_prefix = inp_data_dict['file_prefix']
@@ -150,13 +145,17 @@ def run_param_id(inp_data_dict=None):
         mcmc.set_best_param_vals(best_param_vals)
         # mcmc.set_mcmc_parameters() TODO
         mcmc.run_mcmc()
+    
+    if rank == 0:
+        print('param id complete')
         
 
 if __name__ == '__main__':
     comm = MPI.COMM_WORLD
     try:
         run_param_id()
+        MPI.Finalize()
     except:
         print(traceback.format_exc())
         comm.Abort()
-        exit
+        exit()
