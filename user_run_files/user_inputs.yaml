@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: True
+DEBUG: False
 # file_prefix: new_valve_p_est
 # file_prefix: control_phys
 # file_prefix: control_parasymp
