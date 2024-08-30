@@ -29,19 +29,11 @@ def run_param_id(inp_data_dict=None):
 
     if DEBUG:
         print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
-    mpi_debug = inp_data_dict['MPI_DEBUG']
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     num_procs = comm.Get_size()
     print(f'starting script for rank = {rank}')
-
-    # FOR MPI DEBUG WITH PYCHARM
-    # set mpi_debug to True
-    # You have to change the configurations to "python debug server/mpi" and
-    # click the debug button as many times as processes you want. You
-    # must but the ports for each process in port_mapping.
-    # Then simply run through mpiexec
 
     param_id_method = inp_data_dict['param_id_method']
     file_prefix = inp_data_dict['file_prefix']
