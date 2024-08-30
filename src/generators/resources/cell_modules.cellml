@@ -2124,20 +2124,12 @@
         <variable name="ah_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_a" public_interface="out" units="millis"/>
         <variable name="tau_ah" public_interface="out" units="millis"/>
-        <variable name="V_mid_a" public_interface="out" units="milliV"/>
+        <variable name="V_mid_a" public_interface="in" units="milliV"/>
         <variable name="V_den_a" public_interface="in" units="milliV"/>
         <variable name="V_mid_ah" public_interface="in" units="milliV"/>
         <variable name="V_den_ah" public_interface="in" units="milliV"/>
+        <!-- V_mid_a = V_mid_ah-35{milliV};-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>V_mid_a</ci>
-                <apply>
-                    <minus/>
-                    <ci>V_mid_ah</ci>
-                    <cn cellml:units="milliV">35</cn>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>a_init</ci>
@@ -3089,7 +3081,6 @@
                                 <ci>i_leak_K_init</ci>
                                 <ci>i_NaK_init</ci>
                                 <ci>i_NaCa_init</ci>
-                                <ci>i_Na_init</ci>
                                 <ci>i_M_init</ci>
                                 <ci>i_KCa_SK_init</ci>
                                 <ci>i_Kv_init</ci>
@@ -3104,6 +3095,7 @@
                     <cn cellml:units="microS">0</cn>
                 </apply>
             </apply>
+            <!-- currently leave out i_Na in case rest causes spiking-->
             <apply>
                 <eq/>
                 <ci>i_leak_K_init</ci>
@@ -5777,7 +5769,7 @@ Vol_ER = Vol*c_ER;-->
         <variable initial_value="B4_init" name="B4" public_interface="out" units="dimensionless"/>
         <variable name="B5_init" public_interface="in" units="dimensionless"/>
         <variable initial_value="B5_init" name="B5" public_interface="out" units="dimensionless"/>
-        <variable name="NE_init" public_interface="in" units="dimensionless"/>
+        <variable name="NE_init" public_interface="in" units="milimolar"/>
         <variable initial_value="NE_init" name="NE" public_interface="out" units="millimolar"/>
         <variable name="E" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -6090,12 +6082,12 @@ Vol_ER = Vol*c_ER;-->
                     <minus/>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_millimolar_s" type="e-notation">1<sep/>4</cn>
+                        <cn cellml:units="per_s">100</cn>
                         <ci>Cai</ci>
                     </apply>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_s">10</cn>
+                        <cn cellml:units="per_s">100</cn>
                         <apply>
                             <minus/>
                             <ci>NE</ci>

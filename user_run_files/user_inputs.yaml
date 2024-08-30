@@ -70,10 +70,10 @@ sim_time: 2.0
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
-resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/resources
-generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/generated_models
-param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/param_id_output
-param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_OX1-19/resources/tonic_to_phasic_obs_data.json
+resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/tonic_to_phasic_obs_data.json
 
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models

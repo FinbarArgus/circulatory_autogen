@@ -79,6 +79,8 @@ def RICRI_get_zero_freq_3_Hz(C_T, I_1, I_2, R_T, frac_R_T_1_of_R_T):
     assert isinstance(freq, float)
     return freq
 
+# TODO we should find a way to only find_peaks once per subexperiment
+# ATM if multiple of the below functions are called, it does find_peaks multiple times
 @series_to_constant
 def calc_spike_period(t, V, series_output=False):
     if series_output:
@@ -143,10 +145,10 @@ def steady_state_min(x, series_output=False):
         return np.min(x[len(x)//2:])
 
 @series_to_constant
-def calc_min_to_max_period_diff(t, V, series_output=False):
+def calc_min_to_max_period_diff(t, V, series_output=False, spike_min_thresh=None):
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V)
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
         # there aren't enough peaks to calculate a period
@@ -159,6 +161,20 @@ def calc_min_to_max_period_diff(t, V, series_output=False):
         period_diff = max(periods) - min(periods)
 
     return period_diff
+
+@series_to_constant
+def calc_min_peak(t, V, series_output=False, spike_min_thresh=None):
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 1:
+        # if there aren't spikes set the min peak to the max of the voltage the max/sudo-peak)
+        min_peak = max(V)
+    else:
+        min_peak = min(V[peak_idxs])
+
+    return min_peak
 
 @series_to_constant
 def min_period(t, V, series_output=False, spike_min_thresh=None, distance=None):

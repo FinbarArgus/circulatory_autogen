@@ -14,7 +14,7 @@ import copy
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 param_id_dir = os.path.join(src_dir, 'param_id')
 base_dir = os.path.join(src_dir, '..')
-operation_funcs_user_dir = os.path.join(base_dir, 'operation_funcs_user')
+operation_funcs_user_dir = os.path.join(base_dir, 'funcs_user')
 
 class scriptFunctionParser(object):
     '''
