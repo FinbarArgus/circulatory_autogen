@@ -122,7 +122,9 @@ statsmodels
 
 ### Required packages for autogeneration
 pandas
-yaml
+pyyaml
+libcellml
+rdflib
 
 ### Potential Errors:
 IMPORTANT if you get an SSL error you must do the following before the pip install
