@@ -1250,6 +1250,7 @@
         <variable name="i_Na" public_interface="out" units="nanoA"/>
         <variable name="i_Na_init" public_interface="out" units="nanoA"/>
         <variable name="g_Na" public_interface="in" units="microS"/>
+        <variable name="g_Na_mod" public_interface="in" units="dimensionless"/>
         <variable name="m_init" public_interface="out" units="dimensionless"/>
         <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
         <variable name="h_init" public_interface="out" units="dimensionless"/>
@@ -1585,6 +1586,7 @@
                 <apply>
                     <times/>
                     <ci>g_Na</ci>
+                    <ci>g_Na_mod</ci>
                     <apply>
                         <minus/>
                         <ci>V</ci>
@@ -1604,6 +1606,7 @@
                 <apply>
                     <times/>
                     <ci>g_Na</ci>
+                    <ci>g_Na_mod</ci>
                     <apply>
                         <minus/>
                         <ci>V_rest</ci>
@@ -2766,6 +2769,7 @@
         <variable name="i_KCa_SK" public_interface="out" units="nanoA"/>
         <variable name="i_KCa_SK_init" public_interface="out" units="nanoA"/>
         <variable name="g_KCa_SK" public_interface="in" units="microS"/>
+        <variable name="g_KCa_SK_mod" public_interface="in" units="dimensionless"/>
         <variable initial_value="m_SK_init" name="m_SK" public_interface="out" units="dimensionless"/>
         <variable name="m_SK_inf" public_interface="out" units="dimensionless"/>
         <variable name="m_SK_init" public_interface="out" units="dimensionless"/>
@@ -2852,6 +2856,7 @@
                 <apply>
                     <times/>
                     <ci>g_KCa_SK</ci>
+                    <ci>g_KCa_SK_mod</ci>
                     <ci>m_SK</ci>
                     <apply>
                         <minus/>
@@ -2866,6 +2871,7 @@
                 <apply>
                     <times/>
                     <ci>g_KCa_SK</ci>
+                    <ci>g_KCa_SK_mod</ci>
                     <ci>m_SK_init</ci>
                     <apply>
                         <minus/>

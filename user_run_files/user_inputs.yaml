@@ -148,7 +148,7 @@ ga_options:
   # TODO This should eventually be a user_defined cost_function. 
   cost_type: MSE
   # maximum number of calls to the forward function during one run of the param_id_method
-  num_calls_to_function: 20000
+  num_calls_to_function: 5000
   cost_convergence: 0.001
 
 debug_ga_options:
@@ -159,7 +159,7 @@ debug_ga_options:
 #______ mcmc inputs ___________
 do_mcmc: True
 mcmc_options:
-  num_steps: 2000
+  num_steps: 1000
   num_walkers: 64
   # TODO As above for cost_type
   cost_type: MSE
@@ -172,4 +172,4 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 # For plotting core predictions after mcmc
-plot_predictions: false
+plot_predictions: True

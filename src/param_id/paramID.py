@@ -1584,7 +1584,7 @@ class CVS0DParamID():
         if self.DEBUG:
             n_sims = 6
         else:
-            n_sims = 100
+            n_sims = 5 # 20
 
         pred_list_of_arrays = mcmc_object.calculate_pred_from_posterior_samples(flat_samples, n_sims=n_sims)
         # idxs of pred_list_of_arrays are [exp_idx][sim_idx, pred_idx, time_idx]
@@ -1594,9 +1594,10 @@ class CVS0DParamID():
         save_list = []
         for pred_idx in range(len(self.prediction_info['names'])):
             exp_idx = self.prediction_info['experiment_idxs'][pred_idx]
-            pred_array = pred_list_of_arrays[exp_idx]
+            pred_array = pred_list_of_arrays[pred_idx]
             tSim = self.protocol_info['tSims_per_exp'][exp_idx].flatten()
 
+                        
 
             fig, axs = plt.subplots()
 
@@ -1617,6 +1618,23 @@ class CVS0DParamID():
             else:
                 conversion = 1.0
                 unit_for_plot = f'${self.prediction_info["units"][pred_idx]}$'
+
+            # first plot all arrays on one plot
+            fig, axs = plt.subplots()
+            for sample_idx in range(pred_array.shape[0]):
+                axs.plot(tSim, conversion*pred_array[sample_idx, pred_idx, :], alpha=0.5)
+            axs.set_xlabel('Time [$s$]', fontsize=14)
+            axs.set_ylabel(f'${self.prediction_info["names_for_plotting"][pred_idx]}$ [{unit_for_plot}]', fontsize=14)
+            axs.set_xlim(min(tSim), max(tSim))
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'prediction_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_pred_var_{pred_idx}_all.png'), dpi=500)
+            
+            # close the figure
+            plt.close()
+            
+            fig, axs = plt.subplots()
+
             # calculate mean and std of the ensemble
             pred_mean = np.mean(pred_array[:, pred_idx, :], axis=0)
             pred_std = np.std(pred_array[:, pred_idx, :], axis=0)
