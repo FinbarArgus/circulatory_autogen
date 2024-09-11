@@ -6,4 +6,14 @@
     <units name="cm">
         <unit prefix="centi" units="metre"/>
     </units>
+    <units name="m3_per_mol_per_sec">
+        <unit exponent="3" units="metre"/>
+        <unit exponent="-1" units="mole"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="mol_per_m3_per_kPa">
+        <unit exponent="1" units="mole"/>
+        <unit exponent="-3" units="metre"/>
+        <unit exponent="-1" prefix="kilo" units="pascal"/>
+    </units>
 </model>

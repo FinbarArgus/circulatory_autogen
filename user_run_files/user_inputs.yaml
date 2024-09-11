@@ -17,7 +17,7 @@ DEBUG: False
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
-file_prefix: SN_to_cAMP
+file_prefix: chemoreceptor
 # file_prefix: test_units
 # file_prefix: parasympathetic_model
 # file_prefix: Lymphatic
@@ -40,7 +40,7 @@ file_prefix: SN_to_cAMP
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
-input_param_file: SN_to_cAMP_parameters.csv
+input_param_file: chemoreceptor_parameters.csv
 # input_param_file: test_units_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 # input_param_file: Lymphatic_parameters.csv
@@ -69,10 +69,14 @@ sim_time: 2.0
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
-resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
-generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
-param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
-param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/tonic_to_phasic_obs_data.json
+# resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
+# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
+# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
+# param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/tonic_to_phasic_obs_data.json
+resources_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/resources/chemoreceptor_obs_data.json
 
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
@@ -157,7 +161,7 @@ debug_ga_options:
   cost_convergence: 0.001
 
 #______ mcmc inputs ___________
-do_mcmc: True
+do_mcmc: False
 mcmc_options:
   num_steps: 1000
   num_walkers: 64
@@ -172,4 +176,4 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 # For plotting core predictions after mcmc
-plot_predictions: True
+plot_predictions: False
