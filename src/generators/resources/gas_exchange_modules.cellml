@@ -1321,6 +1321,9 @@
         </math>
     </component>
     <component name="temp">
+        <variable name="v" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.18" name="C_O2_in" public_interface="in" units="dimensionless"/>
+        <variable initial_value="0.18" name="C_O2_out" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
