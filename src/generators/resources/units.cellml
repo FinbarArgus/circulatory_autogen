@@ -94,7 +94,7 @@
         <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="second"/>
     </units>
-    <units name="milliL">
+    <units name="mL">
         <unit prefix="milli" units="litre"/>
     </units>
     <units name="s_per_m3">
