@@ -1,5 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+  <import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="units.cellml">
+    <units units_ref="A_per_F" name="A_per_F"/>
+    <units units_ref="milliV" name="milliV"/>
+    <units units_ref="nanoA" name="nanoA"/>
+    <units units_ref="S_per_F" name="S_per_F"/>
+    <units units_ref="m3_per_Fs" name="m3_per_Fs"/>
+    <units units_ref="milliV_per_V" name="milliV_per_V"/>
+    <units units_ref="millimolar" name="millimolar"/>
+    <units units_ref="milliV2" name="milliV2"/>
+    <units units_ref="C_per_M" name="C_per_M"/>
+    <units units_ref="s_per_milliV" name="s_per_milliV"/>
+    <units units_ref="J_per_MK" name="J_per_MK"/>
+    <units units_ref="microS" name="microS"/>
+    <units units_ref="per_milliV" name="per_milliV"/>
+    <units units_ref="per_millimolar" name="per_millimolar"/>
+    <units units_ref="m_per_s" name="m_per_s"/>
+  </import>
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// //////////////////modules for different ion channels ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
@@ -3188,7 +3205,7 @@
                 <ci>c_bar</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensioness">1</cn>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -3276,7 +3293,7 @@
                 <ci>hc_bar</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensioness">1</cn>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -3411,7 +3428,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">36</cn>
+                                        <cn cellml:units="milliV">36</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">7.2</cn>
@@ -3627,7 +3644,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">6.084</cn>
+                                        <cn cellml:units="milliV">6.084</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">8.007</cn>
@@ -3745,7 +3762,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">49.4</cn>
+                                        <cn cellml:units="milliV">49.4</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">9.9</cn>
@@ -3971,7 +3988,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">11.54</cn>
+                                        <cn cellml:units="milliV">11.54</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">4.99</cn>
