@@ -13,6 +13,7 @@
         <units name="m3_per_J" units_ref="m3_per_J"/>
         <units name="J_per_m6" units_ref="J_per_m6"/>
         <units name="J_per_m3s" units_ref="J_per_m3s"/>
+        <units name="m3_per_kg" units_ref="m3_per_kg"/>
     </import>
     <component name="baroreceptor_type">
         <variable name="t" public_interface="in" units="second"/>
