@@ -6,6 +6,11 @@
     <units name="cm">
         <unit prefix="centi" units="metre"/>
     </units>
+    <units name="J_per_m4_s">
+        <unit exponent="-4" units="meter"/>
+        <unit units="joule"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <units name="m3_per_mol_per_sec">
         <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="mole"/>

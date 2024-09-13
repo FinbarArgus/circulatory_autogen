@@ -2557,7 +2557,7 @@ class OpencorParamID():
 
         return cost, operands_outputs_list, pred_outputs_list
 
-    def get_cost_and_obs_from_params(self, param_vals, reset=True, only_one_exp=-1):
+    def get_cost_and_obs_from_params(self, param_vals, reset=True, only_one_exp=1):
         cost, obs, _ = self.get_cost_obs_and_pred_from_params(param_vals, reset=reset, only_one_exp=only_one_exp)
         return cost, obs
 
@@ -2568,7 +2568,7 @@ class OpencorParamID():
     def get_pred_from_params(self, param_vals, reset=True, 
                                           only_one_exp=-1, pred_names=None):
         _, _, pred = self.get_cost_obs_and_pred_from_params(param_vals, reset=reset,
-                                          only_one_exp=-1, pred_names=pred_names)
+                                          only_one_exp=only_one_exp, pred_names=pred_names)
         return pred
 
     def get_pred_array_from_params_per_exp(self, param_vals, exp_idx):

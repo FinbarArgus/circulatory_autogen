@@ -4,25 +4,119 @@
         <!-- Constitutive parameters-->
         <variable name="t" public_interface="in" units="second"/>
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
-        <variable name="L" public_interface="in" units="metre"/>
-        <variable name="D" public_interface="in" units="cm"/>
+        <variable name="L" public_interface="in" units="meter"/>
+        <variable name="D" public_interface="out" units="meter"/>
         <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="C_L" public_interface="in" units="m6_per_J"/>
-        <variable name="R_pv" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_pvb" public_interface="out" units="Js_per_m6"/>
         <variable name="R_p" public_interface="out" units="Js_per_m6"/>
-        <variable name="a_f" public_interface="in" units="dimensionless"/>
-        <variable name="R_sv" public_interface="in" units="Js_per_m6"/>
+        <variable name="delT" public_interface="in" units="second"/>
+        <!--var a_f: dimensionless {pub: in};-->
+        <!--var R_sv: Js_per_m6 {pub: in};-->
         <!--State Variables-->
         <variable name="v_p" public_interface="out" units="m3_per_s"/>
         <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
-        <variable name="v1" public_interface="in" units="m3_per_s"/>
-        <variable name="v_w" public_interface="out" units="m3_per_s"/>
+        <!--var v1: m3_per_s {pub: in};-->
+        <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
         <variable name="u_w" public_interface="in" units="J_per_m3"/>
         <variable name="u_m" public_interface="out" units="J_per_m3"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <!--var R_svc: js_per_m6 ;-->
         <!-- Constitutive Relations-->
+        <variable name="a" public_interface="in" units="m3_per_J"/>
+        <!--var a: m3_per_J {init: 7.8867e-4};-->
+        <variable name="b" public_interface="in" units="m3_per_J"/>
+        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="d_ec" public_interface="in" units="meter"/>
+        <variable name="del_pvB" public_interface="out" units="J_per_m3"/>
+        <variable name="Q_delayB" public_interface="out" units="m3_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_w</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>Q_delayB</ci>
+                        <ci>v_w</ci>
+                    </apply>
+                    <ci>delT</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Q_delayB</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>u_w</ci>
+                        <ci>u_m</ci>
+                    </apply>
+                    <ci>R_pvb</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>R_pvb</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1000</cn>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <pi/>
+                                <ci>L</ci>
+                                <ci>D</ci>
+                            </apply>
+                            <ci>d_ec</ci>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <cosh/>
+                                <apply>
+                                    <times/>
+                                    <ci>a</ci>
+                                    <ci>del_pvB</ci>
+                                </apply>
+                            </apply>
+                            <cn cellml:units="dimensionless">1</cn>
+                        </apply>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <ci>b</ci>
+                                </apply>
+                                <ci>del_pvB</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>del_pvB</ci>
+                <apply>
+                    <minus/>
+                    <ci>u_w</ci>
+                    <ci>u_m</ci>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>R_p</ci>
@@ -41,6 +135,26 @@
                             <power/>
                             <ci>D</ci>
                             <cn cellml:units="dimensionless">4</cn>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>D</ci>
+                <apply>
+                    <times/>
+                    <cn cellml:units="dimensionless">2</cn>
+                    <apply>
+                        <root/>
+                        <apply>
+                            <divide/>
+                            <ci>q_m</ci>
+                            <apply>
+                                <times/>
+                                <pi/>
+                                <ci>L</ci>
+                            </apply>
                         </apply>
                     </apply>
                 </apply>
@@ -75,7 +189,11 @@
                         </apply>
                         <ci>C_L</ci>
                     </apply>
-                    <ci>u_w</ci>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">0.98</cn>
+                        <ci>u_w</ci>
+                    </apply>
                 </apply>
             </apply>
             <!--*a_f;-->
@@ -92,9 +210,69 @@
                     <ci>R_p</ci>
                 </apply>
             </apply>
+        </math>
+        <!--v_w = (u_w-u_m)/R_pv;-->
+    </component>
+    <!--////////////////////////////////////-->
+    <component name="Lymph_vessel_mid">
+        <!-- Constitutive parameters-->
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="delT" public_interface="in" units="second"/>
+        <!--var u_ec: J_per_m3 {pub: in};
+var f_1: Hz {pub: in};-->
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="L" public_interface="in" units="meter"/>
+        <variable name="D" public_interface="out" units="meter"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
+        <variable name="C_L" public_interface="in" units="m6_per_J"/>
+        <variable name="R_pvm" public_interface="out" units="Js_per_m6"/>
+        <variable name="R_p" public_interface="out" units="Js_per_m6"/>
+        <!--var a_f: dimensionless {pub: in};-->
+        <variable name="R_sv" public_interface="out" units="Js_per_m6"/>
+        <!--State Variables-->
+        <variable name="v_p1" public_interface="in" units="m3_per_s"/>
+        <variable name="v_p2" public_interface="in" units="m3_per_s"/>
+        <variable name="v_p31" public_interface="out" units="m3_per_s"/>
+        <variable name="v_p32" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
+        <!--var v1: m3_per_s {pub: in};-->
+        <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
+        <variable name="u_w" public_interface="in" units="J_per_m3"/>
+        <variable name="u_m" public_interface="out" units="J_per_m3"/>
+        <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="250" name="u_in" public_interface="out" units="J_per_m3"/>
+        <!--var R_svc: js_per_m6 ;-->
+        <!-- Constitutive Relations-->
+        <variable name="a" public_interface="in" units="m3_per_J"/>
+        <!--var a: m3_per_J {init: 7.8867e-4};-->
+        <variable name="b" public_interface="in" units="m3_per_J"/>
+        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="d_ec" public_interface="in" units="meter"/>
+        <variable name="del_pvm" public_interface="out" units="J_per_m3"/>
+        <variable name="Q_delaypv" public_interface="out" units="m3_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>v_w</ci>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_w</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>Q_delaypv</ci>
+                        <ci>v_w</ci>
+                    </apply>
+                    <ci>delT</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Q_delaypv</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -102,38 +280,63 @@
                         <ci>u_w</ci>
                         <ci>u_m</ci>
                     </apply>
-                    <ci>R_pv</ci>
+                    <ci>R_pvm</ci>
                 </apply>
             </apply>
-        </math>
-    </component>
-    <component name="Lymph_vessel_mid">
-        <!-- Constitutive parameters-->
-        <variable name="t" public_interface="in" units="second"/>
-        <variable name="mu" public_interface="in" units="Js_per_m3"/>
-        <variable name="L" public_interface="in" units="metre"/>
-        <variable name="D" public_interface="in" units="cm"/>
-        <variable name="q_0" public_interface="in" units="m3"/>
-        <variable name="C_L" public_interface="in" units="m6_per_J"/>
-        <variable name="R_pv" public_interface="in" units="Js_per_m6"/>
-        <variable name="R_p" public_interface="out" units="Js_per_m6"/>
-        <variable name="a_f" public_interface="in" units="dimensionless"/>
-        <variable name="R_sv" public_interface="in" units="Js_per_m6"/>
-        <!--State Variables-->
-        <variable name="v_p1" public_interface="in" units="m3_per_s"/>
-        <variable name="v_p2" public_interface="in" units="m3_per_s"/>
-        <variable name="v_p31" public_interface="out" units="m3_per_s"/>
-        <variable name="v_p32" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
-        <variable name="v1" public_interface="in" units="m3_per_s"/>
-        <variable name="v_w" public_interface="in" units="m3_per_s"/>
-        <variable name="u_w" public_interface="out" units="J_per_m3"/>
-        <variable name="u_m" public_interface="out" units="J_per_m3"/>
-        <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="120" name="u_in" public_interface="in" units="J_per_m3"/>
-        <!--var R_svc: js_per_m6 ;-->
-        <!-- Constitutive Relations-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>R_pvm</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">4000</cn>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <pi/>
+                                <ci>L</ci>
+                                <ci>D</ci>
+                            </apply>
+                            <ci>d_ec</ci>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <cosh/>
+                                <apply>
+                                    <times/>
+                                    <ci>a</ci>
+                                    <ci>del_pvm</ci>
+                                </apply>
+                            </apply>
+                            <cn cellml:units="dimensionless">1</cn>
+                        </apply>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <ci>b</ci>
+                                </apply>
+                                <ci>del_pvm</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>del_pvm</ci>
+                <apply>
+                    <minus/>
+                    <ci>u_w</ci>
+                    <ci>u_m</ci>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <apply>
@@ -227,13 +430,21 @@
                     <apply>
                         <divide/>
                         <apply>
-                            <minus/>
-                            <ci>q_m</ci>
-                            <ci>q_0</ci>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <minus/>
+                                <ci>q_m</ci>
+                                <ci>q_0</ci>
+                            </apply>
                         </apply>
-                        <ci>C_I</ci>
+                        <ci>C_L</ci>
                     </apply>
-                    <ci>u_w</ci>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">0.98</cn>
+                        <ci>u_w</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
@@ -253,43 +464,114 @@
                             <cn cellml:units="dimensionless">0.5</cn>
                             <ci>R_p</ci>
                         </apply>
-                        <ci>R_sv3</ci>
+                        <ci>R_sv</ci>
                     </apply>
                 </apply>
             </apply>
             <apply>
                 <eq/>
-                <ci>u_out</ci>
+                <ci>D</ci>
                 <apply>
                     <times/>
+                    <cn cellml:units="dimensionless">2</cn>
                     <apply>
-                        <divide/>
+                        <root/>
                         <apply>
-                            <times/>
-                            <ci>u_ec</ci>
-                            <cn cellml:units="dimensionless">98.066</cn>
-                        </apply>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <apply>
-                        <minus/>
-                        <cn cellml:units="dimensionless">3</cn>
-                        <apply>
-                            <cos/>
+                            <divide/>
+                            <ci>q_m</ci>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>f_1</ci>
-                                <ci>t</ci>
+                                <ci>L</ci>
                             </apply>
                         </apply>
                     </apply>
                 </apply>
             </apply>
+            <!--u_out = u_ec*98.066{dimensionless}/2{dimensionless}*(3{dimensionless}-cos(2{dimensionless}*pi*f_1*t));-->
+            <!--v_w = (u_w-u_m)/R_pv;-->
             <apply>
                 <eq/>
-                <ci>v_w</ci>
+                <ci>R_sv</ci>
+                <piecewise>
+                    <piece>
+                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>1</cn>
+                        <apply>
+                            <geq/>
+                            <ci>u_m</ci>
+                            <ci>u_out</ci>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>25</cn>
+                        <apply>
+                            <lt/>
+                            <ci>u_m</ci>
+                            <ci>u_out</ci>
+                        </apply>
+                    </piece>
+                </piecewise>
+            </apply>
+        </math>
+    </component>
+    <!--//////////////////////-->
+    <component name="Lymph_vessel_out">
+        <!-- Constitutive parameters-->
+        <variable name="delT" public_interface="in" units="second"/>
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="L" public_interface="in" units="meter"/>
+        <variable name="D" public_interface="out" units="meter"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
+        <variable name="C_L" public_interface="in" units="m6_per_J"/>
+        <variable name="R_pvo" public_interface="out" units="Js_per_m6"/>
+        <variable name="R_p" public_interface="out" units="Js_per_m6"/>
+        <!--var a_f: dimensionless {pub: in};-->
+        <variable name="R_sv" public_interface="out" units="Js_per_m6"/>
+        <!--State Variables-->
+        <variable name="v_p321" public_interface="in" units="m3_per_s"/>
+        <variable name="v_p322" public_interface="in" units="m3_per_s"/>
+        <variable name="v_p41" public_interface="out" units="m3_per_s"/>
+        <variable name="v_p42" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
+        <!--var v1: m3_per_s {pub: in};-->
+        <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
+        <variable name="u_w" public_interface="in" units="J_per_m3"/>
+        <variable name="u_m" public_interface="out" units="J_per_m3"/>
+        <variable name="u_out" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="250" name="u_in4" public_interface="out" units="J_per_m3"/>
+        <!--var R_svc: js_per_m6 ;-->
+        <variable name="a" public_interface="in" units="m3_per_J"/>
+        <!--var a: m3_per_J {init: 7.8867e-4};-->
+        <variable name="b" public_interface="in" units="m3_per_J"/>
+        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="d_ec" public_interface="in" units="meter"/>
+        <!-- Constitutive Relations-->
+        <variable name="del_pvO" public_interface="out" units="J_per_m3"/>
+        <variable name="Q_delayO" public_interface="out" units="m3_per_s"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v_w</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>Q_delayO</ci>
+                        <ci>v_w</ci>
+                    </apply>
+                    <ci>delT</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Q_delayO</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -297,29 +579,266 @@
                         <ci>u_w</ci>
                         <ci>u_m</ci>
                     </apply>
-                    <ci>R_pv</ci>
+                    <ci>R_pvo</ci>
                 </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>R_pvo</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">4000</cn>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <pi/>
+                                <ci>L</ci>
+                                <ci>D</ci>
+                            </apply>
+                            <ci>d_ec</ci>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <cosh/>
+                                <apply>
+                                    <times/>
+                                    <ci>a</ci>
+                                    <ci>del_pvO</ci>
+                                </apply>
+                            </apply>
+                            <cn cellml:units="dimensionless">1</cn>
+                        </apply>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <ci>b</ci>
+                                </apply>
+                                <ci>del_pvO</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>del_pvO</ci>
+                <apply>
+                    <minus/>
+                    <ci>u_w</ci>
+                    <ci>u_m</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>u_in4</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">2</cn>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <plus/>
+                                <ci>v_p321</ci>
+                                <ci>v_p322</ci>
+                            </apply>
+                            <ci>v_p41</ci>
+                        </apply>
+                    </apply>
+                    <ci>C_L</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>q_m</ci>
+                </apply>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <minus/>
+                        <ci>v_w</ci>
+                        <ci>v_p42</ci>
+                    </apply>
+                    <ci>v_p41</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>R_p</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">64</cn>
+                        <ci>mu</ci>
+                        <ci>L</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>D</ci>
+                            <cn cellml:units="dimensionless">4</cn>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>v_p41</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>u_in4</ci>
+                        <ci>u_m</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">0.5</cn>
+                        <ci>R_p</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_m</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <apply>
+                                <minus/>
+                                <ci>q_m</ci>
+                                <ci>q_0</ci>
+                            </apply>
+                        </apply>
+                        <ci>C_L</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">0.98</cn>
+                        <ci>u_w</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>v_p42</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>u_m</ci>
+                        <ci>u_out</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                            <ci>R_p</ci>
+                        </apply>
+                        <ci>R_sv</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>D</ci>
+                <apply>
+                    <times/>
+                    <cn cellml:units="dimensionless">2</cn>
+                    <apply>
+                        <root/>
+                        <apply>
+                            <divide/>
+                            <ci>q_m</ci>
+                            <apply>
+                                <times/>
+                                <pi/>
+                                <ci>L</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!--u_out = u_ec*98.066{dimensionless}/2{dimensionless}*(3{dimensionless}-cos(2{dimensionless}*pi*f_1*t));-->
+            <!--v_w = (u_w-u_m)/R_pv;-->
+            <!--R_pvo = sel
+ case u_w >= u_m:
+    1000{dimensionless}/(2{dimensionless}*pi*L*D/d_ec*(cosh(a*del_pvO)-1{dimensionless})*exp(-b*del_pvO));
+ otherwise:
+       1e25{Js_per_m6};
+endsel;-->
+            <apply>
+                <eq/>
+                <ci>R_sv</ci>
+                <piecewise>
+                    <piece>
+                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>1</cn>
+                        <apply>
+                            <geq/>
+                            <ci>u_m</ci>
+                            <ci>u_out</ci>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>25</cn>
+                        <apply>
+                            <lt/>
+                            <ci>u_m</ci>
+                            <ci>u_out</ci>
+                        </apply>
+                    </piece>
+                </piecewise>
             </apply>
         </math>
     </component>
     <!--//////////////////////////////////////////////////////////////////////-->
     <component name="intersttitial_space">
         <variable name="t" public_interface="in" units="second"/>
+        <variable name="u_ec" public_interface="in" units="J_per_m3"/>
+        <variable name="f_1" public_interface="in" units="Hz"/>
         <!--var t_01: second {pub: in};-->
-        <variable initial_value="0.01" name="mu" units="Js_per_m3"/>
-        <variable initial_value="0.0003" name="r" units="meter"/>
-        <variable initial_value="0.025" name="D" units="cm"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <variable name="r" public_interface="in" units="meter"/>
+        <variable name="D" public_interface="in" units="meter"/>
         <!--var P_e: dyn_per_cm2 {init: 2100};           -->
-        <variable initial_value="1e-13" name="K" units="m2"/>
-        <variable name="R_I" units="Js_per_m6"/>
+        <variable name="K" public_interface="in" units="m2"/>
+        <variable name="R_I" public_interface="out" units="Js_per_m6"/>
         <!--var u_in1: J_per_m3 {init: 150};-->
-        <variable name="u_e" public_interface="in" units="J_per_m3"/>
-        <variable name="v_wI" public_interface="out" units="m3_per_s"/>
+        <variable name="u_e" public_interface="out" units="J_per_m3"/>
+        <variable name="v_wI" public_interface="in" units="m3_per_s"/>
         <variable name="v_I" public_interface="out" units="m3_per_s"/>
         <variable name="C_I" public_interface="in" units="m6_per_J"/>
         <!--{init: 6.0015e-15};-->
-        <variable initial_value="150" name="u_wI" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="0.001" name="L" units="meter"/>
+        <variable initial_value="150" name="u_wI" public_interface="out" units="J_per_m3"/>
+        <variable name="L" public_interface="in" units="meter"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -328,6 +847,7 @@
                     <divide/>
                     <apply>
                         <times/>
+                        <cn cellml:units="dimensionless">1</cn>
                         <ci>mu</ci>
                         <apply>
                             <ln/>
@@ -355,6 +875,37 @@
                     </apply>
                 </apply>
             </apply>
+            <apply>
+                <eq/>
+                <ci>u_e</ci>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <times/>
+                            <ci>u_ec</ci>
+                            <cn cellml:units="dimensionless">98.066</cn>
+                        </apply>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <apply>
+                        <minus/>
+                        <cn cellml:units="dimensionless">3</cn>
+                        <apply>
+                            <cos/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <pi/>
+                                <ci>f_1</ci>
+                                <ci>t</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!--mu*ln((2{dimensionless}*r+D)/D)/(2{dimensionless}*pi*L*K);-->
             <apply>
                 <eq/>
                 <apply>

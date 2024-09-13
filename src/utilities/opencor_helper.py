@@ -71,10 +71,10 @@ class SimulationHelper():
         # mem = self.process_memory()
         # print(f'memory_pre_clear={mem}')
         self.simulation.reset(True)
-        if only_one_exp != -1:
-            # for some reason if i only do one simulation and then release values there is a seg fault.
-            # so here i don't release all values.
-            self.simulation.release_all_values()
+        # if only_one_exp != -1:
+        #     # for some reason if i only do one simulation and then release values there is a seg fault.
+        #     # so here i don't release all values.
+        self.simulation.release_all_values()
         self.simulation.clear_results()
         # mem = self.process_memory()
         # print(f'memory_post_clear={mem}')
