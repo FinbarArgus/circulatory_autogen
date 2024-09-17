@@ -2786,6 +2786,10 @@
     ],
     "exit_ports":
     [
+      {
+        "port_type":"pressure_port",
+        "variables":["P"]
+      }
     ],
     "variables_and_units":
     [
@@ -5788,6 +5792,10 @@
     "module_type":"cardiopulmonary_receptor_Gee2023",
     "entrance_ports":
     [
+      {
+        "port_type":"pressure_port",
+        "variables":["P"]
+      }
     ],
     "exit_ports":
     [
