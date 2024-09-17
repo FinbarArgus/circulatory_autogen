@@ -154,13 +154,7 @@
             </apply>
             <apply>
                 <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>C_CO2_p</ci>
-                </apply>
+                <ci>d_C_O2_p_dt</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -178,6 +172,17 @@
                     </apply>
                     <ci>q_0</ci>
                 </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>C_CO2_p</ci>
+                </apply>
+                <ci>d_C_O2_p_dt</ci>
             </apply>
             <!-- from inverted dissociation-->
             <apply>

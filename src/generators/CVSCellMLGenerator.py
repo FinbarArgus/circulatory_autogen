@@ -493,6 +493,8 @@ class CVS0DCellMLGenerator(object):
             self.__check_input_output_modules(module_df, main_module, out_module,
                                               main_module_BC_type, out_module_BC_type,
                                               main_module_type, out_module_type)
+            self.__check_input_output_ports(module_row["exit_ports"], out_module_row["entrance_ports"],
+                                            out_module, main_module)
 
             # create a list of dicts that stores info for the entrance ports of this output module
             entrance_port_types = []
@@ -951,6 +953,7 @@ class CVS0DCellMLGenerator(object):
         if main_vessel_BC_type.startswith('nn'):
             return
 
+
         if len(main_vessel_BC_type) > 2:
             temp_main_vessel_BC_type = main_vessel_BC_type[:2]
         else:
@@ -966,6 +969,21 @@ class CVS0DCellMLGenerator(object):
                 print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                       ' should be v')
                 exit()
+
+    def __check_input_output_ports(self, exit_ports, entrance_ports, exit_port_name, entrance_port_name):
+        # check that input and output modules have a matching port
+        shared_port = False
+        for exit_port in exit_ports:
+            if exit_port["port_type"] in [entrance_port["port_type"] for entrance_port in entrance_ports]:
+                shared_port = True
+                break
+        if shared_port == False:
+            print(f'output module {exit_port_name} and input module {entrance_port_name} do not have a matching port,'
+                  f'check the module configuration file')
+            print(f'input module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
+            print(f'output module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
+            exit()
+            
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
         mapping = ['<connection>\n', f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n']

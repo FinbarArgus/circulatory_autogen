@@ -68,9 +68,21 @@
     <!--cardiopulmonary receptors ///////////////////////////////////////////////////////////////-->
     <!--step fxn for testing, replace w/ valid data  ********************************************-->
     <component name="cardiopulmonary_receptor_Gee2023">
+        <variable name="P_pv" public_interface="in" units="mmHg"/>
+        <variable name="P_mus" public_interface="in" units="mmHg"/>
         <variable name="P_pv_P_thor" public_interface="out" units="mmHg"/>
         <variable name="t" public_interface="in" units="second"/>
+        <!-- P_mus is closest equivalent to P_thor in Finbar's lung model-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>P_pv_P_thor</ci>
+                <apply>
+                    <minus/>
+                    <ci>P_pv</ci>
+                    <ci>P_mus</ci>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>P_pv_P_thor</ci>
