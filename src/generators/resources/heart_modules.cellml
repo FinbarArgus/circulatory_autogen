@@ -55,10 +55,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" public_interface="out" units="dimensionless"/>
-        <variable name="L_puv" public_interface="out" units="dimensionless"/>
-        <variable name="L_miv" public_interface="out" units="dimensionless"/>
-        <variable name="L_aov" public_interface="out" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" public_interface="out" units="m2"/>
         <variable name="A_eff_puv" public_interface="out" units="m2"/>
         <variable name="A_eff_miv" public_interface="out" units="m2"/>
@@ -85,10 +85,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" public_interface="out" units="dimensionless"/>
-        <variable name="B_puv" public_interface="out" units="dimensionless"/>
-        <variable name="B_miv" public_interface="out" units="dimensionless"/>
-        <variable name="B_aov" public_interface="out" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_puv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_miv" public_interface="out" units="dimensionless"/>
@@ -1373,10 +1373,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" units="dimensionless"/>
-        <variable name="L_puv" units="dimensionless"/>
-        <variable name="L_miv" units="dimensionless"/>
-        <variable name="L_aov" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" public_interface="out" units="m2"/>
         <variable name="A_eff_puv" public_interface="out" units="m2"/>
         <variable name="A_eff_miv" public_interface="out" units="m2"/>
@@ -1403,10 +1403,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" public_interface="out" units="dimensionless"/>
-        <variable name="B_puv" public_interface="out" units="dimensionless"/>
-        <variable name="B_miv" public_interface="out" units="dimensionless"/>
-        <variable name="B_aov" public_interface="out" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_puv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_miv" public_interface="out" units="dimensionless"/>
@@ -2634,10 +2634,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" public_interface="out" units="dimensionless"/>
-        <variable name="L_puv" public_interface="out" units="dimensionless"/>
-        <variable name="L_miv" public_interface="out" units="dimensionless"/>
-        <variable name="L_aov" public_interface="out" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" public_interface="out" units="m2"/>
         <variable name="A_eff_puv" public_interface="out" units="m2"/>
         <variable name="A_eff_miv" public_interface="out" units="m2"/>
@@ -2664,10 +2664,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" public_interface="out" units="dimensionless"/>
-        <variable name="B_puv" public_interface="out" units="dimensionless"/>
-        <variable name="B_miv" public_interface="out" units="dimensionless"/>
-        <variable name="B_aov" public_interface="out" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_puv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_miv" public_interface="out" units="dimensionless"/>
@@ -3898,10 +3898,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" public_interface="out" units="dimensionless"/>
-        <variable name="L_puv" public_interface="out" units="dimensionless"/>
-        <variable name="L_miv" public_interface="out" units="dimensionless"/>
-        <variable name="L_aov" public_interface="out" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" public_interface="out" units="m2"/>
         <variable name="A_eff_puv" public_interface="out" units="m2"/>
         <variable name="A_eff_miv" public_interface="out" units="m2"/>
@@ -3928,10 +3928,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" public_interface="out" units="dimensionless"/>
-        <variable name="B_puv" public_interface="out" units="dimensionless"/>
-        <variable name="B_miv" public_interface="out" units="dimensionless"/>
-        <variable name="B_aov" public_interface="out" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_puv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_miv" public_interface="out" units="dimensionless"/>
@@ -5192,10 +5192,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" public_interface="out" units="dimensionless"/>
-        <variable name="L_puv" public_interface="out" units="dimensionless"/>
-        <variable name="L_miv" public_interface="out" units="dimensionless"/>
-        <variable name="L_aov" public_interface="out" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" public_interface="out" units="m2"/>
         <variable name="A_eff_puv" public_interface="out" units="m2"/>
         <variable name="A_eff_miv" public_interface="out" units="m2"/>
@@ -5222,10 +5222,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" public_interface="out" units="dimensionless"/>
-        <variable name="B_puv" public_interface="out" units="dimensionless"/>
-        <variable name="B_miv" public_interface="out" units="dimensionless"/>
-        <variable name="B_aov" public_interface="out" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_puv" public_interface="out" units="dimensionless"/>
         <variable name="zeta_miv" public_interface="out" units="dimensionless"/>
@@ -6550,10 +6550,10 @@
         <variable name="v_svc" public_interface="in" units="m3_per_s"/>
         <variable name="v_ivc" public_interface="in" units="m3_per_s"/>
         <variable name="v_pvn" public_interface="in" units="m3_per_s"/>
-        <variable name="L_trv" units="dimensionless"/>
-        <variable name="L_puv" units="dimensionless"/>
-        <variable name="L_miv" units="dimensionless"/>
-        <variable name="L_aov" units="dimensionless"/>
+        <variable name="L_trv" units="Js2_per_m6"/>
+        <variable name="L_puv" units="Js2_per_m6"/>
+        <variable name="L_miv" units="Js2_per_m6"/>
+        <variable name="L_aov" units="Js2_per_m6"/>
         <variable name="A_eff_trv" units="m2"/>
         <variable name="A_eff_puv" units="m2"/>
         <variable name="A_eff_miv" units="m2"/>
@@ -6580,10 +6580,10 @@
         <variable name="M_st_miv" public_interface="in" units="dimensionless"/>
         <variable name="M_st_aov" public_interface="in" units="dimensionless"/>
         <variable name="rho" public_interface="in" units="Js2_per_m5"/>
-        <variable name="B_trv" units="dimensionless"/>
-        <variable name="B_puv" units="dimensionless"/>
-        <variable name="B_miv" units="dimensionless"/>
-        <variable name="B_aov" units="dimensionless"/>
+        <variable name="B_trv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov" public_interface="out" units="Js2_per_m9"/>
         <variable name="zeta_trv" units="dimensionless"/>
         <variable name="zeta_puv" units="dimensionless"/>
         <variable name="zeta_miv" units="dimensionless"/>
@@ -6984,10 +6984,10 @@
             </apply>
         </math>
         <!-- Valve model-->
-        <variable name="B_trv_pre" units="dimensionless"/>
-        <variable name="B_puv_pre" units="dimensionless"/>
-        <variable name="B_miv_pre" units="dimensionless"/>
-        <variable name="B_aov_pre" units="dimensionless"/>
+        <variable name="B_trv_pre" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_puv_pre" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_miv_pre" public_interface="out" units="Js2_per_m9"/>
+        <variable name="B_aov_pre" public_interface="out" units="Js2_per_m9"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
