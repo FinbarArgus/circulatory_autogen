@@ -2131,6 +2131,13 @@ class OpencorParamID():
                         #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
                         #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
                         #
+
+                        # set the cases with nan cost to have a very large but not nan cost
+                        for idx in range(num_pop):
+                            if np.isnan(cost[idx]):
+                                cost[idx] = 1e25
+                            if cost[idx] > 1e25:
+                                cost[idx] = 1e25
                         survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
                         rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
                                                             size=num_survivors-num_elite, p=survive_prob)
@@ -2468,7 +2475,7 @@ class OpencorParamID():
                     pred_outputs_list.append(pred_outputs)
                 # reset params
                 if reset:
-                    self.sim_helper.reset_and_clear(only_one_exp=only_one_exp)
+                    self.sim_helper.reset_and_clear()
 
             else:
                 # simulation set cost to large,
@@ -2557,7 +2564,7 @@ class OpencorParamID():
 
         return cost, operands_outputs_list, pred_outputs_list
 
-    def get_cost_and_obs_from_params(self, param_vals, reset=True, only_one_exp=1):
+    def get_cost_and_obs_from_params(self, param_vals, reset=True, only_one_exp=-1):
         cost, obs, _ = self.get_cost_obs_and_pred_from_params(param_vals, reset=reset, only_one_exp=only_one_exp)
         return cost, obs
 

@@ -71,9 +71,6 @@ class SimulationHelper():
         # mem = self.process_memory()
         # print(f'memory_pre_clear={mem}')
         self.simulation.reset(True)
-        # if only_one_exp != -1:
-        #     # for some reason if i only do one simulation and then release values there is a seg fault.
-        #     # so here i don't release all values.
         self.simulation.release_all_values()
         self.simulation.clear_results()
         # mem = self.process_memory()
@@ -104,9 +101,9 @@ class SimulationHelper():
                 if variable_name == 'time':
                     results[JJ].append(self.tSim)
                 elif variable_name in self.simulation.results().states():
-                    results[JJ].append(self.simulation.results().states()[variable_name].values()[-self.n_steps - 1:])
+                    results[JJ].append(self.simulation.results().states()[variable_name].values()[-self.n_steps - 1:].copy())
                 elif variable_name in self.simulation.results().algebraic():
-                    results[JJ].append(self.simulation.results().algebraic()[variable_name].values()[-self.n_steps-1:])
+                    results[JJ].append(self.simulation.results().algebraic()[variable_name].values()[-self.n_steps-1:].copy())
                 elif variable_name in self.data.constants():
                     results[JJ].append(self.data.constants()[variable_name])
                 else:
