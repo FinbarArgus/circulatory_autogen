@@ -8,7 +8,7 @@ DEBUG: False
 # file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
 # file_prefix: physiological
-file_prefix: 3compartment
+# file_prefix: 3compartment
 # file_prefix: delay_test
 # file_prefix: neonatal
 # file_prefix: neonatal_test
@@ -17,7 +17,7 @@ file_prefix: 3compartment
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
-# file_prefix: chemoreceptor
+file_prefix: chemoreceptor
 # file_prefix: test_units
 # file_prefix: parasympathetic_model
 # file_prefix: control_parasymp
@@ -35,12 +35,12 @@ file_prefix: 3compartment
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
 # input_param_file: control_parasymp_parameters.csv 
-input_param_file: 3compartment_parameters.csv 
+# input_param_file: 3compartment_parameters.csv 
 # input_param_file: cardiomyocyte_paci_2013_parameters.csv 
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
-# input_param_file: chemoreceptor_parameters.csv
+input_param_file: chemoreceptor_parameters.csv
 # input_param_file: test_units_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
 # input_param_file: control_parasymp_parameters.csv
@@ -77,6 +77,10 @@ sim_time: 2.0
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/generated_models
 # param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/param_id_output
 # param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/resources/Gee_coupled_obs_data.json
+resources_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/resources
+generated_models_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/generated_models
+param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/param_id_output
+param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/David_chemoreceptor/resources/chemoreceptor_obs_data.json
 
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
