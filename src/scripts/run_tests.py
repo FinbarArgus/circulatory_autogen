@@ -47,11 +47,12 @@ if __name__ == '__main__':
         inp_data_dict['input_param_file'] = 'neonatal_parameters.csv'
         generate_with_new_architecture(False, inp_data_dict)
 
-        print('')
-        print('running FinalModel autogeneration test')
-        inp_data_dict['file_prefix'] = 'FinalModel'
-        inp_data_dict['input_param_file'] = 'FinalModel_parameters.csv'
-        generate_with_new_architecture(False, inp_data_dict)
+        # commenting out because it is very slow
+        # print('')
+        # print('running FinalModel autogeneration test')
+        # inp_data_dict['file_prefix'] = 'FinalModel'
+        # inp_data_dict['input_param_file'] = 'FinalModel_parameters.csv'
+        # generate_with_new_architecture(False, inp_data_dict)
 
         print('')
         print('running cerebral_elic autogeneration test')

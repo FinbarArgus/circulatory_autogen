@@ -1,49 +1,11 @@
 #_______ general inputs ________
 DEBUG: False
-# file_prefix: new_valve_p_est
-# file_prefix: control_phys
-# file_prefix: control_parasymp
-# file_prefix: lung_ROM
-# file_prefix: lung_control
-# file_prefix: lung_CVS_coupled
-# file_prefix: simple_physiological
-# file_prefix: physiological
+user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/SN_SHR/user_inputs_SN_SHR.yaml # set this to False if you do not want to specify a user_inputs file in a different location.
 file_prefix: 3compartment
-# file_prefix: delay_test
-# file_prefix: neonatal
-# file_prefix: neonatal_test
-# file_prefix: cpp_coupling
-# file_prefix: aortic_bif_1d_wCont
-# file_prefix: cardiomyocyte_paci_2013 
-# file_prefix: temp_channel
-# file_prefix: delay_test 
-# file_prefix: chemoreceptor
-# file_prefix: test_units
-# file_prefix: parasympathetic_model
-# file_prefix: control_parasymp
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
-# input_param_file: new_valve_p_est_parameters.csv input_param_file: lung_ROM_parameters.csv 
-# input_param_file: lung_ROM_parameters.csv 
-# input_param_file: lung_control_parameters.csv 
-# input_param_file: lung_CVS_coupled_parameters.csv
-# input_param_file: physiological_parameters.csv 
-# input_param_file: cpp_coupling_parameters.csv 
-# input_param_file: aortic_bif_1d_wCont_parameters.csv 
-# input_param_file: neonatal_parameters.csv 
-# input_param_file: neonatal_test_parameters.csv 
-# input_param_file: control_phys_parameters.csv 
-# input_param_file: control_parasymp_parameters.csv 
 input_param_file: 3compartment_parameters.csv 
-# input_param_file: cardiomyocyte_paci_2013_parameters.csv 
-# input_param_file: temp_channel_parameters.csv 
-# input_param_file: delay_test_parameters.csv
-# input_param_file: simple_physiological_parameters.csv
-# input_param_file: chemoreceptor_parameters.csv
-# input_param_file: test_units_parameters.csv
-# input_param_file: parasympathetic_model_parameters.csv
-# input_param_file: control_parasymp_parameters.csv
 
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
@@ -69,15 +31,10 @@ sim_time: 2.0
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
-# resources_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources
-# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/generated_models
-# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/SN_SHR/param_id_output
-# param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/SN_SHR/resources/tonic_to_phasic_obs_data.json
-# resources_dir: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/resources
-# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/generated_models
-# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/param_id_output
-# param_id_obs_path: /home/farg967/Documents/git_projects/CA_user/Gee_coupled/resources/Gee_coupled_obs_data.json
-
+# specify the observable data file path used for parameter identification
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
+#
+# it is recommended that users create their own CA_user directory to store input resources and output generated model files. e.g.
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
 # param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/param_id_output
@@ -98,50 +55,7 @@ solver_info:
   MaximumNumberOfSteps: 5000
 
     # This for 3compartment
-# param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
-# param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB055.json
-# param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/lv_estimation_observables_BB044_wout_lv.json
 # param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
-#
-#
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB044_wout_lv.json
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB047_wout_lv.json
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB055_wout_lv.json
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB104_wout_lv.json
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB105_wout_lv.json
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined/lv_estimation_observables_BB133.json
-
-# This for simple_physiological (doesn't use experimental data)
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
-
-# param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/simple_physiological_obs_data.json
-
-# for lung_control
-# param_id_obs_path: /eresearch/heart/farg967/Sandboxes/Finbar/combined_2/lv_estimation_observables_BB044.json
-# param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/combined_2/lv_estimation_observables_BB044.json
-
-# This for physiological
-# param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB128.json 
-# param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB136.json 
-# param_id_obs_path: /hpc/heart-mechanics-research/projects/Argus_2022/observables_biobeat_BB153.json 
-# param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB136.json 
-# param_id_obs_path: /home/farg967/Documents/data/heart_projects/Argus_2022/observables_biobeat_BB153.json 
-
-# This is for neonatal
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data.json
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_obs_data_23_v1_freq.json
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/neonatal_test_obs_data.json
-#
-# This for lung_ROM
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-prePEA_obs_data.json
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-# param_id_obs_path: /people/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_lobe_imped-postPEA_obs_data.json
-# param_id_obs_path: /home/farg967/Documents/data/pulmonary/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
-# this is for testing frequency fitting
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/pulmonary_full_obs_data.json
-
-# this for Sympathetic Neuron
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/SN_to_cAMP_obs_data.json
 
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false
