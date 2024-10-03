@@ -1,6 +1,6 @@
 #_______ general inputs ________
 DEBUG: False
-user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/SN_SHR/user_inputs_SN_SHR.yaml # set this to False if you do not want to specify a user_inputs file in a different location.
+user_inputs_path_override: False # /home/farg967/Documents/git_projects/CA_user/SN_SHR/user_inputs_SN_SHR.yaml # set this to False if you do not want to specify a user_inputs file in a different location.
 file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
@@ -62,9 +62,9 @@ do_sensitivity: false
 
 #______ genetic algorithm inputs ___________
 ga_options:
-  # TODO Should we move cost_type to obs_data.json file so each observable can have a specified cost function calculation?
-  # TODO This should eventually be a user_defined cost_function. 
-  cost_type: MSE
+  cost_type: MSE # This should be defined for each entry in the
+                 # obs_data.json file instead. Currently if there is no cost_type entry in the
+                 # obs_data.json entry, it will be set to this entry
   # maximum number of calls to the forward function during one run of the param_id_method
   num_calls_to_function: 5000
   cost_convergence: 0.001

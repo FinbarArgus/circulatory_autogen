@@ -82,6 +82,7 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
+        self.ga_options = ga_options
         self.solver_info = solver_info
         self.dt = dt
 
@@ -1234,6 +1235,17 @@ class CVS0DParamID():
                     weight_phase_list.append(self.gt_df.iloc[II]["phase_weight"])
         self.obs_info["weight_phase_vec"] = np.array(weight_phase_list)
 
+        # set the cost type for each observable
+        self.obs_info["cost_type"] = []
+        for II in range(self.gt_df.shape[0]):
+            if "cost_type" in self.gt_df.iloc[II].keys():
+                self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
+            else:
+                if "cost_type" in self.ga_options.keys():
+                    self.obs_info["cost_type"].append(self.ga_options["cost_type"]) # default to cost type in ga_options
+                else:
+                    self.obs_info["cost_type"].append("MSE") # default to mean squared error
+
         # preprocess information in the protocol_info dataframe
         self.protocol_info['num_experiments'] = len(self.protocol_info["sim_times"])
         self.protocol_info['num_sub_per_exp'] = [len(self.protocol_info["sim_times"][II]) for II in range(self.protocol_info["num_experiments"])]
@@ -1493,6 +1505,24 @@ class CVS0DParamID():
         self.obs_info["ground_truth_amp"] = ground_truth_amp
         self.obs_info["ground_truth_phase"] = ground_truth_phase
 
+        # create a mapping between const_idx and the obs_idx
+        const_count = 0
+        series_count = 0
+        freq_count = 0
+        self.obs_info["const_idx_to_obs_idx"] = []
+        self.obs_info["series_idx_to_obs_idx"] = []
+        self.obs_info["freq_idx_to_obs_idx"] = []
+        for obs_idx in range(self.obs_info["num_obs"]):
+            if self.obs_info["data_types"][obs_idx] == "constant":
+                self.obs_info["const_idx_to_obs_idx"].append(obs_idx)
+                const_count += 1
+            elif self.obs_info["data_types"][obs_idx] == "series":
+                self.obs_info["series_idx_to_obs_idx"].append(obs_idx)
+                series_count += 1
+            elif self.obs_info["data_types"][obs_idx] == "frequency":
+                self.obs_info["freq_idx_to_obs_idx"].append(obs_idx)
+                freq_count += 1
+
         return 
     
     def get_best_param_vals(self):
@@ -1714,6 +1744,7 @@ class OpencorParamID():
 
         sfp = scriptFunctionParser()
         self.operation_funcs_dict = sfp.get_operation_funcs_dict()
+        self.cost_funcs_dict = sfp.get_cost_funcs_dict()
 
         # set up opencor simulation
         self.dt = dt
@@ -1755,18 +1786,19 @@ class OpencorParamID():
 
         if ga_options is not None:
             self.ga_options = ga_options
-            if 'cost_type' not in self.ga_options.keys():
-                self.ga_options['cost_type'] = 'MSE'
+            # if 'cost_type' not in self.ga_options.keys():
+            #     self.ga_options['cost_type'] = 'MSE'
             if 'cost_convergence' not in self.ga_options.keys():
                 self.ga_options['cost_convergence'] = 0.0001
             if 'num_calls_to_function' not in self.ga_options.keys():
                 self.ga_options['num_calls_to_function'] = 10000
         else:
             self.ga_options = {}
-            self.ga_options['cost_type'] = 'MSE'
+            # self.ga_options['cost_type'] = 'MSE'
             self.ga_options['cost_convergence'] = 0.0001
             self.ga_options['num_calls_to_function'] = 10000
-        self.cost_type = self.ga_options['cost_type']
+        # self.cost_type = self.ga_options['cost_type']
+        self.cost_type = self.obs_info["cost_type"]
 
         self.DEBUG = DEBUG
 
@@ -2639,66 +2671,93 @@ class OpencorParamID():
             phase = None
         if self.obs_info["ground_truth_phase"].all() == None:
             phase = None
-        if self.cost_type == 'MSE':
-            cost = np.sum(np.power(updated_weight_const_vec*(const -
-                               self.obs_info["ground_truth_const"])/self.obs_info["std_const_vec"], 2))
-        elif self.cost_type == 'AE':
-            cost = np.sum(np.abs(updated_weight_const_vec*(const -
-                                                          self.obs_info["ground_truth_const"])/self.obs_info["std_const_vec"]))
-        else:
-            print(f'cost type of {self.cost_type} not implemented')
-            exit()
+        
+        # # TODO change functionality so the cost type is defined in the obs_data.json not the user_inputs.yaml
+        # if self.cost_type == 'MSE':
+        #     cost = np.sum(np.power(updated_weight_const_vec*(const -
+        #                        self.obs_info["ground_truth_const"])/self.obs_info["std_const_vec"], 2))
+        # elif self.cost_type == 'AE':
+        #     cost = np.sum(np.abs(updated_weight_const_vec*(const -
+        #                                                   self.obs_info["ground_truth_const"])/self.obs_info["std_const_vec"]))
+        # else:
+        #     print(f'cost type of {self.cost_type} not implemented')
+        #     exit()
+        cost = 0
+        for const_idx in range(len(const)):
+            obs_idx = self.obs_info['const_idx_to_obs_idx'][const_idx]
+            cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
+                                                   self.obs_info["std_const_vec"][const_idx], updated_weight_const_vec[const_idx])
         
         # TODO debugging a strange error that occurs occasionally in GA
         # assert not np.isnan(cost), 'cost is nan'
         assert isinstance(cost, float), 'cost is not a float'
 
+        series_cost = 0
         if series is not None:
             #print(series)
             min_len_series = min(self.obs_info["ground_truth_series"].shape[1], series.shape[1])
             # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
-            if self.cost_type == 'MSE':
-                series_cost = np.sum(np.power((series[:, :min_len_series] -
-                                               self.obs_info["ground_truth_series"][:,
-                                               :min_len_series]) * updated_weight_series_vec.reshape(-1, 1) /
-                                              self.obs_info["std_series_vec"].reshape(-1, 1), 2)) / min_len_series
-            elif self.cost_type == 'AE':
-                series_cost = np.sum(np.abs((series[:, :min_len_series] -
-                                             self.obs_info["ground_truth_series"][:,
-                                             :min_len_series]) * updated_weight_series_vec.reshape(-1, 1) /
-                                            self.obs_info["std_series_vec"].reshape(-1, 1))) / min_len_series
-        else:
-            series_cost = 0
+            # if self.cost_type == 'MSE':
+            #     series_cost = np.sum(np.power((series[:, :min_len_series] -
+            #                                    self.obs_info["ground_truth_series"][:,
+            #                                    :min_len_series]) * updated_weight_series_vec.reshape(-1, 1) /
+            #                                   self.obs_info["std_series_vec"].reshape(-1, 1), 2)) / min_len_series
+            # elif self.cost_type == 'AE':
+            #     series_cost = np.sum(np.abs((series[:, :min_len_series] -
+            #                                  self.obs_info["ground_truth_series"][:,
+            #                                  :min_len_series]) * updated_weight_series_vec.reshape(-1, 1) /
+            #                                 self.obs_info["std_series_vec"].reshape(-1, 1))) / min_len_series
+            for series_idx in range(len(series)):
+                obs_idx = self.obs_info['series_idx_to_obs_idx'][series_idx]
+                # TODO make sure the weight and std entries are the same shape as the obs entries
+                # TODO when parsing the obs_data.json file ensure if the weight is a constant, change it to a vector
+                series_entry = series[series_idx, :min_len_series]
+                obs_entry = self.obs_info["ground_truth_series"][series_idx, :min_len_series]
+                weight_entry = updated_weight_series_vec[series_idx][series_idx, :min_len_series]
+                std_entry = self.obs_info["std_series_vec"][series_idx, :min_len_series]
+                series_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](series_entry, obs_entry, std_entry, weight_entry)
 
+
+        amp_cost = 0
         if amp is not None:
             # calculate sum of squares cost and divide by number data points in freq data
             # divide by number data points in series data
-            if self.cost_type == 'MSE':
-                amp_cost = np.sum([np.power((amp[JJ] - self.obs_info["ground_truth_amp"][JJ]) *
-                                             updated_weight_amp_vec[JJ] /
-                                             self.obs_info["std_amp_vec"][JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
-            elif self.cost_type == 'AE':
-                amp_cost = np.sum([np.abs((amp[JJ] - self.obs_info["ground_truth_amp"][JJ]) *
-                                             updated_weight_amp_vec[JJ] /
-                                             self.obs_info["std_amp_vec"][JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
-        else:
-            amp_cost = 0
+            # if self.cost_type == 'MSE':
+            #     amp_cost = np.sum([np.power((amp[JJ] - self.obs_info["ground_truth_amp"][JJ]) *
+            #                                  updated_weight_amp_vec[JJ] /
+            #                                  self.obs_info["std_amp_vec"][JJ], 2) / len(amp[JJ]) for JJ in range(len(amp))])
+            # elif self.cost_type == 'AE':
+            #     amp_cost = np.sum([np.abs((amp[JJ] - self.obs_info["ground_truth_amp"][JJ]) *
+            #                                  updated_weight_amp_vec[JJ] /
+            #                                  self.obs_info["std_amp_vec"][JJ]) / len(amp[JJ]) for JJ in range(len(amp))])
+            for amp_idx in range(len(amp)):
+                obs_idx = self.obs_info['freq_idx_to_obs_idx'][amp_idx]
+                amp_entry = amp[amp_idx]
+                obs_entry = self.obs_info["ground_truth_amp"][amp_idx]
+                weight_entry = updated_weight_series_vec[amp_idx]
+                std_entry = self.obs_info["std_amp_vec"][amp_idx]
+                amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
 
+        phase_cost = 0
         if phase is not None:
             # calculate sum of squares cost and divide by number data points in freq data
             # divide by number data points in series data
             # TODO figure out how to properly weight this compared to the frequency weight.
-            if self.cost_type == 'MSE':
-                phase_cost = np.sum([np.power((phase[JJ] - self.obs_info["ground_truth_phase"][JJ]) *
-                                             updated_weight_phase_vec[JJ], 2) / len(phase[JJ]) for JJ in
-                                    range(len(phase))])
-            if self.cost_type == 'AE':
-                phase_cost = np.sum([np.abs((phase[JJ] - self.obs_info["ground_truth_phase"][JJ]) *
-                                              updated_weight_phase_vec[JJ]) / len(phase[JJ]) for JJ in
-                                     range(len(phase))])
-        else:
-            phase_cost = 0
+            # if self.cost_type == 'MSE':
+            #     phase_cost = np.sum([np.power((phase[JJ] - self.obs_info["ground_truth_phase"][JJ]) *
+            #                                  updated_weight_phase_vec[JJ], 2) / len(phase[JJ]) for JJ in
+            #                         range(len(phase))])
+            # if self.cost_type == 'AE':
+            #     phase_cost = np.sum([np.abs((phase[JJ] - self.obs_info["ground_truth_phase"][JJ]) *
+            #                                   updated_weight_phase_vec[JJ]) / len(phase[JJ]) for JJ in
+            #                          range(len(phase))])
+            for phase_idx in range(len(phase)):
+                obs_idx = self.obs_info['freq_idx_to_obs_idx'][phase_idx]
+                phase_entry = phase[phase_idx]
+                obs_entry = self.obs_info["ground_truth_phase"][phase_idx]
+                weight_entry = updated_weight_series_vec[phase_idx]
+                phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
 
         cost = (cost + series_cost + amp_cost + phase_cost) / num_weighted_obs
 
@@ -2955,12 +3014,10 @@ class OpencorMCMC(OpencorParamID):
                 self.mcmc_options['num_walkers'] = 2*self.num_params
                 print('number of mcmc walkers is not set, ',
                     'choosing default of 2*num_params')
-            self.cost_type = self.mcmc_options['cost_type']
         else:
             self.mcmc_options = {}
             self.mcmc_options['num_steps'] = 5000
             self.mcmc_options['num_walkers'] = 2*self.num_params
-            self.cost_type = 'MSE'
             print('number of mcmc steps and walkers is not set, ',
                   'choosing defaults of 5000 and 2*num_params')
 
