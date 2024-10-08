@@ -2815,9 +2815,12 @@ class OpencorParamID():
             elif self.obs_info["data_types"][JJ] == 'frequency':
                 # TODO copy this to mcmc
                 if self.obs_info["operations"][JJ] == None:
-                    time_domain_obs = operands_outputs[JJ]
 
-                    complex_num = np.fft.fft(time_domain_obs)/len(time_domain_obs)
+                    # TODO add a hanning window when doing the fft
+                    time_domain_obs = operands_outputs[JJ]
+                    # time_domain_obs repeated to make the fft work
+
+                    complex_num = np.fft.fft(time_domain_obs)/(len(time_domain_obs)//2)
                     amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
                     # make sure the first amplitude is negative if it is a negative signal
                     amp[0] = amp[0] * np.sign(np.mean(time_domain_obs))
