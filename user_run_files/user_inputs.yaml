@@ -26,7 +26,8 @@ param_id_method: genetic_algorithm
 # pre_time: 3.0
 pre_time: 15.6 # TODO change back to 15.6
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
-sim_time: 2.0
+# NOTE: If doing freq domain fitting make sure the simulation is periodic and the sim time is the period.
+sim_time: 1.0
 
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.

@@ -56,7 +56,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     if do_generation_with_fit_parameters:
         param_id_obs_path = inp_data_dict['param_id_obs_path']
         param_id_method = inp_data_dict['param_id_method']
-        data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        data_str_addon = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
         param_id_output_dir_abs_path = os.path.join(param_id_output_dir, param_id_method + f'_{file_prefix}_{data_str_addon}')
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
                                   param_id_output_dir_abs_path)

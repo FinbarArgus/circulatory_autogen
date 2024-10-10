@@ -3537,7 +3537,8 @@
       ["phi_5", "dimensionless", "access", "constant"],
       ["phi_6", "dimensionless", "access", "constant"],
       ["phi_7", "dimensionless", "access", "constant"],
-      ["phi_8", "dimensionless", "access", "constant"]
+      ["phi_8", "dimensionless", "access", "constant"],
+      ["P", "J_per_m3", "access", "boundary_condition"]
     ]
   },
   {

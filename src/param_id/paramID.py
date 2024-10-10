@@ -352,7 +352,7 @@ class CVS0DParamID():
                                                     color=self.protocol_info["experiment_colors"][exp_idx], marker='v', 
                                                     linestyle='', label='model output')
                             if phase:
-                                axs_phase.plot(self.obs_info["freqs"][II], conversion * best_fit_obs_phase[freq_idx],
+                                axs_phase.plot(self.obs_info["freqs"][II], best_fit_obs_phase[freq_idx],
                                                         color=self.protocol_info["experiment_colors"][exp_idx], marker='v', 
                                                         linestyle='', label='model output')
                                 axs_phase.set_ylabel(f'${obs_name_for_plot}$ phase', fontsize=18)
@@ -419,7 +419,7 @@ class CVS0DParamID():
                                                 'kx', label='measurement')
                         if phase:
                             axs_phase.plot(self.obs_info["freqs"][II],
-                                                    conversion*self.obs_info["ground_truth_phase"][freq_idx],
+                                                    self.obs_info["ground_truth_phase"][freq_idx],
                                                     'kx', label='measurement')
 
                     #also calculate the RMS error for each observable
@@ -1178,10 +1178,16 @@ class CVS0DParamID():
                 if "obs_type" in self.gt_df.iloc[II].keys():
                     if self.gt_df.iloc[II]["obs_type"] == "series":
                         self.obs_info["operations"].append(None)
-                        self.obs_info["operands"].append(None)
+                        if "operands" in self.gt_df.iloc[II].keys():
+                            self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
+                        else:
+                            self.obs_info["operands"].append(None)
                     elif self.gt_df.iloc[II]["obs_type"] == "frequency":
                         self.obs_info["operations"].append(None)
-                        self.obs_info["operands"].append(None)
+                        if "operands" in self.gt_df.iloc[II].keys():
+                            self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
+                        else:
+                            self.obs_info["operands"].append(None)
                     # TODO remove these eventually when I get rid of obs_type
                     elif self.gt_df.iloc[II]["obs_type"] == "min":
                         self.obs_info["operations"].append("min")
@@ -1192,6 +1198,12 @@ class CVS0DParamID():
                     elif self.gt_df.iloc[II]["obs_type"] == "mean":
                         self.obs_info["operations"].append("mean")
                         self.obs_info["operands"].append([self.gt_df.iloc[II]["variable"]])
+                else:
+                    self.obs_info["operations"].append(None)
+                    if "operands" in self.gt_df.iloc[II].keys():
+                        self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
+                    else:
+                        self.obs_info["operands"].append(None)
             elif self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", ""]:
                 self.obs_info["operations"].append(None)
                 self.obs_info["operands"].append(None)
@@ -1333,7 +1345,8 @@ class CVS0DParamID():
                             self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
                             amp_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
                             if "phase_weight" not in self.gt_df.iloc[II].keys():
-                                phase_map[exp_idx][this_sub_idx].append(1)
+                                # if there is no phase weight, weight it the same as the amplitude
+                                phase_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
                             else:
                                 phase_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["phase_weight"])
                         else:
@@ -2682,7 +2695,7 @@ class OpencorParamID():
         # else:
         #     print(f'cost type of {self.cost_type} not implemented')
         #     exit()
-        cost = 0
+        cost = 0.0
         for const_idx in range(len(const)):
             obs_idx = self.obs_info['const_idx_to_obs_idx'][const_idx]
             cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
@@ -2735,7 +2748,7 @@ class OpencorParamID():
                 obs_idx = self.obs_info['freq_idx_to_obs_idx'][amp_idx]
                 amp_entry = amp[amp_idx]
                 obs_entry = self.obs_info["ground_truth_amp"][amp_idx]
-                weight_entry = updated_weight_series_vec[amp_idx]
+                weight_entry = updated_weight_amp_vec[amp_idx]
                 std_entry = self.obs_info["std_amp_vec"][amp_idx]
                 amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
 
@@ -2756,7 +2769,7 @@ class OpencorParamID():
                 obs_idx = self.obs_info['freq_idx_to_obs_idx'][phase_idx]
                 phase_entry = phase[phase_idx]
                 obs_entry = self.obs_info["ground_truth_phase"][phase_idx]
-                weight_entry = updated_weight_series_vec[phase_idx]
+                weight_entry = updated_weight_phase_vec[phase_idx]
                 phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
 
         cost = (cost + series_cost + amp_cost + phase_cost) / num_weighted_obs
@@ -2779,7 +2792,9 @@ class OpencorParamID():
         series_count = 0
         freq_count = 0
         for JJ in range(len(operands_outputs)):
-            if get_all_series:
+            if self.obs_info["data_types"][JJ] == 'frequency':
+                pass
+            elif get_all_series:
                 if hasattr(self.operation_funcs_dict[self.obs_info["operations"][JJ]], 'series_to_constant'):
                     obs_series_array_all[JJ] = self.operation_funcs_dict[
                             self.obs_info["operations"][JJ]](*operands_outputs[JJ], series_output=True, **self.obs_info["operation_kwargs"][JJ]) 
@@ -2816,21 +2831,27 @@ class OpencorParamID():
                 # TODO copy this to mcmc
                 if self.obs_info["operations"][JJ] == None:
 
-                    # TODO add a hanning window when doing the fft
-                    time_domain_obs = operands_outputs[JJ]
-                    # time_domain_obs repeated to make the fft work
+                    # TODO add a hanning window when doing the fft if it is not periodic
+                    time_domain_obs = operands_outputs[JJ][0][:-1]
+                    # time_domain_obs = np.hanning(len(time_domain_obs)) * time_domain_obs
+                    # zero-padding
+                    # time_domain_obs = np.concatenate([time_domain_obs, np.zeros(len(time_domain_obs))]) 
+                    # N = len(time_domain_obs) //2 # if zero-padding do this
+                    N = len(time_domain_obs)
 
-                    complex_num = np.fft.fft(time_domain_obs)/(len(time_domain_obs)//2)
-                    amp = np.abs(complex_num)[0:len(time_domain_obs)//2]
+                    # TODO this scaling needs to change if i do more periodic repeats!!
+                    complex_num = np.fft.fft(time_domain_obs)/(N)
+                    amp = np.abs(complex_num)[0:N]
                     # make sure the first amplitude is negative if it is a negative signal
                     amp[0] = amp[0] * np.sign(np.mean(time_domain_obs))
-                    phase = np.angle(complex_num)[0:len(time_domain_obs)//2]
-                    freqs = np.fft.fftfreq(time_domain_obs.shape[-1], d=self.dt)[:len(time_domain_obs)//2]
+                    phase = np.angle(complex_num)[0:N]
+                    freqs = np.fft.fftfreq(N, d=self.dt)[:N]
                 else:
                     complex_operands = [np.fft.fft(operands_outputs[JJ][KK]) / \
                                        len(operands_outputs[JJ][KK]) for \
                                        KK in range(len(operands_outputs[JJ]))]
 
+                    time_domain_obs = operands_outputs[JJ][0]
                     # operations also apply to complex numbers
                     complex_num = self.operation_funcs_dict[self.obs_info["operations"][JJ]](*complex_operands, **self.obs_info["operation_kwargs"][JJ]) 
                     # TODO check this works for all cases
@@ -2839,15 +2860,15 @@ class OpencorParamID():
                     # sign_signal = np.sign(self.operation_funcs_dict[self.obs_info["operations"][JJ]](* \
                     #                             [np.mean(entry) for entry in operands_outputs[JJ]]))
 
-                    amp = np.abs(complex_num)[0:len(operands_outputs[JJ][0])//2]
+                    amp = np.abs(complex_num)[0:len(time_domain_obs)]
                     # TODO I don't think I should do the below, commenting out
                     # Just make sure ground truth is abs value
                     # make sure the first amplitude is negative if it is a negative signal
                     # amp[0] = amp[0] * sign_signal
-                    phase = np.angle(complex_num)[0:len(operands_outputs[JJ][0])//2]
+                    phase = np.angle(complex_num)[0:len(time_domain_obs)]
 
-                    freqs = np.fft.fftfreq(operands_outputs[JJ][0].shape[-1], 
-                                           d=self.dt)[:len(operands_outputs[JJ][0])//2]
+                    freqs = np.fft.fftfreq(len(time_domain_obs), 
+                                           d=self.dt)[:len(time_domain_obs)]
 
 
                 # now interpolate to defined frequencies
@@ -2855,7 +2876,7 @@ class OpencorParamID():
                 # and phase
                 obs_phase_list_of_arrays[freq_count] = utility_funcs.bin_resample(phase, freqs, self.obs_info["freqs"][JJ])
 
-                print(np.mean(amp))
+                # print(np.mean(amp))
                 # TODO remove this plotting
                 # fig, ax = plt.subplots()
                 # ax.plot(freqs, amp, 'ko')
