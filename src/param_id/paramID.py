@@ -83,6 +83,7 @@ class CVS0DParamID():
         self.num_procs = self.comm.Get_size()
 
         self.ga_options = ga_options
+        self.mcmc_options = mcmc_options
         self.solver_info = solver_info
         self.dt = dt
 
@@ -1253,10 +1254,21 @@ class CVS0DParamID():
             if "cost_type" in self.gt_df.iloc[II].keys():
                 self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
             else:
-                if "cost_type" in self.ga_options.keys():
-                    self.obs_info["cost_type"].append(self.ga_options["cost_type"]) # default to cost type in ga_options
+                if self.ga_options is not None:
+                    if "cost_type" in self.ga_options.keys():
+                        self.obs_info["cost_type"].append(self.ga_options["cost_type"]) # default to cost type in ga_options
+                    else:
+                        self.obs_info["cost_type"].append("MSE") # default to mean squared error
+                elif self.mcmc_options is not None:
+                    if "cost_type" in self.mcmc_options.keys():
+                        self.obs_info["cost_type"].append(self.mcmc_options["cost_type"]) # default to cost type in mcmc_options
+                    else:
+                        self.obs_info["cost_type"].append("MSE") # default to mean squared error
                 else:
-                    self.obs_info["cost_type"].append("MSE") # default to mean squared error
+                    print("cost_type not found in obs_data.json, ga_options, or mcmc_options, exiting")
+                    exit()
+
+
 
         # preprocess information in the protocol_info dataframe
         self.protocol_info['num_experiments'] = len(self.protocol_info["sim_times"])
@@ -2845,6 +2857,10 @@ class OpencorParamID():
                     # make sure the first amplitude is negative if it is a negative signal
                     amp[0] = amp[0] * np.sign(np.mean(time_domain_obs))
                     phase = np.angle(complex_num)[0:N]
+                    for idx in range(len(phase)):
+                        if np.abs(amp[idx]) < 1e-12:
+                            phase[idx] = 0
+                
                     freqs = np.fft.fftfreq(N, d=self.dt)[:N]
                 else:
                     complex_operands = [np.fft.fft(operands_outputs[JJ][KK]) / \
@@ -2866,6 +2882,9 @@ class OpencorParamID():
                     # make sure the first amplitude is negative if it is a negative signal
                     # amp[0] = amp[0] * sign_signal
                     phase = np.angle(complex_num)[0:len(time_domain_obs)]
+                    for idx in range(len(phase)):
+                        if np.abs(amp[idx]) < 1e-12:
+                            phase[idx] = 0
 
                     freqs = np.fft.fftfreq(len(time_domain_obs), 
                                            d=self.dt)[:len(time_domain_obs)]

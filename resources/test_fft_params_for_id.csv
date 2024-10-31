@@ -1,0 +1,2 @@
+vessel_name,                  param_name,       param_type,  min,        max,     name_for_plotting
+vessel_1,                     E,                const,       1.0,        2.0,     E

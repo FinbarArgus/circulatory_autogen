@@ -1,11 +1,11 @@
 #_______ general inputs ________
-DEBUG: False
-user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/lung_ROM/user_inputs_test_fft.yaml # set this to False if you do not want to specify a user_inputs file in a different location.
-file_prefix: 3compartment
+DEBUG: false
+user_inputs_path_override: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/user_inputs_lung_ROM.yaml # set this to False if you do not want to specify a user_inputs file in a different location.
+file_prefix: lung_ROM
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
-input_param_file: 3compartment_parameters.csv 
+input_param_file: lung_ROM_parameters.csv
 
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
@@ -24,16 +24,17 @@ param_id_method: genetic_algorithm
 # TODO this is not important if it is specified in the obs_data.json file
 # TODO I should remove it here and only specify in the obs_data.json file?
 # pre_time: 3.0
-pre_time: 15.6 # TODO change back to 15.6
+pre_time: 20   # TODO change back to 15.6
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
 # NOTE: If doing freq domain fitting make sure the simulation is periodic and the sim time is the period.
-sim_time: 1.0
+sim_time: 14
 
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
 
 # specify the observable data file path used for parameter identification
-param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
+param_id_obs_path: 
+  /home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ROM_gt/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 #
 # it is recommended that users create their own CA_user directory to store input resources and output generated model files. e.g.
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
@@ -45,7 +46,8 @@ param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/reso
 cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
 # This is for cpp_coupling
 couple_to_1d: false
-cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
+cpp_1d_model_config_path: 
+  /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Output time step (sampling) 
 dt: 0.0001
@@ -76,7 +78,7 @@ debug_ga_options:
   cost_convergence: 0.001
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: false
 mcmc_options:
   num_steps: 1000
   num_walkers: 64
@@ -91,4 +93,10 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 # For plotting core predictions after mcmc
-plot_predictions: False
+plot_predictions: false
+resources_dir: 
+  /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/resources
+generated_models_dir: 
+  /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/generated_models
+param_id_output_dir: 
+  /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/param_id_output
