@@ -832,7 +832,7 @@ class CVS0DCellMLGenerator(object):
                 pass
             else:
                 print('________________ERROR_________________')
-                print(f'Error: Access string of variable {variable} should be either access or no_access.')
+                print(f'Error: Access string of variable {variable} should be either "access" or "no_access".')
                 print('______________________________________')
         wf.writelines(lines_to_write)
         wf.write('</component>\n')
