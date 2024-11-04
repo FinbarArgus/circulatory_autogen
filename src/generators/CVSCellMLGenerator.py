@@ -13,6 +13,7 @@ generators_dir = os.path.dirname(__file__)
 base_dir = os.path.join(os.path.dirname(__file__), '../..')
 LIBCELLML_available = True
 try:
+    import FIX_THIS_WHEN_LIBCELLML_HAS_BEEN_FIXED # this is here to make the import not work. remove this line when libcellml is fixed
     from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
     import utilities.libcellml_helper_funcs as cellml
     import utilities.libcellml_utilities as libcellml_utils
@@ -679,16 +680,13 @@ class CVS0DCellMLGenerator(object):
                 if len(out_vessel_names) == 0:
                     # there is no venous compartment connected to this terminal but still create a terminal venous section
                     pass
-                elif len(out_vessel_names) > 1:
-                    print(f'Terminal {vessel_name} has more than one venous compartment connected to it, '
-                          f'which is currently not allowed. Exiting')
-                    exit()
                 else:
-                    # map pressure between terminal and first venous compartment
-                    u_1 = 'u_out'
-                    u_2 = 'u'
-                    self.__write_mapping(wf, vessel_name+'_module', out_vessel_names[0]+'_module',
-                                        [u_1], [u_2])
+                    # map pressure between terminal and first venous compartments
+                    for out_vessel_idx in range(len(out_vessel_names)):
+                        u_1 = 'u_out'
+                        u_2 = 'u'
+                        self.__write_mapping(wf, vessel_name+'_module', out_vessel_names[out_vessel_idx]+'_module',
+                                            [u_1], [u_2])
 
                 # then map variables between connection and the venous sections
                 v_1 = 'v_T'

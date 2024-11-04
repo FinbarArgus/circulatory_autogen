@@ -22,13 +22,13 @@ class scriptFunctionParser(object):
     '''
 
     def __init__(self):
+        sys.path.append(param_id_dir)
+        sys.path.append(operation_funcs_user_dir)
         '''
         Constructor
         '''
     
     def get_operation_funcs_dict(self):
-        sys.path.append(param_id_dir)
-        sys.path.append(operation_funcs_user_dir)
         import operation_funcs
         import operation_funcs_user
         operation_funcs_dict = {}
@@ -42,6 +42,21 @@ class scriptFunctionParser(object):
             operation_funcs_dict[func] = getattr(operation_funcs_user, func)
         
         return operation_funcs_dict
+
+    def get_cost_funcs_dict(self):
+        # import cost_funcs # currently all costs are in cost_funcs_user
+        import cost_funcs_user
+        cost_funcs_dict = {}
+        # funcs = [item for item in dir(cost_funcs) if callable(getattr(cost_funcs, item))]
+        funcs_user = [item for item in dir(cost_funcs_user) if callable(getattr(cost_funcs_user, item))]
+
+        # create dict with keys of string of function names
+        # for func in funcs:
+        #     cost_funcs_dict[func] = getattr(cost_funcs, func)
+        for func in funcs_user:
+            cost_funcs_dict[func] = getattr(cost_funcs_user, func)
+        
+        return cost_funcs_dict
         
 
 class CSVFileParser(object):

@@ -10,13 +10,17 @@ user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 from read_and_insert_parameters import insert_parameters
 
 def prepare_pulmonary_sim(patient_num, case_type):
-    # project_dir = "/home/farg967/Documents"
-    project_dir = "/hpc/farg967/pulmonary_workspace"
+    project_dir = "/home/farg967/Documents"
+    # project_dir = "/hpc/farg967/pulmonary_workspace"
     change_patient_num(patient_num, case_type, project_dir)
 
 
     with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
         inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+
+    if "user_inputs_path_override" in inp_data_dict.keys():
+        with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+            inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
     resources_dir = os.path.join(root_dir, 'resources')
     # overwrite dir paths if set in user_inputs.yaml

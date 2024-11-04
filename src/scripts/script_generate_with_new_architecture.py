@@ -25,6 +25,15 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     if inp_data_dict is None:
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+        if inp_data_dict["user_inputs_path_override"]:
+            if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                    inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            else:
+                print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                        "you want to use the default user_inputs.yaml location")
+                exit()
 
     file_prefix = inp_data_dict['file_prefix']
     input_param_file = inp_data_dict['input_param_file']
@@ -47,7 +56,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     if do_generation_with_fit_parameters:
         param_id_obs_path = inp_data_dict['param_id_obs_path']
         param_id_method = inp_data_dict['param_id_method']
-        data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        data_str_addon = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
         param_id_output_dir_abs_path = os.path.join(param_id_output_dir, param_id_method + f'_{file_prefix}_{data_str_addon}')
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
                                   param_id_output_dir_abs_path)
