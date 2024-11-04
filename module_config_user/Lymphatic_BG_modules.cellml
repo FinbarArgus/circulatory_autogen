@@ -6,27 +6,33 @@
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
         <variable name="L" public_interface="in" units="meter"/>
         <variable name="D" public_interface="out" units="meter"/>
+        <!--var D0: meter {pub: in};-->
         <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="C_L" public_interface="in" units="m6_per_J"/>
         <variable name="R_pvb" public_interface="out" units="Js_per_m6"/>
         <variable name="R_p" public_interface="out" units="Js_per_m6"/>
         <variable name="delT" public_interface="in" units="second"/>
+        <variable name="q_m_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_m_init" name="q_m" public_interface="out" units="m3"/>
         <!--var a_f: dimensionless {pub: in};-->
         <!--var R_sv: Js_per_m6 {pub: in};-->
         <!--State Variables-->
         <variable name="v_p" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
+        <!-- var q_m: m3 {init: 1e-14, pub: out};-->
         <!--var v1: m3_per_s {pub: in};-->
-        <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2e-16" name="v_w" public_interface="out" units="m3_per_s"/>
         <variable name="u_w" public_interface="in" units="J_per_m3"/>
         <variable name="u_m" public_interface="out" units="J_per_m3"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <!--var R_svc: js_per_m6 ;-->
         <!-- Constitutive Relations-->
         <variable name="a" public_interface="in" units="m3_per_J"/>
-        <!--var a: m3_per_J {init: 7.8867e-4};-->
+        <!--var a: m3_per_J {init: 7.8867e-4};
+ var N: dimensionless {pub: in};
+var K_af: J_per_m2 {pub: in};
+ var u_af: J_per_m3 {pub: out}; -->
         <variable name="b" public_interface="in" units="m3_per_J"/>
-        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="R_pv0" public_interface="in" units="J_per_m4_s"/>
         <variable name="d_ec" public_interface="in" units="meter"/>
         <variable name="del_pvB" public_interface="out" units="J_per_m3"/>
         <variable name="Q_delayB" public_interface="out" units="m3_per_s"/>
@@ -68,7 +74,7 @@
                 <ci>R_pvb</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensionless">1000</cn>
+                    <ci>R_pv0</ci>
                     <apply>
                         <times/>
                         <apply>
@@ -189,14 +195,12 @@
                         </apply>
                         <ci>C_L</ci>
                     </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="dimensionless">0.98</cn>
-                        <ci>u_w</ci>
-                    </apply>
+                    <ci>u_w</ci>
                 </apply>
             </apply>
-            <!--*a_f;-->
+            <!---u_af;
+ u_af = N*K_af/(pi*D)*(D0/2{dimensionless}-D/2{dimensionless});
+*a_f;-->
             <apply>
                 <eq/>
                 <ci>v_p</ci>
@@ -223,6 +227,7 @@ var f_1: Hz {pub: in};-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
         <variable name="L" public_interface="in" units="meter"/>
         <variable name="D" public_interface="out" units="meter"/>
+        <!-- var D0: meter {pub: in};-->
         <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="C_L" public_interface="in" units="m6_per_J"/>
         <variable name="R_pvm" public_interface="out" units="Js_per_m6"/>
@@ -234,19 +239,24 @@ var f_1: Hz {pub: in};-->
         <variable name="v_p2" public_interface="in" units="m3_per_s"/>
         <variable name="v_p31" public_interface="out" units="m3_per_s"/>
         <variable name="v_p32" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
+        <!--var q_m: m3 {init: 2e-14, pub: out};-->
         <!--var v1: m3_per_s {pub: in};-->
-        <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
+        <variable initial_value="2e-16" name="v_w" public_interface="out" units="m3_per_s"/>
         <variable name="u_w" public_interface="in" units="J_per_m3"/>
         <variable name="u_m" public_interface="out" units="J_per_m3"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="250" name="u_in" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="145" name="u_in" public_interface="out" units="J_per_m3"/>
+        <variable name="q_m_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_m_init" name="q_m" public_interface="out" units="m3"/>
         <!--var R_svc: js_per_m6 ;-->
-        <!-- Constitutive Relations-->
+        <!-- Constitutive Relations
+ var N: dimensionless {pub: in};
+var K_af: J_per_m2 {pub: in};
+ var u_af: J_per_m3 {pub: out}; -->
         <variable name="a" public_interface="in" units="m3_per_J"/>
         <!--var a: m3_per_J {init: 7.8867e-4};-->
         <variable name="b" public_interface="in" units="m3_per_J"/>
-        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="R_pv0_mid" public_interface="in" units="J_per_m4_s"/>
         <variable name="d_ec" public_interface="in" units="meter"/>
         <variable name="del_pvm" public_interface="out" units="J_per_m3"/>
         <variable name="Q_delaypv" public_interface="out" units="m3_per_s"/>
@@ -288,7 +298,7 @@ var f_1: Hz {pub: in};-->
                 <ci>R_pvm</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensionless">4000</cn>
+                    <ci>R_pv0_mid</ci>
                     <apply>
                         <times/>
                         <apply>
@@ -431,7 +441,7 @@ var f_1: Hz {pub: in};-->
                         <divide/>
                         <apply>
                             <times/>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <cn cellml:units="dimensionless">1</cn>
                             <apply>
                                 <minus/>
                                 <ci>q_m</ci>
@@ -440,13 +450,11 @@ var f_1: Hz {pub: in};-->
                         </apply>
                         <ci>C_L</ci>
                     </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="dimensionless">0.98</cn>
-                        <ci>u_w</ci>
-                    </apply>
+                    <ci>u_w</ci>
                 </apply>
             </apply>
+            <!---u_af;
+ u_af = N*K_af/(pi*D)*(D0/2{dimensionless}-D/2{dimensionless});-->
             <apply>
                 <eq/>
                 <ci>v_p32</ci>
@@ -522,10 +530,16 @@ var f_1: Hz {pub: in};-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
         <variable name="L" public_interface="in" units="meter"/>
         <variable name="D" public_interface="out" units="meter"/>
+        <variable name="D_init" public_interface="in" units="meter"/>
         <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="C_L" public_interface="in" units="m6_per_J"/>
+        <variable name="N" public_interface="in" units="dimensionless"/>
+        <variable name="N2" public_interface="in" units="dimensionless"/>
+        <!--var N: dimensionless {pub: in};-->
         <variable name="R_pvo" public_interface="out" units="Js_per_m6"/>
         <variable name="R_p" public_interface="out" units="Js_per_m6"/>
+        <variable name="K_af" public_interface="in" units="J_per_m2"/>
+        <variable name="u_af" public_interface="out" units="J_per_m3"/>
         <!--var a_f: dimensionless {pub: in};-->
         <variable name="R_sv" public_interface="out" units="Js_per_m6"/>
         <!--State Variables-->
@@ -533,18 +547,22 @@ var f_1: Hz {pub: in};-->
         <variable name="v_p322" public_interface="in" units="m3_per_s"/>
         <variable name="v_p41" public_interface="out" units="m3_per_s"/>
         <variable name="v_p42" public_interface="out" units="m3_per_s"/>
-        <variable initial_value="2e-12" name="q_m" public_interface="out" units="m3"/>
-        <!--var v1: m3_per_s {pub: in};-->
+        <!-- var q_m: m3 {init: 2e-12, pub: out};-->
+        <!--var v1: m3_per_s {pub: in};
+var N: dimensionless {pub: out};
+var K_af: J_per_m2 {pub: in};-->
         <variable initial_value="2e-12" name="v_w" public_interface="out" units="m3_per_s"/>
         <variable name="u_w" public_interface="in" units="J_per_m3"/>
         <variable name="u_m" public_interface="out" units="J_per_m3"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <variable initial_value="250" name="u_in4" public_interface="out" units="J_per_m3"/>
+        <variable initial_value="150" name="u_in4" public_interface="out" units="J_per_m3"/>
+        <variable name="q_m_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_m_init" name="q_m" public_interface="out" units="m3"/>
         <!--var R_svc: js_per_m6 ;-->
         <variable name="a" public_interface="in" units="m3_per_J"/>
         <!--var a: m3_per_J {init: 7.8867e-4};-->
         <variable name="b" public_interface="in" units="m3_per_J"/>
-        <!--var R_pv0: J_per_m4_s {pub: in};-->
+        <variable name="R_pv0_out" public_interface="in" units="J_per_m4_s"/>
         <variable name="d_ec" public_interface="in" units="meter"/>
         <!-- Constitutive Relations-->
         <variable name="del_pvO" public_interface="out" units="J_per_m3"/>
@@ -587,7 +605,7 @@ var f_1: Hz {pub: in};-->
                 <ci>R_pvo</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensionless">4000</cn>
+                    <ci>R_pv0_out</ci>
                     <apply>
                         <times/>
                         <apply>
@@ -725,25 +743,36 @@ var f_1: Hz {pub: in};-->
                 <eq/>
                 <ci>u_m</ci>
                 <apply>
-                    <plus/>
+                    <minus/>
                     <apply>
-                        <divide/>
+                        <plus/>
                         <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2</cn>
+                            <divide/>
                             <apply>
-                                <minus/>
-                                <ci>q_m</ci>
-                                <ci>q_0</ci>
+                                <times/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <apply>
+                                    <minus/>
+                                    <ci>q_m</ci>
+                                    <ci>q_0</ci>
+                                </apply>
                             </apply>
+                            <ci>C_L</ci>
                         </apply>
-                        <ci>C_L</ci>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="dimensionless">0.98</cn>
                         <ci>u_w</ci>
                     </apply>
+                    <ci>u_af</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>u_af</ci>
+                <apply>
+                    <times/>
+                    <ci>N</ci>
+                    <ci>K_af</ci>
+                    <ci>N2</ci>
+                    <ci>D_init</ci>
                 </apply>
             </apply>
             <apply>
@@ -800,7 +829,7 @@ endsel;-->
                 <ci>R_sv</ci>
                 <piecewise>
                     <piece>
-                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>1</cn>
+                        <cn cellml:units="Js_per_m6" type="e-notation">1<sep/>0</cn>
                         <apply>
                             <geq/>
                             <ci>u_m</ci>
@@ -824,6 +853,7 @@ endsel;-->
         <variable name="t" public_interface="in" units="second"/>
         <variable name="u_ec" public_interface="in" units="J_per_m3"/>
         <variable name="f_1" public_interface="in" units="Hz"/>
+        <variable name="f_2" public_interface="in" units="Hz"/>
         <!--var t_01: second {pub: in};-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
         <variable name="r" public_interface="in" units="meter"/>
@@ -847,7 +877,6 @@ endsel;-->
                     <divide/>
                     <apply>
                         <times/>
-                        <cn cellml:units="dimensionless">1</cn>
                         <ci>mu</ci>
                         <apply>
                             <ln/>

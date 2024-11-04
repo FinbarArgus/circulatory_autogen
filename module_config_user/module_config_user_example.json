@@ -34,10 +34,12 @@
       ["q_m", "m3", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
       ["D", "meter", "access", "variable"],
+      
       ["L", "meter", "access", "constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["a", "m3_per_J", "no_access", "global_constant"],
       ["b", "m3_per_J", "no_access", "global_constant"],
+      ["R_pv0", "J_per_m4_s", "no_access", "global_constant"],
       ["del_pvB", "J_per_m3", "access", "variable"],
       ["d_ec", "meter", "no_access", "global_constant"],
       ["R_pvb", "Js_per_m6", "access", "variable"],
@@ -45,7 +47,8 @@
       ["delT", "second", "no_access", "global_constant"],
       ["C_L", "m6_per_J", "no_access", "global_constant"],
       
-      ["v_w", "m3_per_s", "access", "variable"]
+      ["v_w", "m3_per_s", "access", "variable"],
+      ["q_m_init", "m3", "access", "constant"]
     ]
   },
   {
@@ -100,6 +103,7 @@
       ["b", "m3_per_J", "no_access", "global_constant"],
        ["del_pvm", "J_per_m3", "access", "variable"],
       ["d_ec", "meter", "no_access", "global_constant"],
+      ["R_pv0_mid", "J_per_m4_s", "no_access", "global_constant"],
       ["R_pvm", "Js_per_m6", "access", "variable"],
       ["u_out", "J_per_m3", "access", "variable"],
       ["u_w", "J_per_m3", "access", "variable"],
@@ -109,7 +113,8 @@
      
       
       ["v_w", "m3_per_s", "access", "variable"],
-      ["R_sv", "Js_per_m6", "access", "variable"]
+      ["R_sv", "Js_per_m6", "access", "variable"],
+      ["q_m_init", "m3", "access", "constant"]
     ]
   },
   
@@ -158,20 +163,28 @@
       ["q_m", "m3", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
       ["D", "meter", "access", "variable"],
+      ["D_init", "meter", "access", "constant"],
       ["L", "meter", "access", "constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["del_pvO", "J_per_m3", "access", "variable"],
       ["R_p", "Js_per_m6", "access", "variable"],
       ["delT", "second", "no_access", "global_constant"],
       ["C_L", "m6_per_J", "no_access", "global_constant"],
+      ["N", "dimensionless", "no_access", "global_constant"],
+      ["N2", "dimensionless", "access", "variable"],
+      
+      ["K_af", "J_per_m2", "no_access", "global_constant"],
+      ["u_af", "J_per_m3", "access", "variable"],
       ["a", "m3_per_J", "no_access", "global_constant"],
       ["b", "m3_per_J", "no_access", "global_constant"],
-      
+      ["R_pv0_out", "J_per_m4_s", "no_access", "global_constant"],
       ["d_ec", "meter", "no_access", "global_constant"],
       ["R_pvo", "Js_per_m6", "access", "variable"],
       ["u_out", "J_per_m3", "access", "constant"],
       ["v_w", "m3_per_s", "access", "variable"],
-      ["R_sv", "Js_per_m6", "access", "variable"]
+      ["R_sv", "Js_per_m6", "access", "variable"],
+     
+      ["q_m_init", "m3", "access", "constant"]
     ]
   },
   {
@@ -212,6 +225,7 @@
       ["L", "meter", "access", "constant"],
       ["u_ec", "J_per_m3", "no_access", "global_constant"],
       ["f_1", "Hz", "no_access", "global_constant"],
+      ["f_2", "Hz", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["u_e", "J_per_m3", "access", "variable"],
       ["v_wI", "m3_per_s", "access", "variable"],
