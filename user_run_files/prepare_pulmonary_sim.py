@@ -18,7 +18,7 @@ def prepare_pulmonary_sim(patient_num, case_type):
     with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
         inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-    if "user_inputs_path_override" in inp_data_dict.keys()
+    if "user_inputs_path_override" in inp_data_dict.keys():
         with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
