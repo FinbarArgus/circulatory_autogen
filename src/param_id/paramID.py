@@ -1262,7 +1262,7 @@ class CVS0DParamID():
         # set the cost type for each observable
         self.obs_info["cost_type"] = []
         for II in range(self.gt_df.shape[0]):
-            if "cost_type" in self.gt_df.iloc[II].keys():
+            if "cost_type" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["cost_type"] not in [np.nan, None, "None", ""]:
                 self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
             else:
                 if self.ga_options is not None:
