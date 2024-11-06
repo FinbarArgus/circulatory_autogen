@@ -24,7 +24,7 @@ def run_param_id(inp_data_dict=None):
     if inp_data_dict is None:
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
-        if inp_data_dict["user_inputs_path_override"]:
+        if "user_inputs_path_override" in inp_data_dict.keys() and inp_data_dict["user_inputs_path_override"]:
             if os.path.exists(inp_data_dict["user_inputs_path_override"]):
                 with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
                     inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
