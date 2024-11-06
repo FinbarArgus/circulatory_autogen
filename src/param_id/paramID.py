@@ -474,6 +474,7 @@ class CVS0DParamID():
             fig.savefig(os.path.join(self.plot_dir,
                                         f'reconstruct_{self.file_name_prefix}_'
                                         f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+            axs.legend().get_frame().set_alpha(0.5)
             fig.savefig(os.path.join(self.plot_dir,
                                         f'reconstruct_{self.file_name_prefix}_'
                                         f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
@@ -486,6 +487,7 @@ class CVS0DParamID():
                 fig_phase.savefig(os.path.join(self.plot_dir,
                                         f'phase_reconstruct_{self.file_name_prefix}_'
                                         f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+                axs_phase.legend().get_frame().set_alpha(0.5)
                 fig_phase.savefig(os.path.join(self.plot_dir,
                                         f'phase_reconstruct_{self.file_name_prefix}_'
                                         f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
