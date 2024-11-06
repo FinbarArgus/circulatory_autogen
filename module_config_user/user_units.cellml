@@ -21,4 +21,19 @@
         <unit exponent="-3" units="metre"/>
         <unit exponent="-1" prefix="kilo" units="pascal"/>
     </units>
+    <units name="mol_per_m3_per_Pa">
+        <unit exponent="1" units="mole"/>
+        <unit exponent="-3" units="metre"/>
+        <unit exponent="-1" units="pascal"/>
+    </units>
+        <units name="m3_per_mol_per_s">
+        <unit exponent="3" units="meter"/>
+        <unit exponent="-1" units="mole"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="mol_per_m3_per_s">
+        <unit units="mole"/>
+        <unit exponent="-3" units="meter"/>
+        <unit exponent="-1" units="second"/>
+    </units>
 </model>

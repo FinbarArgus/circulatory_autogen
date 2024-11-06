@@ -237,7 +237,7 @@ def mean_last_half(x, series_output=False):
         return x
     else:
         half_len = len(x) // 2
-        last_half_values = x[-half_len:]
+        last_half_values = x[half_len:]
         return np.mean(last_half_values)
 
 @series_to_constant
@@ -255,7 +255,7 @@ def max_first_half(x, series_output=False):
         return x
     else:
         half_len = len(x) // 2
-        first_half_values = x[half_len:]
+        first_half_values = x[:half_len]
         return np.max(first_half_values)
 
 @series_to_constant
@@ -264,7 +264,7 @@ def max_first_quarter(x, series_output=False):
         return x
     else:
         quarter_len = len(x) // 4
-        first_quarter_values = x[quarter_len:]
+        first_quarter_values = x[:quarter_len]
         return np.max(first_quarter_values)
 
 @series_to_constant
@@ -291,7 +291,7 @@ def min_first_half(x, series_output=False):
         return x
     else:
         half_len = len(x) // 2
-        first_half_values = x[half_len:]
+        first_half_values = x[:half_len]
         return np.min(first_half_values)
 
 @series_to_constant
@@ -300,7 +300,7 @@ def min_first_quarter(x, series_output=False):
         return x
     else:
         quarter_len = len(x) // 4
-        first_quarter_values = x[quarter_len:]
+        first_quarter_values = x[:quarter_len]
         return np.min(first_quarter_values)
 
 

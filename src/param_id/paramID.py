@@ -247,21 +247,28 @@ class CVS0DParamID():
 
         plot_idx = 0
         subexp_count = -1
+        tSim_per_sub_count = []
+        sim_time_tot_per_exp = []
+        n_steps_per_sub_count = []
+
         for exp_idx in range(self.protocol_info['num_experiments']):
-            sim_time_tot = np.sum(self.protocol_info['sim_times'][exp_idx])
-            n_steps_tot = int(sim_time_tot/self.dt)
-            n_steps_per_sub = [int(self.protocol_info["sim_times"][exp_idx][II]/self.dt) for 
+            subexp_count += 1
+            sim_time_tot_per_exp.append(np.sum(self.protocol_info['sim_times'][exp_idx]))
+            n_steps_tot = int(sim_time_tot_per_exp[exp_idx]/self.dt)
+            n_steps_per_sub_count = n_steps_per_sub_count + [int(self.protocol_info["sim_times"][exp_idx][II]/self.dt) for 
                             II in range(self.protocol_info["num_sub_per_exp"][exp_idx])]
             tSim = np.linspace(0.0, np.sum(self.protocol_info["sim_times"][exp_idx]), 
                             n_steps_tot + 1)
-            tSim_per_sub = [np.linspace(0.0, self.protocol_info["sim_times"][exp_idx][0], 
-                                    n_steps_per_sub[0] + 1)]
+            tSim_per_sub_count.append(np.linspace(0.0, self.protocol_info["sim_times"][exp_idx][0], 
+                                    n_steps_per_sub_count[subexp_count] + 1))
             start_time_sum = self.protocol_info["sim_times"][exp_idx][0]
             
             for II in range(1, self.protocol_info['num_sub_per_exp'][exp_idx]):
-                tSim_per_sub.append(np.linspace(start_time_sum, 
+                subexp_count += 1
+                tSim_per_sub_count.append(np.linspace(start_time_sum, 
                                             start_time_sum + self.protocol_info["sim_times"][exp_idx][II], 
-                                            n_steps_per_sub[II] + 1))
+                                            n_steps_per_sub_count[subexp_count] + 1))
+                start_time_sum = start_time_sum + self.protocol_info["sim_times"][exp_idx][II]
 
         percent_error_vec = np.zeros((self.obs_info["num_obs"],))
         phase_error_vec = np.zeros((self.obs_info["num_obs"],))
@@ -339,14 +346,14 @@ class CVS0DParamID():
                                 
                                 temp_series_per_sub = list_of_all_series[temp_subexp_count]
                                 if temp_sub_idx == 0:
-                                    axs.plot(tSim_per_sub[temp_sub_idx], conversion*temp_series_per_sub[II][:], 
+                                    axs.plot(tSim_per_sub_count[temp_subexp_count], conversion*temp_series_per_sub[II][:], 
                                              color=self.protocol_info["experiment_colors"][exp_idx], label='output')
                                 else:
-                                    axs.plot(tSim_per_sub[temp_sub_idx], conversion*temp_series_per_sub[II][:], 
+                                    axs.plot(tSim_per_sub_count[temp_subexp_count], conversion*temp_series_per_sub[II][:], 
                                              color=self.protocol_info["experiment_colors"][exp_idx])
                                     
                             
-                            axs.set_xlim(0.0, sim_time_tot)
+                            axs.set_xlim(0.0, sim_time_tot_per_exp[exp_idx])
                             axs.set_xlabel('Time [$s$]', fontsize=18)
                         else:
                             axs.plot(self.obs_info["freqs"][II], conversion * best_fit_obs_amp[freq_idx],
@@ -369,28 +376,28 @@ class CVS0DParamID():
                             # TODO so the user can customise plotting... Maybe not needed.
                             # create a vector equal to the constant value for plotting over the series
                             const_plot_gt = (self.obs_info["ground_truth_const"][const_idx])*\
-                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+                                            np.ones((n_steps_per_sub_count[subexp_count] + 1),)
                             const_plot_bf = (best_fit_obs_const[const_idx])*\
-                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+                                            np.ones((n_steps_per_sub_count[subexp_count] + 1),)
 
-                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_gt,
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_gt,
                                                     color=self.obs_info['plot_colors'][II], linestyle='--', 
                                                     label=f'{self.obs_info["operations"][II]} measurement')
-                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_bf,
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_bf,
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
                         elif self.obs_info['plot_type'][II] == 'horizontal_from_min':
                             # create a vector equal to the constant value for plotting over the series
                             min_val = np.min(series_per_sub[II])
                             const_plot_gt = (min_val + self.obs_info["ground_truth_const"][const_idx])*\
-                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+                                            np.ones((n_steps_per_sub_count[subexp_count] + 1),)
                             const_plot_bf = (min_val + best_fit_obs_const[const_idx])*\
-                                            np.ones((n_steps_per_sub[this_sub_idx] + 1),)
+                                            np.ones((n_steps_per_sub_count[subexp_count] + 1),)
 
-                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_gt,
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_gt,
                                                     color=self.obs_info['plot_colors'][II], linestyle='--', 
                                                     label=f'{self.obs_info["operations"][II]} measurement')
-                            axs.plot(tSim_per_sub[this_sub_idx], conversion*const_plot_bf,
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_bf,
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
                         elif self.obs_info['plot_type'][II] == 'vertical':
@@ -411,7 +418,7 @@ class CVS0DParamID():
                                     'for constants it must be in [None, horizontal, veritical, horizontal_from_min], exiting')
                             exit()
                     elif self.obs_info["data_types"][II] == 'series':
-                        axs.plot(tSim_per_sub[this_sub_idx][:min_len_series],
+                        axs.plot(tSim_per_sub_count[subexp_count][:min_len_series],
                                                 conversion*self.obs_info["ground_truth_series"][series_idx, :min_len_series],
                                                 'k--', label='measurement')
                     elif self.obs_info["data_types"][II] == 'frequency':
