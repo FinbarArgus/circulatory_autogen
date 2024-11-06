@@ -37,7 +37,7 @@ def insert_parameters(parameters_path, parameters_to_add_path):
 
     # params_df = pd.concat([params_df, new_params_df], ignore_index=True)
     params_df = new_params_df.set_index('variable_name').combine_first(params_df.set_index('variable_name')).reset_index()
-    params_df.to_csv(parameters_path, index=None, header=True)
+    params_df.to_csv(parameters_path, index=None, header=True, columns=['variable_name', 'units', 'value', 'data_reference'])
     print('after')
     print(params_df)
 

@@ -646,13 +646,17 @@ class CVS0DParamID():
 
         fig, axes = plt.subplots(num_params, figsize=(10, 7), sharex=True)
         for i in range(num_params):
-            ax = axes[i]
+            if hasattr(axes, '__len__'):
+                ax = axes[i]
+            else:
+                ax = axes
             ax.plot(samples[:, :, i], "k", alpha=0.3)
             ax.set_xlim(0, len(samples))
             ax.set_ylabel(f'${self.param_id_info["param_names_for_plotting"][i]}$')
             ax.yaxis.set_label_coords(-0.1, 0.5)
 
-        axes[-1].set_xlabel("step number")
+        ax.set_xlabel("step number")
+            
         # plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.eps'))
         plt.savefig(os.path.join(self.output_dir, 'plots_param_id', 'mcmc_chain_plot.pdf'))
         plt.close()
@@ -2777,9 +2781,11 @@ class OpencorParamID():
             #     phase_cost = np.sum([np.abs((phase[JJ] - self.obs_info["ground_truth_phase"][JJ]) *
             #                                   updated_weight_phase_vec[JJ]) / len(phase[JJ]) for JJ in
             #                          range(len(phase))])
+            # TODO should we be inputting in a proper std for the phase? Probably.
             for phase_idx in range(len(phase)):
                 obs_idx = self.obs_info['freq_idx_to_obs_idx'][phase_idx]
                 phase_entry = phase[phase_idx]
+                std_entry = np.ones(len(phase_entry))
                 obs_entry = self.obs_info["ground_truth_phase"][phase_idx]
                 weight_entry = updated_weight_phase_vec[phase_idx]
                 phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)

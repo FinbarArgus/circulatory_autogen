@@ -25,12 +25,14 @@ if __name__ == '__main__':
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
 
         # generate_with_new_architecture(False, inp_data_dict)
+        if 'user_inputs_path_override' in inp_data_dict.keys():
+            del inp_data_dict['user_inputs_path_override']
         if 'resources_dir' in inp_data_dict.keys():
             # remove that entry so it doesnt get passed to the param_id script
             # so the default dirs are used
             del inp_data_dict['resources_dir']
-        if 'generated_model_dir' in inp_data_dict.keys():
-            del inp_data_dict['generated_model_dir']
+        if 'generated_models_dir' in inp_data_dict.keys():
+            del inp_data_dict['generated_models_dir']
         if 'param_id_output_dir' in inp_data_dict.keys():
             del inp_data_dict['param_id_output_dir']
 
@@ -73,6 +75,7 @@ if __name__ == '__main__':
         inp_data_dict['dt'] = 0.01
         inp_data_dict['DEBUG'] = True
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/test_fft_obs_data.json')
+        inp_data_dict['param_id_output_dir'] = os.path.join(root_dir_path, 'param_id_output/')   
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
         inp_data_dict['plot_predictions'] = True
@@ -85,7 +88,7 @@ if __name__ == '__main__':
         plot_param_id(inp_data_dict)
 
         # check that the cost is zero for the test_fft
-        fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'test_fft_cost.npy'))
+        fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
         if fft_cost < 1e-10:
             print('fft cost is zero as expected. Success!')
         else:

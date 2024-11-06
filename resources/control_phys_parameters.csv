@@ -615,3 +615,7 @@ B_b_lc,dimensionless,92.8,Magosso2001AndUrsino2000
 C_b_lc,dimensionless,1.53e15,Magosso2001AndUrsino2000
 D_b_lc,dimensionless,-5.2551,Magosso2001AndUrsino2000
 q_C_init_pvn,m3,0.0,user_defined
+q_C_init_venous_lb,m3,0.0,user_defined
+q_C_init_venous_ub,m3,0.0,user_defined
+q_C_init_venous_ivc,m3,0.0,user_defined
+q_C_init_venous_svc,m3,0.0,user_defined
