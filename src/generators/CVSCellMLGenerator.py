@@ -13,7 +13,6 @@ generators_dir = os.path.dirname(__file__)
 base_dir = os.path.join(os.path.dirname(__file__), '../..')
 LIBCELLML_available = True
 try:
-    import FIX_THIS_WHEN_LIBCELLML_HAS_BEEN_FIXED # this is here to make the import not work. remove this line when libcellml is fixed
     from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
     import utilities.libcellml_helper_funcs as cellml
     import utilities.libcellml_utilities as libcellml_utils

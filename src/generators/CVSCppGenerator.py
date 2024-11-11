@@ -15,8 +15,8 @@ root_dir = os.path.join(generators_dir_path, '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 
+LIBCELLML_available = True
 try:
-    import FIX_THIS_WHEN_LIBCELLML_HAS_BEEN_FIXED # this is here to make the import not work. remove this line when libcellml is fixed
     from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
     import utilities.libcellml_helper_funcs as cellml
     import utilities.libcellml_utilities as libcellml_utils
