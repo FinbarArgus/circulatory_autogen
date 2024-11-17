@@ -304,7 +304,7 @@ class CVS0DParamID():
 
 
                     if len(self.obs_info["ground_truth_series"]) > 0:
-                        min_len_series = min(self.obs_info["ground_truth_series"].shape[1], best_fit_obs_series.shape[1])
+                        min_len_series = min(self.obs_info["ground_truth_series"].shape[1], len(best_fit_obs_series[0]))
                     obs_name_for_plot = self.obs_info["names_for_plotting"][II]
                     
                     
@@ -440,10 +440,10 @@ class CVS0DParamID():
                                                             self.obs_info["std_const_vec"][const_idx]
                         elif self.obs_info["data_types"][II] == "series":
                             percent_error_vec[II] = 100*np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                                    best_fit_obs_series[series_idx, :min_len_series]) /
+                                                                    best_fit_obs_series[series_idx][:min_len_series]) /
                                                                     (np.mean(self.obs_info["ground_truth_series"][series_idx, :min_len_series]))))/min_len_series
                             std_error_vec[II] = np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                            best_fit_obs_series[series_idx, :min_len_series]) /
+                                                            best_fit_obs_series[series_idx][:min_len_series]) /
                                                             (self.obs_info["std_series_vec"][series_idx]))/min_len_series)
                         elif self.obs_info["data_types"][II] == "frequency":
                             std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) *
@@ -1400,8 +1400,6 @@ class CVS0DParamID():
             input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
             self.param_id_info["param_names"] = []
             param_names_for_gen = []
-            param_state_names_for_gen = []
-            param_const_names_for_gen = []
             for II in range(input_params.shape[0]):
                 if idxs_to_ignore is not None:
                     if II in idxs_to_ignore:
@@ -1413,27 +1411,10 @@ class CVS0DParamID():
                 if input_params["vessel_name"][II][0] == 'heart':
                     param_names_for_gen.append([input_params["param_name"][II]])
 
-                    if input_params["param_type"][II] == 'state':
-                        param_state_names_for_gen.append([input_params["param_name"][II]])
-
-                    if input_params["param_type"][II] == 'const':
-                        param_const_names_for_gen.append([input_params["param_name"][II]])
-
                 else:
                     param_names_for_gen.append([input_params["param_name"][II] + '_' +
                                                 input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
                                                 for JJ in range(len(input_params["vessel_name"][II]))])
-
-                    param_state_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
-                                                      for JJ in range(len(input_params["vessel_name"][II]))
-                                                      if input_params["param_type"][II] == 'state'])
-
-                    param_const_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                      input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
-                                                      for JJ in range(len(input_params["vessel_name"][II]))
-                                                      if input_params["param_type"][II] == 'const'])
-
 
             # set param ranges from file and strings for plotting parameter names
             if idxs_to_ignore is not None:
@@ -1475,13 +1456,6 @@ class CVS0DParamID():
             with open(os.path.join(self.output_dir, 'param_names_for_gen.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(param_names_for_gen)
-            with open(os.path.join(self.output_dir, 'param_state_names_for_gen.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(param_state_names_for_gen)
-            with open(os.path.join(self.output_dir, 'param_const_names_for_gen.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(param_const_names_for_gen)
-
         return
 
     def __get_ground_truth_values(self):
@@ -1513,7 +1487,7 @@ class CVS0DParamID():
         self.obs_info["std_const_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                        if self.gt_df.iloc[II]["data_type"] == "constant"])
 
-        self.obs_info["std_series_vec"] = np.array([np.mean(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+        self.obs_info["std_series_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "series"])
 
         self.obs_info["std_amp_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
@@ -2733,7 +2707,9 @@ class OpencorParamID():
         series_cost = 0
         if series is not None:
             #print(series)
-            min_len_series = min(self.obs_info["ground_truth_series"].shape[1], series.shape[1])
+            min_len_series = min(self.obs_info["ground_truth_series"].shape[1], len(series[0]))
+            # TODO make the above applicable for different length series? If we have different dt for series data
+
             # calculate sum of squares cost and divide by number data points in series data
             # divide by number data points in series data
             # if self.cost_type == 'MSE':
@@ -2750,10 +2726,10 @@ class OpencorParamID():
                 obs_idx = self.obs_info['series_idx_to_obs_idx'][series_idx]
                 # TODO make sure the weight and std entries are the same shape as the obs entries
                 # TODO when parsing the obs_data.json file ensure if the weight is a constant, change it to a vector
-                series_entry = series[series_idx, :min_len_series]
-                obs_entry = self.obs_info["ground_truth_series"][series_idx, :min_len_series]
-                weight_entry = updated_weight_series_vec[series_idx][series_idx, :min_len_series]
-                std_entry = self.obs_info["std_series_vec"][series_idx, :min_len_series]
+                series_entry = series[series_idx][:min_len_series]
+                obs_entry = self.obs_info["ground_truth_series"][series_idx][:min_len_series]
+                weight_entry = updated_weight_series_vec[series_idx]
+                std_entry = self.obs_info["std_series_vec"][series_idx][:min_len_series]
                 series_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](series_entry, obs_entry, std_entry, weight_entry)
 
 
@@ -2822,7 +2798,9 @@ class OpencorParamID():
             if self.obs_info["data_types"][JJ] == 'frequency':
                 pass
             elif get_all_series:
-                if hasattr(self.operation_funcs_dict[self.obs_info["operations"][JJ]], 'series_to_constant'):
+                if self.obs_info["operations"][JJ] is None:
+                    obs_series_array_all[JJ] = operands_outputs[JJ][0]
+                elif hasattr(self.operation_funcs_dict[self.obs_info["operations"][JJ]], 'series_to_constant'):
                     obs_series_array_all[JJ] = self.operation_funcs_dict[
                             self.obs_info["operations"][JJ]](*operands_outputs[JJ], series_output=True, **self.obs_info["operation_kwargs"][JJ]) 
                 else:
@@ -2852,7 +2830,7 @@ class OpencorParamID():
                 obs_const_vec[const_count] = obs
                 const_count += 1
             if self.obs_info["data_types"][JJ] == 'series':
-                obs_series_list_of_arrays[series_count, :] = obs
+                obs_series_list_of_arrays[series_count] = obs
                 series_count += 1
             elif self.obs_info["data_types"][JJ] == 'frequency':
                 # TODO copy this to mcmc

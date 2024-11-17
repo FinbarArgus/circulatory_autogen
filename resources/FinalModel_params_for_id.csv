@@ -1,2 +1,2 @@
-vessel_name,                  param_name,       param_type, min,        max
-heart,                        q_lv,             state,0.0014,0.004
+vessel_name,                  param_name,       min,        max
+heart,                        q_lv,             0.0014,0.004
