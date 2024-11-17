@@ -76,7 +76,7 @@ class LumpedIDParamsCheck(AbstractLumpedCheck):
         Executes all check activities.
         :param model_0D: model to be checked.
         '''
-        for const_name, _ in model_0D.param_id_consts:
+        for const_name, _ in model_0D.param_id_name_and_vals:
             if not const_name in model_0D.parameters_array['variable_name']:
                 print(f'ERROR parameter id constant of {const_name} is not defined in the parameters file')
                 exit()

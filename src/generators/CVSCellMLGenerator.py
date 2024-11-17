@@ -69,7 +69,7 @@ class CVS0DCellMLGenerator(object):
         #    Code to generate model files
         self.__generate_units_file()
         self.__generate_CellML_file()
-        if self.model.param_id_consts:
+        if self.model.param_id_name_and_vals:
             self.__modify_parameters_array_from_param_id()
         self.__generate_parameters_csv()
         self.__generate_parameters_file()
@@ -227,7 +227,7 @@ class CVS0DCellMLGenerator(object):
     def __modify_parameters_array_from_param_id(self):
         # first modify param_const names easily by modifying them in the array
         print('modifying constants to values identified from parameter id')
-        for const_name, val in self.model.param_id_consts:
+        for const_name, val in self.model.param_id_name_and_vals:
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
                                            const_name)[0][0]]['value'] = f'{val:.10e}'
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
@@ -282,9 +282,6 @@ class CVS0DCellMLGenerator(object):
                             self.all_units.append(re.search('units name="(.*?)"', line).group(1))
 
     def __generate_modules_file(self):
-        if self.model.param_id_states:
-            # create list to check if all states get modified to param_id values
-            state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(os.path.join(self.output_dir, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
             # write first two lines
