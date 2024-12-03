@@ -1,11 +1,12 @@
 #_______ general inputs ________
 DEBUG: false
-user_inputs_path_override: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/user_inputs_lung_ROM.yaml
-file_prefix: lung_ROM
+user_inputs_path_override: 
+  /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/user_inputs_lung_ROM.yaml
+file_prefix: 3compartment 
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
-input_param_file: lung_ROM_parameters.csv
+input_param_file: 3compartment_parameters.csv
 
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
@@ -23,11 +24,10 @@ param_id_method: genetic_algorithm
 # pre_time is the amount of time simulated to get to steady state
 # TODO this is not important if it is specified in the obs_data.json file
 # TODO I should remove it here and only specify in the obs_data.json file?
-# pre_time: 3.0
-pre_time: 20   # TODO change back to 15.6
+pre_time: 20   
 # sim_time is the amount of simulation time where the outputs are compared to ground truth
 # NOTE: If doing freq domain fitting make sure the simulation is periodic and the sim time is the period.
-sim_time: 14
+sim_time: 2
 
 # specifying number of heart periods has been made obsolete. If you want to do this, do it when preprocessing
 # and set the pre_time and sim_time accordingly.
@@ -36,13 +36,13 @@ sim_time: 14
 # resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
 # generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
 # param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/param_id_output
-param_id_obs_path: /home/farg967/Documents/data/pulmonary/ground_truth_for_CA/ROM_gt/lung_ROM_lobe_imped_pre_patient_4_obs_data.json
 
 # This is for cpp generation
 cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
 # This is for cpp_coupling
 couple_to_1d: false
-cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
+cpp_1d_model_config_path: 
+  /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Output time step (sampling) 
 dt: 0.01
@@ -52,8 +52,8 @@ solver_info:
   MaximumStep: 0.0001
   MaximumNumberOfSteps: 5000
 
-    # This for 3compartment
-# param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
+# This for 3compartment
+param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
 
 #_______ sensitivity analysis inputs __________
 do_sensitivity: false
@@ -88,6 +88,3 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 plot_predictions: true
-resources_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/resources
-generated_models_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/generated_models
-param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/pre/param_id_output

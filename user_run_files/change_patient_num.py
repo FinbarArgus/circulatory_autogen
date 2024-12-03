@@ -9,6 +9,13 @@ def change_patient_num(patient_num, case_type, project_dir):
     with open(os.path.join(user_run_files_dir, 'user_inputs.yaml'), 'r') as file:
         # data = yaml.safe_load(file)
         inp_data_dict = yaml.load(file)
+    
+    if "user_inputs_path_override" in inp_data_dict.keys():
+        user_run_files_path = inp_data_dict["user_inputs_path_override"]
+        with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+            inp_data_dict = yaml.load(file)
+    else:
+        user_run_files_path = os.path.join(user_run_files_dir, 'user_inputs.yaml')
 
     # if case_type in ['pre', 'coupled_pre']:
     #     pre_or_post = 'pre'
@@ -42,7 +49,7 @@ def change_patient_num(patient_num, case_type, project_dir):
         inp_data_dict['input_param_file'] = 'lung_CVS_coupled_parameters.csv'
         inp_data_dict['param_id_obs_path'] = f"" # this model doesn't get calibrated to anything
 
-    with open('user_inputs.yaml', 'w') as wf:
+    with open(user_run_files_path, 'w') as wf:
         yaml.dump(inp_data_dict, wf)
 
 if __name__ == "__main__":

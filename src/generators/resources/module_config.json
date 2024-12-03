@@ -2950,6 +2950,7 @@
       ["C_CO2_in", "dimensionless", "access", "boundary_condition"],
       ["C_O2_in", "dimensionless", "access", "boundary_condition"],
       ["C_CO2_out", "dimensionless", "access", "variable"],
+      ["dot_C_CO2_out", "dimensionless", "access", "variable"],
       ["C_O2_out", "dimensionless", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
       ["v", "m3_per_s", "access", "variable"]
