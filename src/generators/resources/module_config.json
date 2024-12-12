@@ -2508,7 +2508,8 @@
       ["q", "m3", "access", "variable"],
       ["q_us_0", "m3", "access", "constant"],
       ["q_us_wCont", "m3", "access", "variable"],
-      ["Delta_q_us", "m3", "access", "constant"]
+      ["Delta_q_us", "m3", "access", "constant"],
+      ["Delta_C", "m6_per_J", "access", "boundary_condition"]
     ]
   },
   {
@@ -5613,14 +5614,14 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":["",""]
+        "variables":[]
       }
     ],
     "exit_ports":
     [
       {
         "port_type":"vessel_port",
-        "variables":["",""]
+        "variables":[]
       }
     ],
     "variables_and_units":
@@ -5637,14 +5638,14 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":["",""]
+        "variables":[]
       }
     ],
     "exit_ports":
     [
       {
         "port_type":"vessel_port",
-        "variables":["",""]
+        "variables":[]
       }
     ],
     "variables_and_units":

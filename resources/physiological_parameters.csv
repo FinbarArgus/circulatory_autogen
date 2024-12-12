@@ -441,12 +441,16 @@ u_ext_pvn,J_per_m3,0.0,user_defined
 I_pvn,Js2_per_m6,1.0e-6,Blanco_2013_Table_8
 q_us_0_venous_lb,m3,0.0,small_chosen
 Delta_q_us_venous_lb,m3,0.0,small_chosen
+Delta_C_venous_lb,m6_per_J,0.0,user_defined
 q_us_0_venous_ub,m3,0.0,small_chosen
+Delta_C_venous_ub,m6_per_J,0.0,user_defined
 Delta_q_us_venous_ub,m3,0.0,small_chosen
 q_us_0_venous_ivc,m3,0.0,small_chosen
 Delta_q_us_venous_ivc,m3,0.0,small_chosen
+Delta_C_venous_ivc,m6_per_J,0.0,user_defined
 q_us_0_venous_svc,m3,0.0,small_chosen
 Delta_q_us_venous_svc,m3,0.0,small_chosen
+Delta_C_venous_svc,m6_per_J,0.0,user_defined
 q_C_init_venous_lb,m3,0.0,user_defined
 q_C_init_venous_ub,m3,0.0,user_defined
 q_C_init_venous_ivc,m3,0.0,user_defined
