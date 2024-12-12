@@ -18,6 +18,9 @@ period = 1.0
 sim_object = SimulationHelper(file_path, 0.01, period, solver_info={'MaximumStep':0.001, 'MaximumNumberofSteps':500000}, pre_time=pre_time)
 sim_object.run()
 
+# IF you want to change parameters and run again, do it here. 
+
+
 y = sim_object.get_results(['LPA_A/u', 'RPA_A/u', 'RPV_V/u', 'heart/u_rv'])
 t = sim_object.tSim - pre_time
 

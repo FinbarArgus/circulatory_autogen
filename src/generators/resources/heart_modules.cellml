@@ -103,10 +103,10 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- q_lv_init sometimes gets identified, the others are set arbitrarily to zero normally, 
  identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="q_lv_init" name="q_lv" units="m3"/>
-        <variable initial_value="q_rv_init" name="q_rv" units="m3"/>
-        <variable initial_value="q_la_init" name="q_la" units="m3"/>
-        <variable initial_value="q_ra_init" name="q_ra" units="m3"/>
+        <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
+        <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
+        <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
+        <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>

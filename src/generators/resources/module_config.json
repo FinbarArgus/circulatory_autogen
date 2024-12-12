@@ -288,6 +288,7 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
@@ -328,6 +329,7 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
@@ -377,6 +379,7 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
       ["q_us", "m3", "access", "variable"],
@@ -425,6 +428,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
@@ -490,6 +494,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -995,6 +1000,8 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["du_C_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -1057,6 +1064,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["du_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
@@ -1123,6 +1131,8 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["du_C_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -1160,6 +1170,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -1206,6 +1217,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -1518,6 +1530,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -1555,6 +1568,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -1596,6 +1610,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -1646,6 +1661,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -1687,6 +1703,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -1736,6 +1753,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -1797,6 +1815,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -1829,6 +1849,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -1909,6 +1932,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -1935,6 +1960,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -2011,6 +2039,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -2043,6 +2073,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -2115,6 +2148,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -2147,6 +2182,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -2219,6 +2257,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -2251,6 +2291,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -2347,6 +2390,8 @@
       ["u_rv", "J_per_m3", "access", "variable"],
       ["u_la", "J_per_m3", "access", "variable"],
       ["u_lv", "J_per_m3", "access", "variable"],
+      ["u_root", "J_per_m3", "access", "boundary_condition"],
+      ["u_par", "J_per_m3", "access", "boundary_condition"],
       ["q_ra", "m3", "access", "variable"],
       ["q_rv", "m3", "access", "variable"],
       ["q_la", "m3", "access", "variable"],
@@ -2387,6 +2432,9 @@
       ["E_lv_B", "J_per_m6", "access", "global_constant"],
       ["e_a", "dimensionless", "access", "variable"],
       ["e_v", "dimensionless", "access", "variable"],
+      ["v_ivc", "m3_per_s", "access", "boundary_condition"],
+      ["v_svc", "m3_per_s", "access", "boundary_condition"],
+      ["v_pvn", "m3_per_s", "access", "boundary_condition"],
       ["v_trv", "m3_per_s", "access", "variable"],
       ["v_puv", "m3_per_s", "access", "variable"],
       ["v_miv", "m3_per_s", "access", "variable"],
@@ -2479,6 +2527,10 @@
       {
         "port_type":"venous_us_volume_delta_port",
         "variables":["Delta_q_us"]
+      },
+      {
+        "port_type":"venous_us_and_compliance_delta_port",
+        "variables":["Delta_q_us", "Delta_C"]
       }
     ],
     "exit_ports":
@@ -2510,6 +2562,7 @@
       ["q_us_0", "m3", "access", "constant"],
       ["q_us_wCont", "m3", "access", "variable"],
       ["Delta_q_us", "m3", "access", "boundary_condition"],
+      ["Delta_C", "m6_per_J", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"]
     ]
@@ -2631,6 +2684,7 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
@@ -2671,6 +2725,7 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
       ["q_us", "m3", "access", "variable"],
@@ -2721,6 +2776,7 @@
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
@@ -2950,7 +3006,7 @@
       ["C_CO2_in", "dimensionless", "access", "boundary_condition"],
       ["C_O2_in", "dimensionless", "access", "boundary_condition"],
       ["C_CO2_out", "dimensionless", "access", "variable"],
-      ["dot_C_CO2_out", "dimensionless", "access", "variable"],
+      ["dot_C_CO2_out", "Hz", "access", "variable"],
       ["C_O2_out", "dimensionless", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
       ["v", "m3_per_s", "access", "variable"]
@@ -2987,8 +3043,14 @@
       ["F_O2_D", "dimensionless", "access", "variable"],
       ["F_CO2_A", "dimensionless", "access", "variable"],
       ["F_O2_A", "dimensionless", "access", "variable"],
+      ["M_CO2", "m3_per_s", "access", "variable"],
+      ["M_O2", "m3_per_s", "access", "variable"],
       ["P_CO2_A", "J_per_m3", "access", "variable"],
-      ["P_O2_A", "J_per_m3", "access", "variable"]
+      ["P_O2_A", "J_per_m3", "access", "variable"],
+      ["v_ml", "m3_per_s", "access", "boundary_condition"],
+      ["v_bA", "m3_per_s", "access", "boundary_condition"],
+      ["q_D", "m3_per_s", "access", "boundary_condition"],
+      ["q_A", "m3_per_s", "access", "boundary_condition"]
     ]
   },
   {
@@ -3006,10 +3068,6 @@
     ],
     "exit_ports":
     [
-      {
-        "port_type":"pressure_port",
-        "variables":["P"]
-      }
     ],
     "variables_and_units":
     [
@@ -3322,6 +3380,41 @@
       ["f_s", "per_s", "access", "variable"],
       ["Delta_theta", "m3", "access", "variable"],
       ["sigma_theta", "m3", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"efferent_venous_us_volume_and_compliance_effector",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"control_modules.cellml",
+    "module_type":"efferent_venous_us_volume_and_compliance_effector_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"sympathetic_efferent_firing_rate_port",
+        "variables":["f_s"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"venous_us_and_compliance_delta_port",
+        "variables":["Delta_theta_us", "Delta_theta_compliance"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["G_theta_us", "m3", "access", "constant"],
+      ["G_theta_compliance", "m6_per_J", "access", "constant"],
+      ["f_es_min", "per_s", "access", "global_constant"],
+      ["tau_theta_us", "second", "access", "constant"],
+      ["tau_theta_compliance", "second", "access", "constant"],
+      ["f_s", "per_s", "access", "variable"],
+      ["Delta_theta_us", "m3", "access", "variable"],
+      ["sigma_theta_us", "m3", "access", "variable"],
+      ["Delta_theta_compliance", "m6_per_J", "access", "variable"],
+      ["sigma_theta_compliance", "m6_per_J", "access", "variable"]
     ]
   },
   {

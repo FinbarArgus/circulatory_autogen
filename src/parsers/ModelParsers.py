@@ -7,7 +7,7 @@ Created on 29/10/2021
 
 from parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from models.LumpedModels import CVS0DModel
-from checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck
+from checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 import numpy as np
 import re
 import os
@@ -85,9 +85,9 @@ class CSV0DModelParser(object):
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
 
         if self.parameter_id_dir:
-            check_list = [LumpedBCVesselCheck(), LumpedIDParamsCheck()]
+            check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck(), LumpedIDParamsCheck()]
         else:
-            check_list = [LumpedBCVesselCheck()]
+            check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck()]
 
         checker = LumpedCompositeCheck(check_list=check_list)
         checker.execute(model_0D)

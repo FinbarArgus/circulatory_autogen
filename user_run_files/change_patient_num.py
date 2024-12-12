@@ -2,7 +2,7 @@ import ruamel.yaml
 import sys
 import os
 
-def change_patient_num(patient_num, case_type, project_dir):
+def change_patient_num(patient_num, case_type, project_dir, period=1):
     yaml = ruamel.yaml.YAML()
 
     user_run_files_dir = os.path.dirname(__file__)
@@ -21,12 +21,13 @@ def change_patient_num(patient_num, case_type, project_dir):
     #     pre_or_post = 'pre'
     # else:
     #     pre_or_post = 'post'
+
     if case_type in ['pre', 'post']:
-        inp_data_dict['pre_time'] = 20
-        inp_data_dict['sim_time'] = 14
+        inp_data_dict['pre_time'] = 20*period
+        inp_data_dict['sim_time'] = 14*period
     else:
-        inp_data_dict['pre_time'] = 30
-        inp_data_dict['sim_time'] = 2 
+        inp_data_dict['pre_time'] = 40*period
+        inp_data_dict['sim_time'] = 2*period
 
     inp_data_dict['resources_dir'] = os.path.join(project_dir, f"physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{case_type}/resources")
     inp_data_dict['generated_models_dir'] = os.path.join(project_dir, f"physiology_models/pulmonary_CVS_Alfred/patient_{patient_num}/{case_type}/generated_models")
