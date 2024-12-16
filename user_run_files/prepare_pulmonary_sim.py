@@ -45,9 +45,9 @@ def prepare_pulmonary_sim(patient_num, case_type):
 
     # access the data from the csv file
     params = np.genfromtxt(parameters_csv_abs_path, delimiter=',', dtype=None, encoding=None)
-    period = params[np.where(params[:, 0] == 'period')
+    period = float(params[np.where(params[:, 0] == 'T')][0][2])
     
-    change_patient_num(patient_num, case_type, project_dir)
+    change_patient_num(patient_num, case_type, project_dir, period=period)
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:

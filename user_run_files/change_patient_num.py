@@ -17,6 +17,7 @@ def change_patient_num(patient_num, case_type, project_dir, period=1):
     else:
         user_run_files_path = os.path.join(user_run_files_dir, 'user_inputs.yaml')
 
+    inp_data_dict_orig = inp_data_dict.copy()
     # if case_type in ['pre', 'coupled_pre']:
     #     pre_or_post = 'pre'
     # else:
@@ -24,7 +25,7 @@ def change_patient_num(patient_num, case_type, project_dir, period=1):
 
     if case_type in ['pre', 'post']:
         inp_data_dict['pre_time'] = 20*period
-        inp_data_dict['sim_time'] = 14*period
+        inp_data_dict['sim_time'] = period
     else:
         inp_data_dict['pre_time'] = 40*period
         inp_data_dict['sim_time'] = 2*period
@@ -50,8 +51,16 @@ def change_patient_num(patient_num, case_type, project_dir, period=1):
         inp_data_dict['input_param_file'] = 'lung_CVS_coupled_parameters.csv'
         inp_data_dict['param_id_obs_path'] = f"" # this model doesn't get calibrated to anything
 
-    with open(user_run_files_path, 'w') as wf:
-        yaml.dump(inp_data_dict, wf)
+    try:
+        with open(user_run_files_path, 'w') as wf:
+            yaml.dump(inp_data_dict, wf)
+    except Exception as e:
+        print(f"Error writing to {user_run_files_path}")
+        print(e)
+        with open(user_run_files_path, 'w') as wf:
+            yaml.dump(inp_data_dict_orig, wf)
+        print("Restored original user_inputs.yaml")
+        exit()
 
 if __name__ == "__main__":
     
