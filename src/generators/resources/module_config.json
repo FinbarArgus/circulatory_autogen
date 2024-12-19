@@ -1,4 +1,4 @@
-[
+[     
   {
     "vessel_type":"arterial_simple",
     "BC_type":"vp",
@@ -2490,6 +2490,10 @@
       {
         "port_type":"flow_port",
         "variables":["v"]
+      },
+      {
+        "port_type":"pressure_port",
+        "variables":["u_out"]
       }
     ],
     "variables_and_units":
@@ -2544,6 +2548,10 @@
       {
         "port_type":"flow_port",
         "variables":["v"]
+      },
+      {
+        "port_type":"pressure_port",
+        "variables":["u_out"]
       }
     ],
     "variables_and_units":
@@ -2565,7 +2573,12 @@
       ["Delta_q_us", "m3", "access", "boundary_condition"],
       ["Delta_C", "m6_per_J", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["R_v", "Js_per_m6", "access", "variable"],
+      ["q_C_init", "m3", "access","constant"],
+      ["q_C_change", "m3", "access","variable"],
+      ["q", "m3", "access","variable"],
+      ["u_C", "J_per_m3", "access","variable"]
     ]
   },
   {
@@ -2883,7 +2896,8 @@
       ["beta_1", "m3_per_J", "access", "global_constant"],
       ["beta_2", "m3_per_J", "access", "global_constant"],
       ["C_O2_sat", "dimensionless", "access", "global_constant"],
-      ["C_CO2_sat", "dimensionless", "access", "global_constant"]
+      ["C_CO2_sat", "dimensionless", "access", "global_constant"],
+      ["d_C_O2_p_dt", "Hz", "access", "variable"]
     ]
   },
   {
@@ -3069,6 +3083,14 @@
     ],
     "exit_ports":
     [
+      {
+        "port_type":"flow_port",
+        "variables":["q_A","q_b"]
+      },
+      {
+        "port_type":"thoracic_pressure_port",
+        "variables":["P_mus"]
+      }
     ],
     "variables_and_units":
     [
@@ -3103,11 +3125,11 @@
       ["R_tb", "Js_per_m6", "access", "constant"],
       ["R_bA", "Js_per_m6", "access", "constant"],
       ["R_plwall", "Js_per_m6", "access", "constant"],
-      ["C_l", "J_per_m6", "access", "constant"],
-      ["C_t", "J_per_m6", "access", "constant"],
-      ["C_b", "J_per_m6", "access", "constant"],
-      ["C_A", "J_per_m6", "access", "constant"],
-      ["C_pl", "J_per_m6", "access", "constant"],
+      ["C_l", "m6_per_J", "access", "constant"],
+      ["C_t", "m6_per_J", "access", "constant"],
+      ["C_b", "m6_per_J", "access", "constant"],
+      ["C_A", "m6_per_J", "access", "constant"],
+      ["C_pl", "m6_per_J", "access", "constant"],
       ["t_floor", "second", "access", "variable"],
       ["T_resp", "second", "access", "constant"],
       ["IE_ratio", "dimensionless", "access", "constant"],
@@ -3214,7 +3236,7 @@
       ["K_stat", "per_s", "access", "constant"],
       ["K_dyn", "per_s", "access", "constant"],
       ["tau_cap", "second", "access", "constant"],
-      ["tau_CO2_cc_dyn", "second", "access", "constant"],
+      ["tau_CO2_cc_dyn", "dimensionless", "access", "constant"],
       ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
       ["C_O2_a", "dimensionless", "access", "boundary_condition"],
       ["dot_C_CO2_a", "per_s", "access", "boundary_condition"],
@@ -5614,14 +5636,14 @@
     [
       {
         "port_type":"vessel_port",
-        "variables":[]
+        "variables":["",""]
       }
     ],
     "exit_ports":
     [
       {
         "port_type":"vessel_port",
-        "variables":[]
+        "variables":["",""]
       }
     ],
     "variables_and_units":
@@ -6083,6 +6105,10 @@
     "module_type":"lung_stretch_receptor_Gee2023",
     "entrance_ports":
     [
+      {
+        "port_type":"volume_stretch_port",
+        "variables":["q_A","q_b"]
+      }
     ],
     "exit_ports":
     [
@@ -6096,7 +6122,10 @@
     [
       ["f_ls", "Hz", "access", "variable"],
       ["tau_lung", "second", "access", "constant"],
-      ["G_al", "per_ml_s", "access", "constant"]
+      ["G_al", "per_ml_s", "access", "constant"],
+      ["q_A", "m3", "access", "variable"],
+      ["q_b", "m3", "access", "variable"],
+      ["V_lung", "m3", "access", "variable"]
     ]
   },
   {
@@ -6108,8 +6137,12 @@
     "entrance_ports":
     [
       {
+        "port_type":"thoracic_pressure_port",
+        "variables":["P_mus"]
+      },
+      {
         "port_type":"pressure_port",
-        "variables":["P"]
+        "variables":["P_pvn"]
       }
     ],
     "exit_ports":
@@ -6123,13 +6156,15 @@
     "variables_and_units":
     [
       ["f_cp", "Hz", "access", "variable"],
-      ["P_pv_P_thor", "mmHg", "access", "variable"],
+      ["P_pv_P_thor", "J_per_m3", "access", "variable"],
       ["tau_cp", "second", "access", "constant"],
-      ["P_l_init", "mmHg", "access", "constant"],
-      ["P_l", "mmHg", "access", "variable"],
+      ["P_l_init", "J_per_m3", "access", "constant"],
+      ["P_l", "J_per_m3", "access", "variable"],
       ["f_maxl", "Hz", "access", "constant"],
-      ["P_tn", "mmHg", "access", "constant"],
-      ["k_l", "mmHg", "access", "constant"]
+      ["P_tn", "J_per_m3", "access", "constant"],
+      ["k_l", "J_per_m3", "access", "constant"],
+      ["P_pvn", "J_per_m3", "access", "boundary_condition"],
+      ["P_mus", "J_per_m3", "access", "boundary_condition"]
     ]
   },
   {
@@ -6323,6 +6358,10 @@
       {
         "port_type":"cardiopulmonary_firing_rate_port",
         "variables":["f_cp"]
+      },
+      {
+        "port_type":"chemoreceptor_firing_rate_port",
+        "variables":["f_apc"]
       }
     ],
     "exit_ports":
@@ -6341,6 +6380,11 @@
         "port_type":"NTS_cp_freq",
         "variables":["f_NTS_cp"],
         "multi_port":"True"
+      },
+      {
+        "port_type":"NTS_ch_freq",
+        "variables":["f_NTS_ch"],
+        "multi_port":"True"
       }
     ],
     "variables_and_units":
@@ -6351,6 +6395,7 @@
       ["f_ls", "Hz", "access", "boundary_condition"],
       ["f_br", "Hz", "access", "boundary_condition"],
       ["f_cp", "Hz", "access", "boundary_condition"],
+      ["f_apc", "Hz", "access", "boundary_condition"],
       ["f_min_br", "Hz", "access", "constant"],
       ["f_max_br", "Hz", "access", "constant"],
       ["f_mid_br", "Hz", "access", "constant"],
@@ -6360,9 +6405,13 @@
       ["f_min_cp", "Hz", "access", "constant"],
       ["f_max_cp", "Hz", "access", "constant"],
       ["f_mid_cp", "Hz", "access", "constant"],
+      ["f_min_ch", "Hz", "access", "constant"],
+      ["f_max_ch", "Hz", "access", "constant"],
+      ["f_mid_ch", "Hz", "access", "constant"],
       ["k_NTS_br", "dimensionless", "access", "constant"],
       ["k_NTS_ls", "dimensionless", "access", "constant"],
-      ["k_NTS_cp", "dimensionless", "access", "constant"]
+      ["k_NTS_cp", "dimensionless", "access", "constant"],
+      ["k_NTS_ch", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6422,6 +6471,10 @@
         "variables":["f_NTS_br"]
       },
       {
+        "port_type":"NTS_ch_freq",
+        "variables":["f_NTS_ch"]
+      },
+      {
         "port_type":"s_gating",
         "variables":["s"]
       }
@@ -6443,6 +6496,7 @@
       ["f_NTS_ls", "Hz", "access", "boundary_condition"],
       ["f_NTS_cp", "Hz", "access", "boundary_condition"],
       ["f_NTS_br", "Hz", "access", "boundary_condition"],
+      ["f_NTS_ch", "Hz", "access", "boundary_condition"],
       ["f_min_NA", "Hz", "access", "constant"],
       ["f_max_NA", "Hz", "access", "constant"],
       ["f_mid_NA", "Hz", "access", "constant"],
@@ -6654,7 +6708,7 @@
       ["f_PNDMV_filt", "Hz", "access", "boundary_condition"],
       ["inv_delta_Ev", "m6_per_J", "access", "variable"],
       ["inv_sigma_Ev", "m6_per_J", "access", "variable"],
-      ["delta_Emax", "m6_per_J", "access", "variable"],
+      ["delta_Emax", "J_per_m6", "access", "variable"],
       ["scale", "dimensionless", "access", "constant"]
     ]
   },
@@ -6695,7 +6749,7 @@
       ["f_PNDMV_filt", "Hz", "access", "boundary_condition"],
       ["inv_delta_Ev", "m6_per_J", "access", "variable"],
       ["inv_sigma_Ev", "m6_per_J", "access", "variable"],
-      ["delta_Emax", "m6_per_J", "access", "variable"],
+      ["delta_Emax", "J_per_m6", "access", "variable"],
       ["scale", "dimensionless", "access", "constant"]
     ]
   },

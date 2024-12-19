@@ -68,9 +68,9 @@
     <!--cardiopulmonary receptors ///////////////////////////////////////////////////////////////-->
     <!--step fxn for testing, replace w/ valid data  ********************************************-->
     <component name="cardiopulmonary_receptor_Gee2023">
-        <variable name="P_pv" public_interface="in" units="mmHg"/>
-        <variable name="P_mus" public_interface="in" units="mmHg"/>
-        <variable name="P_pv_P_thor" public_interface="out" units="mmHg"/>
+        <variable name="P_pvn" public_interface="in" units="J_per_m3"/>
+        <variable name="P_mus" public_interface="in" units="J_per_m3"/>
+        <variable name="P_pv_P_thor" public_interface="out" units="J_per_m3"/>
         <variable name="t" public_interface="in" units="second"/>
         <!-- P_mus is closest equivalent to P_thor in Finbar's lung model-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -79,32 +79,21 @@
                 <ci>P_pv_P_thor</ci>
                 <apply>
                     <minus/>
-                    <ci>P_pv</ci>
+                    <ci>P_pvn</ci>
                     <ci>P_mus</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>P_pv_P_thor</ci>
-                <piecewise>
-                    <piece>
-                        <cn cellml:units="mmHg">13</cn>
-                        <apply>
-                            <geq/>
-                            <ci>t</ci>
-                            <cn cellml:units="second">50</cn>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="mmHg">6</cn>
-                    </otherwise>
-                </piecewise>
-            </apply>
         </math>
+        <!--P_pv_P_thor = sel
+    case t >= 50{second}:
+        13{mmHg};
+    otherwise:
+        6{mmHg};
+endsel;-->
         <!-- s.41-->
         <variable name="tau_cp" public_interface="in" units="second"/>
-        <variable name="P_l_init" public_interface="in" units="mmHg"/>
-        <variable initial_value="P_l_init" name="P_l" public_interface="out" units="mmHg"/>
+        <variable name="P_l_init" public_interface="in" units="J_per_m3"/>
+        <variable initial_value="P_l_init" name="P_l" public_interface="out" units="J_per_m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -132,8 +121,8 @@
         <!-- s.42 (cp firing frequency)-->
         <variable name="f_cp" public_interface="out" units="Hz"/>
         <variable name="f_maxl" public_interface="in" units="Hz"/>
-        <variable name="P_tn" public_interface="in" units="mmHg"/>
-        <variable name="k_l" public_interface="in" units="mmHg"/>
+        <variable name="P_tn" public_interface="in" units="J_per_m3"/>
+        <variable name="k_l" public_interface="in" units="J_per_m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -528,6 +517,7 @@
     <!-- NTS &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
     <!-- baroreceptors-->
     <component name="NTS_Gee2023">
+        <!-- baroreceptors-->
         <variable name="t" public_interface="in" units="second"/>
         <variable name="f_br" public_interface="in" units="Hz"/>
         <variable name="f_min_br" public_interface="in" units="Hz"/>
@@ -642,6 +632,44 @@
                 </apply>
             </apply>
         </math>
+        <!-- chemoreceptors-->
+        <variable name="f_apc" public_interface="in" units="Hz"/>
+        <variable name="f_min_ch" public_interface="in" units="Hz"/>
+        <variable name="f_max_ch" public_interface="in" units="Hz"/>
+        <variable name="f_mid_ch" public_interface="in" units="Hz"/>
+        <variable name="f_NTS_ch" public_interface="out" units="Hz"/>
+        <variable name="k_NTS_ch" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>f_NTS_ch</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <minus/>
+                            <ci>f_min_ch</ci>
+                            <ci>f_max_ch</ci>
+                        </apply>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <apply>
+                                <power/>
+                                <apply>
+                                    <divide/>
+                                    <ci>f_apc</ci>
+                                    <ci>f_mid_ch</ci>
+                                </apply>
+                                <ci>k_NTS_ch</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                    <ci>f_max_ch</ci>
+                </apply>
+            </apply>
+        </math>
     </component>
     <!--DMV (new sigmoid form2) &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
     <component name="DMV_Gee2023">
@@ -697,6 +725,7 @@
         <variable name="f_NTS_br" public_interface="in" units="Hz"/>
         <variable name="f_NTS_ls" public_interface="in" units="Hz"/>
         <variable name="f_NTS_cp" public_interface="in" units="Hz"/>
+        <variable name="f_NTS_ch" public_interface="in" units="Hz"/>
         <variable name="f_NTS_output" public_interface="out" units="Hz"/>
         <variable name="f_NA_input" public_interface="out" units="Hz"/>
         <variable name="k_RSA" public_interface="in" units="dimensionless"/>
@@ -710,6 +739,7 @@
                     <ci>f_NTS_br</ci>
                     <ci>f_NTS_ls</ci>
                     <ci>f_NTS_cp</ci>
+                    <ci>f_NTS_ch</ci>
                 </apply>
             </apply>
             <apply>
