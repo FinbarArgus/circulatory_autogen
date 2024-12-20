@@ -100,6 +100,10 @@
     <units name="milliL">
         <unit prefix="milli" units="litre"/>
     </units>
+    <units name="per_milliL_s">
+        <unit exponent="-1" prefix="milli" units="litre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <units name="s_per_m3">
         <unit units="second"/>
         <unit exponent="-3" units="metre"/>

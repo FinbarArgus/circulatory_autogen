@@ -46,11 +46,11 @@
         <variable name="R_bA" public_interface="in" units="Js_per_m6"/>
         <variable name="R_plwall" public_interface="in" units="Js_per_m6"/>
         <!-- ______  Compliances_________-->
-        <variable name="C_l" public_interface="in" units="J_per_m6"/>
-        <variable name="C_t" public_interface="in" units="J_per_m6"/>
-        <variable name="C_b" public_interface="in" units="J_per_m6"/>
-        <variable name="C_A" public_interface="in" units="J_per_m6"/>
-        <variable name="C_pl" public_interface="in" units="J_per_m6"/>
+        <variable name="C_l" public_interface="in" units="m6_per_J"/>
+        <variable name="C_t" public_interface="in" units="m6_per_J"/>
+        <variable name="C_b" public_interface="in" units="m6_per_J"/>
+        <variable name="C_A" public_interface="in" units="m6_per_J"/>
+        <variable name="C_pl" public_interface="in" units="m6_per_J"/>
         <!-- periods/times-->
         <variable name="t_floor" public_interface="out" units="second"/>
         <variable name="T_resp" public_interface="in" units="second"/>

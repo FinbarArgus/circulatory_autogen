@@ -2570,14 +2570,12 @@
       ["q", "m3", "access", "variable"],
       ["q_us_0", "m3", "access", "constant"],
       ["q_us_wCont", "m3", "access", "variable"],
+      ["C_wCont", "m6_per_J", "access", "variable"],
       ["Delta_q_us", "m3", "access", "boundary_condition"],
       ["Delta_C", "m6_per_J", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_v", "Js_per_m6", "access", "variable"],
-      ["q_C_init", "m3", "access","constant"],
-      ["q_C_change", "m3", "access","variable"],
-      ["q", "m3", "access","variable"],
       ["u_C", "J_per_m3", "access","variable"]
     ]
   },
@@ -3064,8 +3062,8 @@
       ["P_O2_A", "J_per_m3", "access", "variable"],
       ["v_ml", "m3_per_s", "access", "boundary_condition"],
       ["v_bA", "m3_per_s", "access", "boundary_condition"],
-      ["q_D", "m3_per_s", "access", "boundary_condition"],
-      ["q_A", "m3_per_s", "access", "boundary_condition"]
+      ["q_D", "m3", "access", "boundary_condition"],
+      ["q_A", "m3", "access", "boundary_condition"]
     ]
   },
   {
@@ -3084,7 +3082,7 @@
     "exit_ports":
     [
       {
-        "port_type":"flow_port",
+        "port_type":"volume_stretch_port",
         "variables":["q_A","q_b"]
       },
       {
@@ -6123,8 +6121,8 @@
       ["f_ls", "Hz", "access", "variable"],
       ["tau_lung", "second", "access", "constant"],
       ["G_al", "per_ml_s", "access", "constant"],
-      ["q_A", "m3", "access", "variable"],
-      ["q_b", "m3", "access", "variable"],
+      ["q_A", "m3", "access", "boundary_condition"],
+      ["q_b", "m3", "access", "boundary_condition"],
       ["V_lung", "m3", "access", "variable"]
     ]
   },
@@ -6392,6 +6390,7 @@
       ["f_NTS_br", "Hz", "access", "variable"],
       ["f_NTS_ls", "Hz", "access", "variable"],
       ["f_NTS_cp", "Hz", "access", "variable"],
+      ["f_NTS_ch", "Hz", "access", "variable"],
       ["f_ls", "Hz", "access", "boundary_condition"],
       ["f_br", "Hz", "access", "boundary_condition"],
       ["f_cp", "Hz", "access", "boundary_condition"],

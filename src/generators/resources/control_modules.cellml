@@ -114,7 +114,7 @@
         <variable name="K_stat" public_interface="in" units="per_s"/>
         <variable name="K_dyn" public_interface="in" units="per_s"/>
         <variable name="tau_cap" public_interface="in" units="second"/>
-        <variable name="tau_CO2_cc_dyn" public_interface="in" units="second"/>
+        <variable name="tau_CO2_cc_dyn" public_interface="in" units="dimensionless"/>
         <!-- equations-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
