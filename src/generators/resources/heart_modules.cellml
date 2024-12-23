@@ -396,14 +396,19 @@
         </math>
         <!-- control effects Assume all subperiods scale linearly for now. TODO IMPROVE THIS-->
         <variable name="Delta_T" public_interface="in" units="second"/>
+        <variable name="T_min" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>T_wCont</ci>
                 <apply>
-                    <plus/>
-                    <ci>T</ci>
-                    <ci>Delta_T</ci>
+                    <max/>
+                    <apply>
+                        <plus/>
+                        <ci>T</ci>
+                        <ci>Delta_T</ci>
+                    </apply>
+                    <ci>T_min</ci>
                 </apply>
             </apply>
             <apply>

@@ -409,7 +409,7 @@ endsel;-->
             </apply>
         </math>
         <!-- -->
-        <variable initial_value="0" name="delta_Rsp" public_interface="out" units="Js_per_m6"/>
+        <variable initial_value="0" name="Delta_Rsp" public_interface="out" units="Js_per_m6"/>
         <variable name="tau_Rsp" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -419,7 +419,7 @@ endsel;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>delta_Rsp</ci>
+                    <ci>Delta_Rsp</ci>
                 </apply>
                 <apply>
                     <times/>
@@ -432,7 +432,7 @@ endsel;-->
                         <plus/>
                         <apply>
                             <minus/>
-                            <ci>delta_Rsp</ci>
+                            <ci>Delta_Rsp</ci>
                         </apply>
                         <ci>sigma_Rsp</ci>
                     </apply>
@@ -482,7 +482,7 @@ endsel;-->
                 </piecewise>
             </apply>
         </math>
-        <variable initial_value="0" name="delta_Vusv" public_interface="out" units="m3"/>
+        <variable initial_value="0" name="Delta_Vusv" public_interface="out" units="m3"/>
         <variable name="tau_Vusv" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -492,7 +492,7 @@ endsel;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>delta_Vusv</ci>
+                    <ci>Delta_Vusv</ci>
                 </apply>
                 <apply>
                     <times/>
@@ -505,7 +505,7 @@ endsel;-->
                         <plus/>
                         <apply>
                             <minus/>
-                            <ci>delta_Vusv</ci>
+                            <ci>Delta_Vusv</ci>
                         </apply>
                         <ci>sigma_Vusv</ci>
                     </apply>
@@ -1122,7 +1122,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
             </apply>
         </math>
         <!--s.56-->
-        <variable initial_value="1e-6" name="inv_delta_Es" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1e-6" name="inv_Delta_Es" public_interface="out" units="m6_per_J"/>
         <variable name="tau_Es" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1132,7 +1132,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>inv_delta_Es</ci>
+                    <ci>inv_Delta_Es</ci>
                 </apply>
                 <apply>
                     <times/>
@@ -1145,7 +1145,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                         <plus/>
                         <apply>
                             <minus/>
-                            <ci>inv_delta_Es</ci>
+                            <ci>inv_Delta_Es</ci>
                         </apply>
                         <ci>inv_sigma_Es</ci>
                     </apply>
@@ -1169,7 +1169,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
             </apply>
         </math>
         <!-- s. 58-->
-        <variable initial_value="1e-6" name="inv_delta_Ev" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1e-6" name="inv_Delta_Ev" public_interface="out" units="m6_per_J"/>
         <variable name="tau_Ev" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1179,7 +1179,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>inv_delta_Ev</ci>
+                    <ci>inv_Delta_Ev</ci>
                 </apply>
                 <apply>
                     <times/>
@@ -1192,26 +1192,26 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                         <plus/>
                         <apply>
                             <minus/>
-                            <ci>inv_delta_Ev</ci>
+                            <ci>inv_Delta_Ev</ci>
                         </apply>
                         <ci>inv_sigma_Ev</ci>
                     </apply>
                 </apply>
             </apply>
         </math>
-        <variable name="delta_Emax" public_interface="out" units="J_per_m6"/>
+        <variable name="Delta_Emax" public_interface="out" units="J_per_m6"/>
         <variable name="scale" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>delta_Emax</ci>
+                <ci>Delta_Emax</ci>
                 <apply>
                     <divide/>
                     <ci>scale</ci>
                     <apply>
                         <plus/>
-                        <ci>inv_delta_Es</ci>
-                        <ci>inv_delta_Ev</ci>
+                        <ci>inv_Delta_Es</ci>
+                        <ci>inv_Delta_Ev</ci>
                     </apply>
                 </apply>
             </apply>
