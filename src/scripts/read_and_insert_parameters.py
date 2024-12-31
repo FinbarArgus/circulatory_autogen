@@ -37,7 +37,7 @@ def insert_parameters(parameters_path, parameters_to_add_path):
 
     # params_df = pd.concat([params_df, new_params_df], ignore_index=True)
     params_df = new_params_df.set_index('variable_name').combine_first(params_df.set_index('variable_name')).reset_index()
-    params_df.to_csv(parameters_path, index=None, header=True)
+    params_df.to_csv(parameters_path, index=None, header=True, columns=['variable_name', 'units', 'value', 'data_reference'])
     print('after')
     print(params_df)
 
@@ -47,6 +47,15 @@ if __name__ == '__main__':
         if len(sys.argv) == 2:
             with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
                 inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            if inp_data_dict["user_inputs_path_override"]:
+                if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                    with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                        inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+                else:
+                    print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                    print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                          "you want to use the default user_inputs.yaml location")
+                    exit()
 
             resources_dir = os.path.join(root_dir, 'resources')
             # overwrite dir paths if set in user_inputs.yaml

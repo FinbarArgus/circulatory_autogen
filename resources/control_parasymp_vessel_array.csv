@@ -3,8 +3,8 @@ par,                     vp, arterial_simple,    heart,                         
 pcap,                    vp, arterial_simple,    par,                                pvn pulmonary_GE
 pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,          arterial_gas_transport arterial_chemoreceptor respiratory_gt             
 respiratory_gt,          nn, respiratory_gas_transport, pulmonary_GE,                lung 
-lung,                    nn, simple_lung_bg,     respiratory_gt,                     
-pvn,                     vp, venous,             pcap,                               heart
+lung,                    nn, simple_lung_bg,     respiratory_gt,lung_stretch cardiopulm_receptor
+pvn,                     vp, venous,             pcap,                               heart      cardiopulm_receptor
 heart,             vp_wCont, heart,              venous_ivc venous_svc pvn rv_elastance_effector lv_elastance_effector heart_period_effector,         ascending_aorta_A par  
 ascending_aorta_A,       vv, arterial,           heart                 ,             ascending_aorta_B    
 ascending_aorta_B,       pv, arterial,           ascending_aorta_A     ,             ascending_aorta_C    
@@ -105,8 +105,8 @@ arterial_gas_transport,  nn, gas_transport_simple, pulmonary_GE ascending_aorta_
 venous_gas_transport,    nn, gas_transport_simple, middle_cerebral_L_GE middle_cerebral_R_GE anterior_cerebral_L_GE anterior_cerebral_R_GE posterior_cerebral_L_GE posterior_cerebral_R_GE external_carotid_L_GE external_carotid_R_GE arm_L_GE arm_R_GE leg_L_GE leg_R_GE trunk_C_GE,  pulmonary_GE 
 common_carotid_L_baro,   nn, baroreceptor,       common_carotid_L48_D, NTS LCN sympathetic_efferent
 arterial_chemoreceptor,  nn, chemoreceptor,         arterial_gas_transport pulmonary_GE, sympathetic_efferent 
-lung_stretch, nn, lung_stretch_receptor_Gee2023, , NTS
-cardiopulm_receptor, nn, cardiopulmonary_receptor_Gee2023, , NTS LCN
+lung_stretch, nn, lung_stretch_receptor_Gee2023,lung, NTS
+cardiopulm_receptor, nn, cardiopulmonary_receptor_Gee2023,pvn lung, NTS LCN
 NTS, nn, NTS_Gee2023, lung_stretch common_carotid_L_baro cardiopulm_receptor , DMV NA
 DMV, nn, DMV_Gee2023, NTS, LCN PNDMV
 NA, nn, NA_Gee2023, NTS, NActr PNNA

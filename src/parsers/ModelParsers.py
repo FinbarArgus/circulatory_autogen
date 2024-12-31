@@ -71,16 +71,14 @@ class CSV0DModelParser(object):
         parameters_array = self.__reduce_parameters_array(parameters_array_orig, vessels_df)
         # this vessel_array
         if self.parameter_id_dir:
-            param_id_states, param_id_consts, param_id_date = self.csv_parser.get_param_id_params_as_lists_of_tuples(
+            param_id_name_and_vals, param_id_date = self.csv_parser.get_param_id_params_as_lists_of_tuples(
                 self.parameter_id_dir)
         else:
-            param_id_states = None
-            param_id_consts = None
+            param_id_name_and_vals = None
             param_id_date= None
 
         model_0D = CVS0DModel(vessels_df,parameters_array,
-                              param_id_states=param_id_states,
-                              param_id_consts=param_id_consts,
+                              param_id_name_and_vals=param_id_name_and_vals,
                               param_id_date=param_id_date)
 
         # get the allowable types from the modules_config.json file

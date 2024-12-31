@@ -24,29 +24,25 @@ def run_param_id(inp_data_dict=None):
     if inp_data_dict is None:
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+        if "user_inputs_path_override" in inp_data_dict.keys() and inp_data_dict["user_inputs_path_override"]:
+            if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                    inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            else:
+                print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                        "you want to use the default user_inputs.yaml location")
+                exit()
 
     DEBUG = inp_data_dict['DEBUG']
 
     if DEBUG:
         print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
-    mpi_debug = inp_data_dict['MPI_DEBUG']
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     num_procs = comm.Get_size()
     print(f'starting script for rank = {rank}')
-
-    # FOR MPI DEBUG WITH PYCHARM
-    # set mpi_debug to True
-    # You have to change the configurations to "python debug server/mpi" and
-    # click the debug button as many times as processes you want. You
-    # must but the ports for each process in port_mapping.
-    # Then simply run through mpiexec
-    if mpi_debug:
-        import pydevd_pycharm
-
-        port_mapping = [37979, 34075]
-        pydevd_pycharm.settrace('localhost', port=port_mapping[rank], stdoutToServer=True, stderrToServer=True)
 
     param_id_method = inp_data_dict['param_id_method']
     file_prefix = inp_data_dict['file_prefix']
@@ -150,13 +146,17 @@ def run_param_id(inp_data_dict=None):
         mcmc.set_best_param_vals(best_param_vals)
         # mcmc.set_mcmc_parameters() TODO
         mcmc.run_mcmc()
+    
+    if rank == 0:
+        print('param id complete')
         
 
 if __name__ == '__main__':
     comm = MPI.COMM_WORLD
     try:
         run_param_id()
+        MPI.Finalize()
     except:
         print(traceback.format_exc())
         comm.Abort()
-        exit
+        exit()

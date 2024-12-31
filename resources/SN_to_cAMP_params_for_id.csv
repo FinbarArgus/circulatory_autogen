@@ -1,9 +1,9 @@
-vessel_name,                  param_name,       param_type, min,        max,    name_for_plotting
-soma_SN,                      gna,              const,      1,          6,     g_{Na}
-soma_SN,                      g_M,              const,      0.001,      0.004,  g_{M}
-soma_SN,                      g_HCN,            const,      0.001,      0.01,  g_{HCN}
-soma_SN,                      gkv,              const,      0.03,       0.1,  g_{kv}
-soma_SN,                      gkcf,             const,      0.03,       0.15,  g_{kcf}
-soma_SN,                      gkcs,             const,      0.003,      0.03,  g_{kcs}
-soma_SN,                      V_mid_m,          const,      15,         34,    V_{midm}
-soma_SN,                      V_den_m,          const,      5,          20,    V_{denm}
+vessel_name,                  param_name,       min,        max,    name_for_plotting
+soma_SN,                      gna,              1,          6,     g_{Na}
+soma_SN,                      g_M,              0.001,      0.004,  g_{M}
+soma_SN,                      g_HCN,            0.001,      0.01,  g_{HCN}
+soma_SN,                      gkv,              0.03,       0.1,  g_{kv}
+soma_SN,                      gkcf,             0.03,       0.15,  g_{kcf}
+soma_SN,                      gkcs,             0.003,      0.03,  g_{kcs}
+soma_SN,                      V_mid_m,          15,         34,    V_{midm}
+soma_SN,                      V_den_m,          5,          20,    V_{denm}

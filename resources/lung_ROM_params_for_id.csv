@@ -1,18 +1,18 @@
-vessel_name,                  param_name,       param_type,  min,        max,     name_for_plotting
-MPA_A LPA_A LUL_A LLL_A LBS_A LM_A RPA_A RUL_A RML_A RLL_A RBS_A, E, const, 0.5e5, 1.2e6, E_A
-LPV_V LUL_V LLL_V LBS_V LM_V RPV_V RUL_V RML_V RLL_V RBS_V, E, const, 0.5e4, 0.1e6, E_V 
-LUL,                        R_1_T,            const,       1e7,        1e10,     R_{LUL}
-LUL,                        R_2_T,            const,       1e5,        1e8,     R_{LUL}
-LUL,                        C_T,              const,       1e-10,      1e-7,     C_{LUL}
-LLL,                        R_1_T,            const,       1e6,        1e9,     R_{LLL}
-LLL,                        R_2_T,            const,       1e4,        1e7,     R_{LLL}
-LLL,                        C_T,              const,       1e-9,       1e-7,     C_{LLL}
-RUL,                        R_1_T,            const,       1e7,        1e9,     R_{RUL}
-RUL,                        R_2_T,            const,       1e4,        1e7,     R_{RUL}
-RUL,                        C_T,              const,       1e-9,       1e-7,     C_{RUL}
-RML,                        R_1_T,            const,       1e6,        1e8,     R_{RML}
-RML,                        R_2_T,            const,       1e6,        5e9,     R_{RML}
-RML,                        C_T,              const,       1e-9,       1e-7,     C_{RML}
-RLL,                        R_1_T,            const,       1e5,        1e8,     R_{RLL}
-RLL,                        R_2_T,            const,       1e5,        1e10,     R_{RLL}
-RLL,                        C_T,              const,       1e-11,       1e-7,     C_{RLL}
+vessel_name,                  param_name,       min,        max,     name_for_plotting
+MPA_A LPA_A LUL_A LLL_A LBS_A LM_A RPA_A RUL_A RML_A RLL_A RBS_A, E, 0.5e5, 1.2e6, E_A
+LPV_V LUL_V LLL_V LBS_V LM_V RPV_V RUL_V RML_V RLL_V RBS_V, E, 0.5e4, 0.1e6, E_V 
+LUL,                        R_1_T,            1e7,        1e10,     R_{LUL}
+LUL,                        R_2_T,            1e5,        1e8,     R_{LUL}
+LUL,                        C_T,              1e-10,      1e-7,     C_{LUL}
+LLL,                        R_1_T,            1e6,        1e9,     R_{LLL}
+LLL,                        R_2_T,            1e4,        1e7,     R_{LLL}
+LLL,                        C_T,              1e-9,       1e-7,     C_{LLL}
+RUL,                        R_1_T,            1e7,        1e9,     R_{RUL}
+RUL,                        R_2_T,            1e4,        1e7,     R_{RUL}
+RUL,                        C_T,              1e-9,       1e-7,     C_{RUL}
+RML,                        R_1_T,            1e6,        1e8,     R_{RML}
+RML,                        R_2_T,            1e6,        5e9,     R_{RML}
+RML,                        C_T,              1e-9,       1e-7,     C_{RML}
+RLL,                        R_1_T,            1e5,        1e8,     R_{RLL}
+RLL,                        R_2_T,            1e5,        1e10,     R_{RLL}
+RLL,                        C_T,              1e-11,       1e-7,     C_{RLL}

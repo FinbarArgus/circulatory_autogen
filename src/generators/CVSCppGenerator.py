@@ -14,9 +14,18 @@ generators_dir_path = os.path.dirname(__file__)
 root_dir = os.path.join(generators_dir_path, '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
-from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
-import utilities.libcellml_helper_funcs as cellml
-import utilities.libcellml_utilities as libcellml_utils
+
+LIBCELLML_available = True
+try:
+    from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
+    import utilities.libcellml_helper_funcs as cellml
+    import utilities.libcellml_utilities as libcellml_utils
+except ImportError as e:
+    print("Error -> ", e)
+    print('continuing without LibCellML, Warning code checks will not be available.'
+          'You will need to open generated models in OpenCOR to check for errors.')
+    LIBCELLML_available = False
+
 from rdflib import Graph, Literal, RDF, URIRef
 from rdflib.namespace import DCTERMS
 from urllib.parse import urlparse
@@ -38,6 +47,10 @@ class CVS0DCppGenerator(object):
         '''
         Constructor
         '''
+        if LIBCELLML_available == False:
+            print("Error: LibCellML is not available, cannot generate Cpp files.")
+            exit()
+            
         self.model = model
         self.generated_model_subdir = generated_model_subdir
         if not os.path.exists(self.generated_model_subdir):

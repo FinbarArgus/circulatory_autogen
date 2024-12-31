@@ -9,7 +9,7 @@
   },
   "prediction_items":[
     {
-      "variable": "SN/Ca_ter",
+      "variable": "varSN/Ca_ter",
       "unit": "millimolar",
       "name_for_plotting": "Ca_{ter}",
       "experiment_idx": 0

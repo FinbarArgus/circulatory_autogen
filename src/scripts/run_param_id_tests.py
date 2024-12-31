@@ -2,6 +2,7 @@ import os
 import sys
 import yaml
 import traceback
+import numpy as np
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
@@ -24,12 +25,14 @@ if __name__ == '__main__':
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
 
         # generate_with_new_architecture(False, inp_data_dict)
+        if 'user_inputs_path_override' in inp_data_dict.keys():
+            del inp_data_dict['user_inputs_path_override']
         if 'resources_dir' in inp_data_dict.keys():
             # remove that entry so it doesnt get passed to the param_id script
             # so the default dirs are used
             del inp_data_dict['resources_dir']
-        if 'generated_model_dir' in inp_data_dict.keys():
-            del inp_data_dict['generated_model_dir']
+        if 'generated_models_dir' in inp_data_dict.keys():
+            del inp_data_dict['generated_models_dir']
         if 'param_id_output_dir' in inp_data_dict.keys():
             del inp_data_dict['param_id_output_dir']
 
@@ -57,6 +60,40 @@ if __name__ == '__main__':
 
         # also test plotting
         plot_param_id(inp_data_dict)
+        
+        print('')
+        print('running test_fft parameter id test')
+        inp_data_dict['file_prefix'] = 'test_fft'
+        inp_data_dict['input_param_file'] = 'test_fft_parameters.csv'
+        inp_data_dict['param_id_method'] = 'genetic_algorithm'
+        inp_data_dict['solver'] = 'CVODE'
+        inp_data_dict['pre_time'] = 1
+        inp_data_dict['sim_time'] = 1
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['dt'] = 0.01
+        inp_data_dict['DEBUG'] = True
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/test_fft_obs_data.json')
+        inp_data_dict['param_id_output_dir'] = os.path.join(root_dir_path, 'param_id_output/')   
+        inp_data_dict['do_mcmc'] = True
+        inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
+        inp_data_dict['plot_predictions'] = True
+        run_param_id(inp_data_dict)
+
+        # also test running autogeneration with the fit parameters
+        generate_with_new_architecture(True, inp_data_dict)
+
+        # also test plotting
+        plot_param_id(inp_data_dict)
+
+        # check that the cost is zero for the test_fft
+        fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
+        if fft_cost < 1e-10:
+            print('fft cost is zero as expected. Success!')
+        else:
+            print('fft cost is not zero. Failure in the Frequency parameter identitication!')
+            raise ValueError('fft cost is not zero. Failure!')
 
         print('')
         print('running SN_to_cAMP parameter id test')

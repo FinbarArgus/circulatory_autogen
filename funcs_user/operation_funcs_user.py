@@ -79,6 +79,8 @@ def RICRI_get_zero_freq_3_Hz(C_T, I_1, I_2, R_T, frac_R_T_1_of_R_T):
     assert isinstance(freq, float)
     return freq
 
+# TODO we should find a way to only find_peaks once per subexperiment
+# ATM if multiple of the below functions are called, it does find_peaks multiple times
 @series_to_constant
 def calc_spike_period(t, V, series_output=False):
     if series_output:
@@ -143,10 +145,10 @@ def steady_state_min(x, series_output=False):
         return np.min(x[len(x)//2:])
 
 @series_to_constant
-def calc_min_to_max_period_diff(t, V, series_output=False):
+def calc_min_to_max_period_diff(t, V, series_output=False, spike_min_thresh=None):
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V)
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
         # there aren't enough peaks to calculate a period
@@ -161,10 +163,25 @@ def calc_min_to_max_period_diff(t, V, series_output=False):
     return period_diff
 
 @series_to_constant
-def min_period(t, V, series_output=False, spike_min_thresh=None):
+def calc_min_peak(t, V, series_output=False, spike_min_thresh=None):
     if series_output:
         return V
     peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 1:
+        # if there aren't spikes set the min peak to the max of the voltage the max/sudo-peak)
+        min_peak = max(V)
+    else:
+        min_peak = min(V[peak_idxs])
+
+    return min_peak
+
+@series_to_constant
+def min_period(t, V, series_output=False, spike_min_thresh=None, distance=None):
+    if series_output:
+        return V
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
     # TODO maybe check peak properties here
     if len(peak_idxs) < 2:
         # there aren't enough peaks to calculate a period
@@ -199,6 +216,92 @@ def E_A_ratio(t, x, T, series_output=False):
     E_A_ratio = x[peak_idxs[0]]/x[peak_idxs[1]]
 
     return E_A_ratio
+
+# included by David Shaw
+@series_to_constant
+def peak_times(t, V, series_output=False):
+    """
+    returns all peak times
+    """
+    if series_output:
+        return V
+    peak_idxs, peak_properties = find_peaks(V)
+    if len(peak_idxs) == 0:
+        return 99999999
+    peaks = t[peak_idxs]
+    return peaks
+
+@series_to_constant
+def mean_last_half(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        half_len = len(x) // 2
+        last_half_values = x[half_len:]
+        return np.mean(last_half_values)
+
+@series_to_constant
+def mean_last_quarter(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        quarter_len = len(x) // 4
+        last_quarter_values = x[-quarter_len:]
+        return np.mean(last_quarter_values)
+
+@series_to_constant
+def max_first_half(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        half_len = len(x) // 2
+        first_half_values = x[:half_len]
+        return np.max(first_half_values)
+
+@series_to_constant
+def max_first_quarter(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        quarter_len = len(x) // 4
+        first_quarter_values = x[:quarter_len]
+        return np.max(first_quarter_values)
+
+@series_to_constant
+def max_second_quarter(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        quarter_len = len(x) // 4
+        second_quarter_values = x[quarter_len:2 * quarter_len]
+        return np.max(second_quarter_values)
+
+@series_to_constant
+def max_last_quarter(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        quarter_len = len(x) // 4
+        last_quarter_values = x[-quarter_len:]
+        return np.max(last_quarter_values)
+
+@series_to_constant
+def min_first_half(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        half_len = len(x) // 2
+        first_half_values = x[:half_len]
+        return np.min(first_half_values)
+
+@series_to_constant
+def min_first_quarter(x, series_output=False):
+    if series_output:
+        return x
+    else:
+        quarter_len = len(x) // 4
+        first_quarter_values = x[:quarter_len]
+        return np.min(first_quarter_values)
 
 
 

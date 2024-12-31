@@ -11,9 +11,17 @@ import os
 from sys import exit
 generators_dir = os.path.dirname(__file__)
 base_dir = os.path.join(os.path.dirname(__file__), '../..')
-from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
-import utilities.libcellml_helper_funcs as cellml
-import utilities.libcellml_utilities as libcellml_utils
+LIBCELLML_available = True
+try:
+    from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
+    import utilities.libcellml_helper_funcs as cellml
+    import utilities.libcellml_utilities as libcellml_utils
+except ImportError as e:
+    print("Error -> ", e)
+    print('continuing without LibCellML, Warning code checks will not be available.'
+          'You will need to open generated models in OpenCOR to check for errors.')
+    LIBCELLML_available = False
+
 
 
 class CVS0DCellMLGenerator(object):
@@ -61,7 +69,7 @@ class CVS0DCellMLGenerator(object):
         #    Code to generate model files
         self.__generate_units_file()
         self.__generate_CellML_file()
-        if self.model.param_id_consts:
+        if self.model.param_id_name_and_vals:
             self.__modify_parameters_array_from_param_id()
         self.__generate_parameters_csv()
         self.__generate_parameters_file()
@@ -71,30 +79,31 @@ class CVS0DCellMLGenerator(object):
         print('Model generation complete.')
         print('Checking Status of Model')
 
-        # parse the model in non-strict mode to allow non CellML 2.0 models
-        model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
-        # resolve imports, in non-strict mode
-        importer = cellml.resolve_imports(model, self.output_dir, False)
-        # need a flattened model for analysing
-        flat_model = cellml.flatten_model(model, importer)
-        model_string = cellml.print_model(flat_model)
-        
-        # this if we want to create the flat model, for debugging
-        with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
-            f.write(model_string)
+        if LIBCELLML_available:
+            # parse the model in non-strict mode to allow non CellML 2.0 models
+            model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
+            # resolve imports, in non-strict mode
+            importer = cellml.resolve_imports(model, self.output_dir, False)
+            # need a flattened model for analysing
+            flat_model = cellml.flatten_model(model, importer)
+            model_string = cellml.print_model(flat_model)
+            
+            # this if we want to create the flat model, for debugging
+            with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+                f.write(model_string)
 
-        # analyse the model
-        a = Analyser()
+            # analyse the model
+            a = Analyser()
 
-        a.analyseModel(flat_model)
-        analysed_model = a.model()
+            a.analyseModel(flat_model)
+            analysed_model = a.model()
 
-        libcellml_utils.print_issues(a)
-        print(analysed_model.type())
-        if analysed_model.type() != AnalyserModel.Type.ODE:
-            print("WARNING model is has some issues, see above. "
-                  "The model might still run with some of the above issues"
-                  "but it is recommended to fix them")
+            libcellml_utils.print_issues(a)
+            print(analysed_model.type())
+            if analysed_model.type() != AnalyserModel.Type.ODE:
+                print("WARNING model is has some issues, see above. "
+                    "The model might still run with some of the above issues"
+                    "but it is recommended to fix them")
         
         print('Testing to see if model opens in OpenCOR')
         opencor_available = True
@@ -165,7 +174,7 @@ class CVS0DCellMLGenerator(object):
 
                 # map between computational environment and module so they can be accessed
                 print('writing mappings between computational environment and modules')
-                self.__write_section_break(wf, 'vessel mappings')
+                self.__write_section_break(wf, 'own vessel mappings')
                 self.__write_comp_to_module_mappings(wf, self.model.vessels_df)
     
                 # map constants to different modules
@@ -218,7 +227,7 @@ class CVS0DCellMLGenerator(object):
     def __modify_parameters_array_from_param_id(self):
         # first modify param_const names easily by modifying them in the array
         print('modifying constants to values identified from parameter id')
-        for const_name, val in self.model.param_id_consts:
+        for const_name, val in self.model.param_id_name_and_vals:
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
                                            const_name)[0][0]]['value'] = f'{val:.10e}'
             self.model.parameters_array[np.where(self.model.parameters_array['variable_name'] ==
@@ -273,9 +282,6 @@ class CVS0DCellMLGenerator(object):
                             self.all_units.append(re.search('units name="(.*?)"', line).group(1))
 
     def __generate_modules_file(self):
-        if self.model.param_id_states:
-            # create list to check if all states get modified to param_id values
-            state_modified = [False]*len(self.model.param_id_states) #  whether this state has been found and modified
         print(f'Generating modules file {self.filename_prefix}_modules.cellml')
         with open(os.path.join(self.output_dir, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
             # write first two lines
@@ -423,7 +429,8 @@ class CVS0DCellMLGenerator(object):
             # remove the BC variables from the variables_and_units list
             # these variables will be accesible from the neighbouring
             # modules where they are calculated.
-            module_df.iloc[module_row_idx]["variables_and_units"] = np.delete(module_df.iloc[module_row_idx]["variables_and_units"], indexes_to_remove, axis=0)
+            for index in sorted(indexes_to_remove, reverse=True):
+                del module_df.iloc[module_row_idx]["variables_and_units"][index]
 
         if np.any(self.model.parameters_array["value"] == 'EMPTY_MUST_BE_FILLED'):
             self.all_parameters_defined = False
@@ -483,6 +490,8 @@ class CVS0DCellMLGenerator(object):
             self.__check_input_output_modules(module_df, main_module, out_module,
                                               main_module_BC_type, out_module_BC_type,
                                               main_module_type, out_module_type)
+            self.__check_input_output_ports(module_row["exit_ports"], out_module_row["entrance_ports"],
+                                            out_module, main_module)
 
             # create a list of dicts that stores info for the entrance ports of this output module
             entrance_port_types = []
@@ -667,16 +676,13 @@ class CVS0DCellMLGenerator(object):
                 if len(out_vessel_names) == 0:
                     # there is no venous compartment connected to this terminal but still create a terminal venous section
                     pass
-                elif len(out_vessel_names) > 1:
-                    print(f'Terminal {vessel_name} has more than one venous compartment connected to it, '
-                          f'which is currently not allowed. Exiting')
-                    exit()
                 else:
-                    # map pressure between terminal and first venous compartment
-                    u_1 = 'u_out'
-                    u_2 = 'u'
-                    self.__write_mapping(wf, vessel_name+'_module', out_vessel_names[0]+'_module',
-                                        [u_1], [u_2])
+                    # map pressure between terminal and first venous compartments
+                    for out_vessel_idx in range(len(out_vessel_names)):
+                        u_1 = 'u_out'
+                        u_2 = 'u'
+                        self.__write_mapping(wf, vessel_name+'_module', out_vessel_names[out_vessel_idx]+'_module',
+                                            [u_1], [u_2])
 
                 # then map variables between connection and the venous sections
                 v_1 = 'v_T'
@@ -825,7 +831,7 @@ class CVS0DCellMLGenerator(object):
             return
         wf.write(f'<component name="{vessel_row["name"]}">\n')
         lines_to_write = []
-        for variable, unit, access_str, _ in vessel_row["variables_and_units"]:
+        for variable, unit, access_str, variable_type in vessel_row["variables_and_units"]:
             if access_str == 'access':
                 lines_to_write.append(f'   <variable name="{variable}" public_interface="in" units="{unit}"/>\n')
             elif access_str == 'no_access':
@@ -947,6 +953,7 @@ class CVS0DCellMLGenerator(object):
         if main_vessel_BC_type.startswith('nn'):
             return
 
+
         if len(main_vessel_BC_type) > 2:
             temp_main_vessel_BC_type = main_vessel_BC_type[:2]
         else:
@@ -962,6 +969,21 @@ class CVS0DCellMLGenerator(object):
                 print(f'"{main_vessel}" output BC is p, the input BC of "{out_vessel}"',
                       ' should be v')
                 exit()
+
+    def __check_input_output_ports(self, exit_ports, entrance_ports, exit_port_name, entrance_port_name):
+        # check that input and output modules have a matching port
+        shared_port = False
+        for exit_port in exit_ports:
+            if exit_port["port_type"] in [entrance_port["port_type"] for entrance_port in entrance_ports]:
+                shared_port = True
+                break
+        if shared_port == False:
+            print(f'output module {exit_port_name} and input module {entrance_port_name} do not have a matching port,'
+                  f'check the module configuration file')
+            print(f'input module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
+            print(f'output module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
+            exit()
+            
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
         mapping = ['<connection>\n', f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n']

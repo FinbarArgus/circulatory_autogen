@@ -29,6 +29,15 @@ def plot_param_id(inp_data_dict=None):
     if inp_data_dict is None:
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+        if "user_inputs_path_override" in inp_data_dict.keys() and inp_data_dict["user_inputs_path_override"]:
+            if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                    inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            else:
+                print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                        "you want to use the default user_inputs.yaml location")
+                exit()
 
     plot_predictions = inp_data_dict['plot_predictions']
 
@@ -55,7 +64,7 @@ def plot_param_id(inp_data_dict=None):
         print(f'param_id_obs_path={param_id_obs_path} does not exist')
         exit()
 
-    data_str_addon = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+    data_str_addon = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
     # here we get the subdir of the generated model that has the fitted params in it.
     generated_models_subdir= os.path.join(generated_models_dir, file_prefix + '_' + data_str_addon)
     # generated_models_subdir = os.path.join(generated_models_dir, file_prefix)

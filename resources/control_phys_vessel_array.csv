@@ -1,7 +1,7 @@
 name,BC_type,vessel_type,inp_vessels,out_vessels
 par,                     vp, arterial_simple,    heart,                              pcap
 pcap,                    vp, arterial_simple,    par,                                pvn pulmonary_GE
-pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,          arterial_gas_transport arterial_chemoreceptor respiratory_gt             
+pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,          arterial_gas_transport respiratory_gt             
 respiratory_gt,          nn, respiratory_gas_transport, pulmonary_GE,                lung 
 lung,                    nn, simple_lung_bg,     respiratory_gt,                     
 pvn,                     vp, venous,             pcap,                               heart
@@ -104,7 +104,7 @@ trunk_C_GE,              nn, tissue_GE_simple,   trunk_C_T arterial_gas_transpor
 arterial_gas_transport,  nn, gas_transport_simple, pulmonary_GE ascending_aorta_C, arm_L_GE arm_R_GE leg_L_GE leg_R_GE trunk_C_GE middle_cerebral_L_GE middle_cerebral_R_GE posterior_cerebral_L_GE posterior_cerebral_R_GE anterior_cerebral_L_GE anterior_cerebral_R_GE external_carotid_L_GE external_carotid_R_GE arm_L_LC arm_R_LC leg_L_LC leg_R_LC middle_cerebral_L_LC middle_cerebral_R_LC posterior_cerebral_L_LC posterior_cerebral_R_LC anterior_cerebral_L_LC anterior_cerebral_R_LC external_carotid_L_LC external_carotid_R_LC arterial_chemoreceptor
 venous_gas_transport,    nn, gas_transport_simple, middle_cerebral_L_GE middle_cerebral_R_GE anterior_cerebral_L_GE anterior_cerebral_R_GE posterior_cerebral_L_GE posterior_cerebral_R_GE external_carotid_L_GE external_carotid_R_GE arm_L_GE arm_R_GE leg_L_GE leg_R_GE trunk_C_GE,  pulmonary_GE 
 common_carotid_L_baro,   nn, baroreceptor,       common_carotid_L48_D, vagal_efferent sympathetic_efferent
-arterial_chemoreceptor,  nn, chemoreceptor,         arterial_gas_transport pulmonary_GE, vagal_efferent sympathetic_efferent 
+arterial_chemoreceptor,  nn, chemoreceptor,         arterial_gas_transport, vagal_efferent sympathetic_efferent 
 vagal_efferent,          nn, afferent_to_vagal_efferent, arterial_chemoreceptor common_carotid_L_baro, heart_period_effector
 sympathetic_efferent, nn,afferent_to_sympathetic_efferent, arterial_chemoreceptor common_carotid_L_baro, trunk_resistance_effector arm_leg_resistance_effector rv_elastance_effector lv_elastance_effector heart_period_effector venous_us_volume_effector
 trunk_resistance_effector,      nn,efferent_resistance_effector,     sympathetic_efferent, trunk_C_T

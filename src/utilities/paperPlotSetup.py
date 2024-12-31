@@ -16,8 +16,9 @@ def Setup_Plot(case):
 
     # prop = font_manager.FontProperties(fname=fontPath)
     # mpl.rcParams['font.family'] = prop.get_name()
-    mpl.rcParams['font.family'] = 'Times New Roman'
-    mpl.rcParams['mathtext.default'] = 'regular'
+    mpl.rcParams['font.family'] = 'serif'
+    mpl.rcParams['font.serif'] = 'cmr10'
+    mpl.rcParams['mathtext.fontset'] = 'dejavuserif'
     mpl.rcParams['axes.formatter.use_mathtext'] = True
     mpl.rcParams['grid.color'] = 'xkcd:light grey'
     mpl.rcParams['legend.edgecolor'] = 'k'
