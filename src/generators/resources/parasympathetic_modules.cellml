@@ -63,6 +63,73 @@ endsel;-->
             </apply>
         </math>
     </component>
+    <component name="lung_stretch_receptor_with_threshold">
+        <variable name="q_A" public_interface="in" units="m3"/>
+        <variable name="q_b" public_interface="in" units="m3"/>
+        <variable name="V_lung" public_interface="out" units="m3"/>
+        <variable name="V_lung_stretch_thresh" public_interface="in" units="m3"/>
+        <variable name="t" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>V_lung</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_A</ci>
+                    <ci>q_b</ci>
+                </apply>
+            </apply>
+        </math>
+        <!--V_lung = sel
+    case t > 50{second}:
+        0.6{m3};
+    otherwise:
+        0{m3};
+endsel;-->
+        <!-- s.43 (lr firing frequency)-->
+        <variable initial_value="0" name="f_ls" public_interface="out" units="Hz"/>
+        <!-- change to 2 from 0.5 as I changed tau to correct unit of second-->
+        <variable name="tau_lung" public_interface="in" units="second"/>
+        <variable name="G_al" public_interface="in" units="per_ml_s"/>
+        <!-- ode(f_ls, t) = tau_lung*(-f_ls+G_al*V_lung);
+ changed so that tau has correct units of seconds. tau should be a time constant-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>f_ls</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>f_ls</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>G_al</ci>
+                            <apply>
+                                <max/>
+                                <apply>
+                                    <minus/>
+                                    <ci>V_lung</ci>
+                                    <ci>V_lung_stretch_thresh</ci>
+                                </apply>
+                                <cn cellml:units="m3">0.0</cn>
+                            </apply>
+                        </apply>
+                    </apply>
+                    <ci>tau_lung</ci>
+                </apply>
+            </apply>
+        </math>
+    </component>
     <!-- baroreceptors //////////////////////////////////////////////////////////////////////////////////-->
     <!-- step fxn for testing, replace w/ valid data  ********************************************-->
     <!--cardiopulmonary receptors ///////////////////////////////////////////////////////////////-->
@@ -1079,7 +1146,143 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
     <!-- Emaxlv_symp &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
     <!--s.55-->
     <component name="heart_effector_Gee2023">
-        <variable name="inv_sigma_Es" public_interface="out" units="m6_per_J"/>
+        <variable name="sigma_Es" public_interface="out" units="J_per_m6"/>
+        <variable name="G_Es" public_interface="in" units="J_per_m6"/>
+        <variable name="f_esh" public_interface="in" units="Hz"/>
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="f_es_min" public_interface="in" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>sigma_Es</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>G_Es</ci>
+                            <apply>
+                                <ln/>
+                                <apply>
+                                    <plus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>f_esh</ci>
+                                        <ci>f_es_min</ci>
+                                    </apply>
+                                    <cn cellml:units="Hz">1</cn>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>f_esh</ci>
+                            <ci>f_es_min</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+        </math>
+        <!--s.56-->
+        <variable initial_value="0.0" name="Delta_Es" public_interface="out" units="J_per_m6"/>
+        <variable name="tau_Es" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Delta_Es</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Es</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>Delta_Es</ci>
+                        </apply>
+                        <ci>sigma_Es</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- Emaxlv_vag&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+        <!-- s.57-->
+        <variable name="sigma_Ev" public_interface="out" units="J_per_m6"/>
+        <variable name="G_Ev" public_interface="in" units="Js_per_m6"/>
+        <variable name="f_PNDMV_filt" public_interface="in" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>sigma_Ev</ci>
+                <apply>
+                    <times/>
+                    <ci>G_Ev</ci>
+                    <ci>f_PNDMV_filt</ci>
+                </apply>
+            </apply>
+        </math>
+        <!-- s. 58-->
+        <variable initial_value="0.0" name="Delta_Ev" public_interface="out" units="J_per_m6"/>
+        <variable name="tau_Ev" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Delta_Ev</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Ev</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>Delta_Ev</ci>
+                        </apply>
+                        <ci>sigma_Ev</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <variable name="Delta_Emax" public_interface="out" units="J_per_m6"/>
+        <variable name="scale" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>Delta_Emax</ci>
+                <apply>
+                    <times/>
+                    <ci>scale</ci>
+                    <apply>
+                        <plus/>
+                        <ci>Delta_Es</ci>
+                        <ci>Delta_Ev</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <component name="heart_effector_Gee2023_INV">
+        <variable name="inv_sigma_Es" public_interface="out" units="J_per_m6"/>
         <variable name="inv_G_Es" public_interface="in" units="m6_per_J"/>
         <variable name="f_esh" public_interface="in" units="Hz"/>
         <variable name="t" public_interface="in" units="second"/>
@@ -1122,7 +1325,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
             </apply>
         </math>
         <!--s.56-->
-        <variable initial_value="1e-6" name="inv_Delta_Es" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="1e-7" name="inv_Delta_Es" public_interface="out" units="m6_per_J"/>
         <variable name="tau_Es" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1169,7 +1372,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
             </apply>
         </math>
         <!-- s. 58-->
-        <variable initial_value="1e-6" name="inv_Delta_Ev" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="-1e-7" name="inv_Delta_Ev" public_interface="out" units="m6_per_J"/>
         <variable name="tau_Ev" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1206,12 +1409,20 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                 <eq/>
                 <ci>Delta_Emax</ci>
                 <apply>
-                    <divide/>
+                    <times/>
                     <ci>scale</ci>
                     <apply>
                         <plus/>
-                        <ci>inv_Delta_Es</ci>
-                        <ci>inv_Delta_Ev</ci>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>inv_Delta_Es</ci>
+                        </apply>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>inv_Delta_Ev</ci>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
