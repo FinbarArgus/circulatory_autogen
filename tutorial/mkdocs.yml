@@ -2,3 +2,8 @@ site_name: Circulatory Autogen
 site_url: https://finbarargus.github.io/circulatory_autogen/
 theme:
   name: material
+  features:
+    - instant
+    - content.code.copy
+markdown_extensions:
+  - admonition
