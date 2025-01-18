@@ -444,7 +444,7 @@ class CVS0DParamID():
                                                                     (np.mean(self.obs_info["ground_truth_series"][series_idx, :min_len_series]))))/min_len_series
                             std_error_vec[II] = np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
                                                             best_fit_obs_series[series_idx][:min_len_series]) /
-                                                            (self.obs_info["std_series_vec"][series_idx]))/min_len_series)
+                                                            (self.obs_info["std_series_vec"][series_idx][:min_len_series]))/min_len_series)
                         elif self.obs_info["data_types"][II] == "frequency":
                             std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) *
                                                     self.obs_info["weight_amp_vec"][freq_idx] /

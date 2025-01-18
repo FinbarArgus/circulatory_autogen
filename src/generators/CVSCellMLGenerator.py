@@ -562,6 +562,7 @@ class CVS0DCellMLGenerator(object):
                             # We map the ivc to a zero flow mapping
                             self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
                             self.ivc_connection_done = 1
+                            self.BC_set[out_module]['v_ivc'] = True
                             # TODO the above isnt robust
 
                         for heart_inp_idx in range(3):
