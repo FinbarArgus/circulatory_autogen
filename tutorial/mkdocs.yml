@@ -7,3 +7,8 @@ theme:
     - content.code.copy
 markdown_extensions:
   - admonition
+nav:
+  - Welcome to Circulatory Autogen: index.md
+  - Getting Started: getting-started.md
+  - Model Generation and Simulation: model-generation-simulation.md
+  - Creating a new model: create-model.md
