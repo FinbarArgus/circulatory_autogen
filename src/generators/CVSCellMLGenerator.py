@@ -834,6 +834,12 @@ class CVS0DCellMLGenerator(object):
         for variable, unit, access_str, variable_type in vessel_row["variables_and_units"]:
             if access_str == 'access':
                 lines_to_write.append(f'   <variable name="{variable}" public_interface="in" units="{unit}"/>\n')
+            elif access_str == 'no_access':
+                pass
+            else:
+                print('________________ERROR_________________')
+                print(f'Error: Access string of variable {variable} should be either "access" or "no_access".')
+                print('______________________________________')
         wf.writelines(lines_to_write)
         wf.write('</component>\n')
 
