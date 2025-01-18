@@ -1,20 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// module baroreceptor firing rate from carotid and aortic arch pressures ///
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <import xlink:href="units.cellml">
-        <units name="J2_per_m6" units_ref="J2_per_m6"/>
-        <units name="per_s" units_ref="per_s"/>
-        <units name="kg_per_m3" units_ref="kg_per_m3"/>
-        <units name="Js_per_m6" units_ref="Js_per_m6"/>
-        <units name="J_per_m3" units_ref="J_per_m3"/>
-        <units name="m3" units_ref="m3"/>
-        <units name="m3_per_J" units_ref="m3_per_J"/>
-        <units name="J_per_m6" units_ref="J_per_m6"/>
-        <units name="J_per_m3s" units_ref="J_per_m3s"/>
-        <units name="m3_per_kg" units_ref="m3_per_kg"/>
-    </import>
     <component name="baroreceptor_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="P_sys" public_interface="in" units="J_per_m3"/>

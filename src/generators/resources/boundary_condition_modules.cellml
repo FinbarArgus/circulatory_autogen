@@ -1,10 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <import xlink:href="units.cellml">
-        <units name="m3_per_s" units_ref="m3_per_s"/>
-        <units name="J_per_m3" units_ref="J_per_m3"/>
-        <units name="per_s" units_ref="per_s"/>
-    </import>
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
     <component name="constant_flow_BC_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="P" public_interface="in" units="J_per_m3"/>

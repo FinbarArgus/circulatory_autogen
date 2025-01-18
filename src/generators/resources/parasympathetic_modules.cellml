@@ -1,17 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
-  <import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="units.cellml">
-    <units units_ref="J2_per_m6" name="J2_per_m6"/>
-    <units units_ref="mL" name="mL"/>
-    <units units_ref="Hz" name="Hz"/>
-    <units units_ref="per_ml_s" name="per_ml_s"/>
-    <units units_ref="mmHg" name="mmHg"/>
-    <units units_ref="Js_per_m6" name="Js_per_m6"/>
-    <units units_ref="J_per_m6" name="J_per_m6"/>
-    <units units_ref="m3" name="m3"/>
-    <units units_ref="m6_per_J" name="m6_per_J"/>
-    <units units_ref="m6s_per_J" name="m6s_per_J"/>
-  </import>
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// ///////// modules for the parasympathetic and ICN model from Gee et al. ////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
