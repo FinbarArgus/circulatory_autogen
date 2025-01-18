@@ -1,5 +1,39 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+  <import xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="units.cellml">
+    <units units_ref="A_per_F" name="A_per_F"/>
+    <units units_ref="milliV" name="milliV"/>
+    <units units_ref="nanoA" name="nanoA"/>
+    <units units_ref="picoF" name="picoF"/>
+    <units units_ref="milliV_per_kiloV" name="milliV_per_kiloV"/>
+    <units units_ref="milliV_per_V" name="milliV_per_V"/>
+    <units units_ref="millimolar" name="millimolar"/>
+    <units units_ref="microm3" name="microm3"/>
+    <units units_ref="C_per_M" name="C_per_M"/>
+    <units units_ref="per_s" name="per_s"/>
+    <units units_ref="m3_per_microm3" name="m3_per_microm3"/>
+    <units units_ref="J_per_MK" name="J_per_MK"/>
+    <units units_ref="J_per_M" name="J_per_M"/>
+    <units units_ref="per_millis" name="per_millis"/>
+    <units units_ref="millimolar_per_s" name="millimolar_per_s"/>
+    <units units_ref="m3_per_milliM_s" name="m3_per_milliM_s"/>
+    <units units_ref="milliM_per_m3" name="milliM_per_m3"/>
+    <units units_ref="m3_per_M_millis" name="m3_per_M_millis"/>
+    <units units_ref="J_per_mol_K" name="J_per_mol_K"/>
+    <units units_ref="C_per_mol" name="C_per_mol"/>
+    <units units_ref="per_mol" name="per_mol"/>
+    <units units_ref="microS" name="microS"/>
+    <units units_ref="m3_per_s" name="m3_per_s"/>
+    <units units_ref="per_milliM_s" name="per_milliM_s"/>
+    <units units_ref="millis" name="millis"/>
+    <units units_ref="per_milliV" name="per_milliV"/>
+    <units units_ref="millis_per_milliV" name="millis_per_milliV"/>
+    <units units_ref="s_per_millis" name="s_per_millis"/>
+    <units units_ref="per_millimolar" name="per_millimolar"/>
+    <units units_ref="V_per_milliV" name="V_per_milliV"/>
+    <units units_ref="nanoA_per_milliA" name="nanoA_per_milliA"/>
+    <units units_ref="per_millimolar_s" name="per_millimolar_s"/>
+  </import>
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////// //////////////////modules for different ion channels ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
@@ -107,7 +141,7 @@
                 <apply>
                     <divide/>
                     <ci>Vm</ci>
-                    <cn cellml:units="millV_per_V">1000</cn>
+                    <cn cellml:units="milliV_per_V">1000</cn>
                 </apply>
             </apply>
         </math>

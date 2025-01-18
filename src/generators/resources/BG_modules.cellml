@@ -1,9 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////// non-BC Vessel ////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   -->
+    <import xlink:href="units.cellml">
+        <units name="Js_per_m3" units_ref="Js_per_m3"/>
+        <units name="Js2_per_m5" units_ref="Js2_per_m5"/>
+        <units name="Js_per_m6" units_ref="Js_per_m6"/>
+        <units name="J_per_m3s" units_ref="J_per_m3s"/>
+        <units name="per_m" units_ref="per_m"/>
+        <units name="J_per_m3" units_ref="J_per_m3"/>
+        <units name="m3" units_ref="m3"/>
+        <units name="Js2_per_m6" units_ref="Js2_per_m6"/>
+        <units name="m_per_s2" units_ref="m_per_s2"/>
+        <units name="m3_per_s" units_ref="m3_per_s"/>
+        <units name="m6_per_J" units_ref="m6_per_J"/>
+    </import>
     <component name="pv_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->

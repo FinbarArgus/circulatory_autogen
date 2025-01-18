@@ -1,8 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!--//////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////module for simple O2 and CO2 calculation in a terminal ///
 //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <import xlink:href="units.cellml">
+        <units name="J2_per_m6" units_ref="J2_per_m6"/>
+        <units name="per_s" units_ref="per_s"/>
+        <units name="m6_per_Js" units_ref="m6_per_Js"/>
+        <units name="J_per_m3" units_ref="J_per_m3"/>
+        <units name="m3" units_ref="m3"/>
+        <units name="m3_per_J" units_ref="m3_per_J"/>
+        <units name="m3_per_s" units_ref="m3_per_s"/>
+    </import>
     <component name="tissue_GE_simple_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
@@ -1318,6 +1327,9 @@
         </math>
     </component>
     <component name="temp">
+        <variable name="v" public_interface="in" units="m3_per_s"/>
+        <variable initial_value="0.18" name="C_O2_in" public_interface="in" units="dimensionless"/>
+        <variable initial_value="0.18" name="C_O2_out" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
