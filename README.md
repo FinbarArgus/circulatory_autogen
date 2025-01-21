@@ -114,6 +114,12 @@ Note: in versions of OpenCOR 2024-08-23 and onwards you can do
 ```
 instead, which is more robust and doesn't have SSL errors as below.
 
+### Required packages for autogeneration
+pandas
+pyyaml
+libcellml
+rdflib
+
 ### Required packages for parameter identification
 mpi4py
 sympy
@@ -125,11 +131,8 @@ schwimmbad
 tqdm
 statsmodels
 
-### Required packages for autogeneration
-pandas
-pyyaml
-libcellml
-rdflib
+### Required for some utilities
+ruamel.yaml
 
 ### No longer needed
 scikit-optimize
@@ -147,10 +150,17 @@ found to load the ssl module.
 IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following lines
 may be required to install the mpi software on your computer
 
+# Linux
 ```bash
 sudo apt install libopenmpi-dev
 sudo apt install libffi7
 ```
+
+#Mac
+```bash
+brew install openmpi
+```
+
 
 ### Windows package instalment
 Running on Windows is in development. It can work with some caveats...
