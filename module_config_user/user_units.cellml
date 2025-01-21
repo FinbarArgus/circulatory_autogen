@@ -39,9 +39,6 @@
     <units name="dim">
         <unit units="dimensionless"/>
     </units>
-    <units name="per_s">
-        <unit exponent="-1" units="second"/>
-    </units>
     <units name="fmol">
         <unit prefix="femto" units="mole"/>
     </units>
