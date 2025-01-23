@@ -76,7 +76,7 @@ This section shows a simple example to create a new module, which you can find i
 
 We want to define a new vessel type with the name of **"arterial"** with boundary condition type **"vp"**. Additionally, we want to use the **"vp_type"** module, whose cellml code is shown in the above figure. Also, the module is located in the `BG_modules.cellml` file.
 
-Vessel_type, BC_type, module_format, module_file location, module_type and other related information are added to the `module_config.json` file, as shown below. We can now use this vessel_type in the vessel_array file in the resources directory to add the module with specified inputs, outputs and parameters. In the ports, you should add the **"vessel_port"** type for connecting to the other parts. Additionally, each module can be used in many vessel_types.
+Vessel_type, BC_type, module_format, module_file location, module_type and other related information are added to the `module_config.json` file, as shown below. We can now use this vessel_type in the vessel_array file in `[resources_dir]` to add the module with specified inputs, outputs and parameters. In the ports, you should add the **"vessel_port"** type for connecting to the other parts. Additionally, each module can be used in many vessel_types.
 
 ![vp_type module](images/vp_type-module.png)
 
