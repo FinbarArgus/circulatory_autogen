@@ -19,7 +19,7 @@ Download the OpenCOR tutorial, which is a comprehensive tutorial including many 
 
 **3. Clone the project**
 
-Clone the project from the [GitHub repository](https://github.com/FinbarArgus/circulatory_autogen) and checkout to the **devel** branch.
+Clone the project from the [GitHub repository](https://github.com/FinbarArgus/circulatory_autogen).
 
 !!! note
     If you have not worked with git and GitHub, firstly download and install git, and then open the terminal and navigate to a directory where you want the repository to be. Then write these commands to clone the project on your pc:

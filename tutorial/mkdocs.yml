@@ -13,3 +13,4 @@ nav:
   - Model Generation and Simulation: model-generation-simulation.md
   - Creating a new model: create-model.md
   - Parameter Identification: parameter-identification.md
+  - "Example: 3Compartment Model": example-3compartment-model.md
