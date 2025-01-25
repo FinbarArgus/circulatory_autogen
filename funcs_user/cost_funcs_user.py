@@ -32,9 +32,33 @@ def MSE(*args, **kwargs):
     # The mean squared error cost is the same as the 
     return gaussian_MLE(*args, **kwargs)
 
-def multimodal_gaussian_mix():
-    # TODO
-    pass
+def multimodal_gaussian(output, prob_dist_params, weight):
+    
+    # TODO make it so the below checks are only done once.
+    # TODO checks should be done when parsing rather than every time this is called.
+    allowable_keys = ["means", "stds", "scales"].sort()
+    if not isinstance(prob_dist_params, dict):
+        print("prob_dist_params needs to be a dict with entries :")
+        print(allowable_keys)
+        exit()
+
+    if prob_dist_params.keys().sort() != allowable_keys:
+        print("prob_dist_params needs to be a dict with entries :")
+        print(allowable_keys)
+        exit()
+
+    cost_exp = 0
+    for desired_mean, std, scales in zip(dist_params["means"], dist_params["stds"], dist_params["weights"]):
+        cost_mode = np.power((output - desired_mean)/std, 2)*weight
+        if hasattr(output, '__len__'):
+            # if entry is a vector then turn the vector of costs for each data point into a average cost
+            cost_mode = np.sum(cost_mode)/len(output)
+
+        cost_exp += np.exp(cost_mode)
+    
+    cost = np.log(cost_exp)*weight
+
+    return cost
 
 def AE(output, desired_mean, std, weight):
     cost = np.abs((output - desired_mean)/std)*weight

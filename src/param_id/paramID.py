@@ -279,6 +279,7 @@ class CVS0DParamID():
             const_idx = -1
             series_idx = -1
             freq_idx = -1
+            prob_dist_idx = -1
             for II in range(self.obs_info["num_obs"]):
                 if self.obs_info["data_types"][II] == "constant":
                     const_idx += 1
@@ -286,6 +287,8 @@ class CVS0DParamID():
                     series_idx += 1
                 elif self.obs_info["data_types"][II] == "frequency":
                     freq_idx += 1
+                elif self.obs_info["data_types"][II] == "prob_dist":
+                    prob_dist_idx += 1
                 
                 # if the observable is the same as the one we are plotting
                 if (self.obs_info["obs_names"][II], self.obs_info['experiment_idxs'][II]) == \
@@ -301,6 +304,7 @@ class CVS0DParamID():
                     best_fit_obs_series = list_of_obs_dicts[subexp_count]['series']
                     best_fit_obs_amp = list_of_obs_dicts[subexp_count]['amp']
                     best_fit_obs_phase = list_of_obs_dicts[subexp_count]['phase']
+                    best_fit_obs_prob_dist = list_of_obs_dicts[subexp_count]['val_for_prob_dist']
 
 
                     if len(self.obs_info["ground_truth_series"]) > 0:
@@ -382,7 +386,7 @@ class CVS0DParamID():
 
                             axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_gt,
                                                     color=self.obs_info['plot_colors'][II], linestyle='--', 
-                                                    label=f'{self.obs_info["operations"][II]} measurement')
+                                                    label=f'{self.obs_info["operations"][II]} gt')
                             axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_bf,
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
@@ -396,7 +400,7 @@ class CVS0DParamID():
 
                             axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_gt,
                                                     color=self.obs_info['plot_colors'][II], linestyle='--', 
-                                                    label=f'{self.obs_info["operations"][II]} measurement')
+                                                    label=f'{self.obs_info["operations"][II]} gt')
                             axs.plot(tSim_per_sub_count[subexp_count], conversion*const_plot_bf,
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
@@ -420,15 +424,28 @@ class CVS0DParamID():
                     elif self.obs_info["data_types"][II] == 'series':
                         axs.plot(tSim_per_sub_count[subexp_count][:min_len_series],
                                                 conversion*self.obs_info["ground_truth_series"][series_idx, :min_len_series],
-                                                'k--', label='measurement')
+                                                'k--', label='gt')
                     elif self.obs_info["data_types"][II] == 'frequency':
                         axs.plot(self.obs_info["freqs"][II],
                                                 conversion*self.obs_info["ground_truth_amp"][freq_idx],
-                                                'kx', label='measurement')
+                                                'kx', label='gt')
                         if phase:
                             axs_phase.plot(self.obs_info["freqs"][II],
                                                     self.obs_info["ground_truth_phase"][freq_idx],
-                                                    'kx', label='measurement')
+                                                    'kx', label='gt')
+                    if self.obs_info["data_types"][II] == 'prob_dist':
+                        for mean_idx, val_to_plot in enumerate(self.obs_info["ground_truth_prob_dist_params"]["means"]):
+                            mean_prob_dist_plot_gt = val_to_plot*\
+                                            np.ones((n_steps_per_sub_count[subexp_count] + 1),)
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*mean_prob_dist_plot_gt,
+                                                    color=self.obs_info['plot_colors'][II], linestyle='--', 
+                                                    label=f'{self.obs_info["operations"][II]} gt mean {mean_idx}')
+                        val_for_prob_dist_plot_bf = (best_fit_obs_prob_dist[prob_dist_idx])*\
+                                         np.ones((n_steps_per_sub_count[subexp_count] + 1),)
+
+                        axs.plot(tSim_per_sub_count[subexp_count], conversion*val_for_prob_dist_plot_bf,
+                                 color=self.obs_info['plot_colors'][II], linestyle='-', 
+                                 label=f'{self.obs_info["operations"][II]} output')
 
                     #also calculate the RMS error for each observable
                     if exp_idx == self.obs_info["experiment_idxs"][II] and \
@@ -455,6 +472,19 @@ class CVS0DParamID():
                             if phase:
                                 phase_error_vec[II] = np.sum(np.abs((best_fit_obs_phase[freq_idx] - self.obs_info["ground_truth_phase"][freq_idx])*
                                                                     self.obs_info["weight_phase_vec"][freq_idx]))/len(best_fit_obs_phase[freq_idx])
+                        if self.obs_info["data_types"][II] == "prob_dist":
+                            print('prob dist error not implemented properly yet error from first mean presented')
+                            percent_error_vec[II] = 100*(best_fit_obs_prob_dist[prob_dist_idx] - 
+                                                         self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx]["means"][0])/ \
+                                                            (self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx]["means"][0]
+                                                             + 1e-10) # add eps to avoid div by 0
+                            if "stds" in self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx].keys():
+                                std_error_vec[II] = (best_fit_obs_prob_dist[prob_dist_idx] - 
+                                                            self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx]["means"][0])/ \
+                                                                self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx]["stds"][0]
+                            else:
+                                std_error_vec[II] = 0.0 # TODO this is a placeholder
+                                
 
 
             # axs.set_ylim(ymin=0.0)
@@ -590,6 +620,7 @@ class CVS0DParamID():
                 if phase:
                     print(f'{self.obs_info["names_for_plotting"][obs_idx]} {self.obs_info["data_types"][obs_idx]} phase error:')
                     print(f'{phase_error_vec[obs_idx]:.2f}')
+            # TODO find a way to usefully plot the error for prob dists
 
     def get_mcmc_samples(self):
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
@@ -1172,6 +1203,8 @@ class CVS0DParamID():
                     self.obs_info["plot_type"].append("series")
                 elif self.gt_df.iloc[II]["data_type"] == "frequency":
                     self.obs_info["plot_type"].append("frequency")
+                elif self.gt_df.iloc[II]["data_type"] == "plot_dist":
+                    self.obs_info["plot_type"].append("horizontal")
                 else:
                     print(f'data type {self.gt_df.iloc[II]["data_type"]} not recognised')
             else:
@@ -1252,6 +1285,10 @@ class CVS0DParamID():
 
         self.obs_info["weight_amp_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
                                            if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        
+        self.obs_info["weight_prob_dist_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
+                                          if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
+
         weight_phase_list = [] 
         for II in range(self.gt_df.shape[0]):
             if self.gt_df.iloc[II]["data_type"] == "frequency":
@@ -1344,6 +1381,8 @@ class CVS0DParamID():
                      for exp_idx in range(self.protocol_info['num_experiments'])]
         phase_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
                      for exp_idx in range(self.protocol_info['num_experiments'])]
+        prob_dist_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
+                     for exp_idx in range(self.protocol_info['num_experiments'])]
 
         for exp_idx in range(self.protocol_info['num_experiments']):
             for this_sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx]):
@@ -1378,16 +1417,25 @@ class CVS0DParamID():
                             amp_map[exp_idx][this_sub_idx].append(0.0)
                             phase_map[exp_idx][this_sub_idx].append(0.0)
 
+                    if self.gt_df.iloc[II]["data_type"] == "prob_dist":
+                        if self.gt_df.iloc[II]["experiment_idx"] == exp_idx and \
+                            self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
+                            prob_dist_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
+                        else:
+                            prob_dist_map[exp_idx][this_sub_idx].append(0.0)
+
                 # make each weight vector a numpy array
                 const_map[exp_idx][this_sub_idx] = np.array(const_map[exp_idx][this_sub_idx])
                 series_map[exp_idx][this_sub_idx] = np.array(series_map[exp_idx][this_sub_idx])
                 amp_map[exp_idx][this_sub_idx] = np.array(amp_map[exp_idx][this_sub_idx])
                 phase_map[exp_idx][this_sub_idx] = np.array(phase_map[exp_idx][this_sub_idx])
+                prob_dist_map[exp_idx][this_sub_idx] = np.array(prob_dist_map[exp_idx][this_sub_idx])
 
         self.protocol_info["scaled_weight_const_from_exp_sub"] = const_map
         self.protocol_info["scaled_weight_series_from_exp_sub"] = series_map
         self.protocol_info["scaled_weight_amp_from_exp_sub"] = amp_map
         self.protocol_info["scaled_weight_phase_from_exp_sub"] = phase_map
+        self.protocol_info["scaled_weight_prob_dist_from_exp_sub"] = prob_dist_map
         return
 
     def __set_and_save_param_names(self, idxs_to_ignore=None):
@@ -1473,6 +1521,11 @@ class CVS0DParamID():
         ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
+        # then for ground truth probability distributions
+        ground_truth_prob_dist_params = np.array([self.gt_df.iloc[II]["prob_dist_params"] for II in range(self.gt_df.shape[0])
+                                            if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
+
+
         # _______ and the phase of the freq data
         ground_truth_phase_list = []
         for II in range(self.gt_df.shape[0]):
@@ -1513,6 +1566,7 @@ class CVS0DParamID():
                 np.save(os.path.join(self.output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
 
         self.obs_info["ground_truth_const"] = ground_truth_const
+        self.obs_info["ground_truth_prob_dist_params"] = ground_truth_prob_dist_params
         self.obs_info["ground_truth_series"] = ground_truth_series
         self.obs_info["ground_truth_amp"] = ground_truth_amp
         self.obs_info["ground_truth_phase"] = ground_truth_phase
@@ -1521,9 +1575,11 @@ class CVS0DParamID():
         const_count = 0
         series_count = 0
         freq_count = 0
+        prob_dist_count = 0
         self.obs_info["const_idx_to_obs_idx"] = []
         self.obs_info["series_idx_to_obs_idx"] = []
         self.obs_info["freq_idx_to_obs_idx"] = []
+        self.obs_info["prob_dist_idx_to_obs_idx"] = []
         for obs_idx in range(self.obs_info["num_obs"]):
             if self.obs_info["data_types"][obs_idx] == "constant":
                 self.obs_info["const_idx_to_obs_idx"].append(obs_idx)
@@ -1534,6 +1590,9 @@ class CVS0DParamID():
             elif self.obs_info["data_types"][obs_idx] == "frequency":
                 self.obs_info["freq_idx_to_obs_idx"].append(obs_idx)
                 freq_count += 1
+            elif self.obs_info["data_types"][obs_idx] == "prob_dist":
+                self.obs_info["prob_dist_idx_to_obs_idx"].append(obs_idx)
+                prob_dist_count += 1
 
         return 
     
@@ -2662,18 +2721,21 @@ class OpencorParamID():
         series = obs_dict['series']
         amp = obs_dict['amp']
         phase = obs_dict['phase']
+        val_for_prob_dist = obs_dict['val_for_prob_dist']
 
         # update cost weights for this experiment and subexperiment
         updated_weight_const_vec = self.protocol_info["scaled_weight_const_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_series_vec = self.protocol_info["scaled_weight_series_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_amp_vec = self.protocol_info["scaled_weight_amp_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_phase_vec = self.protocol_info["scaled_weight_phase_from_exp_sub"][exp_idx][sub_idx]
+        updated_weight_prob_dist_vec = self.protocol_info["scaled_weight_prob_dist_from_exp_sub"][exp_idx][sub_idx]
         
         # get number of obs that don't have zero weights
         num_weighted_obs = np.sum(updated_weight_const_vec != 0) + \
                             np.sum(updated_weight_series_vec != 0) + \
                             np.sum(updated_weight_amp_vec != 0) + \
-                            np.sum(updated_weight_phase_vec != 0)
+                            np.sum(updated_weight_phase_vec != 0) + \
+                            np.sum(updated_weight_prob_dist_vec != 0)
         
         # this subexperiment doesn't have any weighted observables, so no cost
         if num_weighted_obs == 0.0:
@@ -2775,7 +2837,15 @@ class OpencorParamID():
                 weight_entry = updated_weight_phase_vec[phase_idx]
                 phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
 
-        cost = (cost + series_cost + amp_cost + phase_cost) / num_weighted_obs
+        prob_dist_cost = 0
+        if val_for_prob_dist is not None:
+            for prob_dist_idx in range(len(val_for_prob_dist)):
+                obs_idx = self.obs_info['prob_dist_idx_to_obs_idx'][prob_dist_idx]
+                prob_dist_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](val_for_prob_dist, 
+                                                                    self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx],
+                                                                    updated_weight_prob_dist_vec[prob_dist_idx])
+
+        cost = (cost + series_cost + amp_cost + phase_cost + prob_dist_cost) / num_weighted_obs
 
         return cost
 
@@ -2786,6 +2856,7 @@ class OpencorParamID():
         obs_series_list_of_arrays = [None]*len(self.obs_info["ground_truth_series"])
         obs_amp_list_of_arrays = [None]*len(self.obs_info["ground_truth_amp"])
         obs_phase_list_of_arrays = [None]*len(self.obs_info["ground_truth_phase"])
+        obs_val_for_prob_dist_vec = np.zeros((len(self.obs_info["ground_truth_prob_dist_params"]), ))
 
         if get_all_series:
             obs_series_array_all = [None]*len(operands_outputs)
@@ -2794,6 +2865,7 @@ class OpencorParamID():
         const_count = 0
         series_count = 0
         freq_count = 0
+        prob_dist_count = 0
         for JJ in range(len(operands_outputs)):
             if self.obs_info["data_types"][JJ] == 'frequency':
                 pass
@@ -2914,14 +2986,22 @@ class OpencorParamID():
                 # plt.close()
 
                 freq_count += 1
+            elif self.obs_info["data_types"][JJ] == 'prob_dist':
+                obs_val_for_prob_dist_vec[prob_dist_count] = obs
+                prob_dist_count += 1
 
+        if const_count == 0:
+            obs_const_vec = None
         if series_count == 0:
             obs_series_list_of_arrays = None
         if freq_count == 0:
             obs_amp_list_of_arrays = None
             obs_phase_list_of_arrays = None
+        if prob_dist_count == 0:
+            obs_val_for_prob_dist_vec = None
         obs_dict = {'const': obs_const_vec, 'series': obs_series_list_of_arrays,
-                    'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays}
+                    'amp': obs_amp_list_of_arrays, 'phase': obs_phase_list_of_arrays,
+                    'val_for_prob_dist': obs_val_for_prob_dist_vec}
 
         if get_all_series: 
             return obs_dict, obs_series_array_all

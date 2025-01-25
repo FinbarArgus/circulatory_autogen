@@ -153,6 +153,10 @@ may be required to install the mpi software on your computer
 # Linux
 ```bash
 sudo apt install libopenmpi-dev
+```
+
+# no longer needed for Linux
+```bash
 sudo apt install libffi7
 ```
 
