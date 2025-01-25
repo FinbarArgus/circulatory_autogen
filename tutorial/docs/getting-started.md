@@ -95,3 +95,5 @@ To install required python packages, navigate to `[OpenCOR_dir]/python/bin` dire
 
         sudo apt install libopenmpi-dev
         sudo apt install libffi7
+
+Furthermore, refer to the `README.md` file in the repository which has more brief instructions for running the project.

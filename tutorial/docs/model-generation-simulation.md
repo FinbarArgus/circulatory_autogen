@@ -29,9 +29,13 @@ Following are the steps for model autogeneration.
     !!! Note
         You can refer the section [Creating a new model](create-model.md) for more details on creating vessel_array and parameters files.
 
-2. Go to the `[project_dir]/user_run_files` and open the `user_inputs.yaml` to edit. You can use *gedit*, *nano*, or your editor of choice (eg: *vim*) to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[model_name]_parameters.csv`.
+2. Go to the `[project_dir]/user_run_files` and open the `user_inputs.yaml` to edit. You can use *gedit*, *nano*, or your editor of choice (eg: *vim*) to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[model_name]_parameters.csv` as shown below.
+
+    ![user_inputs.yaml file](images/user-inputs.png)
 
 3. Open `[project_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `opencor_pythonshell_path` to the directory of pythonshell in the openCOR folder similar to: `<OpenCOR_dir>/pythonshell`.
+
+    ![OpenCOR direcoty](images/opencor-directory.png)
 
 4. To run the autogeneration, navigate to the `user_run_files` directory and run the below command.
         
@@ -41,9 +45,11 @@ Following are the steps for model autogeneration.
 
     ![Run autogeneration output](images/run-autogeneration.png)
 
-5. Generated CellML files are located in the `[generated_models_dir]/[file_prefix]` directory. (The generated_models_dir defaults to `[project_dir]/generated_models` unless you set generated_models_dir in `[project_dir/user_run_files/user_inputs.yaml`). 
+5. Generated CellML files are located in the `[generated_models_dir]/[file_prefix]` directory. (The *generated_models_dir* defaults to `[project_dir]/generated_models` unless you set generated_models_dir in `[project_dir/user_run_files/user_inputs.yaml`). 
 
     Four CellML files, and a CSV file will be generated. The CSV file includes the model parameters and the four CellML files contain the modules, parameters, units and constants, and main model.
+
+    ![Generated files](images/generated-files.png)
 
     !!! info
         For a typical autogeneration, the CSV file will be the same as the parameters.csv file in `[project_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
