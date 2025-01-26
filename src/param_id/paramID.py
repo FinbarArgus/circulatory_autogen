@@ -304,7 +304,10 @@ class CVS0DParamID():
 
 
                     if len(self.obs_info["ground_truth_series"]) > 0:
-                        min_len_series = min(self.obs_info["ground_truth_series"].shape[1], len(best_fit_obs_series[0]))
+                        if self.obs_info["dt"][series_idx] == self.dt:
+                            min_len_series = min(self.obs_info["ground_truth_series"][series_idx].shape[0], len(best_fit_obs_series[0]))
+                        else:
+                            min_len_series = len(best_fit_obs_series[0])
                     obs_name_for_plot = self.obs_info["names_for_plotting"][II]
                     
                     
@@ -418,8 +421,11 @@ class CVS0DParamID():
                                     'for constants it must be in [None, horizontal, veritical, horizontal_from_min], exiting')
                             exit()
                     elif self.obs_info["data_types"][II] == 'series':
-                        axs.plot(tSim_per_sub_count[subexp_count][:min_len_series],
-                                                conversion*self.obs_info["ground_truth_series"][series_idx, :min_len_series],
+                        # create time vector for the grount_truth_series
+                        start_time = self.protocol_info['pre_times'][exp_idx] + np.sum(self.protocol_info['sim_times'][exp_idx][:this_sub_idx])
+                        t_obs = np.linspace(start_time, start_time + self.protocol_info["sim_times"][exp_idx][this_sub_idx], 
+                                            len(self.obs_info["ground_truth_series"][series_idx]))
+                        axs.plot(t_obs, conversion*self.obs_info["ground_truth_series"][series_idx],
                                                 'k--', label='measurement')
                     elif self.obs_info["data_types"][II] == 'frequency':
                         axs.plot(self.obs_info["freqs"][II],
@@ -439,12 +445,29 @@ class CVS0DParamID():
                             std_error_vec[II] = (best_fit_obs_const[const_idx] - self.obs_info["ground_truth_const"][const_idx])/ \
                                                             self.obs_info["std_const_vec"][const_idx]
                         elif self.obs_info["data_types"][II] == "series":
-                            percent_error_vec[II] = 100*np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                                    best_fit_obs_series[series_idx][:min_len_series]) /
-                                                                    (np.mean(self.obs_info["ground_truth_series"][series_idx, :min_len_series]))))/min_len_series
-                            std_error_vec[II] = np.sum(np.abs((self.obs_info["ground_truth_series"][series_idx, :min_len_series] -
-                                                            best_fit_obs_series[series_idx][:min_len_series]) /
-                                                            (self.obs_info["std_series_vec"][series_idx][:min_len_series]))/min_len_series)
+
+                            if self.obs_info["dt"][series_idx] != self.dt:
+                                # interpolate the series to the dt of the ground truth series
+                                time_series = np.linspace(0, best_fit_obs_series[series_idx].shape[0]*self.dt, best_fit_obs_series[series_idx].shape[0])
+                                obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["dt"][series_idx],
+                                                                self.obs_info["ground_truth_series"][series_idx].shape[0])
+
+                                series_entry = np.interp(obs_time_series, time_series, best_fit_obs_series[series_idx])
+                                obs_entry = self.obs_info["ground_truth_series"][series_idx]
+                                std_entry = self.obs_info["std_series_vec"][series_idx]
+                            else:
+                                min_len_series = min(self.obs_info["ground_truth_series"][series_idx].shape[0], len(best_fit_obs_series[series_idx]))
+                                series_entry = best_fit_obs_series[series_idx][:min_len_series]
+                                obs_entry = self.obs_info["ground_truth_series"][series_idx][:min_len_series]
+                                # TODO make sure the std entries are the same shape as the obs entries
+                                std_entry = self.obs_info["std_series_vec"][series_idx][:min_len_series]
+
+                            percent_error_vec[II] = 100*np.sum(np.abs((obs_entry -
+                                                                    series_entry) /
+                                                                    (np.mean(obs_entry))))/len(obs_entry)
+                            std_error_vec[II] = np.sum(np.abs((obs_entry -
+                                                            series_entry /
+                                                            (std_entry)))/len(obs_entry))
                         elif self.obs_info["data_types"][II] == "frequency":
                             std_error_vec[II] = np.sum(np.abs((best_fit_obs_amp[freq_idx] - self.obs_info["ground_truth_amp"][freq_idx]) *
                                                     self.obs_info["weight_amp_vec"][freq_idx] /
@@ -1462,12 +1485,14 @@ class CVS0DParamID():
 
         # _______ First we access data for constant values
 
+        # TODO make all of the below lists instead of arrays? So we can have different sized entries.
+
         ground_truth_const = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "constant"])
 
         # _______ Then for time series
-        ground_truth_series = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"])
+        ground_truth_series = [np.array(self.gt_df.iloc[II]["value"]) for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"]
 
         # _______ Then for frequency series
         ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
@@ -1483,19 +1508,37 @@ class CVS0DParamID():
                     ground_truth_phase_list.append(self.gt_df.iloc[II]["phase"])
         ground_truth_phase = np.array(ground_truth_phase_list)
 
+        # get the dt for the series data
+        dt_list = []
+        for II in range(self.gt_df.shape[0]):
+            if self.gt_df.iloc[II]["data_type"] == "series":
+                if "dt" not in self.gt_df.iloc[II].keys():
+                    print("dt not found in obs_data.json for series data, exiting")
+                    exit()
+                dt_list.append(self.gt_df.iloc[II]["dt"])
+        
+        self.obs_info["dt"] = np.array(dt_list)
+        
+        if len(self.obs_info["dt"]) > 0:
+            if min(self.obs_info["dt"]) < self.dt:
+                print("one of the dt in obs_data.json is less than the dt in user_inputs.yaml, the output timestep"
+                    "defined in user_inputs.yaml must be less than the smallest dt for your data. Exiting")
+                exit()
+
         # The std for the different observables
         self.obs_info["std_const_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                        if self.gt_df.iloc[II]["data_type"] == "constant"])
 
-        self.obs_info["std_series_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"])
+        self.obs_info["std_series_vec"] = [np.array(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"]
 
         self.obs_info["std_amp_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
                                         if self.gt_df.iloc[II]["data_type"] == "frequency"])
 
-        if len(ground_truth_series) > 0:
+        # if len(ground_truth_series) > 0:
             # TODO what if we have ground truths of different size or sample rate?
-            ground_truth_series = np.stack(ground_truth_series)
+            # ground_truth_series = np.stack(ground_truth_series)
+            # removed because we have data of different sizes
 
         if len(ground_truth_amp) > 0:
             ground_truth_amp = np.stack(ground_truth_amp)
@@ -1506,7 +1549,8 @@ class CVS0DParamID():
         if self.rank == 0:
             np.save(os.path.join(self.output_dir, 'ground_truth_const.npy'), ground_truth_const)
             if len(ground_truth_series) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), ground_truth_series)
+                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), 
+                        np.array(ground_truth_series, dtype=object), allow_pickle=True)
             if len(ground_truth_amp) > 0:
                 np.save(os.path.join(self.output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
             if len(ground_truth_phase) > 0:
@@ -2707,7 +2751,6 @@ class OpencorParamID():
         series_cost = 0
         if series is not None:
             #print(series)
-            min_len_series = min(self.obs_info["ground_truth_series"].shape[1], len(series[0]))
             # TODO make the above applicable for different length series? If we have different dt for series data
 
             # calculate sum of squares cost and divide by number data points in series data
@@ -2722,14 +2765,28 @@ class OpencorParamID():
             #                                  self.obs_info["ground_truth_series"][:,
             #                                  :min_len_series]) * updated_weight_series_vec.reshape(-1, 1) /
             #                                 self.obs_info["std_series_vec"].reshape(-1, 1))) / min_len_series
+
             for series_idx in range(len(series)):
-                obs_idx = self.obs_info['series_idx_to_obs_idx'][series_idx]
-                # TODO make sure the weight and std entries are the same shape as the obs entries
-                # TODO when parsing the obs_data.json file ensure if the weight is a constant, change it to a vector
-                series_entry = series[series_idx][:min_len_series]
-                obs_entry = self.obs_info["ground_truth_series"][series_idx][:min_len_series]
+                if self.obs_info["dt"][series_idx] != self.dt:
+                    # interpolate the series to the dt of the ground truth series
+                    time_series = np.linspace(0, series[series_idx].shape[0]*self.dt, series[series_idx].shape[0])
+                    obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["dt"][series_idx],
+                                                    self.obs_info["ground_truth_series"][series_idx].shape[0])
+
+                    series_entry = np.interp(obs_time_series, time_series, series[series_idx])
+                    obs_entry = self.obs_info["ground_truth_series"][series_idx]
+                    std_entry = self.obs_info["std_series_vec"][series_idx]
+                else:
+                    min_len_series = min(self.obs_info["ground_truth_series"][series_idx].shape[0], len(series[series_idx]))
+                    series_entry = series[series_idx][:min_len_series]
+                    obs_entry = self.obs_info["ground_truth_series"][series_idx][:min_len_series]
+                    # TODO make sure the std entries are the same shape as the obs entries
+                    std_entry = self.obs_info["std_series_vec"][series_idx][:min_len_series]
+                    
+                
                 weight_entry = updated_weight_series_vec[series_idx]
-                std_entry = self.obs_info["std_series_vec"][series_idx][:min_len_series]
+                
+                obs_idx = self.obs_info['series_idx_to_obs_idx'][series_idx]
                 series_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](series_entry, obs_entry, std_entry, weight_entry)
 
 
