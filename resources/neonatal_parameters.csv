@@ -127,12 +127,14 @@ u_ext_venous_ivc,J_per_m3,0.0,user_defined
 I_venous_ivc,Js2_per_m6,1.13E+05,03_05_2022_identified
 q_us_0_venous_ivc,m3,0.0,user_defined
 Delta_q_us_venous_ivc,m3,0.0,user_defined
+Delta_C_venous_ivc,m6_per_J,0.0,user_defined
 R_venous_svc,Js_per_m6,1.00E+05,try_tiny_venous_resistance
 C_venous_svc,m6_per_J,1.00E-09,to_be_identified
 u_ext_venous_svc,J_per_m3,0.0,user_defined
 I_venous_svc,Js2_per_m6,1.13E+05,03_05_2022_identified
 q_us_0_venous_svc,m3,0.0,user_defined
 Delta_q_us_venous_svc,m3,0.0,user_defined
+Delta_C_venous_svc,m6_per_J,0.0,user_defined
 R_par,Js_per_m6,9.91E+07,to_be_identified
 C_par,m6_per_J,1.00E-12,try_tiny_terminal_compliances
 u_ext_par,J_per_m3,0.0,user_defined

@@ -2258,6 +2258,8 @@
         <variable name="q_us_0" public_interface="in" units="m3"/>
         <variable name="q_us_wCont" public_interface="out" units="m3"/>
         <variable name="Delta_q_us" public_interface="in" units="m3"/>
+        <variable name="Delta_C" public_interface="in" units="m6_per_J"/>
+        <variable name="C_wCont" public_interface="out" units="m6_per_J"/>
         <!-- TODO double check that this applies to veins-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2343,7 +2345,7 @@
                     <apply>
                         <divide/>
                         <ci>q_C</ci>
-                        <ci>C</ci>
+                        <ci>C_wCont</ci>
                     </apply>
                     <ci>u_ext</ci>
                 </apply>
@@ -2372,6 +2374,15 @@
                     <plus/>
                     <ci>q_us_0</ci>
                     <ci>Delta_q_us</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>C_wCont</ci>
+                <apply>
+                    <plus/>
+                    <ci>C</ci>
+                    <ci>Delta_C</ci>
                 </apply>
             </apply>
         </math>

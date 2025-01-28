@@ -71,7 +71,12 @@ Following a successful parameter id process the model with updated parameters ca
 ./run_autogeneration_with_id_params.sh
 ```
 
-The generated models will be saved in `generated_models/`
+And plots can be run with
+```bash
+./plot_param_id.sh
+```
+
+The generated models will be saved in `generated_models/` and plots will be saved in `param_id_outputs/`
 
 
 ## Creating your own modules.
@@ -97,9 +102,10 @@ The connections between terminals and the venous system is hardcoded, as a termi
 There is now a test for the autogeneration running. To run the test navigate to user_run_files and do ./run_test_autogeneration.sh
 
 ## requirements  
-false
 If the model being generated is a cellml model, OpenCOR must be downloaded 
-and installed from [opencor](https://opencor.ws/downloads/index.html)
+and installed from [opencor](https://opencor.ws/downloads/index.html).
+Use version 0-8!!
+
 
 To install required python packages for this opencors version of python
 you must do the following...  
@@ -114,6 +120,12 @@ Note: in versions of OpenCOR 2024-08-23 and onwards you can do
 ```
 instead, which is more robust and doesn't have SSL errors as below.
 
+### Required packages for autogeneration
+pandas
+pyyaml
+libcellml
+rdflib
+
 ### Required packages for parameter identification
 mpi4py
 sympy
@@ -125,32 +137,26 @@ schwimmbad
 tqdm
 statsmodels
 
-### Required packages for autogeneration
-pandas
-pyyaml
-libcellml
-rdflib
+### Required for some utilities
+ruamel.yaml
 
 ### No longer needed
 scikit-optimize
 
-### Potential Errors:
-IMPORTANT if you get an SSL error you must do the following before the pip install
-
-```bash
-export LD_LIBRARY_PATH=[OpenCOR]/lib
-```
-
-so that libcrypto.so.3 can be
-found to load the ssl module.
-
 IMPORTANT intalling mpi4py requires mpi to be available. Therefore, the following lines
 may be required to install the mpi software on your computer
 
+# Linux
 ```bash
 sudo apt install libopenmpi-dev
 sudo apt install libffi7
 ```
+
+#Mac
+```bash
+brew install openmpi
+```
+
 
 ### Windows package instalment
 Running on Windows is in development. It can work with some caveats...

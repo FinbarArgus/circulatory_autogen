@@ -68,7 +68,7 @@
                 <apply>
                     <times/>
                     <ci>rho</ci>
-                    <ci>Q_star</ci>
+                    <ci>q_star</ci>
                 </apply>
             </apply>
         </math>

@@ -103,10 +103,10 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- q_lv_init sometimes gets identified, the others are set arbitrarily to zero normally, 
  identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="q_lv_init" name="q_lv" units="m3"/>
-        <variable initial_value="q_rv_init" name="q_rv" units="m3"/>
-        <variable initial_value="q_la_init" name="q_la" units="m3"/>
-        <variable initial_value="q_ra_init" name="q_ra" units="m3"/>
+        <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
+        <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
+        <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
+        <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
@@ -396,14 +396,19 @@
         </math>
         <!-- control effects Assume all subperiods scale linearly for now. TODO IMPROVE THIS-->
         <variable name="Delta_T" public_interface="in" units="second"/>
+        <variable name="T_min" public_interface="in" units="second"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>T_wCont</ci>
                 <apply>
-                    <plus/>
-                    <ci>T</ci>
-                    <ci>Delta_T</ci>
+                    <max/>
+                    <apply>
+                        <plus/>
+                        <ci>T</ci>
+                        <ci>Delta_T</ci>
+                    </apply>
+                    <ci>T_min</ci>
                 </apply>
             </apply>
             <apply>
@@ -2689,7 +2694,7 @@
         <!-- ____________ PETER DELETE FROM HERE ______________
  calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
-        <variable name="chi_afloor" units="dimensionless"/>
+        <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3952,7 +3957,7 @@
         <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
-        <variable name="chi_afloor" units="dimensionless"/>
+        <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -4947,10 +4952,10 @@
             </apply>
         </math>
         <!-- calculate velocities from flow and nominal (constant) area-->
-        <variable name="vel_trv" units="m_per_s"/>
-        <variable name="vel_puv" units="m_per_s"/>
-        <variable name="vel_miv" units="m_per_s"/>
-        <variable name="vel_aov" units="m_per_s"/>
+        <variable name="vel_trv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_puv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_miv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_aov" public_interface="out" units="m_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5145,22 +5150,22 @@
         <variable name="t" public_interface="in" units="second"/>
         <variable initial_value="0.0" name="s" public_interface="out" units="dimensionless"/>
         <!-- Constitutive parameters-->
-        <variable name="mt" units="dimensionless"/>
-        <variable name="e_a" units="dimensionless"/>
-        <variable name="e_v" units="dimensionless"/>
+        <variable name="mt" public_interface="out" units="dimensionless"/>
+        <variable name="e_a" public_interface="out" units="dimensionless"/>
+        <variable name="e_v" public_interface="out" units="dimensionless"/>
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
         <variable name="T_ac_norm" units="dimensionless"/>
         <variable name="T_ar_norm" units="dimensionless"/>
         <variable name="t_astart" public_interface="in" units="second"/>
-        <variable name="t_astart_norm" units="dimensionless"/>
+        <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
         <variable name="T_vc_norm" units="dimensionless"/>
         <variable name="T_vr_norm" units="dimensionless"/>
         <variable name="t_vstart" public_interface="in" units="second"/>
-        <variable name="t_vstart_norm" units="dimensionless"/>
+        <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
         <!--removed in for all E -->
@@ -5240,13 +5245,13 @@
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
-        <variable initial_value="q_lv_init" name="q_lv" units="m3"/>
-        <variable initial_value="q_rv_init" name="q_rv" units="m3"/>
-        <variable initial_value="q_la_init" name="q_la" units="m3"/>
-        <variable initial_value="q_ra_init" name="q_ra" units="m3"/>
+        <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
+        <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
+        <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
+        <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
-        <variable name="chi_afloor" units="dimensionless"/>
+        <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -6251,10 +6256,10 @@
             </apply>
         </math>
         <!-- calculate velocities from flow and nominal (constant) area-->
-        <variable name="vel_trv" units="m_per_s"/>
-        <variable name="vel_puv" units="m_per_s"/>
-        <variable name="vel_miv" units="m_per_s"/>
-        <variable name="vel_aov" units="m_per_s"/>
+        <variable name="vel_trv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_puv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_miv" public_interface="out" units="m_per_s"/>
+        <variable name="vel_aov" public_interface="out" units="m_per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -6504,22 +6509,22 @@
         <variable name="t" public_interface="in" units="second"/>
         <variable initial_value="0.0" name="s" public_interface="out" units="dimensionless"/>
         <!-- Constitutive parameters-->
-        <variable name="mt" units="dimensionless"/>
-        <variable name="e_a" units="dimensionless"/>
-        <variable name="e_v" units="dimensionless"/>
+        <variable name="mt" public_interface="out" units="dimensionless"/>
+        <variable name="e_a" public_interface="out" units="dimensionless"/>
+        <variable name="e_v" public_interface="out" units="dimensionless"/>
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
         <variable name="T_ac_norm" units="dimensionless"/>
         <variable name="T_ar_norm" units="dimensionless"/>
         <variable name="t_astart" public_interface="in" units="second"/>
-        <variable name="t_astart_norm" units="dimensionless"/>
+        <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
         <variable name="T_vc_norm" units="dimensionless"/>
         <variable name="T_vr_norm" units="dimensionless"/>
         <variable name="t_vstart" public_interface="in" units="second"/>
-        <variable name="t_vstart_norm" units="dimensionless"/>
+        <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
         <variable name="E_lv_B" public_interface="in" units="J_per_m6"/>
         <variable name="E_la_A" public_interface="in" units="J_per_m6"/>
@@ -6596,13 +6601,13 @@
         <variable initial_value="1e-22" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
         <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
-        <variable initial_value="q_lv_init" name="q_lv" units="m3"/>
-        <variable initial_value="q_rv_init" name="q_rv" units="m3"/>
-        <variable initial_value="q_la_init" name="q_la" units="m3"/>
-        <variable initial_value="q_ra_init" name="q_ra" units="m3"/>
+        <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
+        <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
+        <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
+        <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
-        <variable name="chi_afloor" units="dimensionless"/>
+        <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>

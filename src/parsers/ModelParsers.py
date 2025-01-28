@@ -7,7 +7,7 @@ Created on 29/10/2021
 
 from parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from models.LumpedModels import CVS0DModel
-from checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck
+from checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 import numpy as np
 import re
 import os
@@ -85,9 +85,9 @@ class CSV0DModelParser(object):
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
 
         if self.parameter_id_dir:
-            check_list = [LumpedBCVesselCheck(), LumpedIDParamsCheck()]
+            check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck(), LumpedIDParamsCheck()]
         else:
-            check_list = [LumpedBCVesselCheck()]
+            check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck()]
 
         checker = LumpedCompositeCheck(check_list=check_list)
         checker.execute(model_0D)
@@ -146,13 +146,18 @@ class CSV0DModelParser(object):
         parameters_list = []
 
         for idx, param_tuple in enumerate(required_params):
+            actually_exit = False
             try:
                 new_entry = parameters_array_orig[np.where(parameters_array_orig["variable_name"] ==
                                                                        param_tuple[0])][0]
                 new_entry = [item for item in new_entry]
                 if new_entry[1] != param_tuple[1]:
-                    print('units in parameters.csv file does not match with units in module_config.json file'
-                          f'for param {new_entry[0]}, exiting')
+                    print('')
+                    print(f'ERROR: units of {new_entry[1]} in parameters.csv file does not \n'
+                          f'match with units of {param_tuple[1]} in module_config.json file \n'
+                          f'for param {new_entry[0]}, exiting \n')
+                    print('')
+                    actually_exit = True
                     exit()
 
                 new_entry.insert(2, param_tuple[2])
@@ -163,6 +168,8 @@ class CSV0DModelParser(object):
                 new_entry = ([param_tuple[0], param_tuple[1], param_tuple[2],
                                      'EMPTY_MUST_BE_FILLED', 'EMPTY_MUST_BE_FILLED'])
                 parameters_list.append(new_entry)
+                if actually_exit:
+                    exit()
         if len(parameters_list) == 0:
             return np.empty((len(parameters_list)),
                                     dtype=[('variable_name', 'U80'), ('units', 'U80'),('const_type', 'U80'),

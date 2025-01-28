@@ -35,6 +35,31 @@ if __name__ == '__main__':
             del inp_data_dict['generated_models_dir']
         if 'param_id_output_dir' in inp_data_dict.keys():
             del inp_data_dict['param_id_output_dir']
+        
+        print('')
+        print('running 3compartment parameter id test')
+        inp_data_dict['file_prefix'] = '3compartment'
+        inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
+        inp_data_dict['param_id_method'] = 'genetic_algorithm'
+        inp_data_dict['solver'] = 'CVODE'
+        inp_data_dict['pre_time'] = 20
+        inp_data_dict['sim_time'] = 2
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['dt'] = 0.01
+        inp_data_dict['DEBUG'] = True
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/3compartment_obs_data.json')
+        inp_data_dict['do_mcmc'] = True
+        inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
+        inp_data_dict['plot_predictions'] = True
+        run_param_id(inp_data_dict)
+
+        # also test running autogeneration with the fit parameters
+        generate_with_new_architecture(True, inp_data_dict)
+
+        # also test plotting
+        plot_param_id(inp_data_dict)
 
         print('')
         print('running simple_physiological parameter id test')
