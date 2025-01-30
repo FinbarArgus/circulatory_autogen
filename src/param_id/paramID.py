@@ -440,18 +440,24 @@ class CVS0DParamID():
                                                     self.obs_info["ground_truth_phase"][freq_idx],
                                                     'kx', label='gt')
                     if self.obs_info["data_types"][II] == 'prob_dist':
-                        for mean_idx, val_to_plot in enumerate(self.obs_info["ground_truth_prob_dist_params"]["means"]):
-                            mean_prob_dist_plot_gt = val_to_plot*\
+                        if self.obs_info["plot_type"][II] == 'horizontal':
+                            for mean_idx, val_to_plot in enumerate(self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx]["means"]):
+                                mean_prob_dist_plot_gt = val_to_plot*\
+                                                np.ones((n_steps_per_sub_count[subexp_count] + 1),)
+                                axs.plot(tSim_per_sub_count[subexp_count], conversion*mean_prob_dist_plot_gt,
+                                                        color=self.obs_info['plot_colors'][II], linestyle='--', 
+                                                        label=f'{self.obs_info["operations"][II]} gt mean {mean_idx}')
+                            val_for_prob_dist_plot_bf = (best_fit_obs_prob_dist[prob_dist_idx])*\
                                             np.ones((n_steps_per_sub_count[subexp_count] + 1),)
-                            axs.plot(tSim_per_sub_count[subexp_count], conversion*mean_prob_dist_plot_gt,
-                                                    color=self.obs_info['plot_colors'][II], linestyle='--', 
-                                                    label=f'{self.obs_info["operations"][II]} gt mean {mean_idx}')
-                        val_for_prob_dist_plot_bf = (best_fit_obs_prob_dist[prob_dist_idx])*\
-                                         np.ones((n_steps_per_sub_count[subexp_count] + 1),)
 
-                        axs.plot(tSim_per_sub_count[subexp_count], conversion*val_for_prob_dist_plot_bf,
-                                 color=self.obs_info['plot_colors'][II], linestyle='-', 
-                                 label=f'{self.obs_info["operations"][II]} output')
+                            axs.plot(tSim_per_sub_count[subexp_count], conversion*val_for_prob_dist_plot_bf,
+                                    color=self.obs_info['plot_colors'][II], linestyle='-', 
+                                    label=f'{self.obs_info["operations"][II]} output')
+                        elif self.obs_info["plot_type"] == None:
+                            pass
+                        else:
+                            # other plot types havent been set up for prob dists yet
+                            pass
 
                     #also calculate the RMS error for each observable
                     if exp_idx == self.obs_info["experiment_idxs"][II] and \
@@ -1219,6 +1225,12 @@ class CVS0DParamID():
                 if self.gt_df.iloc[II]["data_type"] == "constant":
                     if not warning_printed:
                         print('constant data types plot type defaults to horizontal lines',
+                            'change "plot_type" in obs_data.json to change this')
+                        warning_printed = True
+                    self.obs_info["plot_type"].append("horizontal")
+                elif self.gt_df.iloc[II]["data_type"] == "prob_dist":
+                    if not warning_printed:
+                        print('prob_dist data types plot type defaults to horizontal lines',
                             'change "plot_type" in obs_data.json to change this')
                         warning_printed = True
                     self.obs_info["plot_type"].append("horizontal")
@@ -2803,7 +2815,8 @@ class OpencorParamID():
         cost = 0.0
         for const_idx in range(len(const)):
             obs_idx = self.obs_info['const_idx_to_obs_idx'][const_idx]
-            cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
+            if updated_weight_const_vec[const_idx] != 0:
+                cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
                                                    self.obs_info["std_const_vec"][const_idx], updated_weight_const_vec[const_idx])
         
         # TODO debugging a strange error that occurs occasionally in GA
@@ -2849,7 +2862,8 @@ class OpencorParamID():
                 weight_entry = updated_weight_series_vec[series_idx]
                 
                 obs_idx = self.obs_info['series_idx_to_obs_idx'][series_idx]
-                series_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](series_entry, obs_entry, std_entry, weight_entry)
+                if weight_entry != 0:
+                    series_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](series_entry, obs_entry, std_entry, weight_entry)
 
 
         amp_cost = 0
@@ -2870,7 +2884,8 @@ class OpencorParamID():
                 obs_entry = self.obs_info["ground_truth_amp"][amp_idx]
                 weight_entry = updated_weight_amp_vec[amp_idx]
                 std_entry = self.obs_info["std_amp_vec"][amp_idx]
-                amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
+                if weight_entry != 0:
+                    amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
 
         phase_cost = 0
         if phase is not None:
@@ -2892,15 +2907,18 @@ class OpencorParamID():
                 std_entry = np.ones(len(phase_entry))
                 obs_entry = self.obs_info["ground_truth_phase"][phase_idx]
                 weight_entry = updated_weight_phase_vec[phase_idx]
-                phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
+                if weight_entry != 0:
+                    phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
 
         prob_dist_cost = 0
         if val_for_prob_dist is not None:
             for prob_dist_idx in range(len(val_for_prob_dist)):
                 obs_idx = self.obs_info['prob_dist_idx_to_obs_idx'][prob_dist_idx]
-                prob_dist_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](val_for_prob_dist, 
+                if updated_weight_prob_dist_vec[prob_dist_idx] != 0:
+                    prob_dist_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](val_for_prob_dist[prob_dist_idx], 
                                                                     self.obs_info["ground_truth_prob_dist_params"][prob_dist_idx],
                                                                     updated_weight_prob_dist_vec[prob_dist_idx])
+            
 
         cost = (cost + series_cost + amp_cost + phase_cost + prob_dist_cost) / num_weighted_obs
 
@@ -3357,7 +3375,7 @@ class OpencorMCMC(OpencorParamID):
 
     def get_lnlikelihood_from_params(self, param_vals):
         cost = self.get_cost_from_params(param_vals)
-        lnlikelihood = -0.5*cost
+        lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
 
         return lnlikelihood
 

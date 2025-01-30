@@ -33,30 +33,54 @@ def MSE(*args, **kwargs):
     return gaussian_MLE(*args, **kwargs)
 
 def multimodal_gaussian(output, prob_dist_params, weight):
+    if hasattr(output, '__len__'):
+        print("ERROR: multimodal_gaussian cost function is not implemented for series data")
+        # if entry is a vector then turn the vector of costs for each data point into a average cost
+        # cost_mode = np.sum(cost_mode)/len(output)
     
     # TODO make it so the below checks are only done once.
     # TODO checks should be done when parsing rather than every time this is called.
-    allowable_keys = ["means", "stds", "scales"].sort()
+    allowable_keys_list = ["means", "stds", "scales"]
+    allowable_keys_list.sort()
+    keys_list = [*prob_dist_params]
+    keys_list.sort()
     if not isinstance(prob_dist_params, dict):
-        print("prob_dist_params needs to be a dict with entries :")
-        print(allowable_keys)
+        print('!!!!!!!!!!!!')
+        print("ERROR prob_dist_params in obs_data.json needs to be a dict! The entries should be:")
+        print(allowable_keys_list)
+        print('!!!!!!!!!!!!')
         exit()
 
-    if prob_dist_params.keys().sort() != allowable_keys:
-        print("prob_dist_params needs to be a dict with entries :")
-        print(allowable_keys)
+    if keys_list != allowable_keys_list:
+        print('!!!!!!!!!!!!')
+        print("ERROR prob_dist_params in obs_data.json needs to be a dict with entries:")
+        print(allowable_keys_list)
+        print('!!!!!!!!!!!!')
         exit()
 
-    cost_exp = 0
-    for desired_mean, std, scales in zip(dist_params["means"], dist_params["stds"], dist_params["weights"]):
-        cost_mode = np.power((output - desired_mean)/std, 2)*weight
-        if hasattr(output, '__len__'):
-            # if entry is a vector then turn the vector of costs for each data point into a average cost
-            cost_mode = np.sum(cost_mode)/len(output)
+    # apply log-sum-exp trick to avoid numerical instability with large exp values
+    # this is log(sum(exp(v_i))) = max(v) + log(sum_i(exp(v_i - max(v))) 
 
-        cost_exp += np.exp(cost_mode)
+    v_vec = np.zeros(len(prob_dist_params["means"]))
+    for idx, (desired_mean, std, scale) in enumerate(zip(prob_dist_params["means"], prob_dist_params["stds"], prob_dist_params["scales"])):
+        v_vec[idx] = np.power((output - desired_mean)/std, 2)*scale
     
-    cost = np.log(cost_exp)*weight
+    v_max = np.max(v_vec)
+    sum_inner_term = np.sum(np.exp(v_vec - v_max))
+
+    cost = (v_max + np.log(sum_inner_term))*weight
+            
+    
+    # # below was before applying more efficient log-sum-exp trick. 
+    # cost_exp = 0
+    # for idx, (desired_mean, std, scale) in enumerate(zip(prob_dist_params["means"], prob_dist_params["stds"], prob_dist_params["scales"])):
+    #     cost_mode = np.power((output - desired_mean)/std, 2)*scale
+    #     cost_exp += np.exp(cost_mode)
+    
+    # cost_check = np.log(cost_exp)*weight
+
+    # print(cost)
+    # print(cost_check)
 
     return cost
 
