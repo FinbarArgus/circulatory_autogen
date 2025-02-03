@@ -426,7 +426,7 @@ class CVS0DParamID():
                             exit()
                     elif self.obs_info["data_types"][II] == 'series':
                         # create time vector for the grount_truth_series
-                        start_time = self.protocol_info['pre_times'][exp_idx] + np.sum(self.protocol_info['sim_times'][exp_idx][:this_sub_idx])
+                        start_time = np.sum(self.protocol_info['sim_times'][exp_idx][:this_sub_idx])
                         t_obs = np.linspace(start_time, start_time + self.protocol_info["sim_times"][exp_idx][this_sub_idx], 
                                             len(self.obs_info["ground_truth_series"][series_idx]))
                         axs.plot(t_obs, conversion*self.obs_info["ground_truth_series"][series_idx],
@@ -2813,11 +2813,12 @@ class OpencorParamID():
         #     print(f'cost type of {self.cost_type} not implemented')
         #     exit()
         cost = 0.0
-        for const_idx in range(len(const)):
-            obs_idx = self.obs_info['const_idx_to_obs_idx'][const_idx]
-            if updated_weight_const_vec[const_idx] != 0:
-                cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
-                                                   self.obs_info["std_const_vec"][const_idx], updated_weight_const_vec[const_idx])
+        if const is not None:
+            for const_idx in range(len(const)):
+                obs_idx = self.obs_info['const_idx_to_obs_idx'][const_idx]
+                if updated_weight_const_vec[const_idx] != 0:
+                    cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
+                                                    self.obs_info["std_const_vec"][const_idx], updated_weight_const_vec[const_idx])
         
         # TODO debugging a strange error that occurs occasionally in GA
         # assert not np.isnan(cost), 'cost is nan'
@@ -2884,8 +2885,12 @@ class OpencorParamID():
                 obs_entry = self.obs_info["ground_truth_amp"][amp_idx]
                 weight_entry = updated_weight_amp_vec[amp_idx]
                 std_entry = self.obs_info["std_amp_vec"][amp_idx]
-                if weight_entry != 0:
-                    amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
+                if hasattr(weight_entry, '__len__'):
+                    if not all(val==0 for val in weight_entry):
+                        amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
+                else:
+                    if weight_entry != 0:
+                        amp_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](amp_entry, obs_entry, std_entry, weight_entry)
 
         phase_cost = 0
         if phase is not None:
@@ -2907,8 +2912,12 @@ class OpencorParamID():
                 std_entry = np.ones(len(phase_entry))
                 obs_entry = self.obs_info["ground_truth_phase"][phase_idx]
                 weight_entry = updated_weight_phase_vec[phase_idx]
-                if weight_entry != 0:
-                    phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
+                if hasattr(weight_entry, '__len__'):
+                    if not all(val==0 for val in weight_entry):
+                        phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
+                else:
+                    if weight_entry != 0:
+                        phase_cost += self.cost_funcs_dict[self.cost_type[obs_idx]](phase_entry, obs_entry, std_entry, weight_entry)
 
         prob_dist_cost = 0
         if val_for_prob_dist is not None:

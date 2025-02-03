@@ -3190,7 +3190,7 @@
         <variable name="R_T_2" units="Js_per_m6"/>
         <variable name="frac_R_T_1_of_R_T" public_interface="in" units="dimensionless"/>
         <!-- var C_T: m6_per_J {pub: in};-->
-        <variable name="K_tube" public_interface="in" units="m3_per_J"/>
+        <variable name="K_tube" public_interface="in" units="J_per_m3"/>
         <variable name="m_tube" public_interface="in" units="dimensionless"/>
         <variable name="n_tube" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">

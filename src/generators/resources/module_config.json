@@ -652,7 +652,7 @@
       ["v_T", "m3_per_s", "access", "variable"],
       ["R_T", "Js_per_m6", "access", "constant"],
       ["frac_R_T_1_of_R_T", "dimensionless", "access", "constant"],
-      ["K_tube", "m3_per_J", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "constant"],
       ["m_tube", "dimensionless", "access", "constant"],
       ["n_tube", "dimensionless", "access", "constant"],
       ["I_T_1", "Js2_per_m6", "access", "constant"],
