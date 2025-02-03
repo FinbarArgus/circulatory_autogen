@@ -3188,7 +3188,7 @@
                 <ci>c_bar</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensioness">1</cn>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -3276,7 +3276,7 @@
                 <ci>hc_bar</ci>
                 <apply>
                     <divide/>
-                    <cn cellml:units="dimensioness">1</cn>
+                    <cn cellml:units="dimensionless">1</cn>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -3411,7 +3411,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">36</cn>
+                                        <cn cellml:units="milliV">36</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">7.2</cn>
@@ -3627,7 +3627,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">6.084</cn>
+                                        <cn cellml:units="milliV">6.084</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">8.007</cn>
@@ -3745,7 +3745,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">49.4</cn>
+                                        <cn cellml:units="milliV">49.4</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">9.9</cn>
@@ -3971,7 +3971,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>Vm</ci>
-                                        <cn cellml:units="millV">11.54</cn>
+                                        <cn cellml:units="milliV">11.54</cn>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">4.99</cn>

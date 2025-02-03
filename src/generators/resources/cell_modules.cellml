@@ -107,7 +107,7 @@
                 <apply>
                     <divide/>
                     <ci>Vm</ci>
-                    <cn cellml:units="millV_per_V">1000</cn>
+                    <cn cellml:units="milliV_per_V">1000</cn>
                 </apply>
             </apply>
         </math>

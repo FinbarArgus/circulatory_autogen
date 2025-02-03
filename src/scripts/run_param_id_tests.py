@@ -101,9 +101,9 @@ if __name__ == '__main__':
         inp_data_dict['DEBUG'] = True
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/test_fft_obs_data.json')
         inp_data_dict['param_id_output_dir'] = os.path.join(root_dir_path, 'param_id_output/')   
-        inp_data_dict['do_mcmc'] = True
+        inp_data_dict['do_mcmc'] = False
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
-        inp_data_dict['plot_predictions'] = True
+        inp_data_dict['plot_predictions'] = False
         run_param_id(inp_data_dict)
 
         # also test running autogeneration with the fit parameters

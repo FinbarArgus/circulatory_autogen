@@ -1469,7 +1469,6 @@ ABDONMINAL CAVITY///////////////////////////////////////////////////////////////
             </apply>
         </math>
         <variable name="P_abd" public_interface="out" units="mmHg"/>
-        <variable initial_value="4" name="T_resp" units="second"/>
         <variable initial_value="1.6" name="T_insp" units="second"/>
         <variable initial_value="1.4" name="T_exp" units="second"/>
         <!--    -5{dimensionless}*(T_insp+T_exp-s*T_resp)/T_exp;-->

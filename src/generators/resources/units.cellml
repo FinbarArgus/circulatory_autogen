@@ -97,7 +97,7 @@
         <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="second"/>
     </units>
-    <units name="milliL">
+    <units name="mL">
         <unit prefix="milli" units="litre"/>
     </units>
     <units name="per_milliL_s">
@@ -481,7 +481,11 @@
     </units>
     <units name="V_per_milliV">
         <unit units="volt"/>
-        <unit exponent="-1" prefix="milli" units="volt"/>
+        <unit exponent="-1" units="milliV"/>
+    </units>
+    <units name="V_per_s">
+        <unit units="volt"/>
+        <unit exponent="-1" units="second"/>
     </units>
     <units name="milliV_per_kiloV">
         <unit prefix="milli" units="volt"/>
