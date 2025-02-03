@@ -66,7 +66,7 @@ To run the parameter identification we need to set a few entries in the `[projec
 - **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`
 - **sim_time**: The amount of time used to compare simulation output and observable data. This should be equal to the length of a series observable entry divided by the "sample_rate". If not, only up to the minimum length of observable data and modelled data will be compared. 
 - **maximum_step**: The maximum time step for the CVODE solver
-- **dt**: The output time step (This hasn’t been tested well for anything but 0.01 s currently)
+- **dt**: The output time step (This hasn't been tested well for anything but 0.01 s currently)
 - **param_id_obs_path**: the path to the `obs_data.json` file described above.
 - **ga_options**:
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.

@@ -12,7 +12,7 @@ The Circulatory_autogen project contains five folders as presented below:
 
 Following folders will be generated after running model autogeneration and parameter identification.
 
-- **generated_models**: Includes the generated code for the models that have been automatically generated. It also contains the generated models with parameters that have been fit with the parameter identification code. These models can be run in OpenCOR or through OpenCOR’s version of Python.
+- **generated_models**: Includes the generated code for the models that have been automatically generated. It also contains the generated models with parameters that have been fit with the parameter identification code. These models can be run in OpenCOR or through OpenCOR's version of Python.
 - **param_id_output**: Includes all of the outputs from the parameter identification simulations, including predicted parameter values, minimum costs, standard deviations of parameters (if doing MCMC) and plots of the fitting results and parameter distributions.
 
 ## Model Generation

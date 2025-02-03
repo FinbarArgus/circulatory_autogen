@@ -24,7 +24,7 @@ This section discusses creating a vessel array and parameters files to build a n
 One standard vessel array file contains five important columns as elaborated in the table below. 
 
 - **vessel_name** is the name of a common organ or part of the cardiovascular system.
-- **BC_type** is the type of the boundary condition for the vessel’s input and output.
+- **BC_type** is the type of the boundary condition for the vessel's input and output.
 - **vessel_type** can be defined as the desired module which exists in the module_config.json file. However, the readily usable vessel_types are possible as shown in the table. 
 - **inp_vessel** is the input of each part.
 - **out_vessel** is the output of each part.
@@ -50,7 +50,7 @@ This file has the structure as shown below.
 | Column Name    | Description                                       |
 |----------------|---------------------------------------------------|
 | variable_name  | Parameter name                                    |
-| units          | Unit in the defined units in CellML’s unit file   |
+| units          | Unit in the defined units in CellML's unit file   |
 | value          | Value of parameter                                |
 | data_reference | Reference of the parameter value. Typically in [last_name][date][first_word_of_paper] format for papers.  |
 
@@ -65,7 +65,7 @@ Following is an example of a parameter file.
 
     At this time, you should edit the `[resources_dir]/[file_prefix]_parameters_unfinished.csv` file that will have been created.
     
-    This file will include the parameters which were not inserted in the file with *EMPTY_MUST_BE_FILLED* value and data_reference entries. You should add the parameter value and a reference in the file. Subsequently, delete the last part of the file’s name (“unfinished”) and rerun the code to solve the issue.
+    This file will include the parameters which were not inserted in the file with *EMPTY_MUST_BE_FILLED* value and data_reference entries. You should add the parameter value and a reference in the file. Subsequently, delete the last part of the file's name (“unfinished”) and rerun the code to solve the issue.
 
 ## Modules and definition of a new module
 
