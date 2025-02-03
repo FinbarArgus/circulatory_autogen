@@ -7,6 +7,9 @@ theme:
     - content.code.copy
 markdown_extensions:
   - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 nav:
   - Welcome to Circulatory Autogen: index.md
   - Getting Started: getting-started.md

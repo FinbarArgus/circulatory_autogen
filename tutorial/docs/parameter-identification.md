@@ -71,3 +71,25 @@ To run the parameter identification we need to set a few entries in the `[projec
 - **ga_options**:
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.
 	- **num_calls_to_function**: How many forward simulations of pre_time+sim_time will be run in the optimisation algorithm.
+
+## Running parameter identification
+
+After creating the params_for_id file and the param id observables file, and configuring the above settings, run the parameter identification using the below command.
+
+```
+./run_param_id.sh
+```
+
+Following a successful parameter id process, the model with updated parameters can be generated with:
+
+```
+./run_autogeneration_with_id_params.sh
+```
+
+Plots can be run with:
+
+```
+./plot_param_id.sh
+```
+
+The generated models will be saved in `generated_models/` directory and plots will be saved in `param_id_outputs/` directory.

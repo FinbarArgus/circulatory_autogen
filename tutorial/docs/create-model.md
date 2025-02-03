@@ -1,5 +1,22 @@
 # Creating a new model
 
+This software is designed so the user can easily make their own modules and couple them with existing modules. The steps are as follows.
+
+1. Either choose an existing `{module_category}_modules.cellml` file to write your module, or if it is a new category of module, create a `{module_category}_modules.cellml` file in `src/generators/resources/`.
+
+2. Put you cellml model into the `{module_category}_modules.cellml` file.
+
+3. Create a corresponding module configuration entry into `module_config.json`. These module declarations detail the variables that can be accessed, the constants that must be defined and the available ports of the module.
+
+4. Include your new module into the vessel array file.
+
+    !!! Note
+        Modules that are connected as each others inputs and outputs will be coupled together with any ports with corresponding name. 
+        
+        For an example, if VesselOne has an entrance 'vessel_port' and VesselTwo has an entrance 'vessel_port', they will be coupled with the variables declared in their corresponding 'vessel_port'. You must be careful when making a new module, that the modules it couples to only has matching port types for the ones that are necessary for coupling.
+
+Following sections include more details on creating the above required files.
+
 ## Creating vessel_array and parameter files
 
 This section discusses creating a vessel array and parameters files to build a new desired model.

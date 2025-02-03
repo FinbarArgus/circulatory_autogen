@@ -9,6 +9,9 @@ The project must be run on a Linux operating system.
 
     Also, you can download the latest version of Ubuntu using this [link](https://ubuntu.com/download/desktop).
 
+!!! info
+    Running on Windows is in development. It can work with some caveats. See [Running on Windows](#running-on-windows) for more information.
+
 **1. Install OpenCOR**
 
 Download and install OpenCOR software from this [link](https://opencor.ws/downloads/index.html).
@@ -82,6 +85,9 @@ To install required python packages, navigate to `[OpenCOR_dir]/python/bin` dire
     **Required packages for mcmc bayesian identification**:
     emcee corner schwimmbad tqdm statsmodels
 
+    **Required for some utilities**:
+    ruamel.yaml
+
 !!! warning
     if you get an SSL error you must do the following before the pip install:
 
@@ -93,7 +99,40 @@ To install required python packages, navigate to `[OpenCOR_dir]/python/bin` dire
 !!! warning
     Intalling **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
 
+    === "Linux"
+        ```
         sudo apt install libopenmpi-dev
         sudo apt install libffi7
+        ```
 
-Furthermore, refer to the `README.md` file in the repository which has more brief instructions for running the project.
+    === "Mac"
+        ```
+        brew install openmpi
+        ```
+
+## Running on Windows
+
+You have to run the scripts in `src/scripts` explicitly since you cannot use the .sh files to run scripts. 
+
+E.g. For running param id, navigate to to `C:\path\to\opencor\dir` and run the below command.
+
+```
+.\pythonshell.bat C:\path\to\circulatory\autogen\src\scripts\param_id_run_script.py
+```
+
+To be able to importing mpi4py, you may have to do the following:
+
+1. Download MS MPI, install both .mis and SDK.
+
+2. Set up environmental variables.
+
+    !!! Tip
+        Open `Control Panel` and select `Advanced System Settings`. Then select `Environmental Variables` and add the following.
+
+            C:\Program Files\Microsoft MPI\
+            C:\Program Files (x86)\Microsoft SDKs\MPI\
+
+!!! info "Changes to be made"
+    Currently **vessels** is used interchangeabley with **modules**. This will be changed to use **modules** in all instances, as the project now allows all types of modules, not just vessels.
+
+    The connections between terminals and the venous system is hardcoded, as a terminal_venous_connection has to be made to sum up the flows and get an avergae concentration. This needs to be improved.

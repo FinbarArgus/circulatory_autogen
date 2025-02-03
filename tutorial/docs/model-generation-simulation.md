@@ -2,13 +2,18 @@
 
 ## Software Outline
 
-The Circulatory_autogen project contains five main folders as presented below:       
+The Circulatory_autogen project contains five folders as presented below:       
+
+- **funcs_user**: **TODO**
+- **module_config_user**: **TODO**
+- **resources**: Contains the config csv files that the user defines to construct the model that will be generated and to prescribe it's parameters.
+- **src**: Containts the source code for autogeneration, parameter id, and other utilities.
+- **user_run_files**: Includes essential run files for the user and the user_inputs.yaml file, which is the main config file for the run settings.
+
+Following folders will be generated after running model autogeneration and parameter identification.
 
 - **generated_models**: Includes the generated code for the models that have been automatically generated. It also contains the generated models with parameters that have been fit with the parameter identification code. These models can be run in OpenCOR or through OpenCOR’s version of Python.
 - **param_id_output**: Includes all of the outputs from the parameter identification simulations, including predicted parameter values, minimum costs, standard deviations of parameters (if doing MCMC) and plots of the fitting results and parameter distributions.
-- **resources**: Contains the config csv files that the user defines to construct the model that will be generated and to prescribe it’s parameters.
-- **src**: Containts the source code for autogeneration, parameter id, and other utilities.
-- **user_run_files**: Includes essential run files for the user and the user_inputs.yaml file, which is the main config file for the run settings.
 
 ## Model Generation
 
@@ -54,6 +59,11 @@ Following are the steps for model autogeneration.
     !!! info
         For a typical autogeneration, the CSV file will be the same as the parameters.csv file in `[project_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
 
+!!! Note
+    There is a test for the autogeneration running. To run the test, navigate to `user_run_files` and run the below command.
+
+        ./run_test_autogeneration.sh
+    
 ## Model Simulation
 
 Once you have generated the models, open OpenCOR and open the generated `[file_prefix].cellml`, which is the main CellML file. This file calls to the `[file_prefix]_modules.cellml`, `[file_prefix]_parameters.cellml` and `[file_prefix]_units.cellml` files.
@@ -71,7 +81,7 @@ Several individual parts on this page are:
 - Run diagnostics
 - Graphs and results
 
-You should set the simulation’s starting, ending, and data output step size. Also, if you have a stiff problem you may need to set the maximum_time_step to a small value.
+You should set the simulation's starting, ending, and data output step size. Also, if you have a stiff problem you may need to set the maximum_time_step to a small value.
 
 ODE solver settings contains many settings related to the solver such as maximum step size, iteration method, absolute and relative tolerance, name of solver, etc. (shown in the blue box in the above image.)
 
@@ -80,4 +90,3 @@ The parameters and variables section shows all constant and variable parameters 
 The run control is on the top left section, as shown in the purple color box in the image. Click on the triangle button to run. For further control, see the [OpenCOR Tutorial](https://tutorial-on-cellml-opencor-and-pmr.readthedocs.io/en/latest/_downloads/d271cfcef7e288704c61320e64d77e2d/OpenCOR-Tutorial-v17.pdf).
 
 The results will be shown after running the model. These results include run-time, settings, and other related parameters, as shown in the yellow box at the bottom of the image.
-
