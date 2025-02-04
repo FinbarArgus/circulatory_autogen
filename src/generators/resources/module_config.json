@@ -2880,6 +2880,8 @@
       ["C_O2_a", "dimensionless", "access", "boundary_condition"],
       ["v", "m3_per_s", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
+      ["C_CO2_p_init", "dimensionless", "access", "constant"],
+      ["C_O2_p_init", "dimensionless", "access", "constant"],
       ["M_CO2", "m3_per_s", "access", "constant"],
       ["M_O2", "m3_per_s", "access", "constant"]
     ]
@@ -2916,6 +2918,8 @@
     [
       ["C_CO2_p", "dimensionless", "access", "variable"],
       ["C_O2_p", "dimensionless", "access", "variable"],
+      ["C_CO2_p_init", "dimensionless", "access", "constant"],
+      ["C_O2_p_init", "dimensionless", "access", "constant"],
       ["C_CO2_v", "dimensionless", "access", "variable"],
       ["C_O2_v", "dimensionless", "access", "variable"],
       ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
@@ -2992,6 +2996,8 @@
     [
       ["C_CO2_p", "dimensionless", "access", "variable"],
       ["C_O2_p", "dimensionless", "access", "variable"],
+      ["C_CO2_p_init", "dimensionless", "access", "constant"],
+      ["C_O2_p_init", "dimensionless", "access", "constant"],
       ["C_CO2_v", "dimensionless", "access", "variable"],
       ["C_O2_v", "dimensionless", "access", "variable"],
       ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
@@ -3072,6 +3078,8 @@
       ["C_CO2_out", "dimensionless", "access", "variable"],
       ["dot_C_CO2_out", "Hz", "access", "variable"],
       ["C_O2_out", "dimensionless", "access", "variable"],
+      ["C_CO2_out_init", "dimensionless", "access", "constant"],
+      ["C_O2_out_init", "dimensionless", "access", "constant"],
       ["P_CO2_out", "J_per_m3", "access", "variable"],
       ["P_O2_out", "J_per_m3", "access", "variable"],
       ["q_0", "m3", "access", "constant"],
@@ -3115,6 +3123,10 @@
       ["P_atm", "J_per_m3", "access", "global_constant"],
       ["P_ws", "J_per_m3", "access", "global_constant"],
       ["K_LOSSES", "dimensionless", "access", "constant"],
+      ["F_CO2_D_init", "dimensionless", "access", "constant"],
+      ["F_O2_D_init", "dimensionless", "access", "constant"],
+      ["F_CO2_A_init", "dimensionless", "access", "constant"],
+      ["F_O2_A_init", "dimensionless", "access", "constant"],
       ["F_CO2_D", "dimensionless", "access", "variable"],
       ["F_O2_D", "dimensionless", "access", "variable"],
       ["F_CO2_A", "dimensionless", "access", "variable"],

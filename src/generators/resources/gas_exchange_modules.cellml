@@ -12,8 +12,10 @@
         <variable name="M_CO2" public_interface="in" units="m3_per_s"/>
         <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
-        <variable initial_value="0.15" name="C_O2_p" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.38" name="C_CO2_p" public_interface="out" units="dimensionless"/>
+        <variable name="C_O2_p_init" public_interface="in" units="dimensionless"/>
+        <variable name="C_CO2_p_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="C_O2_p_init" name="C_O2_p" public_interface="out" units="dimensionless"/>
+        <variable initial_value="C_CO2_p_init" name="C_CO2_p" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -83,9 +85,11 @@
         <variable name="M_CO2" public_interface="out" units="m3_per_s"/>
         <variable name="C_O2_v" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_v" public_interface="in" units="dimensionless"/>
-        <variable initial_value="0.202" name="C_O2_p" public_interface="out" units="dimensionless"/>
+        <variable name="C_CO2_p_init" public_interface="in" units="dimensionless"/>
+        <variable name="C_O2_p_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="C_O2_p_init" name="C_O2_p" public_interface="out" units="dimensionless"/>
         <variable name="d_C_O2_p_dt" public_interface="out" units="Hz"/>
-        <variable initial_value="0.35" name="C_CO2_p" public_interface="out" units="dimensionless"/>
+        <variable initial_value="C_CO2_p_init" name="C_CO2_p" public_interface="out" units="dimensionless"/>
         <!-- New params-->
         <variable name="k_O2" public_interface="in" units="m6_per_Js"/>
         <variable name="k_CO2" public_interface="in" units="m6_per_Js"/>
@@ -564,8 +568,10 @@
         <variable name="M_CO2" public_interface="out" units="m3_per_s"/>
         <variable name="C_O2_v" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_v" public_interface="in" units="dimensionless"/>
-        <variable initial_value="0.202" name="C_O2_p" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.35" name="C_CO2_p" public_interface="out" units="dimensionless"/>
+        <variable name="C_CO2_p_init" public_interface="in" units="dimensionless"/>
+        <variable name="C_O2_p_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="C_O2_p_init" name="C_O2_p" public_interface="out" units="dimensionless"/>
+        <variable initial_value="C_CO2_p_init" name="C_CO2_p" public_interface="out" units="dimensionless"/>
         <!-- New params-->
         <variable name="k_O2" public_interface="in" units="m6_per_Js"/>
         <variable name="k_CO2" public_interface="in" units="m6_per_Js"/>
@@ -1042,8 +1048,10 @@
         <variable name="t" public_interface="in" units="second"/>
         <variable name="C_O2_in" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_in" public_interface="in" units="dimensionless"/>
-        <variable initial_value="0.18" name="C_O2_out" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.35" name="C_CO2_out" public_interface="out" units="dimensionless"/>
+        <variable name="C_CO2_out_init" public_interface="in" units="dimensionless"/>
+        <variable name="C_O2_out_init" public_interface="in" units="dimensionless"/>
+        <variable initial_value="C_O2_out_init" name="C_O2_out" public_interface="out" units="dimensionless"/>
+        <variable initial_value="C_CO2_out_init" name="C_CO2_out" public_interface="out" units="dimensionless"/>
         <variable name="dot_C_CO2_out" public_interface="out" units="per_s"/>
         <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="v" public_interface="in" units="m3_per_s"/>
@@ -1400,13 +1408,17 @@
         <variable name="F_CO2_i" public_interface="in" units="dimensionless"/>
         <variable name="P_atm" public_interface="in" units="J_per_m3"/>
         <variable name="P_ws" public_interface="in" units="J_per_m3"/>
+        <variable name="F_O2_D_init" public_interface="in" units="dimensionless"/>
+        <variable name="F_O2_A_init" public_interface="in" units="dimensionless"/>
+        <variable name="F_CO2_D_init" public_interface="in" units="dimensionless"/>
+        <variable name="F_CO2_A_init" public_interface="in" units="dimensionless"/>
         <!-- This K causes a loss in mass? fix when turning into bond-graph-->
         <variable name="K_LOSSES" public_interface="in" units="dimensionless"/>
         <!-- volume fractions-->
-        <variable initial_value="0.21" name="F_O2_D" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.1" name="F_CO2_D" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.21" name="F_O2_A" public_interface="out" units="dimensionless"/>
-        <variable initial_value="0.1" name="F_CO2_A" public_interface="out" units="dimensionless"/>
+        <variable initial_value="F_O2_D_init" name="F_O2_D" public_interface="out" units="dimensionless"/>
+        <variable initial_value="F_CO2_D_init" name="F_CO2_D" public_interface="out" units="dimensionless"/>
+        <variable initial_value="F_O2_A_init" name="F_O2_A" public_interface="out" units="dimensionless"/>
+        <variable initial_value="F_CO2_A_init" name="F_CO2_A" public_interface="out" units="dimensionless"/>
         <!-- partial pressures, outputs to the pulmonary gas exchange model-->
         <variable name="P_O2_A" public_interface="out" units="J_per_m3"/>
         <variable name="P_CO2_A" public_interface="out" units="J_per_m3"/>
