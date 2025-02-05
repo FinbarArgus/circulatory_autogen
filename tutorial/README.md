@@ -1,6 +1,9 @@
 # Developer documentation for tutorial
 
-## Running tutorial in local machine
+## Before Submitting a Pull Request!!
+
+For developers adapting the tutorial in local machine,
+check that the tutorial formatting is correct by doing the following
 
 1. Install `Material for MkDocs` using:
 
@@ -18,4 +21,5 @@
     
     The server will automatically rebuild the site upon saving, so you can preview your changes as you write.
 
-Note: When you push the changes to the `tutorial` directory in the master branch, it will get automatically deployed to the website.
+
+Note: When the changes to the `tutorial` directory are merged into the master branch (after a pull request), it will get automatically deployed to the website.
