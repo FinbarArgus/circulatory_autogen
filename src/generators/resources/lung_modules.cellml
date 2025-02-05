@@ -68,6 +68,9 @@
         <variable name="q_t_us" public_interface="in" units="m3"/>
         <variable name="q_b_us" public_interface="in" units="m3"/>
         <variable name="q_A_us" public_interface="in" units="m3"/>
+        <!-- flags to turn control on and off-->
+        <variable name="flag_RR_control" public_interface="in" units="dimensionless"/>
+        <variable name="flag_P_mus_control" public_interface="in" units="dimensionless"/>
         <!-- TODO check this doesn't cause issues. -->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -83,7 +86,11 @@
                             <cn cellml:units="dimensionless">1</cn>
                             <ci>T_resp</ci>
                         </apply>
-                        <ci>Delta_RR_resp</ci>
+                        <apply>
+                            <times/>
+                            <ci>flag_RR_control</ci>
+                            <ci>Delta_RR_resp</ci>
+                        </apply>
                     </apply>
                 </apply>
             </apply>
@@ -387,7 +394,11 @@
                 <apply>
                     <plus/>
                     <ci>P_mus_min</ci>
-                    <ci>Delta_P_mus</ci>
+                    <apply>
+                        <times/>
+                        <ci>flag_P_mus_control</ci>
+                        <ci>Delta_P_mus</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
