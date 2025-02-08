@@ -1,6 +1,6 @@
 """
 Converts a CellML model to a module and generate files to run Circulatory Autogen.
-Inputs: CellML model and the output directory where parameters.csv and vessel_array.csv files are created
+Inputs: CellML model and the output directory where parameters.csv, vessel_array.csv and user_inputs.yaml files are created
 """
 import argparse
 import json
@@ -191,7 +191,6 @@ def _update_units_file(root):
     # Extract units from original model
     units_dict = {unit.get("name"): unit for unit in root.findall(f".//{{{cellml_namespace}}}units")}
 
-
     # Add units to user_units.cellml
     for name, unit in units_dict.items():
         if name not in user_units and name not in units:
@@ -255,9 +254,14 @@ def _generate_user_inputs_yaml(output_dir, file_prefix):
 def main():
     args = _parse_args()
     if not os.path.isfile(args.input_model):
+        print(f"Input file '{args.input_model}' not found.")
         sys.exit(1)
 
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+
     if not os.path.isdir(args.output_dir):
+        print(f"'{args.output_dir}' is not a valid directory")
         sys.exit(2)
 
     with open(args.input_model) as fh:
