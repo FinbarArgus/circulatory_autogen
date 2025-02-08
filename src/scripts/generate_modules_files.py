@@ -1,6 +1,7 @@
 """
-Converts a CellML model to a module and generate files to run Circulatory Autogen.
-Inputs: CellML model and the output directory where parameters.csv, vessel_array.csv and user_inputs.yaml files are created
+Converts a CellML model to Circulatory Autogen format and generate files to run Circulatory Autogen.
+Inputs: CellML model and the output directory where resources ('parameters.csv' and 'vessel_array.csv') and 'user_inputs.yaml' files are created.
+'module_config.json' and 'modules.cellml' files are generated at 'module_config_user' directory.
 """
 import argparse
 import json
@@ -247,7 +248,7 @@ def _generate_user_inputs_yaml(output_dir, file_prefix):
     config["input_param_file"] = f"{file_prefix}_parameters.csv"
 
     with open(file_path, "w") as file:
-        yaml.dump(config, file, default_flow_style=False, sort_keys=False)
+        yaml.dump(config, file, sort_keys=False)
 
     print(f"Generated user_inputs.yaml: {file_prefix}_user_inputs.yaml")
 
