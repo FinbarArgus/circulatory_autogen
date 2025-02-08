@@ -7,6 +7,7 @@ import json
 import os.path
 import sys
 import xml.etree.ElementTree as ET
+import yaml
 
 import libcellml as lc
 
@@ -14,9 +15,10 @@ import libcellml as lc
 cellml_namespace = "http://www.cellml.org/cellml/1.1#"
 mathml_namespace = "http://www.w3.org/1998/Math/MathML"
 
-# Define units file paths
+# Define file paths
 user_units_cellml = '../module_config_user/user_units.cellml'
 units_cellml = '../src/generators/resources/units.cellml'
+user_inputs_yaml = 'user_inputs.yaml'
 
 # Define file_prefix, vessel_name and data_reference for the model
 file_prefix = "NKE_pump"
@@ -97,25 +99,37 @@ def _generate_module_config(variables, constants, states, file_prefix, component
     with open(file_path, "w") as fh:
         json.dump(module_config, fh, indent=2)
 
+    print(f"Generated module_config.json file: {file_prefix}_module_config.json")
+
 # Generate vessel_array.csv file
 def _generate_vessel_array_csv(output_dir, vessel_name, file_prefix):
 
-    file_path = os.path.join(output_dir, f"{file_prefix}_vessel_array.csv")
+    resources_dir = os.path.join(output_dir, "resources")
+    os.makedirs(resources_dir, exist_ok=True)
+
+    file_path = os.path.join(resources_dir, f"{file_prefix}_vessel_array.csv")
 
     with open(file_path, "w") as fh:
         fh.writelines(["name,BC_type,vessel_type,inp_vessels,out_vessels\n"])
         fh.writelines([f"{vessel_name},nn,{file_prefix},,\n"])
 
+    print(f"Generated vessel_array.csv file: {file_prefix}_vessel_array.csv")
+
 # Generate parameters.csv file
 def _generate_parameters_csv(output_dir, constants, vessel_name, file_prefix, data_reference):
 
-    file_path = os.path.join(output_dir, f"{file_prefix}_parameters.csv")
+    resources_dir = os.path.join(output_dir, "resources")
+    os.makedirs(resources_dir, exist_ok=True)
+
+    file_path = os.path.join(resources_dir, f"{file_prefix}_parameters.csv")
 
     with open(file_path, "w") as fh:
         fh.writelines(["variable_name,units,value,data_reference\n"])
 
         for constant in constants:
             fh.writelines([f"{constant[0]}_{vessel_name},{constant[1]},{constant[3]},{data_reference}\n"])
+
+    print(f"Generated parameters.csv file: {file_prefix}_parameters.csv")
 
 # Generate CellML module
 def _generate_cellml_module(input_model, states, file_prefix):
@@ -159,6 +173,8 @@ def _generate_cellml_module(input_model, states, file_prefix):
     with open(file_path, "w", encoding="UTF-8") as f:
         f.write(cellml_str)
 
+    print(f"Generated cellml module: {file_prefix}_modules.cellml")
+
 # Move units to user_units.cellml
 def _update_units_file(root):
 
@@ -186,6 +202,8 @@ def _update_units_file(root):
         root.remove(unit)
 
     user_units_tree.write(user_units_cellml, xml_declaration=True, encoding="UTF-8")
+
+    print(f"Updated user_units.cellml")
 
 # Modify variable elements in cellml module
 def _modify_variables(root):
@@ -215,6 +233,24 @@ def _modify_state_variables(root, states):
             new_variable = ET.Element(f"{{{cellml_namespace}}}variable", name=var_name, units=units, public_interface="out", initial_value=new_name)
             
             root.find(f".//{{{cellml_namespace}}}component").append(new_variable)
+
+# Generate user_inputs.yaml
+def _generate_user_inputs_yaml(output_dir, file_prefix):
+    file_path = os.path.join(output_dir, f"{file_prefix}_user_inputs.yaml")
+
+    with open(user_inputs_yaml, "r") as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+
+    config["resources_dir"] = f"{output_dir}/resources"
+    config["generated_models_dir"] = f"{output_dir}/generated_models"
+
+    config["file_prefix"] = file_prefix
+    config["input_param_file"] = f"{file_prefix}_parameters.csv"
+
+    with open(file_path, "w") as file:
+        yaml.dump(config, file, default_flow_style=False, sort_keys=False)
+
+    print(f"Generated user_inputs.yaml: {file_prefix}_user_inputs.yaml")
 
 def main():
     args = _parse_args()
@@ -260,11 +296,13 @@ def main():
 
     _generate_module_config(variables, constants, states, file_prefix, component.name())
 
-    _generate_parameters_csv(args.output_dir, constants, vessel_name, file_prefix, data_reference)
-
     _generate_vessel_array_csv(args.output_dir, vessel_name, file_prefix)
 
+    _generate_parameters_csv(args.output_dir, constants, vessel_name, file_prefix, data_reference)
+
     _generate_cellml_module(args.input_model, states, file_prefix)
+
+    _generate_user_inputs_yaml(args.output_dir, file_prefix)
 
 if __name__ == "__main__":
     main()
