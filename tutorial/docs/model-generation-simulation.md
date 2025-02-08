@@ -32,7 +32,7 @@ Following are the steps for model autogeneration.
         - `3compartment_parameters.csv`
 
     !!! Note
-        You can refer the section [Creating a new model](create-model.md) for more details on creating vessel_array and parameters files.
+        You can refer the section [Designing a new model](design-model.md) for more details on creating vessel_array and parameters files.
 
 2. Go to the `[project_dir]/user_run_files` and open the `user_inputs.yaml` to edit. You can use *gedit*, *nano*, or your editor of choice (eg: *vim*) to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[model_name]_parameters.csv` as shown below.
 

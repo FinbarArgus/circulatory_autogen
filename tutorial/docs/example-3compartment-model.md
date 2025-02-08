@@ -19,7 +19,7 @@ In the `vessel_array` file, there are five columns: **name**, **BC_type**, **ves
 
 The **vessel_type** and **BC_type** must match a module with the same vessel_type and BC_type in the modules_config.json defined at `[project_dir]/src/generators/resources/`. 
 
-This file is the config file which defines the variables of a module and the connection ports that allows linking between modules, each module links to a cellml module. For more information, refer [Creating a new model](create-model.md) section.
+This file is the config file which defines the variables of a module and the connection ports that allows linking between modules, each module links to a cellml module. For more information, refer [Creating a new model](design-model.md#creating-a-new-model) section.
 
 **inp_vessels** and **out_vessels** are the inputs and outputs of each module, respectively. Some modules have multiple inputs and outputs, like split_type vessels that split from one to two vessels.
 

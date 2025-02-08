@@ -14,6 +14,6 @@ nav:
   - Welcome to Circulatory Autogen: index.md
   - Getting Started: getting-started.md
   - Model Generation and Simulation: model-generation-simulation.md
-  - Creating a new model: create-model.md
+  - Designing a model: design-model.md
   - Parameter Identification: parameter-identification.md
   - "Example: 3Compartment Model": example-3compartment-model.md
