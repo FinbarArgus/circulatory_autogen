@@ -72,7 +72,7 @@ def _generate_module_config(variables, constants, states, file_prefix, component
         "BC_type": "nn",
         "module_format": "cellml",
         "module_file": f"{file_prefix}_modules.cellml",
-        "module_type": component_name,
+        "module_type": f"{file_prefix}_{component_name}_type",
         "entrance_ports": [],
         "exit_ports": [],
         "variables_and_units": []
@@ -149,6 +149,9 @@ def _generate_cellml_module(input_model, states, file_prefix):
     # Move units to user_units.cellml
     _update_units_file(root)
 
+    # Modify component name
+    _modify_component_name(root)
+
     # Modify variable elements
     _modify_variables(root)
 
@@ -204,6 +207,12 @@ def _update_units_file(root):
     user_units_tree.write(user_units_cellml, xml_declaration=True, encoding="UTF-8")
 
     print(f"Updated user_units.cellml")
+
+# Modify component name
+def _modify_component_name(root):
+    for component in root.findall(f".//{{{cellml_namespace}}}component"):
+        new_name = f"{file_prefix}_{component.attrib["name"]}_type"
+        component.set("name", new_name)
 
 # Modify variable elements in cellml module
 def _modify_variables(root):
