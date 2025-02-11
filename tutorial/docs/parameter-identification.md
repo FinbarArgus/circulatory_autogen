@@ -42,17 +42,16 @@ Examples of `obs_data.json` file are shown in below figures for constant, series
 
 The entries in the `obs_data.json` file are:
 
-- **variable**: `[vessel_name]/[variable_name]`, where variable name is the variable name in the cellml module and `module_config.json` file.
+- **variable**: This is the user defined observable name, it does not need to link to the cellml variable name.
 - **data_type**: The format of the data. This can be *"constant"*, *"series"*, or *"frequency"* as shown above.
-- **unit**: The unit which should be the same as the unit in the variable in the model.
+- **unit**: The unit of the observable.
 - **name_for_plotting**: The name that will be in the automated plots comparing observable data to model output. (latex format)
 - **weight**: The weighting to put on this observables entry in the cost function. Default should be 1.0
 - **std**: The standard deviation which is used in the cost function. The cost function is the relative absolute error (AE) or mean squared error (MRE), each normalised by the std.
-- **obs_type**: The operation that will be done on the model output series before it being applied to calculate the cost function, (min, max, mean, etc). 
 - **value**: The value of the ground truth, either a scalar for constant data_type, or a list of values for series or frequency data_types.
 - **sample_rate**: not needed or set to "null" for constant and frequency data_types. It defines the sample rate of the observable series values.
-- **operation**: This will make *obs_type* obsolete. This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[project_dir]/src/param_id/operation_funcs.py` and in `[project_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
-- **operands**: The above defined "operation" can take in multiple variables. If operands is defined, then the "variable" entry will be a placeholder name for the calculated variable and the operands will define the model variables that are used to calculate the final variable that will be compared to the observable value entry/s.
+- **operation**: This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[project_dir]/src/param_id/operation_funcs.py` and in `[project_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
+- **operands**: The above defined "operation" can take in multiple variables. If operands is defined, then the "variable" entry will be a placeholder name for the calculated variable and the operands will define the model variables that are used to calculate the final feature that will be compared to the observable value entry/s.
 
 !!! warning
     **obs_type**: This has been deprecated in favor of the **operation** entry.
@@ -62,8 +61,8 @@ The entries in the `obs_data.json` file are:
 
 To run the parameter identification we need to set a few entries in the `[project_dir]/user_run_files/user_inputs.yaml file`:
 
-- **param_id_method**: this defins the optimisation method we use. Currently this can only be genetic_algorithm, but more methods are being implemented. Eventually we aim to use CVODES to allow for gradient based optimisation methods.
-- **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`
+- **param_id_method**: this defines the optimisation method we use. Currently this can only be genetic_algorithm, but more methods are being implemented. Eventually we aim to use CVODES to allow for gradient based optimisation methods.
+- **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`. IMPORTANT: THis is overwritten by the pre_times within the obs_data.json file, see the next section.
 - **sim_time**: The amount of time used to compare simulation output and observable data. This should be equal to the length of a series observable entry divided by the "sample_rate". If not, only up to the minimum length of observable data and modelled data will be compared. 
 - **maximum_step**: The maximum time step for the CVODE solver
 - **dt**: The output time step (This hasn't been tested well for anything but 0.01 s currently)

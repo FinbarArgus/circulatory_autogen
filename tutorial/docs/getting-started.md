@@ -62,22 +62,18 @@ Also, OpenCOR files directory is needed for opening the project and installing p
 
 To run openCOR, you need to use the Python version with openCOR. 
 
-To install required python packages, navigate to `[OpenCOR_dir]/python/bin` directory and run the below command.
+To install required python packages, navigate to `[OpenCOR_dir]` directory and run the below command.
 
 ```
-./python -m pip install <packagename>
+./pip install <packagename>
 ```
-
-!!! tip
-    In versions of **OpenCOR: 0.8** and onwards you can navigate to `[OpenCOR_dir]` and run the below command.
-
-        pip install <packagename>
-
-    This is more robust and doesn't have SSL errors as below.
 
 !!! note
     **Required packages for autogeneration**:
-    pandas pyyaml libcellml rdflib
+    pandas pyyaml rdflib
+
+    **Recommended but nor required packages for autogeneration (allows for better error checking)**:
+    libcellml
 
     **Required packages for parameter identification**:
     mpi4py sympy
@@ -87,14 +83,6 @@ To install required python packages, navigate to `[OpenCOR_dir]/python/bin` dire
 
     **Required for some utilities**:
     ruamel.yaml
-
-!!! warning
-    if you get an SSL error you must do the following before the pip install:
-
-        cd [OpenCOR_dir]/python/bin
-        export LD_LIBRARY_PATH=[OpenCOR_dir]/lib
-
-    This would let the system know where to look for libcrypto.so.3 when loading the ssl module.
 
 !!! warning
     Intalling **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
@@ -109,6 +97,23 @@ To install required python packages, navigate to `[OpenCOR_dir]/python/bin` dire
         ```
         brew install openmpi
         ```
+
+!!! warning 
+    In versions of **OpenCOR < 0.8** you needed to nagivate to the `[OpenCOR_dir]/python/bin` directory and run the below command instead.
+
+    ```
+    ./python -m pip install <packagename>
+    ```
+
+!!! warning
+    if you get an SSL error you must do the following before the pip install:
+
+        cd [OpenCOR_dir]/python/bin
+        export LD_LIBRARY_PATH=[OpenCOR_dir]/lib
+
+    This would let the system know where to look for libcrypto.so.3 when loading the ssl module.
+    This should only be a problem in **OpenCOR < 0.8**
+
 
 ## Running on Windows
 
