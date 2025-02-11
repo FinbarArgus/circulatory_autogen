@@ -1399,9 +1399,9 @@ endsel;-->
         <variable name="t" public_interface="in" units="second"/>
         <!-- constants and algebraic variables-->
         <variable name="t_excited" public_interface="in" units="second"/>
-        <variable name="t_activation" public_interface="out" units="second"/>
         <variable name="f_min" public_interface="in" units="per_s"/>
         <variable name="f_Ca" public_interface="in" units="per_s"/>
+        <variable name="I_mean" public_interface="out" units="dimensionless"/>
         <variable name="R_I" public_interface="in" units="dimensionless"/>
         <variable name="n_Ca" public_interface="in" units="dimensionless"/>
         <variable name="lambda_Ca" public_interface="in" units="dimensionless"/>
@@ -1540,6 +1540,73 @@ endsel;-->
                     <ci>s</ci>
                 </apply>
                 <ci>f_s</ci>
+            </apply>
+            <!-- calculations for f variables-->
+            <apply>
+                <eq/>
+                <ci>I_mean</ci>
+                <apply>
+                    <plus/>
+                    <ci>a_2</ci>
+                    <apply>
+                        <root/>
+                        <apply>
+                            <divide/>
+                            <ci>b_1</ci>
+                            <ci>a_1</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>k1_Ca</ci>
+                <apply>
+                    <divide/>
+                    <ci>I_mean</ci>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>f_min</ci>
+                        </apply>
+                        <ci>t_excited</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>k2_Ca</ci>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <divide/>
+                        <ci>I_mean</ci>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <divide/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>f_Ca</ci>
+                            </apply>
+                            <ci>t_excited</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <divide/>
+                        <ci>I_mean</ci>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <divide/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>f_min</ci>
+                            </apply>
+                            <ci>t_excited</ci>
+                        </apply>
+                    </apply>
+                </apply>
             </apply>
             <apply>
                 <eq/>
