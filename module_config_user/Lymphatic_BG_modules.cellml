@@ -978,7 +978,7 @@ endsel;-->
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="l" public_interface="in" units="metre"/>
-        <variable name="r" public_interface="in" units="metre"/>
+        <variable name="r" public_interface="out" units="metre"/>
         <variable name="r_us" public_interface="in" units="metre"/>
         <variable name="I" public_interface="out" units="Js2_per_m6"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
@@ -1129,6 +1129,23 @@ endsel;-->
                     <ci>q_us</ci>
                 </apply>
             </apply>
+            <!-- calculated radius-->
+            <apply>
+                <eq/>
+                <ci>r</ci>
+                <apply>
+                    <root/>
+                    <apply>
+                        <divide/>
+                        <ci>q_total</ci>
+                        <apply>
+                            <times/>
+                            <pi/>
+                            <ci>l</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
             <!-- Nonlinear tube law.-->
             <apply>
                 <eq/>
@@ -1174,7 +1191,7 @@ endsel;-->
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="l" public_interface="in" units="metre"/>
-        <variable name="r" public_interface="in" units="metre"/>
+        <variable name="r" public_interface="out" units="metre"/>
         <variable name="r_us" public_interface="in" units="metre"/>
         <variable name="I" public_interface="out" units="Js2_per_m6"/>
         <variable name="R" public_interface="out" units="Js_per_m6"/>
@@ -1325,6 +1342,23 @@ endsel;-->
                     <ci>q_us</ci>
                 </apply>
             </apply>
+            <!-- calculated radius-->
+            <apply>
+                <eq/>
+                <ci>r</ci>
+                <apply>
+                    <root/>
+                    <apply>
+                        <divide/>
+                        <ci>q_total</ci>
+                        <apply>
+                            <times/>
+                            <pi/>
+                            <ci>l</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
             <!-- Nonlinear tube law.-->
             <apply>
                 <eq/>
@@ -1361,6 +1395,338 @@ endsel;-->
             </apply>
         </math>
     </component>
+    <component name="K_mod_fitz_hugh_nagumo">
+        <variable name="t" public_interface="in" units="second"/>
+        <!-- constants and algebraic variables-->
+        <variable name="t_excited" public_interface="in" units="second"/>
+        <variable name="t_activation" public_interface="out" units="second"/>
+        <variable name="f_min" public_interface="in" units="per_s"/>
+        <variable name="f_Ca" public_interface="in" units="per_s"/>
+        <variable name="R_I" public_interface="in" units="dimensionless"/>
+        <variable name="n_Ca" public_interface="in" units="dimensionless"/>
+        <variable name="lambda_Ca" public_interface="in" units="dimensionless"/>
+        <variable name="k1_Ca" public_interface="out" units="per_s"/>
+        <variable name="k2_Ca" public_interface="out" units="per_s"/>
+        <variable name="k_rel" public_interface="in" units="per_s"/>
+        <variable name="a_1" public_interface="in" units="per_s"/>
+        <variable name="a_2" public_interface="in" units="dimensionless"/>
+        <variable name="a_3" public_interface="in" units="dimensionless"/>
+        <variable name="b_1" public_interface="in" units="per_s"/>
+        <variable name="b_2" public_interface="in" units="per_s"/>
+        <variable name="c_1" public_interface="in" units="per_s"/>
+        <variable name="c_2" public_interface="in" units="per_s"/>
+        <variable name="k_NO" public_interface="in" units="dimensionless"/>
+        <variable name="tau_NO" public_interface="in" units="pascal"/>
+        <variable name="n_NO" public_interface="in" units="dimensionless"/>
+        <variable name="f_I" public_interface="out" units="per_s"/>
+        <variable name="f_NO" public_interface="out" units="per_s"/>
+        <variable name="f_s" public_interface="out" units="per_s"/>
+        <variable name="mu" public_interface="in" units="Js_per_m3"/>
+        <!-- variables from vessel model-->
+        <variable name="flow" public_interface="in" units="m3_per_s"/>
+        <variable name="r" public_interface="in" units="metre"/>
+        <variable name="r_us" public_interface="in" units="metre"/>
+        <!-- derived variables from vessel model;-->
+        <variable name="tau" public_interface="out" units="pascal"/>
+        <variable name="lambda_theta" public_interface="out" units="dimensionless"/>
+        <!-- vessel stiffness variables-->
+        <variable name="K_min" public_interface="in" units="pascal"/>
+        <variable name="K_max" public_interface="in" units="pascal"/>
+        <variable name="K" public_interface="out" units="pascal"/>
+        <!-- state variables-->
+        <variable initial_value="v_init" name="v" public_interface="out" units="dimensionless"/>
+        <variable initial_value="w_init" name="w" public_interface="out" units="dimensionless"/>
+        <variable initial_value="I_init" name="I" public_interface="out" units="dimensionless"/>
+        <variable initial_value="s_init" name="s" public_interface="out" units="dimensionless"/>
+        <variable name="v_init" public_interface="in" units="dimensionless"/>
+        <variable name="w_init" public_interface="in" units="dimensionless"/>
+        <variable name="I_init" public_interface="in" units="dimensionless"/>
+        <variable name="s_init" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>v</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <ci>a_1</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <times/>
+                                <ci>v</ci>
+                                <apply>
+                                    <minus/>
+                                    <ci>v</ci>
+                                    <ci>a_2</ci>
+                                </apply>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <times/>
+                                        <ci>a_3</ci>
+                                        <ci>v</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <ci>w</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>v</ci>
+                            <ci>I</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>w</ci>
+                </apply>
+                <apply>
+                    <minus/>
+                    <apply>
+                        <times/>
+                        <ci>b_1</ci>
+                        <ci>v</ci>
+                        <apply>
+                            <power/>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>v</ci>
+                            </apply>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>b_2</ci>
+                        <ci>w</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>I</ci>
+                </apply>
+                <ci>f_I</ci>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>s</ci>
+                </apply>
+                <ci>f_s</ci>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>f_I</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <plus/>
+                                <ci>k1_Ca</ci>
+                                <apply>
+                                    <times/>
+                                    <ci>k2_Ca</ci>
+                                    <apply>
+                                        <power/>
+                                        <apply>
+                                            <divide/>
+                                            <ci>lambda_theta</ci>
+                                            <ci>lambda_Ca</ci>
+                                        </apply>
+                                        <ci>n_Ca</ci>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <ci>f_NO</ci>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <apply>
+                                <root/>
+                                <apply>
+                                    <plus/>
+                                    <apply>
+                                        <power/>
+                                        <ci>v</ci>
+                                        <cn cellml:units="dimensionless">2</cn>
+                                    </apply>
+                                    <apply>
+                                        <power/>
+                                        <ci>w</ci>
+                                        <cn cellml:units="dimensionless">2</cn>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <ci>R_I</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <ci>I</ci>
+                            </apply>
+                            <ci>k_rel</ci>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>f_NO</ci>
+                <apply>
+                    <minus/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <times/>
+                        <ci>k_NO</ci>
+                        <apply>
+                            <minus/>
+                            <apply>
+                                <divide/>
+                                <cn cellml:units="dimensionless">2</cn>
+                                <apply>
+                                    <plus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <minus/>
+                                            <apply>
+                                                <power/>
+                                                <apply>
+                                                    <abs/>
+                                                    <apply>
+                                                        <divide/>
+                                                        <ci>tau</ci>
+                                                        <ci>tau_NO</ci>
+                                                    </apply>
+                                                </apply>
+                                                <ci>n_NO</ci>
+                                            </apply>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <cn cellml:units="dimensionless">1</cn>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>f_s</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>c_1</ci>
+                            <ci>v</ci>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1</cn>
+                                <ci>s</ci>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <gt/>
+                            <ci>v</ci>
+                            <cn cellml:units="dimensionless">0</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <ci>c_2</ci>
+                            </apply>
+                            <ci>s</ci>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>lambda_theta</ci>
+                <apply>
+                    <divide/>
+                    <ci>r</ci>
+                    <ci>r_us</ci>
+                </apply>
+            </apply>
+            <!-- equation for shear stress derived-->
+            <apply>
+                <eq/>
+                <ci>tau</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="dimensionless">4</cn>
+                        <ci>mu</ci>
+                        <ci>flow</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r</ci>
+                            <cn cellml:units="dimensionless">3</cn>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!-- K modification part-->
+            <apply>
+                <eq/>
+                <ci>K</ci>
+                <apply>
+                    <plus/>
+                    <ci>K_min</ci>
+                    <apply>
+                        <times/>
+                        <ci>s</ci>
+                        <apply>
+                            <minus/>
+                            <ci>K_max</ci>
+                            <ci>K_min</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
     <component name="vv_nonlinear_lymphatic_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
@@ -1370,7 +1736,7 @@ endsel;-->
         <variable name="beta_g" public_interface="in" units="dimensionless"/>
         <variable name="theta" public_interface="in" units="dimensionless"/>
         <variable name="l" public_interface="in" units="metre"/>
-        <variable name="r" public_interface="in" units="metre"/>
+        <variable name="r" public_interface="out" units="metre"/>
         <variable name="r_us" public_interface="in" units="metre"/>
         <variable name="I" public_interface="out" units="Js2_per_m6"/>
         <variable name="m_tube" public_interface="in" units="dimensionless"/>
@@ -1568,6 +1934,23 @@ endsel;-->
                     <plus/>
                     <ci>q_half_total</ci>
                     <ci>q_half_total_d</ci>
+                </apply>
+            </apply>
+            <!-- calculated radius-->
+            <apply>
+                <eq/>
+                <ci>r</ci>
+                <apply>
+                    <root/>
+                    <apply>
+                        <divide/>
+                        <ci>q_total</ci>
+                        <apply>
+                            <times/>
+                            <pi/>
+                            <ci>l</ci>
+                        </apply>
+                    </apply>
                 </apply>
             </apply>
             <!-- u_C_d         = q_C_d/(C/2{dimensionless})+u_ext;
