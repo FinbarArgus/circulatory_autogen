@@ -474,7 +474,7 @@
                 </apply>
             </apply>
             <!-- T_ac_norm = T_ac/T;
- T_ar_norm = T_vc/T;-->
+ T_ar_norm = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -1338,14 +1338,14 @@
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
-        <variable name="T_ac_norm" public_interface="out" units="dimensionless"/>
-        <variable name="T_ar_norm" public_interface="out" units="dimensionless"/>
+        <!-- var T_ac_norm: dimensionless {pub: out};
+ var T_ar_norm: dimensionless {pub: out};-->
         <variable name="t_astart" public_interface="in" units="second"/>
         <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
-        <variable name="T_vc_norm" units="dimensionless"/>
-        <variable name="T_vr_norm" units="dimensionless"/>
+        <!-- var T_vc_norm: dimensionless;
+ var T_vr_norm: dimensionless;-->
         <variable name="t_vstart" public_interface="in" units="second"/>
         <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
@@ -1725,24 +1725,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_ac_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_ac</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_ar_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_ac_norm     = T_ac/T;
+ T_ar_norm     = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -1752,24 +1736,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_vc_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_vr_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vr</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_vc_norm     = T_vc/T;
+ T_vr_norm     = T_vr/T;-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
@@ -2598,14 +2566,14 @@
         <!-- ______ (PETER) Delete from here __________-->
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
-        <variable name="T_ac_norm" public_interface="out" units="dimensionless"/>
-        <variable name="T_ar_norm" public_interface="out" units="dimensionless"/>
+        <!-- var T_ac_norm: dimensionless {pub: out};
+ var T_ar_norm: dimensionless {pub: out};-->
         <variable name="t_astart" public_interface="in" units="second"/>
         <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
-        <variable name="T_vc_norm" public_interface="out" units="dimensionless"/>
-        <variable name="T_vr_norm" public_interface="out" units="dimensionless"/>
+        <!-- var T_vc_norm: dimensionless {pub: out};
+ var T_vr_norm: dimensionless {pub: out};-->
         <variable name="t_vstart" public_interface="in" units="second"/>
         <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <!-- _____ (PETER) TO here ______________-->
@@ -2987,24 +2955,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_ac_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_ac</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_ar_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_ac_norm     = T_ac/T;
+ T_ar_norm     = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -3014,24 +2966,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_vc_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_vr_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vr</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_vc_norm     = T_vc/T;
+ T_vr_norm     = T_vr/T;-->
             <!-- ____________ (PETER) TO HERE ______________-->
             <!-- ____________ (PETER) These are the normalised elastance functions that need to be changed to be dependent of Ca
  When e_v equals 1 elastance equals E_lv_B (min elastance), when e_v equals 1,  elastance equals E_lv_B+E_lv_A (max elastance).-->
@@ -3863,14 +3799,14 @@
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
-        <variable name="T_ac_norm" public_interface="out" units="dimensionless"/>
-        <variable name="T_ar_norm" public_interface="out" units="dimensionless"/>
+        <!-- var T_ac_norm: dimensionless {pub: out};
+ var T_ar_norm: dimensionless {pub: out};-->
         <variable name="t_astart" public_interface="in" units="second"/>
         <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
-        <variable name="T_vc_norm" public_interface="out" units="dimensionless"/>
-        <variable name="T_vr_norm" public_interface="out" units="dimensionless"/>
+        <!-- var T_vc_norm: dimensionless {pub: out};
+ var T_vr_norm: dimensionless {pub: out};-->
         <variable name="t_vstart" public_interface="in" units="second"/>
         <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
@@ -4250,24 +4186,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_ac_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_ac</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_ar_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_ac_norm     = T_ac/T;
+ T_ar_norm     = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -4277,24 +4197,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_vc_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_vr_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vr</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_vc_norm     = T_vc/T;
+ T_vr_norm     = T_vr/T;-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
@@ -5156,14 +5060,14 @@
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
-        <variable name="T_ac_norm" units="dimensionless"/>
-        <variable name="T_ar_norm" units="dimensionless"/>
+        <!-- var T_ac_norm: dimensionless;
+ var T_ar_norm: dimensionless;-->
         <variable name="t_astart" public_interface="in" units="second"/>
         <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
-        <variable name="T_vc_norm" units="dimensionless"/>
-        <variable name="T_vr_norm" units="dimensionless"/>
+        <!-- var T_vc_norm: dimensionless;
+ var T_vr_norm: dimensionless;-->
         <variable name="t_vstart" public_interface="in" units="second"/>
         <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
@@ -5544,24 +5448,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_ac_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_ac</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_ar_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_ac_norm     = T_ac/T;
+ T_ar_norm     = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -5571,24 +5459,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_vc_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_vr_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vr</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_vc_norm     = T_vc/T;
+ T_vr_norm     = T_vr/T;-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
@@ -6515,14 +6387,14 @@
         <variable name="T" public_interface="in" units="second"/>
         <variable name="T_ac" public_interface="in" units="second"/>
         <variable name="T_ar" public_interface="in" units="second"/>
-        <variable name="T_ac_norm" units="dimensionless"/>
-        <variable name="T_ar_norm" units="dimensionless"/>
+        <!-- var T_ac_norm: dimensionless;
+ var T_ar_norm: dimensionless;-->
         <variable name="t_astart" public_interface="in" units="second"/>
         <variable name="t_astart_norm" public_interface="out" units="dimensionless"/>
         <variable name="T_vc" public_interface="in" units="second"/>
         <variable name="T_vr" public_interface="in" units="second"/>
-        <variable name="T_vc_norm" units="dimensionless"/>
-        <variable name="T_vr_norm" units="dimensionless"/>
+        <!-- var T_vc_norm: dimensionless;
+ var T_vr_norm: dimensionless;-->
         <variable name="t_vstart" public_interface="in" units="second"/>
         <variable name="t_vstart_norm" public_interface="out" units="dimensionless"/>
         <variable name="E_lv_A" public_interface="in" units="J_per_m6"/>
@@ -6900,24 +6772,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_ac_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_ac</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_ar_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_ac_norm     = T_ac/T;
+ T_ar_norm     = T_ar/T;-->
             <apply>
                 <eq/>
                 <ci>t_vstart_norm</ci>
@@ -6927,24 +6783,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>T_vc_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vc</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>T_vr_norm</ci>
-                <apply>
-                    <divide/>
-                    <ci>T_vr</ci>
-                    <ci>T</ci>
-                </apply>
-            </apply>
+            <!-- T_vc_norm     = T_vc/T;
+ T_vr_norm     = T_vr/T;-->
             <apply>
                 <eq/>
                 <ci>e_a</ci>
