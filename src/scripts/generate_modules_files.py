@@ -25,6 +25,8 @@ user_inputs_yaml = 'user_inputs.yaml'
 file_prefix = "NKE_pump"
 vessel_name = "NKE_system"
 data_reference = "user_defined"
+time_variable = "t"
+component_name = "main"
 
 # Parse arguments
 def _parse_args():
@@ -40,7 +42,7 @@ def _print_errors(l):
         print(f"{i + 1}: {l.error(i).description()}")
 
 # Extract variables, constants and state variables from the model
-def _extract_variables_constants_states(analysed_model):
+def _extract_variables_constants_states_from_model(analysed_model):
     variables = []
     constants = []
     states = []
@@ -52,16 +54,32 @@ def _extract_variables_constants_states(analysed_model):
         type_as_string = analysed_model_variable.typeAsString(analysed_model_variable.type())
 
         if type_as_string == "algebraic":
-            variables.append([variable.name(), variable.units().name(), "variable"])
+            variables.append(variable.name())
         elif type_as_string == "constant":
-            constants.append([variable.name(), variable.units().name(), "constant", variable.initialValue()])
+            constants.append(variable.name())
 
     # Get state variables and set initial values
     for i in range(analysed_model.stateCount()):
         analysed_model_state = analysed_model.state(i)
         state = analysed_model_state.variable()
-        constants.append([f"{state.name()}_init", state.units().name(), "constant", state.initialValue()])
-        states.append([state.name(), state.units().name(), "variable"])
+        states.append([state.name(), state.units().name()])
+
+    return variables, constants, states
+
+# Extract variables, constants and state variables of the component
+def _extract_variables_constants_states_of_component(component, model_variables, model_constants, model_states):
+    variables = []
+    constants = []
+    states = []
+
+    for i in range(component.variableCount()):
+        if component.variable(i).name() in model_variables:
+            variables.append([component.variable(i).name(), component.variable(i).units().name(), "variable"])
+        elif component.variable(i).name() in model_constants:
+            constants.append([component.variable(i).name(), component.variable(i).units().name(), "constant", component.variable(i).initialValue()])
+        elif component.variable(i).name() in {row[0] for row in model_states}:
+            constants.append([f"{component.variable(i).name()}_init", component.variable(i).units().name(), "constant", component.variable(i).initialValue()])
+            states.append([component.variable(i).name(), component.variable(i).units().name(), "variable"])   
 
     return variables, constants, states
 
@@ -231,7 +249,7 @@ def _modify_variables(root):
 def _modify_state_variables(root, states):
     for state in states:
         var_name = state[0]
-        units = state[1]
+        unit = state[1]
         
         variable = root.find(f".//{{{cellml_namespace}}}variable[@name='{var_name}']")
         
@@ -239,7 +257,7 @@ def _modify_state_variables(root, states):
             new_name = f"{var_name}_init"
             variable.set("name", new_name)
             
-            new_variable = ET.Element(f"{{{cellml_namespace}}}variable", name=var_name, units=units, public_interface="out", initial_value=new_name)
+            new_variable = ET.Element(f"{{{cellml_namespace}}}variable", name=var_name, units=unit, public_interface="out", initial_value=new_name)
             
             root.find(f".//{{{cellml_namespace}}}component").append(new_variable)
 
@@ -282,11 +300,19 @@ def main():
     model = parser.parseModel(content)
 
     # Get component
-    component = model.component(0)
+    component = model.component(component_name)
 
-    # Remove initial value of variable t
-    variable_t = component.variable("t")
-    variable_t.removeInitialValue()
+    if component == None:
+        print(f"Component '{component_name}' not found.")
+        sys.exit(1)
+
+    # Remove initial value of variable time
+    variable_t = component.variable(time_variable)
+
+    if variable_t == None:
+        print("WARNING: Configure the name of time variable in the component correctly here. If there is no time variable for the provided component, you can ignore this message.")
+    else:
+        variable_t.removeInitialValue()
 
     # Validate model
     validator = lc.Validator()
@@ -306,15 +332,17 @@ def main():
 
     analysed_model = analyser.model()
 
-    variables, constants, states = _extract_variables_constants_states(analysed_model)
+    model_variables, model_constants, model_states = _extract_variables_constants_states_from_model(analysed_model)
 
-    _generate_module_config(variables, constants, states, file_prefix, component.name())
+    variables, constants, states = _extract_variables_constants_states_of_component(component, model_variables, model_constants, model_states)
+
+    _generate_module_config(variables, constants, states, file_prefix, component_name)
 
     _generate_vessel_array_csv(args.output_dir, vessel_name, file_prefix)
 
     _generate_parameters_csv(args.output_dir, constants, vessel_name, file_prefix, data_reference)
 
-    _generate_cellml_module(args.input_model, states, file_prefix)
+    _generate_cellml_module(args.input_model, model_states, file_prefix)
 
     _generate_user_inputs_yaml(args.output_dir, file_prefix)
 
