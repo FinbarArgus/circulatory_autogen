@@ -22,6 +22,7 @@ units_cellml = '../src/generators/resources/units.cellml'
 user_inputs_yaml = 'user_inputs.yaml'
 
 # Define file_prefix, vessel_name and data_reference for the model
+# Specify the time variable and component for which you want to generate files
 file_prefix = "NKE_pump"
 vessel_name = "NKE_system"
 data_reference = "user_defined"
