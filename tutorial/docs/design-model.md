@@ -145,3 +145,9 @@ You only need to update the `user_inputs.yaml` file at the `user_run_files` dire
 
 !!! Note
     You can update the **file_prefix**, **vessel_name** and the **data_reference** variables in the `generate_modules_files.py` at the `src/scripts` directory before running the script, so it will generate files with the defined variables.
+
+!!! Warning
+    You need to specify the variable name of time as the **time_variable**.
+    
+    Variable **component_name** should be the name of the component for which you want to generate files.
+    
