@@ -2556,6 +2556,7 @@
         </math>
     </component>
     <component name="heart_Ca_input">
+        <!-- Warning this module should not be used if you are varying period, without also varying the T_ar, T_ac, T_vr, T_vc-->
         <variable name="t" public_interface="in" units="second"/>
         <variable initial_value="0.0" name="s" public_interface="out" units="dimensionless"/>
         <!-- Constitutive parameters-->
