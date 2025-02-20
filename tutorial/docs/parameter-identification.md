@@ -85,10 +85,11 @@ Following a successful parameter id process, the model with updated parameters c
 ./run_autogeneration_with_id_params.sh
 ```
 
-Plots can be run with:
+!!! Note
+    IMPORTANT: After running the calibration, you should plot the simulation outputs vs the ground truth to analyse the fits!! This can be done with:
 
-```
-./plot_param_id.sh
-```
+    ```
+      ./plot_param_id.sh
+    ```
 
-The generated models will be saved in `generated_models/` directory and plots will be saved in `param_id_outputs/` directory.
+    The generated models will be saved in `generated_models/` directory and plots will be saved in `param_id_outputs/` directory.
