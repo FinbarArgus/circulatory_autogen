@@ -104,7 +104,7 @@ The entries in the `module_config.json` file are detailed as follows:
 - **module_format**: Currently only cellml is supported but in the future, cpp modules and others will be allowed.
 - **module_file**: The file within `[project_dir]/src/generators/resources/` that contains the cellml module that this config entry links to.
 - **module_type**: The name of the module/computational_environment within the module cellml file.
-- **entrance_ports**: Specification of the port types that this module can take if it is connected as an "out_vessel" to another module.
+- **entrance_ports**: Specification of the port types that this module can take if it is connected as an "out_vessel" to another module. If a port_type matches to the port_type of a exit_port in a module coupled as an input, then the port_types variables, e.g. [v_in, u] get mapped to the variables in the coupled modules exit port e.g. [v, u_out].
 - **exit_ports**: Specification of the port types that this module can take if it is connected as an "inp_vessel" to another module.
 - **port_types**: The name of the type of port. If two vessels are connected vessel_a to vessel_b, and vessel_a has an exit_port with the same port_type as an entrance_port of vessel_b, then a connection will be made. 
 - **variables**: These are the variables within the module that will be connected to the variables in the corresponding port of the connected vessel/module.
@@ -112,7 +112,8 @@ The entries in the `module_config.json` file are detailed as follows:
     - [0] **variable name**: corresponding to the name in the cellml file
     - [1] **variable unit**: corresponsing to the unit specification in `units.cellml`
     - [2] **access or no_access**: whether the variable can be accessed within the cellml simulation. This should always be "access" for accessibility, unless you want to decrease memory usage.
-    - [3] **parameter type**: can be constant, global_constant, or variable.
+    - [3] **parameter type**: can be constant, global_constant, variable, or boundary_condition.
+      - If parameter_type is boundary_condition 
 
     !!! Note
         All constants are required to be entered in the `[resources_dir]/[file_prefix]_parameters.csv` file with the following naming convention: **[variable_name]_[vessel_name]**.
