@@ -9167,11 +9167,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <ci>v_in</ci>
@@ -9213,11 +9210,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <ci>v</ci>
@@ -10964,11 +10958,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <ci>v_in</ci>
@@ -11010,11 +11001,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <apply>
@@ -12567,11 +12555,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <apply>
@@ -12617,11 +12602,8 @@ u_out = 0{J_per_m3};-->
                     </apply>
                     <apply>
                         <times/>
-                        <apply>
-                            <divide/>
-                            <ci>K_tube_visco</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
+                        <ci>K_tube_visco</ci>
+                        <cn cellml:units="dimensionless">2</cn>
                         <apply>
                             <minus/>
                             <ci>v</ci>

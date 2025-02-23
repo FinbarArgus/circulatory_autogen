@@ -58,9 +58,16 @@ To run openCOR, you need to use the Python version that is shipped with openCOR.
 
 To install required python packages, navigate to `[OpenCOR_dir]` directory and run the below command.
 
-```
-./pip install <packagename>
-```
+!!! Note
+    === "Linux and Mac"
+        ```
+        ./pip install <packagename>
+        ```
+    === "Windows"
+        ```
+        ./pip.bat install <packagename>
+        
+        ```
 
 !!! note
     **Required packages for autogeneration**:
@@ -90,7 +97,9 @@ Open `[CA_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `
 
     === "Windows"
         ```
-        opencor_pythonshell_path=`<OpenCOR_dir>/pythonshell.bat`.
+        opencor_pythonshell_path=`C:\<OpenCOR_dir>\pythonshell.bat`.
+        
+        Note that the windows path conventions need to be used with C: and "\ rather than "/".
         ```
 
 !!! warning

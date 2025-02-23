@@ -7,7 +7,6 @@ Created on 29/10/2021
 import sys
 import os
 from mpi4py import MPI
-from distutils import util, dir_util
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
 from param_id.paramID import CVS0DParamID
