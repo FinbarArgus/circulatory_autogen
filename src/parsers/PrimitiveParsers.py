@@ -11,6 +11,12 @@ import sys
 import csv
 import json
 import copy
+import yaml
+import re
+
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
+user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 param_id_dir = os.path.join(src_dir, 'param_id')
 base_dir = os.path.join(src_dir, '..')
@@ -57,7 +63,116 @@ class scriptFunctionParser(object):
             cost_funcs_dict[func] = getattr(cost_funcs_user, func)
         
         return cost_funcs_dict
+
+class YamlFileParser(object):
+    '''
+    Parses Yaml files 
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+    
+    def parse_user_inputs_file(self, inp_data_dict, do_generation_with_fit_parameters=False):
         
+        if inp_data_dict is None:
+            with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
+                inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            if "user_inputs_path_override" in inp_data_dict.keys() and inp_data_dict["user_inputs_path_override"]:
+                if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                    user_files_dir = os.path.dirname(inp_data_dict["user_inputs_path_override"])
+                    with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                        inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+                else:
+                    print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                    print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                            "you want to use the default user_inputs.yaml location")
+                    exit()
+            else:
+                user_files_dir = ''
+        else:
+            user_files_dir = ''
+    
+        file_prefix = inp_data_dict['file_prefix']
+
+        # overwrite dir paths if set in user_inputs.yaml
+        if "resources_dir" in inp_data_dict.keys():
+            inp_data_dict['resources_dir'] = os.path.join(user_files_dir, inp_data_dict['resources_dir'])
+        else:
+            inp_data_dict['resources_dir'] = os.path.join(root_dir, 'resources')
+        if "param_id_output_dir" in inp_data_dict.keys():
+            inp_data_dict['param_id_output_dir'] = os.path.join(user_files_dir, inp_data_dict['param_id_output_dir'])
+        else:
+            inp_data_dict['param_id_output_dir'] = os.path.join(root_dir, 'param_id_output')
+        if "generated_models_dir" in inp_data_dict.keys():
+            inp_data_dict['generated_models_dir'] = os.path.join(user_files_dir, inp_data_dict['generated_models_dir'])
+        else:
+            inp_data_dict['generated_models_dir'] = os.path.join(root_dir, 'generated_models')
+        
+        if do_generation_with_fit_parameters:
+            inp_data_dict['param_id_obs_path'] = os.path.join(user_files_dir, inp_data_dict['param_id_obs_path'])
+            if not os.path.exists(inp_data_dict['param_id_obs_path']):
+                print(f'param_id_obs_path={inp_data_dict['param_id_obs_path']} does not exist')
+                exit()
+        
+        else:
+            inp_data_dict['param_id_obs_path'] = None
+
+        if do_generation_with_fit_parameters:
+            data_str_addon = re.sub('.json', '', os.path.split(inp_data_dict['param_id_obs_path'])[1])
+            inp_data_dict['param_id_output_dir_abs_path'] = os.path.join(inp_data_dict['param_id_output_dir'], 
+                                                                         inp_data_dict['param_id_method'] + f'_{file_prefix}_{data_str_addon}')
+            inp_data_dict['generated_models_subdir'] = os.path.join(inp_data_dict['generated_models_dir'], 
+                                                                    file_prefix + '_' + data_str_addon)
+        else:
+            inp_data_dict['generated_models_subdir'] = os.path.join(inp_data_dict['generated_models_dir'], file_prefix)
+        
+        if not os.path.exists(inp_data_dict['generated_models_subdir']):
+            os.mkdir(inp_data_dict['generated_models_subdir'])
+            
+        inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}.cellml')
+
+        if 'params_for_id_file' in inp_data_dict.keys():
+            inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['params_for_id_file'])
+        else:
+            inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], f'{file_prefix}_params_for_id.csv')
+
+        if not os.path.exists(inp_data_dict['params_for_id_path']):
+            print(f'params_for_id path of {inp_data_dict['params_for_id_path']} doesn\'t exist, user must create this file')
+            exit()
+
+
+        if 'pre_time' in inp_data_dict.keys():
+            inp_data_dict['pre_time'] = inp_data_dict['pre_time']
+        else:
+            inp_data_dict['pre_time'] = None
+        if 'sim_time' in inp_data_dict.keys():
+            inp_data_dict['sim_time'] = inp_data_dict['sim_time']
+        else:
+            inp_data_dict['sim_time'] = None
+
+        if inp_data_dict['solver_info'] is None:
+            print('solver_info must be defined in user_inputs.yaml',
+                'MaximumStep is now an entry of solver_info in the user_inputs.yaml file')
+            exit()
+
+        if 'DEBUG' in inp_data_dict.keys(): 
+            if inp_data_dict['DEBUG']:
+                ga_options = inp_data_dict['debug_ga_options']
+                mcmc_options = inp_data_dict['debug_mcmc_options']
+            else:
+                ga_options = inp_data_dict['ga_options']
+                mcmc_options = inp_data_dict['mcmc_options']
+        else:
+            inp_data_dict['DEBUG'] = False
+            inp_data_dict['ga_options'] = inp_data_dict['ga_options']
+
+        # for generation only
+    
+        inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix + '_vessel_array.csv')
+        inp_data_dict['parameters_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['input_param_file'])
+
+        return inp_data_dict
 
 class CSVFileParser(object):
     '''

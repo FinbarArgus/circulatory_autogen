@@ -20,11 +20,16 @@ import yaml
 
 if __name__ == '__main__':
 
+    ## TODO This script should be updated to use the user_inputs parser and tested
+
     try:
+        user_inputs_dir= os.path.join(root_dir, 'user_run_files')
+
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
         if inp_data_dict["user_inputs_path_override"]:
             if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                user_files_dir = os.path.dirname(inp_data_dict["user_inputs_path_override"])
                 with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
                     inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
             else:
@@ -32,6 +37,8 @@ if __name__ == '__main__':
                 print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
                         "you want to use the default user_inputs.yaml location")
                 exit()
+        else:
+            user_files_dir = ''
 
         DEBUG = inp_data_dict['DEBUG']
 
@@ -45,7 +52,6 @@ if __name__ == '__main__':
 
 
         resources_dir= os.path.join(root_dir, 'resources')
-        user_inputs_dir= os.path.join(root_dir, 'user_run_files')
         param_id_dir = os.path.join(root_dir, 'src/param_id')
         generated_models_dir = os.path.join(root_dir, 'generated_models')
 
@@ -54,11 +60,11 @@ if __name__ == '__main__':
 
         # overwrite dir paths if set in user_inputs.yaml
         if "resources_dir" in inp_data_dict.keys():
-            resources_dir = inp_data_dict['resources_dir']
+            resources_dir = os.path.join(user_files_dir, inp_data_dict['resources_dir'])
         if "param_id_output_dir" in inp_data_dict.keys():
-            param_id_output_dir = inp_data_dict['param_id_output_dir']
+            param_id_output_dir = os.path.join(user_files_dir, inp_data_dict['param_id_output_dir'])
         if "generated_models_dir" in inp_data_dict.keys():
-            generated_models_dir = inp_data_dict['generated_models_dir']
+            generated_models_dir = os.path.join(user_files_dir, inp_data_dict['generated_models_dir'])
 
         generated_models_subdir = os.path.join(generated_models_dir, file_prefix)
         model_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
