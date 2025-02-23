@@ -163,14 +163,12 @@ class YamlFileParser(object):
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
-                ga_options = inp_data_dict['debug_ga_options']
-                mcmc_options = inp_data_dict['debug_mcmc_options']
+                inp_data_dict['ga_options'] = inp_data_dict['debug_ga_options']
+                inp_data_dict['mcmc_options'] = inp_data_dict['debug_mcmc_options']
             else:
-                ga_options = inp_data_dict['ga_options']
-                mcmc_options = inp_data_dict['mcmc_options']
+                pass
         else:
             inp_data_dict['DEBUG'] = False
-            inp_data_dict['ga_options'] = inp_data_dict['ga_options']
 
         # for generation only
     
