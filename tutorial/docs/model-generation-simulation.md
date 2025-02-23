@@ -4,11 +4,11 @@
 
 The Circulatory_autogen project contains five folders as presented below:       
 
-- **funcs_user**: **TODO**
-- **module_config_user**: **TODO**
 - **resources**: Contains the config csv files that the user defines to construct the model that will be generated and to prescribe it's parameters.
 - **src**: Containts the source code for autogeneration, parameter id, and other utilities.
 - **user_run_files**: Includes essential run files for the user and the user_inputs.yaml file, which is the main config file for the run settings.
+- **funcs_user**: Contains user defined functions for calculating ouput features from model outputs, for fitting to ground truths. The corresponding src file, which contains other available functions to use in the parameter id is '[CA_dir]/src/param_id/operation_funcs.py'. This directory also contains functions for user defined cost functions.
+- **module_config_user**: Contains user defined units, cellml modules, and configuration files for those cellml modules. This allows the user to create their own modules and specify how they can be coupled with other modules. The corresponding src dir, which contains all of the src modules and config files is '[CA_dir]/src/generators/resources/'  
 
 Following folders will be generated after running model autogeneration and parameter identification.
 
@@ -23,7 +23,7 @@ Following are the steps for model autogeneration.
 
 1. Create the **vessel_array** and **parameters** files in CSV format for the intended model. Proper names of vessel and parameters files are **[model name]_vessel_array.csv** and **[model name]_parameters.csv**, respectively. 
 
-    Those files should be added to the `[project_dir]/resources` directory. If you want to define your own resources_dir, you can add a `resources_dir:` entry in `[project_dir]/user_run_files/user_inputs.yaml` which will override the default `[project_dir]/resources` directory.
+    Those files should be added to the `[CA_dir]/resources` directory. If you want to define your own resources_dir, you can add a `resources_dir:` entry in `[CA_dir]/user_run_files/user_inputs.yaml` which will override the default `[CA_dir]/resources` directory.
 
     !!! info
         If the name of your model is *3compartment*, the mentioned files are:
@@ -34,15 +34,12 @@ Following are the steps for model autogeneration.
     !!! Note
         You can refer the section [Creating a new model](create-model.md) for more details on creating vessel_array and parameters files.
 
-2. Go to the `[project_dir]/user_run_files` and open the `user_inputs.yaml` to edit. You can use *gedit*, *nano*, or your editor of choice (eg: *vim*) to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[model_name]_parameters.csv` as shown below.
+2. Go to the `[CA_dir]/user_run_files` and open the `user_inputs.yaml` to edit. You can use *gedit*, *nano*, or your editor of choice (eg: *vim*) to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[model_name]_parameters.csv` as shown below.
 
     ![user_inputs.yaml file](images/user-inputs.png)
 
-3. Open `[project_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `opencor_pythonshell_path` to the directory of pythonshell in the openCOR folder similar to: `<OpenCOR_dir>/pythonshell`.
 
-    ![OpenCOR direcoty](images/opencor-directory.png)
-
-4. To run the autogeneration, navigate to the `user_run_files` directory and run the below command.
+3. To run the autogeneration, navigate to the `user_run_files` directory and run the below command.
         
         ./run_autogeneration.sh
         
@@ -50,14 +47,14 @@ Following are the steps for model autogeneration.
 
     ![Run autogeneration output](images/run-autogeneration.png)
 
-5. Generated CellML files are located in the `[generated_models_dir]/[file_prefix]` directory. (The *generated_models_dir* defaults to `[project_dir]/generated_models` unless you set generated_models_dir in `[project_dir/user_run_files/user_inputs.yaml`). 
+4. Generated CellML files are located in the `[generated_models_dir]/[file_prefix]` directory. (The *generated_models_dir* defaults to `[project_dir]/generated_models` unless you set generated_models_dir in `[project_dir/user_run_files/user_inputs.yaml`). 
 
     Four CellML files, and a CSV file will be generated. The CSV file includes the model parameters and the four CellML files contain the modules, parameters, units and constants, and main model.
 
     ![Generated files](images/generated-files.png)
 
     !!! info
-        For a typical autogeneration, the CSV file will be the same as the parameters.csv file in `[project_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
+        For a typical autogeneration, the CSV file will be the same as the parameters.csv file in `[CA_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
 
 !!! Note
     There is a test for the autogeneration running. To run the test, navigate to `user_run_files` and run the below command.

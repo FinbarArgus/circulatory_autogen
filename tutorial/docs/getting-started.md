@@ -2,27 +2,18 @@
 
 ## Initialising and Startup
 
-The project must be run on a Linux operating system.
-
-!!! tip
-    If you're on Windows, you can install a virtual Linux machine. One of these virtual linux machines is VirtualBox Oracle, which can be downloaded from [here](https://www.virtualbox.org/).
-
-    Also, you can download the latest version of Ubuntu using this [link](https://ubuntu.com/download/desktop).
-
-!!! info
-    Running on Windows is in development. It can work with some caveats. See [Running on Windows](#running-on-windows) for more information.
-
 **1. Install OpenCOR**
 
-Download and install OpenCOR software from this [link](https://opencor.ws/downloads/index.html).
+Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/downloads/index.html).
 
-**2. OpenCOR Tutorial**
+!!! note
+    If you are not familiar with OpenCOR, you should go through the OpenCOR Tutorial before starting this
 
-Download the OpenCOR tutorial, which is a comprehensive tutorial including many examples: [OpenCOR Tutorial](https://tutorial-on-cellml-opencor-and-pmr.readthedocs.io/en/latest/_downloads/d271cfcef7e288704c61320e64d77e2d/OpenCOR-Tutorial-v17.pdf).
+    Download the OpenCOR tutorial, which is a comprehensive tutorial including many examples: [OpenCOR Tutorial](https://tutorial-on-cellml-opencor-and-pmr.readthedocs.io/en/latest/_downloads/d271cfcef7e288704c61320e64d77e2d/OpenCOR-Tutorial-v17.pdf).
 
-**3. Clone the project**
+**2. Clone the project**
 
-Clone the project from the [GitHub repository](https://github.com/FinbarArgus/circulatory_autogen).
+Clone the Circulatory Autogen project from the [GitHub repository](https://github.com/FinbarArgus/circulatory_autogen).
 
 !!! note
     If you have not worked with git and GitHub, firstly download and install git, and then open the terminal and navigate to a directory where you want the repository to be. Then write these commands to clone the project on your pc:
@@ -39,28 +30,31 @@ Clone the project from the [GitHub repository](https://github.com/FinbarArgus/ci
 
     - `git remote add upstream https://github.com/FinbarArgus/circulatory_autogen`
 
+!!! Note
+    Running on Windows is in development. It should work but hasn't been thoroughly tested. See [Running on Windows](#running-on-windows) for more information.
+
+    If you're on Windows, you should download gitbash from [here](https://git-scm.com/downloads) so that you can run the bash scripts. 
+
+    Alternatively, you could install a virtual Linux machine. One of these virtual linux machines is VirtualBox Oracle, which can be downloaded from [here](https://www.virtualbox.org/).
+    To set up the VirtualBox you would need to download the latest version of Ubuntu using this [link](https://ubuntu.com/download/desktop).
+
+
 ## Directory Definition
 
-In this tutorial, we use one particular directory for our project, but it can be different on every computer. So the base directory is defined as **main_dir** in all parts. For example, on our computer, this directory is as below:
+In this tutorial, we define the **CA_dir** as the directory where the Github Circulatory Autogen project has been cloned. For example, on our computer, this directory is as below:
 
-`main_dir: Home/…/Desktop/`
+`[CA_dir]: ~/Documents/git_projects/Circulatory_autogen`
 
-The project directory **project_dir** is the directory where the GitHub Circulatory_autogen project is cloned to our computer. For example, the directory may be:
+Also, the OpenCOR directory is needed for installing the necessary python libraries, which we defined as the **OpenCOR_dir**, e.g.:
 
-`[project_dir]: Home/…/Desktop/Project/Circulatory_autogen`
-
-Also, OpenCOR files directory is needed for opening the project and installing python and pythonshell, and we show with **OpenCOR_dir**, which is below on our pc:
-
-`OpenCOR_dir: Home/…/Desktop/OpenCOR`
+`[OpenCOR_dir]: ~/Desktop/OpenCOR-0-8-1-Linux/`
 
 !!! info
-    If running on the ABI HPC, you can use the OpenCOR at the path: **/hpc/farg967/OpenCOR-2022-05-23-Linux/**. 
-    
-    Ignore the below installation steps.
+    If running on the ABI HPC, you can use the installed OpenCOR version at the path: **/hpc/farg967/OpenCOR-0-8-1-Linux/** and Ignore the below installation steps, as the libraries are already installed.
 
 ## Python and Libraries Installation
 
-To run openCOR, you need to use the Python version with openCOR. 
+To run openCOR, you need to use the Python version that is shipped with openCOR. 
 
 To install required python packages, navigate to `[OpenCOR_dir]` directory and run the below command.
 
@@ -84,6 +78,21 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
     **Required for some utilities**:
     ruamel.yaml
 
+## Setting up your python path
+
+Open `[CA_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `opencor_pythonshell_path` to the directory of pythonshell in the **OpenCOR_dir**: 
+
+!!! Note
+    === "Linux and Mac"
+        ```
+        opencor_pythonshell_path=`<OpenCOR_dir>/pythonshell`.
+        ```
+
+    === "Windows"
+        ```
+        opencor_pythonshell_path=`<OpenCOR_dir>/pythonshell.bat`.
+        ```
+
 !!! warning
     Intalling **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
 
@@ -97,6 +106,18 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
         ```
         brew install openmpi
         ```
+    === "Windows"
+
+        '''
+        To be able to import mpi4py, you may have to do the following:
+
+        Download MS MPI, install both .mis and SDK.
+
+        Set up environmental variables. Open `Control Panel` and select `Advanced System Settings`. Then select `Environmental Variables` and add the following.
+
+            C:\Program Files\Microsoft MPI\
+            C:\Program Files (x86)\Microsoft SDKs\MPI\
+        '''
 
 !!! warning 
     In versions of **OpenCOR < 0.8** you needed to nagivate to the `[OpenCOR_dir]/python/bin` directory and run the below command instead.
@@ -115,29 +136,8 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
     This should only be a problem in **OpenCOR < 0.8**
 
 
-## Running on Windows
-
-You have to run the scripts in `src/scripts` explicitly since you cannot use the .sh files to run scripts. 
-
-E.g. For running param id, navigate to to `C:\path\to\opencor\dir` and run the below command.
-
-```
-.\pythonshell.bat C:\path\to\circulatory\autogen\src\scripts\param_id_run_script.py
-```
-
-To be able to importing mpi4py, you may have to do the following:
-
-1. Download MS MPI, install both .mis and SDK.
-
-2. Set up environmental variables.
-
-    !!! Tip
-        Open `Control Panel` and select `Advanced System Settings`. Then select `Environmental Variables` and add the following.
-
-            C:\Program Files\Microsoft MPI\
-            C:\Program Files (x86)\Microsoft SDKs\MPI\
 
 !!! info "Changes to be made"
     Currently **vessels** is used interchangeabley with **modules**. This will be changed to use **modules** in all instances, as the project now allows all types of modules, not just vessels.
 
-    The connections between terminals and the venous system is hardcoded, as a terminal_venous_connection has to be made to sum up the flows and get an avergae concentration. This needs to be improved.
+    The connections between terminals and the venous system is hardcoded, as a terminal_venous_connection has to be made to sum up the flows and get an avergae concentration. This is being improved in development.

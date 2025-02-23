@@ -17,7 +17,7 @@ In the `vessel_array` file, there are five columns: **name**, **BC_type**, **ves
 !!! info
     A vessel with "output flow" BC must be connected to a vessel with "input pressure" BC and vice versa. E.g. a "vp" can only have either a "vv" or "vp" vessel as ouputs. This is checked in the software, and will throw an error if there are incorrect BC connections.
 
-The **vessel_type** and **BC_type** must match a module with the same vessel_type and BC_type in the modules_config.json defined at `[project_dir]/src/generators/resources/`. 
+The **vessel_type** and **BC_type** must match a module with the same vessel_type and BC_type in the modules_config.json defined at `[CA_dir]/src/generators/resources/`. 
 
 This file is the config file which defines the variables of a module and the connection ports that allows linking between modules, each module links to a cellml module. For more information, refer [Creating a new model](create-model.md) section.
 

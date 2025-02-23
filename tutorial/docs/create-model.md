@@ -69,7 +69,7 @@ Following is an example of a parameter file.
 
 ## Modules and definition of a new module
 
-In the `[project_dir]/src/generators/resources` directory, there are several CellML files which contain the modules that can be coupled together in your model. The `module_config.json file` defines the connection ports and variables of each cellml module.
+In the `[CA_dir]/src/generators/resources` directory, there are several CellML files which contain the modules that can be coupled together in your model. The `module_config.json file` defines the connection ports and variables of each cellml module.
 
 ![Modules](images/module-folder.png)
 
@@ -77,7 +77,7 @@ The `base_script.cellml` is the template of the main cellml file that gets gener
 
 ![base_script.cellml](images/base-script.png)
 
-If you want to create a new module, you must add the related JSON data in the `module_config.json` and link to the file where the cellml file is contained, e.g. `BG_modules.cellml` or another cellml file in `[project_dir]/src/generators/resources/`.
+If you want to create a new module, you must add the related JSON data in the `module_config.json` and link to the file where the cellml file is contained, e.g. `BG_modules.cellml` or another cellml file in `[CA_dir]/src/generators/resources/`.
 
 As shown in the below figure, there are three different parts for each module. The primary specification includes vessel_type, boundary condition type, and module_file, then the ports and their types, and finally, variables and constants.
 
@@ -102,7 +102,7 @@ The entries in the `module_config.json` file are detailed as follows:
 - **vessel_type**: This will be the "vessel_type" entry in the vessel_array file
 - **BC_type**: This will be the "BC_type" entry in the vessel_array file
 - **module_format**: Currently only cellml is supported but in the future, cpp modules and others will be allowed.
-- **module_file**: The file within `[project_dir]/src/generators/resources/` that contains the cellml module that this config entry links to.
+- **module_file**: The file within `[CA_dir]/src/generators/resources/` that contains the cellml module that this config entry links to.
 - **module_type**: The name of the module/computational_environment within the module cellml file.
 - **entrance_ports**: Specification of the port types that this module can take if it is connected as an "out_vessel" to another module. If a port_type matches to the port_type of a exit_port in a module coupled as an input, then the port_types variables, e.g. [v_in, u] get mapped to the variables in the coupled modules exit port e.g. [v, u_out].
 - **exit_ports**: Specification of the port types that this module can take if it is connected as an "inp_vessel" to another module.

@@ -5,7 +5,7 @@ The parameter identification part of Circulatory_Autogen is designed to allow ca
 - **params_for_id**
 - **param id observables**
 
-Those files should be added to the `[project_dir]/resources` directory. Proper names of the files are **[file_prefix]_params_for_id.csv** and **[file_prefix]_obs_data.json**, respectively.
+Those files should be added to the `[CA_dir]/resources` directory. Proper names of the files are **[file_prefix]_params_for_id.csv** and **[file_prefix]_obs_data.json**, respectively.
 
 ## Creating params_for_id file
 
@@ -32,7 +32,7 @@ The entries in the file are detailed as follows:
 
 This file defines the ground truth observables that will be used in the cost function for the parameter id optimisation algorithm. It also defines the measurement standard deviation, and weighting for each observable.
 
-File path of the obs_data.json file should be defined as **param_id_obs_path** in `[project_dir]/user_run_files/user_inputs.yaml`.
+File path of the obs_data.json file should be defined as **param_id_obs_path** in `[CA_dir]/user_run_files/user_inputs.yaml`.
 
 Examples of `obs_data.json` file are shown in below figures for constant, series, and frequency data types, respectively. 
 
@@ -50,7 +50,7 @@ The entries in the `obs_data.json` file are:
 - **std**: The standard deviation which is used in the cost function. The cost function is the relative absolute error (AE) or mean squared error (MRE), each normalised by the std.
 - **value**: The value of the ground truth, either a scalar for constant data_type, or a list of values for series or frequency data_types.
 - **sample_rate**: not needed or set to "null" for constant and frequency data_types. It defines the sample rate of the observable series values.
-- **operation**: This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[project_dir]/src/param_id/operation_funcs.py` and in `[project_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
+- **operation**: This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[CA_dir]/src/param_id/operation_funcs.py` and in `[CA_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
 - **operands**: The above defined "operation" can take in multiple variables. If operands is defined, then the "variable" entry will be a placeholder name for the calculated variable and the operands will define the model variables that are used to calculate the final feature that will be compared to the observable value entry/s.
 
 !!! warning
@@ -59,7 +59,7 @@ The entries in the `obs_data.json` file are:
 
 ## Parameter Identification Settings
 
-To run the parameter identification we need to set a few entries in the `[project_dir]/user_run_files/user_inputs.yaml file`:
+To run the parameter identification we need to set a few entries in the `[CA_dir]/user_run_files/user_inputs.yaml file`:
 
 - **param_id_method**: this defines the optimisation method we use. Currently this can only be genetic_algorithm, but more methods are being implemented. Eventually we aim to use CVODES to allow for gradient based optimisation methods.
 - **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`. IMPORTANT: THis is overwritten by the pre_times within the obs_data.json file, see the next section.
