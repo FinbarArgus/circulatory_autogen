@@ -33,7 +33,7 @@ if __name__ == '__main__':
         
         start_time = time.time()
         yaml_parser = YamlFileParser()
-        inp_data_dict = yaml_parser.parse_user_inputs_file(None, do_generation_with_fit_parameters=True)
+        inp_data_dict = yaml_parser.parse_user_inputs_file(None, obs_path_needed=True, do_generation_with_fit_parameters=True)
 
         DEBUG = inp_data_dict['DEBUG']
         model_path = inp_data_dict['model_path']

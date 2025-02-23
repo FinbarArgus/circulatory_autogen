@@ -24,14 +24,15 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
                                    inp_data_dict=None):
 
     yaml_parser = YamlFileParser()
-    inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, do_generation_with_fit_parameters=do_generation_with_fit_parameters)
+    inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=False, 
+                                                       do_generation_with_fit_parameters=do_generation_with_fit_parameters)
 
     DEBUG = inp_data_dict['DEBUG']
     file_prefix = inp_data_dict['file_prefix']
     resources_dir = inp_data_dict['resources_dir']
     resources_dir = inp_data_dict['resources_dir']
     generated_models_dir = inp_data_dict['generated_models_dir']
-    generated_models_subdir = inp_data_dict['generated_models_dir']
+    generated_models_subdir = inp_data_dict['generated_models_subdir']
     vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
     parameters_csv_abs_path = inp_data_dict['parameters_csv_abs_path']
 

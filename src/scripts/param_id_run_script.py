@@ -18,7 +18,7 @@ from parsers.PrimitiveParsers import YamlFileParser
 def run_param_id(inp_data_dict=None):
 
     yaml_parser = YamlFileParser()
-    inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, do_generation_with_fit_parameters=True)
+    inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=True, do_generation_with_fit_parameters=False)
 
     DEBUG = inp_data_dict['DEBUG']
     model_path = inp_data_dict['model_path']

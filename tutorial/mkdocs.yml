@@ -1,0 +1,20 @@
+site_name: Circulatory Autogen
+site_url: https://finbarargus.github.io/circulatory_autogen/
+theme:
+  name: material
+  features:
+    - instant
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - Welcome to Circulatory Autogen: index.md
+  - Getting Started: getting-started.md
+  - Model Generation and Simulation: model-generation-simulation.md
+  - Creating a new model: create-model.md
+  - Parameter Identification: parameter-identification.md
+  - "Example: 3Compartment Model": example-3compartment-model.md
+  - Running on the HPC: running-on-hpc.md

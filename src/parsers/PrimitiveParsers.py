@@ -73,7 +73,7 @@ class YamlFileParser(object):
         Constructor
         '''
     
-    def parse_user_inputs_file(self, inp_data_dict, do_generation_with_fit_parameters=False):
+    def parse_user_inputs_file(self, inp_data_dict, obs_path_needed=False, do_generation_with_fit_parameters=False):
         
         if inp_data_dict is None:
             with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
@@ -109,14 +109,16 @@ class YamlFileParser(object):
         else:
             inp_data_dict['generated_models_dir'] = os.path.join(root_dir, 'generated_models')
         
-        if do_generation_with_fit_parameters:
-            inp_data_dict['param_id_obs_path'] = os.path.join(user_files_dir, inp_data_dict['param_id_obs_path'])
-            if not os.path.exists(inp_data_dict['param_id_obs_path']):
-                print(f'param_id_obs_path={inp_data_dict['param_id_obs_path']} does not exist')
+        if obs_path_needed:
+            if 'param_id_obs_path' in inp_data_dict.keys():
+                inp_data_dict['param_id_obs_path'] = os.path.join(user_files_dir, inp_data_dict['param_id_obs_path'])
+                if not os.path.exists(inp_data_dict['param_id_obs_path']):
+                    print(f'param_id_obs_path={inp_data_dict['param_id_obs_path']} does not exist')
+                    exit()
+            else:
+                print(f'param_id_obs_path needs to be defined in user_inputs.yaml')
                 exit()
-        
-        else:
-            inp_data_dict['param_id_obs_path'] = None
+                
 
         if do_generation_with_fit_parameters:
             data_str_addon = re.sub('.json', '', os.path.split(inp_data_dict['param_id_obs_path'])[1])
@@ -127,6 +129,9 @@ class YamlFileParser(object):
         else:
             inp_data_dict['generated_models_subdir'] = os.path.join(inp_data_dict['generated_models_dir'], file_prefix)
         
+        if not os.path.exists(inp_data_dict['generated_models_dir']):
+            os.mkdir(inp_data_dict['generated_models_dir'])
+
         if not os.path.exists(inp_data_dict['generated_models_subdir']):
             os.mkdir(inp_data_dict['generated_models_subdir'])
             
