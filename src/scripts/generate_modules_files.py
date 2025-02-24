@@ -8,13 +8,10 @@ import json
 import os.path
 import sys
 import xml.etree.ElementTree as ET
+import re
 import yaml
 
 import libcellml as lc
-
-# Define namespaces
-cellml_namespace = "http://www.cellml.org/cellml/1.1#" # If your model is using cellml 1.0, change this to 1.0
-mathml_namespace = "http://www.w3.org/1998/Math/MathML"
 
 # Define file paths
 user_units_cellml = '../module_config_user/user_units.cellml'
@@ -332,6 +329,20 @@ def main():
         sys.exit(4)
 
     analysed_model = analyser.model()
+
+    default_cellml_namespace = "http://www.cellml.org/cellml/1.1#"
+
+    # Read the CellML file
+    with open(args.input_model, "r", encoding="utf-8") as file:
+        cellml_data = file.read()
+
+    # Extract 'xmlns:cellml' using regex
+    match = re.search(r'xmlns:cellml="([^"]+)"', cellml_data)
+    global cellml_namespace
+    cellml_namespace = match.group(1) if match else default_cellml_namespace
+
+    global mathml_namespace
+    mathml_namespace = "http://www.w3.org/1998/Math/MathML"
 
     model_variables, model_constants, model_states = _extract_variables_constants_states_from_model(analysed_model)
 
