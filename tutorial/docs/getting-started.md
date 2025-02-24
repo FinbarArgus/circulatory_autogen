@@ -4,7 +4,7 @@
 
 **1. Install OpenCOR**
 
-Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/downloads/index.html). I recommend installing in a directory where you have access and edit rights, such as ~/Desktop.
+Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/downloads/index.html). I recommend installing with zip/tarball in a directory where you have access and edit rights, such as ~/Desktop.
 
 !!! note
     If you are not familiar with OpenCOR, you should go through the OpenCOR Tutorial before starting this
