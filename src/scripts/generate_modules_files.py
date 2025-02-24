@@ -13,7 +13,7 @@ import yaml
 import libcellml as lc
 
 # Define namespaces
-cellml_namespace = "http://www.cellml.org/cellml/1.1#"
+cellml_namespace = "http://www.cellml.org/cellml/1.1#" # If your model is using cellml 1.0, change this to 1.0
 mathml_namespace = "http://www.w3.org/1998/Math/MathML"
 
 # Define file paths
