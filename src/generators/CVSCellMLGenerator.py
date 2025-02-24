@@ -477,13 +477,13 @@ class CVS0DCellMLGenerator(object):
             if port_type in [port_types[II]["port_type"] for II in range(len(port_types))]:
                 port_type_idx = [port_types[II]["port_type"] for II
                                  in range(len(port_types))].index(port_type)
-                port_types[port_type_idx]["out_port_idxs"].append(out_port_idx)
+                port_types[port_type_idx]["out_port_idxs"].append(out_port_idx+len(module_row["exit_ports"]))
                 port_types[port_type_idx]["port_type_count"] += 1
                 port_types[port_type_idx]["connected"].append(False)
 
             else:
                 port_types.append({"port_type": module_row["general_ports"][out_port_idx]["port_type"],
-                                   "out_port_idxs": [out_port_idx],
+                                   "out_port_idxs": [out_port_idx+len(module_row["exit_ports"])],
                                    "port_type_count": 1,
                                    "connected": [False]})
                 
@@ -535,11 +535,11 @@ class CVS0DCellMLGenerator(object):
                 if port_type in [entrance_port_types[II]["port_type"] for II in range(len(entrance_port_types))]:
                     port_type_idx = [entrance_port_types[II]["port_type"] for II
                                      in range(len(entrance_port_types))].index(port_type)
-                    entrance_port_types[port_type_idx]["entrance_port_idxs"].append(entrance_port_idx)
+                    entrance_port_types[port_type_idx]["entrance_port_idxs"].append(entrance_port_idx+len(out_module_row["entrance_ports"]))
                     entrance_port_types[port_type_idx]["port_type_count"] += 1
                 else:
                     entrance_port_types.append({"port_type": out_module_row["general_ports"][entrance_port_idx]["port_type"],
-                                                "entrance_port_idxs": [entrance_port_idx],
+                                                "entrance_port_idxs": [entrance_port_idx+len(out_module_row["entrance_ports"])],
                                                 "port_type_count": 1})
 
             for port_type_idx in range(len(port_types)):
