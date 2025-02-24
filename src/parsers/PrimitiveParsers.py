@@ -113,7 +113,7 @@ class YamlFileParser(object):
             if 'param_id_obs_path' in inp_data_dict.keys():
                 inp_data_dict['param_id_obs_path'] = os.path.join(user_files_dir, inp_data_dict['param_id_obs_path'])
                 if not os.path.exists(inp_data_dict['param_id_obs_path']):
-                    print(f'param_id_obs_path={inp_data_dict['param_id_obs_path']} does not exist')
+                    print(f'param_id_obs_path={inp_data_dict["param_id_obs_path"]} does not exist')
                     exit()
             else:
                 print(f'param_id_obs_path needs to be defined in user_inputs.yaml')
@@ -143,7 +143,7 @@ class YamlFileParser(object):
             inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], f'{file_prefix}_params_for_id.csv')
 
         if not os.path.exists(inp_data_dict['params_for_id_path']):
-            print(f'params_for_id path of {inp_data_dict['params_for_id_path']} doesn\'t exist, user must create this file')
+            print(f'params_for_id path of {inp_data_dict["params_for_id_path"]} doesn\'t exist, user must create this file')
             exit()
 
 

@@ -100,7 +100,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <!-- q_lv_init sometimes gets identified, the others are set arbitrarily to zero normally, 
  identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -1423,7 +1423,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -1678,7 +1678,7 @@
                             <ci>T_vr</ci>
                         </apply>
                         <apply>
-                            <gt/>
+                            <geq/>
                             <ci>chi_vfloor</ci>
                             <cn cellml:units="dimensionless">0.5</cn>
                         </apply>
@@ -2653,7 +2653,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -3885,7 +3885,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -5147,7 +5147,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -6473,7 +6473,7 @@
         <variable initial_value="1e-22" name="eps_m4" units="m4"/>
         <variable initial_value="1e-22" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
         <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
         <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>

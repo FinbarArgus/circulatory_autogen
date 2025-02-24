@@ -4,7 +4,7 @@
 
 **1. Install OpenCOR**
 
-Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/downloads/index.html).
+Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/downloads/index.html). I recommend installing in a directory where you have access and edit rights, such as ~/Desktop.
 
 !!! note
     If you are not familiar with OpenCOR, you should go through the OpenCOR Tutorial before starting this
@@ -16,11 +16,9 @@ Download and install OpenCOR version 0.8.1 from this [link](https://opencor.ws/d
 Clone the Circulatory Autogen project from the [GitHub repository](https://github.com/FinbarArgus/circulatory_autogen).
 
 !!! note
-    If you have not worked with git and GitHub, firstly download and install git, and then open the terminal and navigate to a directory where you want the repository to be. Then write these commands to clone the project on your pc:
+    If you have not worked with git and GitHub, firstly download and install git, and then open the terminal and navigate (with terminal in Linux/Mac or gitbash in Windows) to a directory where you want the repository to be. Then write these commands to clone the project on your pc:
 
     - `git clone https://github.com/FinbarArgus/circulatory_autogen`
-
-    - `git remote add origin https://github.com/FinbarArgus/circulatory_autogen`
 
     If you want to develop the code, then create a fork of the above repo in GitHub, then do the following lines instead of the above:
 
@@ -59,13 +57,18 @@ To run openCOR, you need to use the Python version that is shipped with openCOR.
 To install required python packages, navigate to `[OpenCOR_dir]` directory and run the below command.
 
 !!! Note
-    === "Linux and Mac"
+    === "Linux"
         ```
         ./pip install <packagename>
         ```
+    === "Mac"
+        ```
+        ./pythonshell -m pip install <packagename>
+        
+        ```
     === "Windows"
         ```
-        ./pip.bat install <packagename>
+        ./pythonshell.bat -m pip install <packagename>
         
         ```
 
