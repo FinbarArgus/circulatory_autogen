@@ -381,16 +381,18 @@ class CVS0DCellMLGenerator(object):
 
     def __write_module_mappings(self, wf, module_df):
         """This function maps between ports of the modules in a module dataframe."""
-        # set connected to false for all entrance ports TODO this might be a better way to check connected for exit ports too
-        entrance_ports_connected = {}
+        # set connected to false for all entrance and general ports TODO this might be a better way to check connected for exit ports too
+        entrance_general_ports_connected = {}
         for module_row_idx in range(len(module_df)):
             if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
                 # if not cellml then don't do anything for this vessel/module
                 continue
-            entrance_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
+            entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
             for II in range(len(module_df.iloc[module_row_idx]["entrance_ports"])):
                 # module_df.iloc[module_row_idx]["entrance_ports"][II]["connected"] = False
-                entrance_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
+                entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
+            for II in range(len(module_df.iloc[module_row_idx]["general_ports"])):
+                entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
 
         # set BC_set to false for all boundary_condition variables
         for module_row_idx in range(len(module_df)):
@@ -410,7 +412,7 @@ class CVS0DCellMLGenerator(object):
                 # if not cellml then don't do anything for this vessel/module
                 continue
             self.__write_module_mapping_for_row(module_df.iloc[module_row_idx], module_df,
-                                                entrance_ports_connected, wf)  # entrance_ports_connected is a modified
+                                                entrance_general_ports_connected, wf)  # entrance_ports_connected is a modified
             # in this function
 
         # check whether the BC variables have been set with a matched module, if so, remove them from 
@@ -445,7 +447,7 @@ class CVS0DCellMLGenerator(object):
         else:
             self.all_parameters_defined = True
 
-    def __write_module_mapping_for_row(self, module_row, module_df, entrance_ports_connected, wf):
+    def __write_module_mapping_for_row(self, module_row, module_df, entrance_general_ports_connected, wf):
         """This function maps between ports of the modules in a one row of a module dataframe."""
 
         # input and output modules
@@ -549,7 +551,7 @@ class CVS0DCellMLGenerator(object):
                     if entrance_port_types[II]["port_type"] == port_types[port_type_idx]["port_type"]:
                         entrance_port_type_idx = II
                         for JJ in entrance_port_types[II]["entrance_port_idxs"]:
-                            if not entrance_ports_connected[out_module][JJ]:
+                            if not entrance_general_ports_connected[out_module][JJ]:
                                 entrance_port_idx = JJ
                                 break
                         break
@@ -632,9 +634,9 @@ class CVS0DCellMLGenerator(object):
                         if out_module_entrance_general_ports[entrance_port_idx]['multi_port'] in ['True', True]:
                             pass
                         else:
-                            entrance_ports_connected[out_module][entrance_port_idx] = True
+                            entrance_general_ports_connected[out_module][entrance_port_idx] = True
                     else:
-                        entrance_ports_connected[out_module][entrance_port_idx] = True
+                        entrance_general_ports_connected[out_module][entrance_port_idx] = True
 
                     for II in range(len(variables_1)):
                         if variables_1[II] in self.BC_set[main_module].keys():
@@ -696,11 +698,11 @@ class CVS0DCellMLGenerator(object):
                                 if out_module_entrance_general_ports[entrance_port_idx]['multi_port'] in ['True', True]:
                                     pass
                                 else:
-                                    entrance_ports_connected[out_module][entrance_port_idx] = True
+                                    entrance_general_ports_connected[out_module][entrance_port_idx] = True
                             else:
-                                entrance_ports_connected[out_module][entrance_port_idx] = True
+                                entrance_general_ports_connected[out_module][entrance_port_idx] = True
 
-        return entrance_ports_connected
+        return entrance_general_ports_connected
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
         first_venous_names = []  # stores name of venous compartments that take flow from terminals
