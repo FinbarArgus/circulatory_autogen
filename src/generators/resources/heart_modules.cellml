@@ -100,7 +100,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- q_lv_init sometimes gets identified, the others are set arbitrarily to zero normally, 
  identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -110,6 +110,7 @@
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -123,7 +124,6 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- the below are the wrong units, the 0.5 should be dimensionless-->
             <apply>
                 <eq/>
                 <apply>
@@ -137,7 +137,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac_wCont</ci>
                         </apply>
                         <apply>
@@ -159,14 +159,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac_wCont</ci>
                         </apply>
                         <apply>
@@ -196,14 +196,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac_wCont</ci>
                         </apply>
                         <apply>
@@ -216,6 +216,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar_wCont</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -224,7 +244,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar_wCont</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T_wCont</ci>
+                                    <ci>T_ac_wCont</ci>
+                                </apply>
+                                <ci>T_ar_wCont</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -233,13 +261,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
         <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -266,7 +316,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc_wCont</ci>
                         </apply>
                         <apply>
@@ -288,14 +338,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc_wCont</ci>
                         </apply>
                         <apply>
@@ -325,14 +375,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc_wCont</ci>
                         </apply>
                         <apply>
@@ -345,6 +395,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr_wCont</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -353,7 +423,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr_wCont</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T_wCont</ci>
+                                    <ci>T_vc_wCont</ci>
+                                </apply>
+                                <ci>T_vr_wCont</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <gt/>
@@ -362,7 +440,28 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -463,7 +562,8 @@
                     <ci>T</ci>
                 </apply>
             </apply>
-            <!-- Elastance Functions-->
+            <!-- Elastance Functions
+ TODO FIGURE OUT A REALISTIC WAY TO CONTROL t_astart and t_vstart so that it changes with changes in period-->
             <apply>
                 <eq/>
                 <ci>t_astart_norm</ci>
@@ -501,7 +601,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -522,7 +622,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1423,7 +1523,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -1433,6 +1533,7 @@
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1459,7 +1560,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -1481,14 +1582,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -1518,14 +1619,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -1538,6 +1639,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -1546,7 +1667,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_ac</ci>
+                                </apply>
+                                <ci>T_ar</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -1555,13 +1684,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
-        <variable name="chi_vfloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1588,7 +1739,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -1610,14 +1761,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -1647,14 +1798,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -1667,6 +1818,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -1675,16 +1846,45 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_vc</ci>
+                                </apply>
+                                <ci>T_vr</ci>
+                            </apply>
                         </apply>
                         <apply>
-                            <geq/>
+                            <gt/>
                             <ci>chi_vfloor</ci>
                             <cn cellml:units="dimensionless">0.5</cn>
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -1753,7 +1953,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1774,7 +1974,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2653,7 +2853,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -2662,8 +2862,10 @@
         <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
         <!-- ____________ PETER DELETE FROM HERE ______________
  calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
+        <!-- TODO update all heart models to have the below chi calculations, it is more numerically robust.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -2690,7 +2892,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -2712,14 +2914,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -2749,14 +2951,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -2769,6 +2971,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -2777,7 +2999,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_ac</ci>
+                                </apply>
+                                <ci>T_ar</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -2786,13 +3016,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
         <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -2819,7 +3071,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -2841,14 +3093,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -2878,14 +3130,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -2898,6 +3150,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -2906,7 +3178,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_vc</ci>
+                                </apply>
+                                <ci>T_vr</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <gt/>
@@ -2915,7 +3195,28 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -2987,7 +3288,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -3008,7 +3309,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -3885,7 +4186,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -3895,6 +4196,7 @@
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -3921,7 +4223,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -3943,14 +4245,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -3980,14 +4282,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -4000,6 +4302,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -4008,7 +4330,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_ac</ci>
+                                </apply>
+                                <ci>T_ar</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -4017,13 +4347,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
         <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -4050,7 +4402,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -4072,14 +4424,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -4109,14 +4461,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -4129,6 +4481,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -4137,7 +4509,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_vc</ci>
+                                </apply>
+                                <ci>T_vr</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <gt/>
@@ -4146,7 +4526,28 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -4215,7 +4616,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -4236,7 +4637,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -5147,7 +5548,7 @@
         <variable initial_value="1e-14" name="eps_m4" units="m4"/>
         <variable initial_value="1e-14" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <!-- TODO the below parameters should be set in an init_states parameter file
  q_lv gets identified, the others are set arbitrarily, identifying q_lv sets the stressed volume of the system.-->
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
@@ -5157,6 +5558,7 @@
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5183,7 +5585,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -5205,14 +5607,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -5242,14 +5644,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -5262,6 +5664,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -5270,7 +5692,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_ac</ci>
+                                </apply>
+                                <ci>T_ar</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -5279,13 +5709,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
         <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5312,7 +5764,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -5334,14 +5786,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -5371,14 +5823,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -5391,6 +5843,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -5399,7 +5871,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_vc</ci>
+                                </apply>
+                                <ci>T_vr</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <gt/>
@@ -5408,7 +5888,28 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -5477,7 +5978,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -5498,7 +5999,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -6473,7 +6974,7 @@
         <variable initial_value="1e-22" name="eps_m4" units="m4"/>
         <variable initial_value="1e-22" name="eps_m2" units="m2"/>
         <variable initial_value="0.07" name="eps_1" units="dimensionless"/>
-        <variable initial_value="0.05" name="eps_2" units="dimensionless"/>
+        <variable initial_value="0.02" name="eps_2" units="dimensionless"/>
         <variable initial_value="q_lv_init" name="q_lv" public_interface="out" units="m3"/>
         <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
         <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
@@ -6481,6 +6982,7 @@
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
+        <variable name="chi_afloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -6507,7 +7009,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -6529,14 +7031,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -6566,14 +7068,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_ac</ci>
                         </apply>
                         <apply>
@@ -6586,6 +7088,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_ar</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <geq/>
+                                <ci>chi_afloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_afloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -6594,7 +7116,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_ar</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_ac</ci>
+                                </apply>
+                                <ci>T_ar</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <geq/>
@@ -6603,13 +7133,35 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_afloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_afloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
         </math>
         <variable initial_value="0.0" name="chi_v" units="dimensionless"/>
         <variable name="chi_vfloor" units="dimensionless"/>
+        <variable name="chi_vfloor_final" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -6636,7 +7188,7 @@
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -6658,14 +7210,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -6695,14 +7247,14 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
-                                <cn cellml:units="dimensionless">0.5</cn>
+                                <cn cellml:units="dimensionless">0.25</cn>
                             </apply>
                         </apply>
                     </piece>
                     <piece>
                         <apply>
                             <divide/>
-                            <cn cellml:units="dimensionless">0.5</cn>
+                            <cn cellml:units="dimensionless">0.25</cn>
                             <ci>T_vc</ci>
                         </apply>
                         <apply>
@@ -6715,6 +7267,26 @@
                             <apply>
                                 <leq/>
                                 <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">0.25</cn>
+                            <ci>T_vr</ci>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>chi_vfloor</ci>
+                                <cn cellml:units="dimensionless">0.25</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>chi_vfloor</ci>
                                 <cn cellml:units="dimensionless">0.5</cn>
                             </apply>
                         </apply>
@@ -6723,7 +7295,15 @@
                         <apply>
                             <divide/>
                             <cn cellml:units="dimensionless">0.5</cn>
-                            <ci>T_vr</ci>
+                            <apply>
+                                <minus/>
+                                <apply>
+                                    <minus/>
+                                    <ci>T</ci>
+                                    <ci>T_vc</ci>
+                                </apply>
+                                <ci>T_vr</ci>
+                            </apply>
                         </apply>
                         <apply>
                             <gt/>
@@ -6732,7 +7312,28 @@
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="per_s">0</cn>
+                        <cn cellml:units="per_s">0.0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>chi_vfloor_final</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <apply>
+                            <leq/>
+                            <ci>chi_vfloor</ci>
+                            <cn cellml:units="dimensionless">0.5</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0.0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -6801,7 +7402,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_afloor</ci>
+                                <ci>chi_afloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -6822,7 +7423,7 @@
                                 <times/>
                                 <cn cellml:units="dimensionless">2</cn>
                                 <pi/>
-                                <ci>chi_vfloor</ci>
+                                <ci>chi_vfloor_final</ci>
                             </apply>
                         </apply>
                     </apply>
