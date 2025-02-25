@@ -3,7 +3,6 @@ import numpy as np
 import os
 import sys
 from importlib import import_module # Only used for debugging
-from utilities.utility_funcs import get_size
 # from func_timeout import func_timeout, FunctionTimedOut
 
 class SimulationHelper():
