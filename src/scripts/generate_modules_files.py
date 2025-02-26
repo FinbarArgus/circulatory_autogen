@@ -42,7 +42,7 @@ def _print_errors(l):
 # Extract variables, constants and state variables from the model
 def _extract_variables_constants_states_from_model(analysed_model):
     variables = []
-    constants = []
+    constants = {}
     states = []
 
     # Get variables and constants
@@ -54,7 +54,7 @@ def _extract_variables_constants_states_from_model(analysed_model):
         if type_as_string == "algebraic":
             variables.append(variable.name())
         elif type_as_string == "constant":
-            constants.append(variable.name())
+            constants[variable.name()] = variable.initialValue()
 
     # Get state variables and set initial values
     for i in range(analysed_model.stateCount()):
@@ -74,10 +74,14 @@ def _extract_variables_constants_states_of_component(component, model_variables,
         if component.variable(i).name() in model_variables:
             variables.append([component.variable(i).name(), component.variable(i).units().name(), "variable"])
         elif component.variable(i).name() in model_constants:
-            constants.append([component.variable(i).name(), component.variable(i).units().name(), "constant", component.variable(i).initialValue()])
+            if not component.variable(i).initialValue():
+                initial_value = model_constants[component.variable(i).name()]
+                constants.append([component.variable(i).name(), component.variable(i).units().name(), "constant", initial_value])
+            else:
+                constants.append([component.variable(i).name(), component.variable(i).units().name(), "constant", component.variable(i).initialValue()])
         elif component.variable(i).name() in {row[0] for row in model_states}:
             constants.append([f"{component.variable(i).name()}_init", component.variable(i).units().name(), "constant", component.variable(i).initialValue()])
-            states.append([component.variable(i).name(), component.variable(i).units().name(), "variable"])   
+            states.append([component.variable(i).name(), component.variable(i).units().name(), "variable"])
 
     return variables, constants, states
 
@@ -227,8 +231,9 @@ def _update_units_file(root):
 # Modify component name
 def _modify_component_name(root):
     for component in root.findall(f".//{{{cellml_namespace}}}component"):
-        new_name = f"{file_prefix}_{component.attrib["name"]}_type"
-        component.set("name", new_name)
+        if component.attrib["name"]==component_name:
+            new_name = f"{file_prefix}_{component.attrib["name"]}_type"
+            component.set("name", new_name)
 
 # Modify variable elements in cellml module
 def _modify_variables(root):
@@ -240,6 +245,8 @@ def _modify_variables(root):
         elif "initial_value" in variable.attrib:
             del variable.attrib["initial_value"]
             variable.set("public_interface", "in")
+        elif "public_interface" in variable.attrib and variable.attrib["public_interface"]=="in":
+            pass
         else:
             variable.set("public_interface", "out")
 
