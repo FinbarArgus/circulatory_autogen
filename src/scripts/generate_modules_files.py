@@ -232,7 +232,7 @@ def _update_units_file(root):
 def _modify_variables(root):
     component = root.find(f".//{{{cellml_namespace}}}component[@name='{component_name}']")
 
-    variables = component.findall("variable")
+    variables = component.findall(f".//{{{cellml_namespace}}}variable")
     for variable in variables:
         if variable.attrib["name"]=="t":
             variable.set("public_interface", "in")
