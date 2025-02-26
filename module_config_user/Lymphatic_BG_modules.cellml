@@ -2022,7 +2022,8 @@ endsel;-->
             </apply>
             <!-- u_C_d         = q_C_d/(C/2{dimensionless})+u_ext;
  u             = u_C+2{dimensionless}*R_v*(v_in-v);
- u_d           = u_C_d+2{dimensionless}*R_v*(v-v_out);-->
+ u_d           = u_C_d+2{dimensionless}*R_v*(v-v_out);
+ TODO include the third term in the tube law.-->
             <apply>
                 <eq/>
                 <ci>u</ci>
