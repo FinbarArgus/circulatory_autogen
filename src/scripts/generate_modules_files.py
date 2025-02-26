@@ -169,14 +169,14 @@ def _generate_cellml_module(input_model, states, file_prefix):
     # Move units to user_units.cellml
     _update_units_file(root)
 
-    # Modify component name
-    _modify_component_name(root)
-
     # Modify variable elements
     _modify_variables(root)
 
     # Modify state variable elements
     _modify_state_variables(root, states)
+
+    # Modify component name
+    _modify_component_name(root)
 
     # Ensure math elements are using the proper namespace
     for math in root.findall(f".//{{{mathml_namespace}}}math"):
@@ -228,16 +228,12 @@ def _update_units_file(root):
 
     print(f"Updated user_units.cellml")
 
-# Modify component name
-def _modify_component_name(root):
-    for component in root.findall(f".//{{{cellml_namespace}}}component"):
-        if component.attrib["name"]==component_name:
-            new_name = f"{file_prefix}_{component.attrib["name"]}_type"
-            component.set("name", new_name)
-
-# Modify variable elements in cellml module
+# Modify variable elements in cellml module component
 def _modify_variables(root):
-    for variable in root.findall(f".//{{{cellml_namespace}}}variable"):
+    component = root.find(f".//{{{cellml_namespace}}}component[@name='{component_name}']")
+
+    variables = component.findall("variable")
+    for variable in variables:
         if variable.attrib["name"]=="t":
             variable.set("public_interface", "in")
             if "initial_value" in variable.attrib:
@@ -265,6 +261,12 @@ def _modify_state_variables(root, states):
             new_variable = ET.Element(f"{{{cellml_namespace}}}variable", name=var_name, units=unit, public_interface="out", initial_value=new_name)
             
             root.find(f".//{{{cellml_namespace}}}component").append(new_variable)
+
+# Modify component name
+def _modify_component_name(root):
+    for component in root.findall(f".//{{{cellml_namespace}}}component[@name='{component_name}']"):
+        new_name = f"{file_prefix}_{component.attrib["name"]}_type"
+        component.set("name", new_name)
 
 # Generate user_inputs.yaml
 def _generate_user_inputs_yaml(output_dir, file_prefix):
@@ -361,7 +363,7 @@ def main():
 
     _generate_parameters_csv(args.output_dir, constants, vessel_name, file_prefix, data_reference)
 
-    _generate_cellml_module(args.input_model, model_states, file_prefix)
+    _generate_cellml_module(args.input_model, states, file_prefix)
 
     _generate_user_inputs_yaml(args.output_dir, file_prefix)
 
