@@ -8,18 +8,38 @@ MPI_DEBUG: false
 # file_prefix: lung_control
 # file_prefix: lung_CVS_coupled
 # file_prefix: simple_physiological
+# file_prefix: simple_physiological_wLeftArm
+# file_prefix: simple_physiological_nonlinear
+# file_prefix: simple_physiological_nonlinear_visco
+file_prefix: simple_physiological_wLeftArm_nonlinear_visco
 # file_prefix: physiological
 # file_prefix: 3compartment
 # file_prefix: delay_test
 # file_prefix: neonatal
 # file_prefix: neonatal_test
 # file_prefix: cpp_coupling
-file_prefix: aortic_bif_1d_wCont
+# file_prefix: aortic_bif_1d_wCont
 # file_prefix: cardiomyocyte_paci_2013 
 # file_prefix: temp_channel
 # file_prefix: delay_test 
 # file_prefix: SN_to_cAMP
 # file_prefix: parasympathetic_model
+
+# file_prefix: stage1adan_merged_V3OL1
+# file_prefix: stage1adan_merged_V3OL2
+# file_prefix: stage1adan_merged_V3
+# file_prefix: stage1adan_merged_V3OL_calibStep
+# file_prefix: stage1adan_merged_V3OL_simStepWcalib
+# NEW
+# file_prefix: vital_stage1adan_merged_OL_calibStep_C0 # Calibration0
+# file_prefix: vital_stage1adan_merged_OL_calibStep_C0-NEW # Calibration0-NEW
+# file_prefix: vital_stage1adan_merged_OL_calibStep_C1 # Calibration1
+# file_prefix: vital_stage1adan_merged_OL_calibStep_C2 # Calibration2
+# file_prefix: vital_stage1adan_merged_OL_simStepWcalib_C0 # Calibration0
+# file_prefix: vital_stage1adan_merged_OL_simStepWcalib_C0-NEW # Calibration0-NEW
+# file_prefix: vital_stage1adan_merged_OL_simStepWcalib_C1 # Calibration1
+# file_prefix: vital_stage1adan_merged_OL_simStepWcalib_C2 # Calibration2
+
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
@@ -28,7 +48,7 @@ file_prefix: aortic_bif_1d_wCont
 # input_param_file: lung_CVS_coupled_parameters.csv
 # input_param_file: physiological_parameters.csv 
 # input_param_file: cpp_coupling_parameters.csv 
-input_param_file: aortic_bif_1d_wCont_parameters.csv 
+# input_param_file: aortic_bif_1d_wCont_parameters.csv 
 # input_param_file: neonatal_parameters.csv 
 # input_param_file: neonatal_test_parameters.csv 
 # input_param_file: control_phys_parameters.csv 
@@ -38,8 +58,27 @@ input_param_file: aortic_bif_1d_wCont_parameters.csv
 # input_param_file: temp_channel_parameters.csv 
 # input_param_file: delay_test_parameters.csv
 # input_param_file: simple_physiological_parameters.csv
+# input_param_file: simple_physiological_wLeftArm_parameters.csv
+# input_param_file: simple_physiological_nonlinear_parameters.csv
+# input_param_file: simple_physiological_nonlinear_visco_parameters.csv
+input_param_file: simple_physiological_wLeftArm_nonlinear_visco_parameters.csv
 # input_param_file: SN_to_cAMP_parameters.csv
 # input_param_file: parasympathetic_model_parameters.csv
+
+# input_param_file: stage1adan_merged_V3OL1_parameters.csv
+# input_param_file: stage1adan_merged_V3OL2_parameters.csv
+# input_param_file: stage1adan_merged_V3_parameters.csv
+# input_param_file: stage1adan_merged_V3OL_calibStep_parameters.csv
+# input_param_file: stage1adan_merged_V3OL_simStepWcalib_parameters.csv
+# NEW
+# input_param_file: vital_stage1adan_merged_OL_calibStep_C0_parameters.csv # Calibration0
+# input_param_file: vital_stage1adan_merged_OL_calibStep_C0-NEW_parameters.csv # Calibration0-NEW
+# input_param_file: vital_stage1adan_merged_OL_calibStep_C1_parameters.csv # Calibration1
+# input_param_file: vital_stage1adan_merged_OL_calibStep_C2_parameters.csv # Calibration2
+# input_param_file: vital_stage1adan_merged_OL_simStepWcalib_C0_parameters.csv # Calibration0
+# input_param_file: vital_stage1adan_merged_OL_simStepWcalib_C0-NEW_parameters.csv # Calibration0-NEW
+# input_param_file: vital_stage1adan_merged_OL_simStepWcalib_C1_parameters.csv # Calibration1
+# input_param_file: vital_stage1adan_merged_OL_simStepWcalib_C2_parameters.csv # Calibration2
 
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
@@ -71,7 +110,8 @@ sim_time: 2.0
 # param_id_output_dir: /home/farg967/Documents/physiology_models/pulmonary_CVS_Alfred/patient_4/coupled_pre/param_id_output
 
 # This is for cpp generation
-cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
+# cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
+cpp_generated_models_dir: /hpc/bghi639/Software/circulatory_autogen/generated_models/simple_physiological
 # This is for cpp_coupling
 couple_to_1d: True
 cpp_1d_model_config_path: /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat

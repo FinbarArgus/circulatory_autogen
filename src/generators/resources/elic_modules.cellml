@@ -36,11 +36,13 @@ u_out = u_in;-->
         <variable name="error_flow_percent" public_interface="out" units="dimensionless"/>
         <variable name="u_a" public_interface="in" units="J_per_m3"/>
         <variable name="v_a" public_interface="in" units="m3_per_s"/>
+        <!--replace v_a with v from attached vessel-->
         <variable name="meanflow_4dflow" public_interface="in" units="m3_per_s"/>
         <variable name="BFF_ASL" public_interface="in" units="dimensionless"/>
         <variable name="pressure_d" public_interface="in" units="J_per_m3"/>
         <variable name="error" public_interface="out" units="J_per_m3"/>
-        <variable name="check" public_interface="out" units="dimensionless"/>
+        <variable name="r_a" public_interface="out" units="dimensionless"/>
+        <variable name="critic" public_interface="out" units="dimensionless"/>
         <variable name="x1" units="dimensionless"/>
         <variable name="x2" units="dimensionless"/>
         <variable name="x3" units="dimensionless"/>
@@ -53,12 +55,22 @@ u_out = u_in;-->
         <variable initial_value="100" name="cc5" units="dimensionless"/>
         <variable initial_value="100" name="aa8" public_interface="out" units="dimensionless"/>
         <variable initial_value="100" name="cc8" units="dimensionless"/>
+        <variable name="check" public_interface="out" units="dimensionless"/>
         <variable initial_value="1e6" name="learning_rate" units="dimensionless"/>
+        <!-- only change this (speed of convergence, not too high otherwise problem diverges)-->
         <variable initial_value="0.001" name="K_a" units="dimensionless"/>
-        <variable name="critic" public_interface="out" units="dimensionless"/>
-        <variable name="r_a" public_interface="out" units="dimensionless"/>
-        <!-- Conservation Laws-->
+        <!-- and this, increase if you want to improve the accuracy in the predicted BFF (this is the coefficient/regularizer in the penalty term to control the BFF)-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>error</ci>
+                <apply>
+                    <minus/>
+                    <ci>pressure_d</ci>
+                    <ci>u_a</ci>
+                </apply>
+            </apply>
+            <!-- error in pressure-->
             <apply>
                 <eq/>
                 <ci>r_a</ci>
@@ -72,15 +84,7 @@ u_out = u_in;-->
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>error</ci>
-                <apply>
-                    <minus/>
-                    <ci>pressure_d</ci>
-                    <ci>u_a</ci>
-                </apply>
-            </apply>
+            <!-- error in BFF-->
             <apply>
                 <eq/>
                 <ci>critic</ci>
