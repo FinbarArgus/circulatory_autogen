@@ -24,8 +24,6 @@ Clone the Circulatory Autogen project from the [GitHub repository](https://githu
 
     - `git clone https://github.com/<YourUsername>/circulatory_autogen`
 
-    - `git remote add origin https://github.com/<YourUsername>/circulatory_autogen`
-
     - `git remote add upstream https://github.com/FinbarArgus/circulatory_autogen`
 
 !!! Note
