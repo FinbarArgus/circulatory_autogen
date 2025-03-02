@@ -611,6 +611,12 @@ class CVS0DParamID():
         bar_list = axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
+        # save std error and percentage error
+
+        np.save(os.path.join(self.output_dir, 'percent_error_vec.npy'), percent_error_vec)
+        np.save(os.path.join(self.output_dir, 'std_error_vec.npy'), std_error_vec)
+        
+
         # bar_list[0].set_facecolor('r')
         # bar_list[1].set_facecolor('r')
 
