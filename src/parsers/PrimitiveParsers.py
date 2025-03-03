@@ -118,7 +118,15 @@ class YamlFileParser(object):
             else:
                 print(f'param_id_obs_path needs to be defined in user_inputs.yaml')
                 exit()
-                
+
+            if 'params_for_id_file' in inp_data_dict.keys():
+                inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['params_for_id_file'])
+            else:
+                inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], f'{file_prefix}_params_for_id.csv')
+
+            if not os.path.exists(inp_data_dict['params_for_id_path']):
+                print(f'params_for_id path of {inp_data_dict["params_for_id_path"]} doesn\'t exist, user must create this file')
+                exit()
 
         if do_generation_with_fit_parameters:
             data_str_addon = re.sub('.json', '', os.path.split(inp_data_dict['param_id_obs_path'])[1])
@@ -136,15 +144,6 @@ class YamlFileParser(object):
             os.mkdir(inp_data_dict['generated_models_subdir'])
             
         inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}.cellml')
-
-        if 'params_for_id_file' in inp_data_dict.keys():
-            inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['params_for_id_file'])
-        else:
-            inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], f'{file_prefix}_params_for_id.csv')
-
-        if not os.path.exists(inp_data_dict['params_for_id_path']):
-            print(f'params_for_id path of {inp_data_dict["params_for_id_path"]} doesn\'t exist, user must create this file')
-            exit()
 
 
         if 'pre_time' in inp_data_dict.keys():
