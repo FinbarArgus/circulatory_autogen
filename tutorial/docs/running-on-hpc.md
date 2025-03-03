@@ -6,5 +6,9 @@ If running on the ABI HPC, you can use a pre-installed (with all neccesary libra
 
 `opencor_pythonshell_path=/hpc/farg967/OpenCOR-0-8-1-Linux/pythonshell`
 
+Following that to run in parallel you need to load mpich. Do the following from the {project_dir}/user_run_files dir:
+
+`. load_mpi.sh`
+
 Then you should be able to run as normal from the user\_run\_files dir
 
