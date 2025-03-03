@@ -9,13 +9,13 @@
   },
   "prediction_items":[
     {
-      "variable": "var_SN/Ca_ter",
+      "variable": "var_SN/Cai",
       "unit": "millimolar",
       "name_for_plotting": "Ca_{ter}",
       "experiment_idx": 0
     },
     {
-      "variable": "var_SN/Ca_ter",
+      "variable": "var_SN/Cai",
       "unit": "millimolar",
       "name_for_plotting": "Ca_{ter}",
       "experiment_idx": 1

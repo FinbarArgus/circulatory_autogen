@@ -2756,13 +2756,11 @@ class OpencorParamID():
         # for now we just concatenate results for subexperiments 
         pred_output_list = []                           
         for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
-            subexp_count = int(np.sum([num_sub for num_sub in 
-                                        self.protocol_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
             if this_sub_idx == 0:
                 # the last 3 idxs are, pred_idx, operand_idx, time_idx
-                pred_output_list.append(np.array(pred_operand_outputs[subexp_count])[:,0,:])
+                pred_output_list.append(np.array(pred_operand_outputs[this_sub_idx])[:,0,:])
             else:
-                pred_output_list.append(np.array(pred_operand_outputs[subexp_count])[:,0,1:])
+                pred_output_list.append(np.array(pred_operand_outputs[this_sub_idx])[:,0,1:])
         pred_outputs = np.concatenate(pred_output_list, axis=1)
         return pred_outputs
 
