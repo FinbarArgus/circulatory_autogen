@@ -1,10 +1,18 @@
-# Creating a new model
+# Designing a model
+
+This section describes how to design a model to be run in Circulatory Autogen. There are two sub sections included in this guide as follows.
+
+1. [Creating a new model](#creating-a-new-model)
+
+2. [Converting an existing CellML model to run in Circulatory Autogen](#converting-an-existing-cellml-model-to-run-in-circulatory-autogen)
+
+## Creating a new model
 
 This software is designed so the user can easily make their own modules and couple them with existing modules. The steps are as follows.
 
 1. Either choose an existing `{module_category}_modules.cellml` file to write your module, or if it is a new category of module, create a `{module_category}_modules.cellml` file in `src/generators/resources/`.
 
-2. Put you cellml model into the `{module_category}_modules.cellml` file.
+2. Put your cellml model into the `{module_category}_modules.cellml` file.
 
 3. Create a corresponding module configuration entry into `module_config.json`. These module declarations detail the variables that can be accessed, the constants that must be defined and the available ports of the module.
 
@@ -15,9 +23,11 @@ This software is designed so the user can easily make their own modules and coup
         
         For an example, if VesselOne has an entrance 'vessel_port' and VesselTwo has an entrance 'vessel_port', they will be coupled with the variables declared in their corresponding 'vessel_port'. You must be careful when making a new module, that the modules it couples to only has matching port types for the ones that are necessary for coupling.
 
+5. Define model constants in the parameters file.
+
 Following sections include more details on creating the above required files.
 
-## Creating vessel_array and parameter files
+### Creating vessel_array and parameter files
 
 This section discusses creating a vessel array and parameters files to build a new desired model.
 
@@ -67,7 +77,7 @@ Following is an example of a parameter file.
     
     This file will include the parameters which were not inserted in the file with *EMPTY_MUST_BE_FILLED* value and data_reference entries. You should add the parameter value and a reference in the file. Subsequently, delete the last part of the file's name (“unfinished”) and rerun the code to solve the issue.
 
-## Modules and definition of a new module
+### Modules and definition of a new module
 
 In the `[CA_dir]/src/generators/resources` directory, there are several CellML files which contain the modules that can be coupled together in your model. The `module_config.json file` defines the connection ports and variables of each cellml module.
 
@@ -87,7 +97,7 @@ Following is one of the modules in the `BG_modules` file. The main body of a spe
 
 ![Module](images/module.png)
 
-## Example of creating a new module
+### Example of creating a new module
 
 This section shows a simple example to create a new module, which you can find in the JSON file.
 
@@ -119,3 +129,26 @@ The entries in the `module_config.json` file are detailed as follows:
         All constants are required to be entered in the `[resources_dir]/[file_prefix]_parameters.csv` file with the following naming convention: **[variable_name]_[vessel_name]**.
 
         All global_constants are required to be entered in the `[resources_dir]/[file_prefix]_parameters.csv` file as just **[variable_name]**.
+
+## Converting an existing CellML model to run in Circulatory Autogen
+
+Circulatory Autogen provides a script to convert an existing cellml model to a format that can be used in this software. 
+
+You can run this script by navigating to the `user_run_files` directory and executing the below command, where `<input_model>` is the path to your CellML model and `<output_dir>` is the directory where you need to create the resources files and the new `[file_prefix]_user_inputs.yaml` file.
+
+```
+./generate_modules_files.sh <input_model> <output_dir>
+```
+
+This script generates the `[file_prefix]_modules.cellml` and `module_config.json` files in the `module_config_user` directory. `[file_prefix]_parameters.csv` and `[file_prefix]_vessel_array.csv` files are created in `<output_dir/resources` and the `[file_prefix]_user_inputs.yaml` is created in `<output_dir/resources`.
+
+You only need to update the `user_inputs.yaml` file at the `user_run_files` directory to update **`user_inputs_path_override:`** to `<output_dir/[file_prefix]_user_inputs.yaml` to run model autogeneration.
+
+!!! Note
+    You can update the **file_prefix**, **vessel_name** and the **data_reference** variables in the `generate_modules_files.py` at the `src/scripts` directory before running the script, so it will generate files with the defined variables.
+
+!!! Warning
+    You need to specify the variable name of time as the **time_variable**.
+    
+    Variable **component_name** should be the name of the component for which you want to generate files.
+    
