@@ -381,16 +381,18 @@ class CVS0DCellMLGenerator(object):
 
     def __write_module_mappings(self, wf, module_df):
         """This function maps between ports of the modules in a module dataframe."""
-        # set connected to false for all entrance ports TODO this might be a better way to check connected for exit ports too
-        entrance_ports_connected = {}
+        # set connected to false for all entrance and general ports TODO this might be a better way to check connected for exit ports too
+        entrance_general_ports_connected = {}
         for module_row_idx in range(len(module_df)):
             if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
                 # if not cellml then don't do anything for this vessel/module
                 continue
-            entrance_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
+            entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]] = []
             for II in range(len(module_df.iloc[module_row_idx]["entrance_ports"])):
                 # module_df.iloc[module_row_idx]["entrance_ports"][II]["connected"] = False
-                entrance_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
+                entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
+            for II in range(len(module_df.iloc[module_row_idx]["general_ports"])):
+                entrance_general_ports_connected[module_df.iloc[module_row_idx]["name"]].append(False)
 
         # set BC_set to false for all boundary_condition variables
         for module_row_idx in range(len(module_df)):
@@ -410,7 +412,7 @@ class CVS0DCellMLGenerator(object):
                 # if not cellml then don't do anything for this vessel/module
                 continue
             self.__write_module_mapping_for_row(module_df.iloc[module_row_idx], module_df,
-                                                entrance_ports_connected, wf)  # entrance_ports_connected is a modified
+                                                entrance_general_ports_connected, wf)  # entrance_ports_connected is a modified
             # in this function
 
         # check whether the BC variables have been set with a matched module, if so, remove them from 
@@ -445,7 +447,7 @@ class CVS0DCellMLGenerator(object):
         else:
             self.all_parameters_defined = True
 
-    def __write_module_mapping_for_row(self, module_row, module_df, entrance_ports_connected, wf):
+    def __write_module_mapping_for_row(self, module_row, module_df, entrance_general_ports_connected, wf):
         """This function maps between ports of the modules in a one row of a module dataframe."""
 
         # input and output modules
@@ -471,6 +473,22 @@ class CVS0DCellMLGenerator(object):
                                    "out_port_idxs": [out_port_idx],
                                    "port_type_count": 1,
                                    "connected": [False]})  # whether this exit port has been connected
+                
+        for out_port_idx in range(len(module_row["general_ports"])):
+            port_type = module_row["general_ports"][out_port_idx]["port_type"]
+            if port_type in [port_types[II]["port_type"] for II in range(len(port_types))]:
+                port_type_idx = [port_types[II]["port_type"] for II
+                                 in range(len(port_types))].index(port_type)
+                port_types[port_type_idx]["out_port_idxs"].append(out_port_idx+len(module_row["exit_ports"]))
+                port_types[port_type_idx]["port_type_count"] += 1
+                port_types[port_type_idx]["connected"].append(False)
+
+            else:
+                port_types.append({"port_type": module_row["general_ports"][out_port_idx]["port_type"],
+                                   "out_port_idxs": [out_port_idx+len(module_row["exit_ports"])],
+                                   "port_type_count": 1,
+                                   "connected": [False]})
+                
         # check inp vessels are all connected # TODO this should be done in the model parsing stage
         for inp_module_idx, inp_module in enumerate(module_row["inp_vessels"]):
             if not (module_df["name"] == inp_module).any():
@@ -497,8 +515,8 @@ class CVS0DCellMLGenerator(object):
             self.__check_input_output_modules(module_df, main_module, out_module,
                                               main_module_BC_type, out_module_BC_type,
                                               main_module_type, out_module_type)
-            self.__check_input_output_ports(module_row["exit_ports"], out_module_row["entrance_ports"],
-                                            out_module, main_module)
+            self.__check_input_output_ports(module_row["exit_ports"], module_row["general_ports"], out_module_row["entrance_ports"],
+                                            out_module_row["general_ports"], main_module, out_module)
 
             # create a list of dicts that stores info for the entrance ports of this output module
             entrance_port_types = []
@@ -513,6 +531,18 @@ class CVS0DCellMLGenerator(object):
                     entrance_port_types.append({"port_type": out_module_row["entrance_ports"][entrance_port_idx]["port_type"],
                                                 "entrance_port_idxs": [entrance_port_idx],
                                                 "port_type_count": 1})
+                    
+            for entrance_port_idx in range(len(out_module_row["general_ports"])):
+                port_type = out_module_row["general_ports"][entrance_port_idx]["port_type"]
+                if port_type in [entrance_port_types[II]["port_type"] for II in range(len(entrance_port_types))]:
+                    port_type_idx = [entrance_port_types[II]["port_type"] for II
+                                     in range(len(entrance_port_types))].index(port_type)
+                    entrance_port_types[port_type_idx]["entrance_port_idxs"].append(entrance_port_idx+len(out_module_row["entrance_ports"]))
+                    entrance_port_types[port_type_idx]["port_type_count"] += 1
+                else:
+                    entrance_port_types.append({"port_type": out_module_row["general_ports"][entrance_port_idx]["port_type"],
+                                                "entrance_port_idxs": [entrance_port_idx+len(out_module_row["entrance_ports"])],
+                                                "port_type_count": 1})
 
             for port_type_idx in range(len(port_types)):
                 entrance_port_type_idx = -1
@@ -521,7 +551,7 @@ class CVS0DCellMLGenerator(object):
                     if entrance_port_types[II]["port_type"] == port_types[port_type_idx]["port_type"]:
                         entrance_port_type_idx = II
                         for JJ in entrance_port_types[II]["entrance_port_idxs"]:
-                            if not entrance_ports_connected[out_module][JJ]:
+                            if not entrance_general_ports_connected[out_module][JJ]:
                                 entrance_port_idx = JJ
                                 break
                         break
@@ -573,8 +603,11 @@ class CVS0DCellMLGenerator(object):
                                 entrance_port_idx = heart_inp_idx + self.ivc_connection_done
                                 break
 
-                    variables_1 = module_row["exit_ports"][out_port_idx]['variables']
-                    variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
+                    module_exit_general_ports = module_row["exit_ports"] + module_row["general_ports"]
+                    out_module_entrance_general_ports = out_module_row["entrance_ports"] + out_module_row["general_ports"]
+
+                    variables_1 = module_exit_general_ports[out_port_idx]['variables']
+                    variables_2 = out_module_entrance_general_ports[entrance_port_idx]['variables']
 
                     if module_row["vessel_type"].endswith('terminal'):
                         # the terminal connections are done through the terminal_venous_connection
@@ -589,8 +622,8 @@ class CVS0DCellMLGenerator(object):
                             self.__write_mapping(wf, main_module_module, out_module_module, variables_1, variables_2)
 
                     # only assign connected if the port doesnt have a multi_ports flag
-                    if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
-                        if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:
+                    if 'multi_port' in module_exit_general_ports[out_port_idx].keys():
+                        if module_exit_general_ports[out_port_idx]['multi_port'] in ['True', True]:
                             pass
                         else:
                             port_types[port_type_idx]["connected"][this_type_port_idx] = True
@@ -598,12 +631,12 @@ class CVS0DCellMLGenerator(object):
                         port_types[port_type_idx]["connected"][this_type_port_idx] = True
 
                     if 'multi_port' in out_module_row["entrance_ports"][entrance_port_idx].keys():
-                        if out_module_row["entrance_ports"][entrance_port_idx]['multi_port'] in ['True', True]:
+                        if out_module_entrance_general_ports[entrance_port_idx]['multi_port'] in ['True', True]:
                             pass
                         else:
-                            entrance_ports_connected[out_module][entrance_port_idx] = True
+                            entrance_general_ports_connected[out_module][entrance_port_idx] = True
                     else:
-                        entrance_ports_connected[out_module][entrance_port_idx] = True
+                        entrance_general_ports_connected[out_module][entrance_port_idx] = True
 
                     for II in range(len(variables_1)):
                         if variables_1[II] in self.BC_set[main_module].keys():
@@ -626,8 +659,11 @@ class CVS0DCellMLGenerator(object):
                             #             break
                             # else:
 
-                            variables_1 = module_row["exit_ports"][out_port_idx]['variables']
-                            variables_2 = out_module_row["entrance_ports"][entrance_port_idx]['variables']
+                            module_exit_general_ports = module_row["exit_ports"] + module_row["general_ports"]
+                            out_module_entrance_general_ports = out_module_row["entrance_ports"] + out_module_row["general_ports"]
+
+                            variables_1 = module_exit_general_ports[out_port_idx]['variables']
+                            variables_2 = out_module_entrance_general_ports[entrance_port_idx]['variables']
 
                             # TODO make this more general. Have a entry in module_config.json entrance and exit 
                             # types that specify a certain operation, like averaging wrt flow, like this gas port.
@@ -650,23 +686,23 @@ class CVS0DCellMLGenerator(object):
                                     self.BC_set[out_module][variables_2[II]] = True
 
                             # only assign connected if the port doesnt have a multi_ports flag
-                            if 'multi_port' in module_row["exit_ports"][out_port_idx].keys():
-                                if module_row["exit_ports"][out_port_idx]['multi_port'] in ['True', True]:
+                            if 'multi_port' in module_exit_general_ports[out_port_idx].keys():
+                                if module_exit_general_ports[out_port_idx]['multi_port'] in ['True', True]:
                                     pass
                                 else:
                                     port_types[port_type_idx]["connected"][this_type_port_idx] = True
                             else:
                                 port_types[port_type_idx]["connected"][this_type_port_idx] = True
 
-                            if 'multi_port' in out_module_row["entrance_ports"][entrance_port_idx].keys():
-                                if out_module_row["entrance_ports"][entrance_port_idx]['multi_port'] in ['True', True]:
+                            if 'multi_port' in out_module_entrance_general_ports[entrance_port_idx].keys():
+                                if out_module_entrance_general_ports[entrance_port_idx]['multi_port'] in ['True', True]:
                                     pass
                                 else:
-                                    entrance_ports_connected[out_module][entrance_port_idx] = True
+                                    entrance_general_ports_connected[out_module][entrance_port_idx] = True
                             else:
-                                entrance_ports_connected[out_module][entrance_port_idx] = True
+                                entrance_general_ports_connected[out_module][entrance_port_idx] = True
 
-        return entrance_ports_connected
+        return entrance_general_ports_connected
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
         first_venous_names = []  # stores name of venous compartments that take flow from terminals
@@ -976,20 +1012,30 @@ class CVS0DCellMLGenerator(object):
                       ' should be v')
                 exit()
 
-    def __check_input_output_ports(self, exit_ports, entrance_ports, exit_port_name, entrance_port_name):
+    def __check_input_output_ports(self, exit_ports, output_general_ports, entrance_ports, input_general_ports, exit_module, entrance_module):
         # check that input and output modules have a matching port
-        shared_port = False
+        shared_exit_port = False
+        shared_general_port = False
         for exit_port in exit_ports:
-            if exit_port["port_type"] in [entrance_port["port_type"] for entrance_port in entrance_ports]:
-                shared_port = True
+            if exit_port["port_type"] in [entrance_port["port_type"] for entrance_port in entrance_ports] or exit_port["port_type"] in [general_port["port_type"] for general_port in input_general_ports]:
+                shared_exit_port = True
                 break
-        if shared_port == False:
-            print(f'output module {exit_port_name} and input module {entrance_port_name} do not have a matching port,'
+        for general_port in output_general_ports:
+            if general_port["port_type"] in [entrance_port["port_type"] for entrance_port in entrance_ports] or general_port["port_type"] in [general_port["port_type"] for general_port in input_general_ports]:
+                shared_general_port = True
+                break
+        if len(exit_ports) == 0:
+            shared_exit_port = True
+        if len(output_general_ports) == 0:
+            shared_general_port = True
+        if shared_exit_port == False or shared_general_port == False:
+            print(f'output module {exit_module} and input module {entrance_module} do not have a matching port,'
                   f'check the module configuration file')
-            print(f'input module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
-            print(f'output module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
+            print(f'output module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
+            print(f'output module general ports: {[general_port["port_type"] for general_port in output_general_ports]}')
+            print(f'input module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
+            print(f'input module general ports: {[general_port["port_type"] for general_port in input_general_ports]}')
             exit()
-            
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
         mapping = ['<connection>\n', f'   <map_components component_1="{inp_name}" component_2="{out_name}"/>\n']

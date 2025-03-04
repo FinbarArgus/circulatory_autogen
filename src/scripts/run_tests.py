@@ -32,6 +32,13 @@ if __name__ == '__main__':
         print('_________Running all autogeneration tests_____________')
         print('')
 
+    
+        print('running port tests autogeneration test')
+        inp_data_dict['file_prefix'] = 'ports_test'
+        inp_data_dict['input_param_file'] = 'ports_test_parameters.csv'
+        generate_with_new_architecture(False, inp_data_dict)
+        
+        print('')
         print('running 3compartment autogeneration test')
         inp_data_dict['file_prefix'] = '3compartment'
         inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
