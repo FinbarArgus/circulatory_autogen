@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+    <component name="test_units">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="tau" public_interface="out" units="millis"/>
+        <variable initial_value="0.0" name="h" public_interface="out" units="dimensionless"/>
+        <variable initial_value="1e-4" name="epsilon_tau" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>tau</ci>
+                <cn cellml:units="millis">0.1</cn>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>h</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>h</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <abs/>
+                            <apply>
+                                <times/>
+                                <ci>tau</ci>
+                                <cn cellml:units="s_per_millis">0.001</cn>
+                            </apply>
+                        </apply>
+                        <ci>epsilon_tau</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+</model>
