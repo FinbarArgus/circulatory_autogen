@@ -28,11 +28,11 @@ user_inputs_yaml = os.path.join(user_inputs_dir, 'user_inputs.yaml')
 # Define file_prefix, vessel_name and data_reference for the model
 # Specify the time variable and component for which you want to generate files
 file_prefix = "smc_hernandez"
-vessel_name = "smc_model"
-data_reference = "hernandezhernandez"
+vessel_name = "smc_with_piezo"
+data_reference = "hernandezhernandez2024"
 time_variable = "t"
-component_name = "environment"
-input_model = "/home/farg967/Documents/git_projects/cellml_models/Gonzalo_H_SMC/FEB_Fixed_mod_for_CA.cellml"
+component_name = "smc_hernandez"
+input_model = "/home/farg967/Documents/git_projects/cellml_models/Gonzalo_H_SMC/smc_hernandez_one_module.cellml"
 output_dir = "/home/farg967/Documents/git_projects/CA_user/smc_hernandez"
 
 # Parse arguments
