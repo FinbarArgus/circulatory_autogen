@@ -7272,6 +7272,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -7332,6 +7336,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -7399,6 +7407,10 @@
           "port_type":"radius_port",
           "variables":["r_us"]
         },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
         {
           "port_type":"elastic_mod_port",
           "variables":["E"]
@@ -7472,6 +7484,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -7532,6 +7548,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -7598,6 +7618,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -7742,6 +7766,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -7810,6 +7838,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -7885,6 +7917,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -7949,6 +7985,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8019,6 +8059,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8109,6 +8153,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -8183,6 +8231,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8265,6 +8317,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -8343,6 +8399,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -8412,6 +8472,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8487,6 +8551,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8566,6 +8634,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -8627,6 +8699,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8694,6 +8770,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8769,6 +8849,10 @@
         "variables":["r_us"]
       },
       {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
+      },
+      {
         "port_type":"elastic_mod_port",
         "variables":["E"]
       },
@@ -8834,6 +8918,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
@@ -8905,6 +8993,10 @@
       {
         "port_type":"radius_port",
         "variables":["r_us"]
+      },
+      {
+        "port_type":"radius_us_and_s_port",
+        "variables":["r_us", "r"]
       },
       {
         "port_type":"elastic_mod_port",
