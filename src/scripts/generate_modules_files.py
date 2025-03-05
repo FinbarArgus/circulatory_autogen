@@ -232,7 +232,7 @@ def _update_units_file(root):
     # Add units to user_units.cellml
     for name, unit in units_dict.items():
         if name not in user_units and name not in units:
-            user_units_root.append(unit)
+            user_units.append(unit)
 
     # Remove units from the module
     for unit in root.findall(f".//{{{cellml_namespace}}}units"):
