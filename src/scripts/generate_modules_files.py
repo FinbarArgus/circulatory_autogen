@@ -20,6 +20,11 @@ src_dir = os.path.join(os.path.dirname(__file__), '..')
 import utilities.libcellml_helper_funcs as cellml
 import utilities.libcellml_utilities as libcellml_utils
 
+# TODO:
+# - Add support for multiple components in a cellml model
+# - Add support for generating the units file. Currently the units file doesn't get generated. 
+# - Add support for automatically generating the ports in the module_config.json file. Currently the ports are not generated automatically.
+
 # Define file paths
 user_units_cellml = os.path.join(root_dir, 'module_config_user/user_units.cellml')
 units_cellml = os.path.join(src_dir, 'generators/resources/units.cellml')
@@ -28,7 +33,7 @@ user_inputs_yaml = os.path.join(user_inputs_dir, 'user_inputs.yaml')
 # Define file_prefix, vessel_name and data_reference for the model
 # Specify the time variable and component for which you want to generate files
 file_prefix = "smc_hernandez"
-vessel_name = "smc_with_piezo"
+vessel_name = "smc_hernandez"
 data_reference = "hernandezhernandez2024"
 time_variable = "t"
 component_name = "smc_hernandez"
