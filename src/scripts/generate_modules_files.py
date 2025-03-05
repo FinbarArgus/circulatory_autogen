@@ -22,9 +22,9 @@ user_inputs_yaml = 'user_inputs.yaml'
 # Specify the time variable and component for which you want to generate files
 file_prefix = "NKE_pump"
 vessel_name = "NKE_system"
-data_reference = "user_defined"
+data_reference = "hernandezhernandez2024"
 time_variable = "t"
-component_name = "main"
+component_name = "smc_hernandez"
 
 # Parse arguments
 def _parse_args():
