@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
     <component name="i_piezo_Na_tutorial">
-        <variable name="t" public_interface="in" units="second"/>
+        <variable name="t" public_interface="in" units="ms"/>
         <variable name="Vm" public_interface="in" units="milliV"/>
         <variable name="g" public_interface="in" units="microS"/>
         <variable initial_value="m_V_init" name="m_V" public_interface="out" units="dimensionless"/>
         <variable name="m_V_init" public_interface="in" units="dimensionless"/>
         <variable name="m_V_inf" public_interface="out" units="dimensionless"/>
-        <variable name="tau_V" public_interface="in" units="second"/>
+        <variable name="tau_V" public_interface="in" units="ms"/>
         <variable name="V_50" public_interface="in" units="milliV"/>
         <variable name="I_piezo" public_interface="out" units="nanoA"/>
         <variable name="E_Na" public_interface="in" units="milliV"/>
