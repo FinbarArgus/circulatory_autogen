@@ -22,7 +22,6 @@ import utilities.libcellml_utilities as libcellml_utils
 
 # TODO:
 # - Add support for multiple components in a cellml model
-# - Add support for generating the units file. Currently the units file doesn't get generated. 
 # - Add support for automatically generating the ports in the module_config.json file. Currently the ports are not generated automatically.
 
 # Define file paths
