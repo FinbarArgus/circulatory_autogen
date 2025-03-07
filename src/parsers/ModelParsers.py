@@ -61,6 +61,10 @@ class CSV0DModelParser(object):
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, module_df)
 
+        ports_columns = ["entrance_ports", "exit_ports", "general_ports"]
+        for col in ports_columns:
+            vessels_df[col] = vessels_df[col].apply(lambda x: [] if x == "None" else x)
+
         # TODO change to using a pandas dataframe
         parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename, True)
         # Reduce parameters_array so that it only includes the required parameters for

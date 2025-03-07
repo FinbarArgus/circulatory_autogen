@@ -12,19 +12,33 @@ import re
 import yaml
 
 import libcellml as lc
+    
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
+user_inputs_dir = os.path.join(root_dir, 'user_run_files')
+src_dir = os.path.join(os.path.dirname(__file__), '..')
+import utilities.libcellml_helper_funcs as cellml
+import utilities.libcellml_utilities as libcellml_utils
+
+# TODO:
+# - Add support for multiple components in a cellml model
+# - Add support for automatically generating the ports in the module_config.json file. Currently the ports are not generated automatically.
 
 # Define file paths
-user_units_cellml = '../module_config_user/user_units.cellml'
-units_cellml = '../src/generators/resources/units.cellml'
-user_inputs_yaml = 'user_inputs.yaml'
+user_units_cellml = os.path.join(root_dir, 'module_config_user/user_units.cellml')
+units_cellml = os.path.join(src_dir, 'generators/resources/units.cellml')
+user_inputs_yaml = os.path.join(user_inputs_dir, 'user_inputs.yaml')
 
 # Define file_prefix, vessel_name and data_reference for the model
 # Specify the time variable and component for which you want to generate files
-file_prefix = "NKE_pump"
-vessel_name = "NKE_system"
-data_reference = "user_defined"
+
+file_prefix = "smc_hernandez"
+vessel_name = "smc_hernandez"
+data_reference = "hernandezhernandez2024"
 time_variable = "t"
-component_name = "main"
+component_name = "smc_hernandez"
+input_model = "/home/farg967/Documents/git_projects/cellml_models/Gonzalo_H_SMC/smc_hernandez_one_module.cellml"
+output_dir = "/home/farg967/Documents/git_projects/CA_user/smc_hernandez"
 
 # Parse arguments
 def _parse_args():
@@ -95,6 +109,7 @@ def _generate_module_config(variables, constants, states, file_prefix, component
         "module_type": f"{file_prefix}_{component_name}_type",
         "entrance_ports": [],
         "exit_ports": [],
+        "general_ports": [],
         "variables_and_units": []
     }
 
@@ -115,12 +130,12 @@ def _generate_module_config(variables, constants, states, file_prefix, component
 
     module_config = [config]
 
-    file_path = os.path.join('../module_config_user', f"{file_prefix}_module_config.json")
+    file_path = os.path.join(root_dir, 'module_config_user', f"{file_prefix}_module_config.json")
 
     with open(file_path, "w") as fh:
         json.dump(module_config, fh, indent=2)
 
-    print(f"Generated module_config.json file: {file_prefix}_module_config.json")
+    print(f"Generated module_config.json file: {file_path}")
 
 # Generate vessel_array.csv file
 def _generate_vessel_array_csv(output_dir, vessel_name, file_prefix):
@@ -193,7 +208,7 @@ def _generate_cellml_module(input_model, states, file_prefix):
     cellml_str = cellml_str.replace('math:', '')
 
     # Write the modified cellml
-    file_path = os.path.join('../module_config_user', f"{file_prefix}_modules.cellml")
+    file_path = os.path.join(root_dir, 'module_config_user', f"{file_prefix}_modules.cellml")
     with open(file_path, "w", encoding="UTF-8") as f:
         f.write(cellml_str)
 
@@ -287,19 +302,20 @@ def _generate_user_inputs_yaml(output_dir, file_prefix):
     print(f"Generated user_inputs.yaml: {file_prefix}_user_inputs.yaml")
 
 def main():
-    args = _parse_args()
-    if not os.path.isfile(args.input_model):
-        print(f"Input file '{args.input_model}' not found.")
+    # args = _parse_args()
+    args = {"input_model": input_model, "output_dir": output_dir}
+    if not os.path.isfile(args["input_model"]):
+        print(f"Input file '{args["input_model"]}' not found.")
         sys.exit(1)
 
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
+    if not os.path.exists(args["output_dir"]):
+        os.makedirs(args["output_dir"])
 
-    if not os.path.isdir(args.output_dir):
-        print(f"'{args.output_dir}' is not a valid directory")
+    if not os.path.isdir(args["output_dir"]):
+        print(f"'{args["output_dir"]}' is not a valid directory")
         sys.exit(2)
 
-    with open(args.input_model) as fh:
+    with open(args["input_model"]) as fh:
         content = fh.read()
 
     # Parse model
@@ -327,22 +343,35 @@ def main():
 
     if validator.errorCount() > 0:
         _print_errors(validator)
-        sys.exit(3)
+        print('continuing with errors')
+        # sys.exit(3)
 
     # Analyse model
     analyser = lc.Analyser()
-    analyser.analyseModel(model)
+
+    importer = cellml.resolve_imports(model, os.path.dirname(args["input_model"]), False)
+
+    flat_model = cellml.flatten_model(model, importer)
+    analyser.analyseModel(flat_model)
+    analysed_model = analyser.model()
+
+    libcellml_utils.print_issues(analyser)
+    print(analysed_model.type())
+    if analysed_model.type() != lc.AnalyserModel.Type.ODE:
+        print("WARNING model is has some issues, see above. "
+            "The model might still run with some of the above issues"
+            "but it is recommended to fix them")
 
     if analyser.errorCount() > 0:
         _print_errors(analyser)
-        sys.exit(4)
+        print('continuing with errors')
+        # sys.exit(4)
 
-    analysed_model = analyser.model()
 
     default_cellml_namespace = "http://www.cellml.org/cellml/1.1#"
 
     # Read the CellML file
-    with open(args.input_model, "r", encoding="utf-8") as file:
+    with open(args["input_model"], "r", encoding="utf-8") as file:
         cellml_data = file.read()
 
     # Extract 'xmlns:cellml' using regex
@@ -359,13 +388,13 @@ def main():
 
     _generate_module_config(variables, constants, states, file_prefix, component_name)
 
-    _generate_vessel_array_csv(args.output_dir, vessel_name, file_prefix)
+    _generate_vessel_array_csv(args["output_dir"], vessel_name, file_prefix)
 
-    _generate_parameters_csv(args.output_dir, constants, vessel_name, file_prefix, data_reference)
+    _generate_parameters_csv(args["output_dir"], constants, vessel_name, file_prefix, data_reference)
 
-    _generate_cellml_module(args.input_model, states, file_prefix)
+    _generate_cellml_module(args["input_model"], states, file_prefix)
 
-    _generate_user_inputs_yaml(args.output_dir, file_prefix)
+    _generate_user_inputs_yaml(args["output_dir"], file_prefix)
 
 if __name__ == "__main__":
     main()
