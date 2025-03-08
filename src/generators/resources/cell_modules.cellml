@@ -1220,8 +1220,8 @@
             </apply>
         </math>
         <!-- slightly delay the input-->
-        <variable initial_value="0.0" name="I_in_delayed" public_interface="out" units="nanoA"/>
-        <variable name="tau_input_delay" public_interface="in" units="second"/>
+        <variable initial_value="V_rest" name="V_sensed" public_interface="out" units="milliV"/>
+        <variable name="C_sensed" public_interface="in" units="picoF"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1230,16 +1230,43 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>I_in_delayed</ci>
+                    <ci>V_sensed</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <minus/>
-                        <ci>I_in</ci>
-                        <ci>I_in_delayed</ci>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <cn cellml:units="milliV_per_kiloV" type="e-notation">1<sep/>6</cn>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <ci>I_in</ci>
+                            <ci>I_in_delayed</ci>
+                        </apply>
                     </apply>
-                    <ci>tau_input_delay</ci>
+                    <ci>C_sensed</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="I_in_delayed" public_interface="out" units="nanoA"/>
+        <variable name="R_diffSensed" public_interface="in" units="megaOhm"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>I_in_delayed</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <ci>V_sensed</ci>
+                            <ci>V</ci>
+                        </apply>
+                    </apply>
+                    <ci>R_diffSense</ci>
                 </apply>
             </apply>
         </math>
