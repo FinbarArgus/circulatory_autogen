@@ -1220,7 +1220,7 @@
             </apply>
         </math>
         <!-- slightly delay the input-->
-        <variable initial_value="V_rest" name="V_sensed" public_interface="out" units="milliV"/>
+        <variable initial_value="V_rest_approx" name="V_sensed" public_interface="out" units="milliV"/>
         <variable name="C_sensed" public_interface="in" units="picoF"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -1266,7 +1266,7 @@
                             <ci>V</ci>
                         </apply>
                     </apply>
-                    <ci>R_diffSense</ci>
+                    <ci>R_diffSensed</ci>
                 </apply>
             </apply>
         </math>
