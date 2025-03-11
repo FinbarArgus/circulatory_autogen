@@ -13,7 +13,7 @@
         <variable name="E_Na" public_interface="in" units="milliV"/>
         <variable name="k_V" public_interface="in" units="milliV"/>
         <!--!!!!! Here you need to define variables and constants used for the stretch sensitive gating.-->
-        <!--!!!!! Currently the model only has mVage dependent activation. You need to include stretch dependence-->
+        <!--!!!!! Currently the model only has voltage dependent activation. You need to include stretch dependence-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1976,5 +1976,125 @@
         <variable initial_value="Pk_15_init" name="Pk_15" public_interface="out" units="dimensionless"/>
         <variable initial_value="Pk_21_init" name="Pk_21" public_interface="out" units="dimensionless"/>
         <variable initial_value="x_ab_init" name="x_ab" public_interface="out" units="dimensionless"/>
+    </component>
+    <component name="material_prop_visco_myogenic_type">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="l" public_interface="in" units="metre"/>
+        <!-- Here we include r as an input so we can calculate the stretch ratio and pass it to smc model -->
+        <variable name="r" private_interface="in" units="metre"/>
+        <!-- Here we define the stretch ratio-->
+        <variable name="r_ratio" public_interface="out" units="dimensionless"/>
+        <!-- We also define the Ca concentration as an input from the smc model-->
+        <variable name="Ca" public_interface="in" units="milliM"/>
+        <!-- and constants needed for the Ca dependence-->
+        <variable name="Ca_50" public_interface="in" units="milliM"/>
+        <variable name="k_Ca" public_interface="in" units="milliM"/>
+        <!-- -->
+        <variable name="r_us" public_interface="in" units="metre"/>
+        <variable name="E" public_interface="in" units="J_per_m3"/>
+        <variable name="K_m" public_interface="in" units="Js_per_m3"/>
+        <variable name="Gamma" public_interface="out" units="Js_per_m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>Gamma</ci>
+                <apply>
+                    <times/>
+                    <cn cellml:units="dimensionless">0.1</cn>
+                    <ci>K_m</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="a_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="b_vessel" public_interface="in" units="per_m"/>
+        <variable name="c_vessel" public_interface="in" units="dimensionless"/>
+        <variable name="d_vessel" public_interface="in" units="per_m"/>
+        <variable name="h" public_interface="out" units="metre"/>
+        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
+        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>h</ci>
+                <apply>
+                    <times/>
+                    <ci>r_us</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <times/>
+                            <ci>a_vessel</ci>
+                            <apply>
+                                <exp/>
+                                <apply>
+                                    <times/>
+                                    <ci>b_vessel</ci>
+                                    <ci>r_us</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>c_vessel</ci>
+                            <apply>
+                                <exp/>
+                                <apply>
+                                    <times/>
+                                    <ci>d_vessel</ci>
+                                    <ci>r_us</ci>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!--!!!!! Here calculate r_ratio as the ratio of r and r_us-->
+            <!--!!!!! Here you need to define a K_CA_mod parameter and multiply it with the RHS of the K_tube calculation.-->
+            <apply>
+                <eq/>
+                <ci>K_tube</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">4</cn>
+                            <cn cellml:units="dimensionless">3</cn>
+                        </apply>
+                        <ci>E</ci>
+                        <ci>h</ci>
+                    </apply>
+                    <ci>r_us</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>K_tube_visco</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <cn cellml:units="dimensionless">3</cn>
+                        </apply>
+                        <ci>Gamma</ci>
+                        <ci>h</ci>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>l</ci>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r_us</ci>
+                            <cn cellml:units="dimensionless">3</cn>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
     </component>
 </model>
