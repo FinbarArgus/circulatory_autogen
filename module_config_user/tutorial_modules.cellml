@@ -12,8 +12,8 @@
         <variable name="I_piezo" public_interface="out" units="nanoA"/>
         <variable name="E_Na" public_interface="in" units="milliV"/>
         <variable name="k_V" public_interface="in" units="milliV"/>
-        <!-- Here you need to define variables and constants used for the stretch sensitive gating.-->
-        <!-- Currently the model only has mVage dependent activation. You need to include stretch depende-->
+        <!--!!!!! Here you need to define variables and constants used for the stretch sensitive gating.-->
+        <!--!!!!! Currently the model only has mVage dependent activation. You need to include stretch dependence-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -76,8 +76,8 @@
                 </apply>
             </apply>
         </math>
-        <!-- Below here include the equations for stretch sensitive gating.-->
-        <!-- -->
+        <!--!!!!! Below here include the equations for stretch sensitive gating.-->
+        <!--!!!!!-->
     </component>
     <component name="smc_hernandez_with_piezo">
         <variable name="t" public_interface="in" units="ms"/>

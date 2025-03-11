@@ -332,11 +332,6 @@
         <unit exponent="-1" units="mole"/>
         <unit exponent="-1" units="kelvin"/>
     </units>
-    <!-- faraday constant-->
-    <units name="C_per_mol">
-        <unit units="coulomb"/>
-        <unit exponent="-1" units="mole"/>
-    </units>
     <!-- diffusivity (mass)-->
     <units name="m2_per_s">
         <unit exponent="2" units="metre"/>
@@ -578,11 +573,6 @@
     <units name="A_per_nanoA">
         <unit exponent="-1" prefix="nano" units="ampere"/>
         <unit units="ampere"/>
-    </units>
-    <units name="J_per_mol_K">
-        <unit units="joule"/>
-        <unit exponent="-1" units="mole"/>
-        <unit exponent="-1" units="kelvin"/>
     </units>
     <units name="C_per_mol">
         <unit units="coulomb"/>
