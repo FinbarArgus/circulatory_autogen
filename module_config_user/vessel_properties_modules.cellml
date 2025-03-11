@@ -177,7 +177,10 @@
     <component name="material_prop_visco_myogenic_type">
         <variable name="t" public_interface="in" units="second"/>
         <variable name="l" public_interface="in" units="metre"/>
-        <variable name="r" public_interface="in" units="metre"/>
+        <!-- Here we include r as an and output so we can calculate the stretch ratio and pass it to smc model -->
+        <variable name="r" private_interface="in" units="metre"/>
+        <!-- Here w define the stretch ratio-->
+        <variable name="r_ratio" public_interface="out" units="dimensionless"/>
         <variable name="r_us" public_interface="in" units="metre"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
         <variable name="K_m" public_interface="in" units="Js_per_m3"/>
@@ -200,6 +203,7 @@
         <variable name="h" public_interface="out" units="metre"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
         <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
+        <!-- Here calculate the ratio of r and r_us-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -236,6 +240,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- Here you need to define a K_CA_mod parameter and multiply it with the RHS of the K_tube calculation.-->
             <apply>
                 <eq/>
                 <ci>K_tube</ci>
