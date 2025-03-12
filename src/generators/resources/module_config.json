@@ -7176,7 +7176,7 @@
     [
       {
         "port_type":"test_port1",
-        "variables":["a", "d"]
+        "variables":["a", "y"]
       },
       {
         "port_type":"test_port2",
@@ -7214,7 +7214,7 @@
     [
       {
         "port_type":"test_port1",
-        "variables":["p", "s"]
+        "variables":["p", "x"]
       },
       {
         "port_type":"test_port3",
