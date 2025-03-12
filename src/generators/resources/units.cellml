@@ -570,6 +570,10 @@
         <unit prefix="nano" units="ampere"/>
         <unit exponent="-1" prefix="milli" units="ampere"/>
     </units>
+    <units name="nanoA_per_A">
+        <unit prefix="nano" units="ampere"/>
+        <unit exponent="-1" units="ampere"/>
+    </units>
     <units name="A_per_nanoA">
         <unit exponent="-1" prefix="nano" units="ampere"/>
         <unit units="ampere"/>

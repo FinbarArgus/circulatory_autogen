@@ -84,8 +84,8 @@
         <variable name="I_piezo" public_interface="in" units="picoA"/>
         <variable name="Ca_i_init" public_interface="in" units="mM"/>
         <variable name="V_init" public_interface="in" units="mV"/>
-        <variable name="F" public_interface="in" units="C_per_mol"/>
-        <variable name="R" public_interface="in" units="J_per_MK"/>
+        <variable name="F" public_interface="in" units="C_per_millimol"/>
+        <variable name="R" public_interface="in" units="J_per_mol_K"/>
         <variable name="T" public_interface="in" units="kelvin"/>
         <variable name="Ca_out" public_interface="in" units="mM"/>
         <variable name="Ca_jun_init" public_interface="in" units="mM"/>
@@ -218,9 +218,9 @@
                 </apply>
             </apply>
         </math>
-        <variable name="vol_cell" public_interface="in" units="um3"/>
-        <variable name="vol_SRcen" public_interface="in" units="um3"/>
-        <variable name="vol_jun" public_interface="in" units="um3"/>
+        <variable name="vol_cell" public_interface="in" units="microm3"/>
+        <variable name="vol_SRcen" public_interface="in" units="microm3"/>
+        <variable name="vol_jun" public_interface="in" units="microm3"/>
         <variable name="BUF_1_init" public_interface="in" units="mM"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -555,11 +555,7 @@
                         <times/>
                         <apply>
                             <power/>
-                            <apply>
-                                <divide/>
-                                <ci>Ca_jun</ci>
-                                <cn cellml:units="mM">1</cn>
-                            </apply>
+                            <ci>Ca_jun</ci>
                             <ci>n_RyR_Ca_jun</ci>
                         </apply>
                         <ci>Y_RyR_Ca_jun</ci>
@@ -581,7 +577,7 @@
                         </apply>
                         <apply>
                             <power/>
-                            <cn cellml:units="mM">0.065</cn>
+                            <cn cellml:units="dimensionless">0.065</cn>
                             <ci>n_RyR_Ca_jun</ci>
                         </apply>
                     </apply>
@@ -1061,7 +1057,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <cn cellml:units="pM4">1</cn>
+                        <cn cellml:units="mM4">1</cn>
                         <apply>
                             <times/>
                             <cn cellml:units="dimensionless">0.0003</cn>
@@ -1513,11 +1509,28 @@
                 <ci>I_NSC</ci>
                 <apply>
                     <plus/>
-                    <ci>I_NSC_Na</ci>
-                    <ci>I_NSC_K</ci>
+                    <apply>
+                        <times/>
+                        <ci>gnsNa</ci>
+                        <ci>gns</ci>
+                        <apply>
+                            <minus/>
+                            <ci>V</ci>
+                            <ci>E_NSC</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <ci>gnsK</ci>
+                        <ci>gns</ci>
+                        <apply>
+                            <minus/>
+                            <ci>V</ci>
+                            <ci>E_NSC</ci>
+                        </apply>
+                    </apply>
                 </apply>
             </apply>
-            <!--gnsNa*gns*(V-E_NSC)+gnsK*gns*(V-E_NSC);-->
             <apply>
                 <eq/>
                 <ci>I_NSC_Na</ci>
@@ -1845,7 +1858,7 @@
                             <divide/>
                             <apply>
                                 <times/>
-                                <cn cellml:units="dimensionless" type="e-notation">1<sep/>9</cn>
+                                <cn cellml:units="nanoA_per_A" type="e-notation">1<sep/>9</cn>
                                 <ci>BK_T</ci>
                                 <ci>Perm_BKCa</ci>
                                 <ci>x_ab</ci>

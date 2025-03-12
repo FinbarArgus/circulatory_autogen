@@ -57,10 +57,6 @@
       {
         "port_type":"piezo_current",
         "variables":["I_piezo"]
-      },
-      {
-        "port_type":"Ca_port",
-        "variables":["Ca_i"]
       }
     ],
     "variables_and_units": [
@@ -121,8 +117,8 @@
       ["I_total","picoA","access","variable"],
       ["Ca_i_init","mM","access","constant"],
       ["V_init","mV","access","constant"],
-      ["F","C_per_mol","access","constant"],
-      ["R","J_per_MK","access","constant"],
+      ["F","C_per_millimol","access","constant"],
+      ["R","J_per_mol_K","access","constant"],
       ["T","kelvin","access","constant"],
       ["Ca_out","mM","access","constant"],
       ["Ca_jun_init","mM","access","constant"],
@@ -132,9 +128,9 @@
       ["K_out","mM","access","constant"],
       ["K_i_init","mM","access","constant"],
       ["Pk","dimensionless","access","constant"],
-      ["vol_cell","um3","access","constant"],
-      ["vol_SRcen","um3","access","constant"],
-      ["vol_jun","um3","access","constant"],
+      ["vol_cell","microm3","access","constant"],
+      ["vol_SRcen","microm3","access","constant"],
+      ["vol_jun","microm3","access","constant"],
       ["BUF_1_init","mM","access","constant"],
       ["Z_Na","dimensionless","access","constant"],
       ["Z_K","dimensionless","access","constant"],
