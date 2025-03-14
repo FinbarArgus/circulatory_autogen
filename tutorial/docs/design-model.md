@@ -16,7 +16,10 @@ This software is designed so the user can easily make their own modules and coup
 
 3. Create a corresponding module configuration entry into `[module_category]_config.json` within `[project_dir]/module_config_user/`. These module declarations detail the variables that can be accessed, the constants that must be defined and the available ports of the module.
 
-4. Include your new module into the vessel array file.
+4. When possible, use units defined in `[project_dir]/src/generators/resources/units.cellml`. If 
+you need to define new units, define them in `[project_dir]/module_config_user/user_units.cellml`
+
+5. Include your new module into a `[CA_user_dir]/[file_prefix]_vessel_array.csv` file.
 
     !!! Note
         Modules that are connected as each others inputs and outputs will be coupled together with any ports with corresponding name. 
@@ -27,7 +30,7 @@ This software is designed so the user can easily make their own modules and coup
 
         Standard usage: entrance and exit ports are used for spatial connections (e.g. exit to entrance of a parent and daughter vessel), whereas general ports are used for non-spatial connections (e.g a port for a material property of a whole vessel)
 
-5. Define model constants in the parameters file.
+6. Define model constants in a `[CA_user_dir]/[file_prefix]_parameters.csv` file. OR run the autogeneration, which will call an error and create a `[CA_user_dir]/[file_prefix]_parameters_unfinished.csv`. See [model generation and simulation](model-generation-simulation.md)
 
 The following sections include more details on creating the above required files.
 
@@ -120,9 +123,11 @@ The entries in the `module_config.json` file are detailed as follows:
 - **module_type**: The name of the module/computational_environment within the module cellml file.
 - **entrance_ports**: Specification of the port types that this module can take if it is connected as an "out_vessel" to another module. If a port_type matches to the port_type of a exit_port in a module coupled as an input, then the port_types variables, e.g. [v_in, u] get mapped to the variables in the coupled modules exit port e.g. [v, u_out].
 - **exit_ports**: Specification of the port types that this module can take if it is connected as an "inp_vessel" to another module.
-- **exit_ports**: Specification of the port types that this module can take if it is connected as any type of connection to another module.
-- **port_types**: The name of the type of port. If two vessels are connected vessel_a to vessel_b, and vessel_a has an exit_port with the same port_type as an entrance_port of vessel_b, then a connection will be made. 
-- **variables**: These are the variables within the module that will be connected to the variables in the corresponding port of the connected vessel/module.
+- **general_ports**: Specification of the port types that this module can take if it is connected as any type of connection to another module. Port entries are:
+    - **port_types**: The name of the type of port. If two vessels are connected vessel_a to vessel_b, and vessel_a has an exit_port with the same port_type as an entrance_port of vessel_b, then a connection will be made. 
+    - **variables**: These are the variables within the module that will be connected to the variables in the corresponding port of the connected vessel/module.
+    !!! Note 
+        If you want a port variable to be able to couple to multiple other modules, you must set `"multi_port": "True"` as an entry within the entrance, exit, or general port.
 - **variables_and_units**: This specifies all of the constants and the accesible variables of the cellml module. The entries are:
     - [0] **variable name**: corresponding to the name in the cellml file
     - [1] **variable unit**: corresponsing to the unit specification in `units.cellml`

@@ -34,14 +34,14 @@ The following are the steps for model autogeneration.
 !!! Note
     The standard location for the resources dir is `[CA_user_dir]/resources
 
-    !!! info
-        If the name of your model is *3compartment*, the user files needed for generation are:
+!!! info
+    If the name of your model is *3compartment*, the user files needed for generation are:
 
-        - `3compartment_vessel_array.csv`
-        - `3compartment_parameters.csv`
+    - `3compartment_vessel_array.csv`
+    - `3compartment_parameters.csv`
 
-    !!! Note
-        You can refer the section [Designing a new model](design-model.md) for more details on creating vessel_array and parameters files.
+!!! Note
+    You can refer to the section [Designing a new model](design-model.md) for more details on creating vessel_array and parameters files.
 
 2. Go to the `[CA_user_dir]` and open the `[file_prefix]_user_inputs.yaml` to edit. You can use *gedit*, *nano*, *vim* or your editor of choice to edit the file. `file_prefix` should be the name of your model. Subsequently, `input_param_file` should be equal to `[file_prefix]_parameters.csv` as shown below.
 
@@ -67,7 +67,7 @@ The following are the steps for model autogeneration.
     ![Generated files](images/generated-files.png)
 
     !!! info
-        For a typical autogeneration, the CSV file will be the same as the parameters.csv file in `[project_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
+        For a typical autogeneration, the parameters.csv file will be the same as the parameters.csv file in `[project_dir]/resources` directory. However, when the parameter identification is run, it will contain the identified parameter values.
 
 !!! Note
     There is a test for the autogeneration running. To run the test, navigate to `user_run_files` and run the below command.
