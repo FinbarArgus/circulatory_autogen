@@ -1,0 +1,38 @@
+name,     BC_type,     vessel_type,        inp_vessels,          out_vessels
+If,nn,i_f,Ifg  ionicv,hrv Naic2
+Ifg,nn,i_f_y_gate,hrv  NES,If
+hrv,nn,HH_simple,If  Vclamp IKACh Ito INA INAK INCX Ikur IcaL  Iks Ikr IcaT,Ifg  ionicv IKAChg Itoqg Itorg INA INAm INAh INCX Ikurr Ikurs IcaL IcaLdl IcaLfl IcaLfCa Iks Iksn Ikrp Ikrpi IcaT IcaTd IcaTf 
+NES,nn,NES_experiments,,Ifg IKACh IKAChg  INAK IcaL IcaLdl CaSRin  Iks Iksn
+Vclamp,nn,Voltage_clamp,,hrv
+ionicv,nn,Ionic_values,hrv  Naic2 Cad,If IKACh Ito INAK Ikur Ikr
+Naic2,nn,Nai_concentration,Cellp2  If,ionicv INA INAK INCX IcaL  Iks
+IKACh,nn,i_KACh,NES ionicv IKAChg,hrv
+IKAChg,nn,i_KACh_a_gate,hrv  NES,IKACh
+Ito,nn,i_to,ionicv Itoqg Itorg,hrv
+Itoqg,nn,i_to_q_gate,hrv,Ito
+Itorg,nn,i_to_r_gate,hrv,Ito
+INA,nn,i_Na,Naic2  hrv INAm INAh,hrv  
+INAm,nn,i_Na_m_gate,hrv ,INA
+INAh,nn,i_Na_h_gate,hrv ,INA
+INAK,nn,i_NaK,ionicv Naic2 NES,hrv 
+INCX,nn,i_NaCa,Naic2 hrv Cad,hrv  Cad 
+Ikur,nn,i_Kur,ionicv Ikurr Ikurs,hrv 
+Ikurr,nn,i_Kur_rKur_gate,hrv ,Ikur
+Ikurs,nn,i_Kur_sKur_gate,hrv ,Ikur
+Cellp2,nn,Cell_parameters,,Naic2 Cad
+IcaL,nn,i_CaL,hrv NES Naic2 IcaLdl IcaLfl IcaLfCa Cad,hrv   Cad
+IcaLdl,nn,i_CaL_dL_gate,hrv  NES,IcaL
+IcaLfl,nn,i_CaL_fL_gate,hrv ,IcaL
+IcaLfCa,nn,i_CaL_fCa_gate,hrv Cad,IcaL
+Cad,nn,Ca_dynamics,Cellp2 INCX CaSRout CaSRout CaSRin Cabuf IcaL IcaT,ionicv IcaL IcaLfCa INCX CaSRout CaSRin Cabuf IcaT
+CaSRout,nn,Ca_SR_release,Cad,Cad
+CaSRin,nn,Ca_intracellular_fluxes,Cad NES,Cad
+Cabuf,nn,Ca_buffering,Cad,Cad
+Iks,nn,i_Ks,hrv NES Naic2 Iksn,hrv 
+Iksn,nn,i_Ks_n_gate,hrv  NES,Iks
+Ikr,nn,i_Kr,ionicv Ikrp Ikrpi,hrv 
+Ikrp,nn,i_Kr_pa_gate,hrv ,Ikr
+Ikrpi,nn,i_Kr_pi_gate,hrv ,Ikr
+IcaT,nn,i_CaT,hrv Cad IcaTd IcaTf ,hrv Cad
+IcaTd,nn,i_CaT_dT_gate,hrv ,IcaT
+IcaTf ,nn,i_CaT_fT_gate,hrv ,IcaT

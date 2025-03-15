@@ -1,0 +1,1718 @@
+[
+  {
+    "vessel_type":"NES_experiments",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"NES_experiments",
+    "entrance_ports":
+    [
+      {
+        "port_type":"ISOi_port",
+        "variables":["ISO_init"]
+      },
+      {
+        "port_type":"AChi_port",
+        "variables":["ACh_init"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"cAMP_port",
+        "variables":["cAMP_nif"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"ISO_port",
+        "variables":["ISO"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["ACh_init", "nM", "access", "boundary_condition"],
+      ["ISO_init", "nM", "access", "boundary_condition"],
+      ["PDE_cAMP", "uM", "access", "constant"],
+      ["ACCa_max", "nmol_per_umeter2", "access", "constant"],
+      ["Area_Ca", "umeter2", "access", "constant"],
+      ["EC50_Ca", "nM", "access", "constant"],
+      ["CaMKII", "nM", "access", "constant"],
+      ["AC2cAMP_conversion", "per_cmeter3", "access", "constant"],
+      ["M2_max", "nmol_per_umeter2", "access", "constant"],
+      ["Area_M2R", "umeter2", "access", "constant"],
+      ["IC50_M2", "nM", "access", "constant"],
+      ["k_M2bindGi", "dimensionless", "access", "constant"],
+      ["beta_ntotal", "nmol_per_umeter2", "access", "constant"],
+      ["k_beta1", "dimensionless", "access", "constant"],
+      ["K_beta2", "dimensionless", "access", "constant"],
+      ["Area_betaAR", "umeter2", "access", "constant"],
+      ["EC50_beta1", "nM", "access", "constant"],
+      ["EC50_beta2", "nM", "access", "constant"],
+      ["IC50_beta2", "nM", "access", "constant"],
+      ["k_b1coupleGs", "dimensionless", "access", "constant"],
+      ["PKA_init", "dimensionless", "access", "constant"],
+      ["T_PKAPbeta2", "dimensionless", "access", "constant"],
+      ["k_b2coupleGi", "dimensionless", "access", "constant"],
+      ["k_b2coupleGs", "dimensionless", "access", "constant"],
+      ["EC50_Gs", "nmole", "access", "constant"],
+      ["k_Gi", "dimensionless", "access", "constant"],
+      ["AC_maxstimulated", "nmole", "access", "constant"],
+      ["T_cAMPPKA", "uM", "access", "constant"],
+      ["test_transp", "dimensionless", "access", "variable"],
+      ["AC_basal", "nmole", "access", "variable"],
+      ["cAMP_basal", "uM", "access", "variable"],
+      ["M2R", "nmole", "access", "variable"],
+      ["beta1_max", "nmol_per_umeter2", "access", "variable"],
+      ["beta2_max", "nmol_per_umeter2", "access", "variable"],
+      ["beta1_actived", "nmole", "access", "variable"],
+      ["beta2_actived", "nmole", "access", "variable"],
+      ["beta2_inhibited", "nmole", "access", "variable"],
+      ["Gs_beta1", "nmole", "access", "variable"],
+      ["PKA", "dimensionless", "access", "variable"],
+      ["Gi_beta2", "nmole", "access", "variable"],
+      ["Gs_beta2", "nmole", "access", "variable"],
+      ["GS_total", "nmole", "access", "variable"],
+      ["Gi_total", "nmole", "access", "variable"],
+      ["AC_actived", "nmole", "access", "variable"],
+      ["cAMP", "uM", "access", "variable"],
+      ["ACh", "nM", "access", "variable"],
+      ["ISO", "nM", "access", "variable"],
+      ["PKA_new", "dimensionless", "access", "variable"],
+      ["cAMP_nif", "uM", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_f",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_f",
+    "entrance_ports":
+    [
+      {
+        "port_type":"yIf_port",
+        "variables":["y"]
+      },
+      {
+        "port_type":"ENa_port",
+        "variables":["E_Na"]
+      },
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"ifNa_port",
+        "variables":["i_fNa"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membrane1_IV",
+        "variables":["i_f","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["g_f", "microS", "access", "constant"],
+      ["blockade", "dimensionless", "access", "constant"],
+      ["Km_f", "millimolar", "access", "constant"],
+      ["alpha", "dimensionless", "access", "constant"],
+      ["E_Na", "millivolt", "access", "boundary_condition"],
+      ["E_K", "millivolt", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["y", "dimensionless", "access", "boundary_condition"],
+      ["i_fNa", "nanoA", "access", "variable"],
+      ["i_fK", "nanoA", "access", "variable"],
+      ["G_f", "microS", "access", "variable"],
+      ["g_f_Na", "microS", "access", "variable"],
+      ["G_f_Na", "microS", "access", "variable"],
+      ["g_f_K", "microS", "access", "variable"],
+      ["G_f_K", "microS", "access", "variable"],
+      ["i_f", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_f_y_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_f_y_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"cAMP_port",
+        "variables":["cAMP_nif"]
+      },
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"]
+      },
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"yIf_port",
+        "variables":["y"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["y_shift", "millivolt", "access", "constant"],
+      ["cAMP_iter", "dimensionless", "access", "constant"],
+      ["y_init", "dimensionless", "access", "constant"],
+      ["K_If", "millivolt", "access", "constant"],
+      ["K05_If", "uM", "access", "constant"],
+      ["cAMP_nif", "uM", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["ACh", "nM", "access", "boundary_condition"],
+      ["cAMP_out2", "uM", "access", "variable"],
+      ["ACh_shift", "millivolt", "access", "variable"],
+      ["Iso_shift", "millivolt", "access", "variable"],
+      ["Iso_shift2", "millivolt", "access", "variable"],
+      ["y", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Voltage_clamp",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Voltage_clamp",
+    "entrance_ports":
+    [
+      {
+        "port_type":"clamp_port",
+        "variables":["t_test"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"clamp_potential",
+        "variables":["V_clamp"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["t_holding", "second", "access", "constant"],
+      ["V_test", "millivolt", "access", "constant"],
+      ["V_holding", "millivolt", "access", "constant"],
+      ["t_test", "second", "access", "boundary_condition"],
+      ["V_clamp", "millivolt", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Ionic_values",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Ionic_values",
+    "entrance_ports":
+    [
+      {
+        "port_type":"Nai_port",
+        "variables":["Nai"]
+      },
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"ENa_port",
+        "variables":["E_Na"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"ECa_port",
+        "variables":["E_Ca"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Nao", "millimolar", "access", "global_constant"],
+      ["Ki", "millimolar", "access", "global_constant"],
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["Cao", "millimolar", "access", "global_constant"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["E_Na", "millivolt", "access", "variable"],
+      ["E_K", "millivolt", "access", "variable"],
+      ["E_Ca", "millivolt", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Nai_concentration",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Nai_concentration",
+    "entrance_ports":
+    [
+      {
+        "port_type":"VsC_port",
+        "variables":["V_sub"]
+      },
+      {
+        "port_type":"ViC_port",
+        "variables":["V_i"]
+      },
+      {
+        "port_type":"ifNa_port",
+        "variables":["i_fNa"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"INCX_NaI",
+        "variables":["Nai","i_NaCa"]
+      },
+      {
+        "port_type":"INaK_NaI",
+        "variables":["Nai","i_NaK"]
+      },
+      {
+        "port_type":"INa_NaI",
+        "variables":["Nai","i_Na"]
+      },
+      {
+        "port_type":"ICaL_NaI",
+        "variables":["Nai","i_siNa"]
+      },
+      {
+        "port_type":"Nai_port",
+        "variables":["Nai"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["F", "coulomb_per_mole", "access", "global_constant"],
+      ["Nai_clamp", "dimensionless", "access", "constant"],
+      ["V_sub", "millimetre3", "access", "boundary_condition"],
+      ["V_i", "millimetre3", "access", "boundary_condition"],
+      ["i_Na", "nanoA", "access", "boundary_condition"],
+      ["i_NaCa", "nanoA", "access", "boundary_condition"],
+      ["i_NaK", "nanoA", "access", "boundary_condition"],
+      ["i_fNa", "nanoA", "access", "boundary_condition"],
+      ["i_siNa", "nanoA", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Cell_parameters",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Cell_parameters",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"ViC_port",
+        "variables":["V_i"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"VjsC_port",
+        "variables":["V_jsr"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"VnsC_port",
+        "variables":["V_nsr"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"VsC_port",
+        "variables":["V_sub"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["V_jsr_part", "dimensionless", "access", "constant"],
+      ["V_i_part", "dimensionless", "access", "constant"],
+      ["V_nsr_part", "dimensionless", "access", "constant"],
+      ["R_cell", "micrometre", "access", "constant"],
+      ["L_cell", "micrometre", "access", "constant"],
+      ["L_sub", "micrometre", "access", "constant"],
+      ["V_i", "millimetre3", "access", "variable"],
+      ["V_jsr", "millimetre3", "access", "variable"],
+      ["V_nsr", "millimetre3", "access", "variable"],
+      ["V_sub", "millimetre3", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Ca_dynamics",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Ca_dynamics",
+    "entrance_ports":
+    [
+      {
+        "port_type":"VsC_port",
+        "variables":["V_sub"]
+      },
+      {
+        "port_type":"ViC_port",
+        "variables":["V_i"]
+      },
+      {
+        "port_type":"VjsC_port",
+        "variables":["V_jsr"]
+      },
+      {
+        "port_type":"VnsC_port",
+        "variables":["V_nsr"]
+      },
+      {
+        "port_type":"siCaL_port",
+        "variables":["i_siCa"]
+      },
+      {
+        "port_type":"ICaT_port",
+        "variables":["i_CaT"]
+      },
+      {
+        "port_type":"INCX_port",
+        "variables":["i_NaCa"]
+      },
+      {
+        "port_type":"jSRc_port",
+        "variables":["j_SRCarel"]
+      },
+      {
+        "port_type":"jCad_port",
+        "variables":["j_Ca_dif"]
+      },
+      {
+        "port_type":"jtr_port",
+        "variables":["j_tr"]
+      },
+      {
+        "port_type":"jup_port",
+        "variables":["j_up"]
+      },
+      {
+        "port_type":"TMCt_port",
+        "variables":["TMC_tot"]
+      },
+      {
+        "port_type":"CMt_port",
+        "variables":["CM_tot"]
+      },
+      {
+        "port_type":"TCt_port",
+        "variables":["TC_tot"]
+      },
+      {
+        "port_type":"CQt_port",
+        "variables":["CQ_tot"]
+      },
+      {
+        "port_type":"dfTMC_port",
+        "variables":["delta_fTMC"]
+      },
+      {
+        "port_type":"dfCMi_port",
+        "variables":["delta_fCMi"]
+      },
+      {
+        "port_type":"dfCMs_port",
+        "variables":["delta_fCMs"]
+      },
+      {
+        "port_type":"dfTC_port",
+        "variables":["delta_fTC"]
+      },
+      {
+        "port_type":"dfQ_port",
+        "variables":["delta_fCQ"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"Caid_port",
+        "variables":["Cai"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"Cand_port",
+        "variables":["Ca_nsr"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"Cajd_port",
+        "variables":["Ca_jsr"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["F", "coulomb_per_mole", "access", "global_constant"],
+      ["V_sub", "millimetre3", "access", "boundary_condition"],
+      ["V_i", "millimetre3", "access", "boundary_condition"],
+      ["V_jsr", "millimetre3", "access", "boundary_condition"],
+      ["V_nsr", "millimetre3", "access", "boundary_condition"],
+      ["i_siCa", "nanoA", "access", "boundary_condition"],
+      ["i_CaT", "nanoA", "access", "boundary_condition"],
+      ["i_NaCa", "nanoA", "access", "boundary_condition"],
+      ["j_SRCarel", "millimolar_per_second", "access", "boundary_condition"],
+      ["j_Ca_dif", "millimolar_per_second", "access", "boundary_condition"],
+      ["j_tr", "millimolar_per_second", "access", "boundary_condition"],
+      ["j_up", "millimolar_per_second", "access", "boundary_condition"],
+      ["TMC_tot", "millimolar", "access", "boundary_condition"],
+      ["CM_tot", "millimolar", "access", "boundary_condition"],
+      ["TC_tot", "millimolar", "access", "boundary_condition"],
+      ["CQ_tot", "millimolar", "access", "boundary_condition"],
+      ["delta_fTMC", "per_second", "access", "boundary_condition"],
+      ["delta_fCMi", "per_second", "access", "boundary_condition"],
+      ["delta_fCMs", "per_second", "access", "boundary_condition"],
+      ["delta_fTC", "per_second", "access", "boundary_condition"],
+      ["delta_fCQ", "per_second", "access", "boundary_condition"],
+      ["Cai", "millimolar", "access", "variable"],
+      ["Ca_sub", "millimolar", "access", "variable"],
+      ["Ca_nsr", "millimolar", "access", "variable"],
+      ["Ca_jsr", "millimolar", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Ca_SR_release",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Ca_SR_release",
+    "entrance_ports":
+    [
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      },
+      {
+        "port_type":"Cajd_port",
+        "variables":["Ca_jsr"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"jSRc_port",
+        "variables":["j_SRCarel"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["Ca_jsr", "millimolar", "access", "boundary_condition"],
+      ["j_SRCarel", "millimolar_per_second", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Ca_intracellular_fluxes",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Ca_intracellular_fluxes",
+    "entrance_ports":
+    [
+      {
+        "port_type":"Caid_port",
+        "variables":["Cai"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      },
+      {
+        "port_type":"Cand_port",
+        "variables":["Ca_nsr"]
+      },
+      {
+        "port_type":"Cajd_port",
+        "variables":["Ca_jsr"]
+      },
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"]
+      },
+      {
+        "port_type":"ISO_port",
+        "variables":["ISO"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"jCad_port",
+        "variables":["j_Ca_dif"]
+      },
+      {
+        "port_type":"jtr_port",
+        "variables":["j_tr"]
+      },
+      {
+        "port_type":"jup_port",
+        "variables":["j_up"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["Ca_jsr", "millimolar", "access", "boundary_condition"],
+      ["Cai", "millimolar", "access", "boundary_condition"],
+      ["Ca_nsr", "millimolar", "access", "boundary_condition"],
+      ["ACh", "millimolar", "access", "boundary_condition"],
+      ["ISO", "nM", "access", "boundary_condition"],
+      ["j_Ca_dif", "millimolar_per_second", "access", "variable"],
+      ["j_up", "millimolar_per_second", "access", "variable"],
+      ["j_tr", "millimolar_per_second", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"Ca_buffering",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"Ca_buffering",
+    "entrance_ports":
+    [
+      {
+        "port_type":"Caid_port",
+        "variables":["Cai"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      },
+      {
+        "port_type":"Cajd_port",
+        "variables":["Ca_jsr"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"TMCt_port",
+        "variables":["TMC_tot"]
+      },
+      {
+        "port_type":"CMt_port",
+        "variables":["CM_tot"]
+      },
+      {
+        "port_type":"TCt_port",
+        "variables":["TC_tot"]
+      },
+      {
+        "port_type":"CQt_port",
+        "variables":["CQ_tot"]
+      },
+      {
+        "port_type":"dfTMC_port",
+        "variables":["delta_fTMC"]
+      },
+      {
+        "port_type":"dfCMi_port",
+        "variables":["delta_fCMi"]
+      },
+      {
+        "port_type":"dfCMs_port",
+        "variables":["delta_fCMs"]
+      },
+      {
+        "port_type":"dfTC_port",
+        "variables":["delta_fTC"]
+      },
+      {
+        "port_type":"dfQ_port",
+        "variables":["delta_fCQ"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["Ca_jsr", "millimolar", "access", "boundary_condition"],
+      ["Cai", "millimolar", "access", "boundary_condition"],
+      ["TMC_tot", "millimolar", "access", "variable"],
+      ["CM_tot", "millimolar", "access", "variable"],
+      ["TC_tot", "millimolar", "access", "variable"],
+      ["CQ_tot", "millimolar", "access", "variable"],
+      ["delta_fTMC", "per_second", "access", "variable"],
+      ["delta_fCMi", "per_second", "access", "variable"],
+      ["delta_fCMs", "per_second", "access", "variable"],
+      ["delta_fTC", "per_second", "access", "variable"],
+      ["delta_fCQ", "per_second", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_KACh",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_KACh",
+    "entrance_ports":
+    [
+      {
+        "port_type":"aACH_port",
+        "variables":["a"]
+      },
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"]
+      },
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"membrane4_IV",
+        "variables":["i_KACh","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["g_KACh", "microS", "access", "constant"],
+      ["ACh_on", "dimensionless", "access", "constant"],
+      ["a", "dimensionless", "access", "boundary_condition"],
+      ["ACh", "millimolar", "access", "boundary_condition"],
+      ["E_K", "millivolt", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["i_KACh", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_KACh_a_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_KACh_a_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"]
+      },
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"aACH_port",
+        "variables":["a"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["a_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["ACh", "millimolar", "access", "boundary_condition"],
+      ["a", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_to",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_to",
+    "entrance_ports":
+    [
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"]
+      },
+      {
+        "port_type":"qIto_port",
+        "variables":["q"]
+      },
+      {
+        "port_type":"rIto_port",
+        "variables":["r"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"membrane2_IV",
+        "variables":["i_to","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["g_to", "microS", "access", "constant"],
+      ["q", "dimensionless", "access", "boundary_condition"],
+      ["r", "dimensionless", "access", "boundary_condition"],
+      ["E_K", "millivolt", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["i_to", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_to_q_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_to_q_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"qIto_port",
+        "variables":["q"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["q_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["q", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_to_r_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_to_r_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"rIto_port",
+        "variables":["r"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["r_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["r", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Na",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Na",
+    "entrance_ports":
+    [
+      {
+        "port_type":"INa_NaI",
+        "variables":["Nai","i_Na"]
+      },
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"mINa_port",
+        "variables":["m"]
+      },
+      {
+        "port_type":"hINa_port",
+        "variables":["h"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"iNa_port",
+        "variables":["i_Na"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membrane3_IV",
+        "variables":["i_Na","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Nao", "millimolar", "access", "global_constant"],
+      ["Ki", "millimolar", "access", "global_constant"],
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["g_Na", "microS", "access", "constant"],
+      ["g_Na_L", "microS", "access", "constant"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["m", "dimensionless", "access", "boundary_condition"],
+      ["h", "dimensionless", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["i_Na", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Na_m_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Na_m_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"mINa_port",
+        "variables":["m"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["m_init", "dimensionless", "access", "constant"],
+      ["delta_m", "millivolt", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["m", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Na_h_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Na_h_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"hINa_port",
+        "variables":["h"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["h_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["h", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kur",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kur",
+    "entrance_ports":
+    [
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"]
+      },
+      {
+        "port_type":"sIKur_port",
+        "variables":["s_Kur"]
+      },
+      {
+        "port_type":"rIKur_port",
+        "variables":["r_Kur"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"membrane5_IV",
+        "variables":["i_Kur","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["g_Kur", "microS", "access", "constant"],
+      ["r_Kur", "dimensionless", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["s_Kur", "dimensionless", "access", "boundary_condition"],
+      ["E_K", "millivolt", "access", "boundary_condition"],
+      ["i_Kur", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kur_rKur_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kur_rKur_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"rIKur_port",
+        "variables":["r_Kur"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["r_Kur_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["r_Kur", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kur_sKur_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kur_sKur_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"sIKur_port",
+        "variables":["s_Kur"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["s_Kur_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["s_Kur", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaL",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaL",
+    "entrance_ports":
+    [
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"]
+      },
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      },
+      {
+        "port_type":"ACh_port",
+        "variables":["ACh"]
+      },
+      {
+        "port_type":"Nai_port",
+        "variables":["Nai"]
+      },
+      {
+        "port_type":"dLICaL_port",
+        "variables":["dL"]
+      },
+      {
+        "port_type":"fLICaL_port",
+        "variables":["fL"]
+      },
+      {
+        "port_type":"ICaL_NaI",
+        "variables":["Nai","i_siNa"]
+      },
+      {
+        "port_type":"fCaICaL_port",
+        "variables":["fCa"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"siCaL_port",
+        "variables":["i_siCa"]
+      },
+      {
+        "port_type":"sinaCaL_port",
+        "variables":["i_siNa"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membrane11_IV",
+        "variables":["i_CaL","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Nao", "millimolar", "access", "global_constant"],
+      ["Ki", "millimolar", "access", "global_constant"],
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["Cao", "millimolar", "access", "global_constant"],
+      ["P_CaL", "nanoA_per_millimolar", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["ACh", "millimolar", "access", "boundary_condition"],
+      ["PKA_new", "dimensionless", "access", "boundary_condition"],
+      ["dL", "dimensionless", "access", "boundary_condition"],
+      ["fL", "dimensionless", "access", "boundary_condition"],
+      ["fCa", "dimensionless", "access", "boundary_condition"],
+      ["i_siCa", "nanoA", "access", "variable"],
+      ["i_siNa", "nanoA", "access", "variable"],
+      ["i_CaL", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaL_dL_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaL_dL_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      },
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"dLICaL_port",
+        "variables":["dL"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["dL_init", "dimensionless", "access", "constant"],
+      ["k_dL", "millivolt", "access", "constant"],
+      ["V_dL", "millivolt", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["PKA_new", "dimensionless", "access", "boundary_condition"],
+      ["dL", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaL_fL_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaL_fL_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"fLICaL_port",
+        "variables":["fL"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["fL_init", "dimensionless", "access", "constant"],
+      ["k_fL", "millivolt", "access", "constant"],
+      ["shift_fL", "millivolt", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["fL", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaL_fCa_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaL_fCa_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"fCaICaL_port",
+        "variables":["fCa"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["fCa_init", "dimensionless", "access", "constant"],
+      ["alpha_fCa", "per_second", "access", "constant"],
+      ["Km_fCa", "millimolar", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["fCa", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaT",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaT",
+    "entrance_ports":
+    [
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      },
+      {
+        "port_type":"dTICaT_port",
+        "variables":["dT"]
+      },
+      {
+        "port_type":"fTICaT_port",
+        "variables":["fT"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"ICaT_port",
+        "variables":["i_CaT"]
+      },
+      {
+        "port_type":"membrane8_IV",
+        "variables":["i_CaT","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Cao", "millimolar", "access", "global_constant"],
+      ["P_CaT", "nanoA_per_millimolar", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["dT", "dimensionless", "access", "boundary_condition"],
+      ["fT", "dimensionless", "access", "boundary_condition"],
+      ["i_CaT", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaT_dT_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaT_dT_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"dTICaT_port",
+        "variables":["dT"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["dT_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["dT", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_CaT_fT_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_CaT_fT_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"fTICaT_port",
+        "variables":["fT"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["fT_init", "dimensionless", "access", "constant"],
+      ["offset_fT", "second", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["fT", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Ks",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Ks",
+    "entrance_ports":
+    [
+      {
+        "port_type":"Nai_port",
+        "variables":["Nai"]
+      },
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"]
+      },
+      {
+        "port_type":"ISO_port",
+        "variables":["ISO"]
+      },
+      {
+        "port_type":"nIks_port",
+        "variables":["n"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"membrane6_IV",
+        "variables":["i_Ks","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Nao", "millimolar", "access", "global_constant"],
+      ["Ki", "millimolar", "access", "global_constant"],
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["ISO", "nM", "access", "boundary_condition"],
+      ["PKA_new", "dimensionless", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["n", "dimensionless", "access", "boundary_condition"],
+      ["i_Ks", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Ks_n_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Ks_n_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      },
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"nIks_port",
+        "variables":["n"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["n_init", "dimensionless", "access", "constant"],
+      ["PKA_new", "dimensionless", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["n", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kr",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kr",
+    "entrance_ports":
+    [
+      {
+        "port_type":"EK_port",
+        "variables":["E_K"]
+      },
+      {
+        "port_type":"paSIKr_port",
+        "variables":["paS"]
+      },
+      {
+        "port_type":"paFIKr_port",
+        "variables":["paF"]
+      },
+      {
+        "port_type":"piyIKr_port",
+        "variables":["piy"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"membrane7_IV",
+        "variables":["i_Kr","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["g_Kr", "microS", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["E_K", "millivolt", "access", "boundary_condition"],
+      ["paS", "dimensionless", "access", "boundary_condition"],
+      ["paF", "dimensionless", "access", "boundary_condition"],
+      ["piy", "dimensionless", "access", "boundary_condition"],
+      ["i_Kr", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kr_pa_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kr_pa_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"paSIKr_port",
+        "variables":["paS"]
+      },
+      {
+        "port_type":"paFIKr_port",
+        "variables":["paF"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["paS_init", "dimensionless", "access", "constant"],
+      ["paF_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["paS", "dimensionless", "access", "variable"],
+      ["paF", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_Kr_pi_gate",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_Kr_pi_gate",
+    "entrance_ports":
+    [
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"piyIKr_port",
+        "variables":["piy"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["piy_init", "dimensionless", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["piy", "dimensionless", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_NaK",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_NaK",
+    "entrance_ports":
+    [
+      {
+        "port_type":"PKA_port",
+        "variables":["PKA_new"]
+      },
+      {
+        "port_type":"ENa_port",
+        "variables":["E_Na"]
+      },
+      {
+        "port_type":"INaK_NaI",
+        "variables":["Nai","i_NaK"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"INaK_port",
+        "variables":["i_NaK"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membraneS1_IV",
+        "variables":["i_NaK","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Ko", "millimolar", "access", "global_constant"],
+      ["Km_Kp", "millimolar", "access", "constant"],
+      ["Km_Nap", "millimolar", "access", "constant"],
+      ["i_NaK_max", "nanoA", "access", "constant"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["E_Na", "millivolt", "access", "boundary_condition"],
+      ["PKA_new", "dimensionless", "access", "boundary_condition"],
+      ["i_NaK", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"i_NaCa",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"i_NaCa",
+    "entrance_ports":
+    [
+      {
+        "port_type":"INCX_NaI",
+        "variables":["Nai","i_NaCa"]
+      },
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"]
+      },
+      {
+        "port_type":"Casd_port",
+        "variables":["Ca_sub"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"INCX_port",
+        "variables":["i_NaCa"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membraneS2_IV",
+        "variables":["i_NaCa","V"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["Nao", "millimolar", "access", "global_constant"],
+      ["Cao", "millimolar", "access", "global_constant"],
+      ["K_NaCa", "nanoA", "access", "constant"],
+      ["Qci", "dimensionless", "access", "constant"],
+      ["Qn", "dimensionless", "access", "constant"],
+      ["Qco", "dimensionless", "access", "constant"],
+      ["blockade_NaCa", "dimensionless", "access", "constant"],
+      ["K3ni", "millimolar", "access", "constant"],
+      ["Kci", "millimolar", "access", "constant"],
+      ["K1ni", "millimolar", "access", "constant"],
+      ["K2ni", "millimolar", "access", "constant"],
+      ["Kcni", "millimolar", "access", "constant"],
+      ["K3no", "millimolar", "access", "constant"],
+      ["K1no", "millimolar", "access", "constant"],
+      ["K2no", "millimolar", "access", "constant"],
+      ["Kco", "millimolar", "access", "constant"],
+      ["RTONF", "millivolt", "access", "boundary_condition"],
+      ["Ca_sub", "millimolar", "access", "boundary_condition"],
+      ["Nai", "millimolar", "access", "boundary_condition"],
+      ["V", "millivolt", "access", "boundary_condition"],
+      ["i_NaCa", "nanoA", "access", "variable"]
+    ]
+  },
+  {
+    "vessel_type":"HH_simple",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"NESAN_modules.cellml",
+    "module_type":"HH_simple",
+    "entrance_ports":
+    [
+      {
+        "port_type":"clamp_potential",
+        "variables":["V_clamp"]
+      },
+      {
+        "port_type":"membrane1_IV",
+        "variables":["i_f","V"]
+      },
+      {
+        "port_type":"membrane2_IV",
+        "variables":["i_to","V"]
+      },
+      {
+        "port_type":"membrane3_IV",
+        "variables":["i_Na","V"]
+      },
+      {
+        "port_type":"membrane4_IV",
+        "variables":["i_KACh","V"]
+      },
+      {
+        "port_type":"membrane5_IV",
+        "variables":["i_Kur","V"]
+      },
+      {
+        "port_type":"membrane6_IV",
+        "variables":["i_Ks","V"]
+      },
+      {
+        "port_type":"membrane7_IV",
+        "variables":["i_Kr","V"]
+      },
+      {
+        "port_type":"membrane8_IV",
+        "variables":["i_CaT","V"]
+      },
+      {
+        "port_type":"membraneS1_IV",
+        "variables":["i_NaK","V"]
+      },
+      {
+        "port_type":"membraneS2_IV",
+        "variables":["i_NaCa","V"]
+      },
+      {
+        "port_type":"membrane11_IV",
+        "variables":["i_CaL","V"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"RTONF_port",
+        "variables":["RTONF"],
+        "multi_port":"True"
+      },
+      {
+        "port_type":"membrane_potential",
+        "variables":["V"],
+        "multi_port":"True"
+      }
+    ],
+    "variables_and_units":
+    [
+      ["R", "joule_per_kilomole_kelvin", "access", "global_constant"],
+      ["T", "kelvin", "access", "global_constant"],
+      ["F", "coulomb_per_mole", "access", "global_constant"],
+      ["C", "microF", "access", "constant"],
+      ["V_init", "millivolt", "access", "constant"],
+      ["clamp_mode", "dimensionless", "access", "constant"],
+      ["V_clamp", "millivolt", "access", "boundary_condition"],
+      ["i_f", "nanoA", "access", "boundary_condition"],
+      ["i_to", "nanoA", "access", "boundary_condition"],
+      ["i_Na", "nanoA", "access", "boundary_condition"],
+      ["i_KACh", "nanoA", "access", "boundary_condition"],
+      ["i_Kur", "nanoA", "access", "boundary_condition"],
+      ["i_NaK", "nanoA", "access", "boundary_condition"],
+      ["i_NaCa", "nanoA", "access", "boundary_condition"],
+      ["i_CaL", "nanoA", "access", "boundary_condition"],
+      ["i_Ks", "nanoA", "access", "boundary_condition"],
+      ["i_Kr", "nanoA", "access", "boundary_condition"],
+      ["i_CaT", "nanoA", "access", "boundary_condition"],
+      ["RTONF", "millivolt", "access", "variable"],
+      ["V", "millivolt", "access", "variable"],
+      ["i_tot", "nanoA", "access", "variable"]
+    ]
+  }
+]
