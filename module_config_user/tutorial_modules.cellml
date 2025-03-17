@@ -1994,7 +1994,7 @@
         <variable name="t" public_interface="in" units="second"/>
         <variable name="l" public_interface="in" units="metre"/>
         <!-- Here we include r as an input so we can calculate the stretch ratio and pass it to smc model -->
-        <variable name="r" private_interface="in" units="metre"/>
+        <variable name="r" public_interface="in" units="metre"/>
         <!-- Here we define the stretch ratio-->
         <variable name="r_ratio" public_interface="out" units="dimensionless"/>
         <!-- We also define the Ca concentration as an input from the smc model-->
