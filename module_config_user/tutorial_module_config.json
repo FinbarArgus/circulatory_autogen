@@ -57,6 +57,10 @@
       {
         "port_type":"piezo_current",
         "variables":["I_piezo"]
+      },
+      {
+        "port_type":"Ca_port",
+        "variables":["Ca_i"]
       }
     ],
     "variables_and_units": [
