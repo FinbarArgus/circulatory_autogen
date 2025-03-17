@@ -31,7 +31,7 @@
       ["m_V", "dimensionless", "access", "variable"],
       ["m_V_init", "dimensionless", "access", "constant"],
       ["m_V_inf", "dimensionless", "access", "variable"],
-      ["tau_V", "second", "access", "constant"],
+      ["tau_V", "ms", "access", "constant"],
       ["V_50", "milliV", "access", "constant"],
       ["k_V", "milliV", "access", "constant"]
     ]
