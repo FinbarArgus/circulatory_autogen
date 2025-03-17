@@ -3,7 +3,7 @@
     <component name="i_piezo_Na_tutorial">
         <variable name="t" public_interface="in" units="ms"/>
         <variable name="Vm" public_interface="in" units="milliV"/>
-        <variable name="g" public_interface="in" units="microS"/>
+        <variable name="g" public_interface="in" units="nS"/>
         <variable initial_value="m_V_init" name="m_V" public_interface="out" units="dimensionless"/>
         <variable name="m_V_init" public_interface="in" units="dimensionless"/>
         <variable name="m_V_inf" public_interface="out" units="dimensionless"/>

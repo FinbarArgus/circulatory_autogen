@@ -25,7 +25,7 @@
     "variables_and_units":
     [
       ["I_piezo", "picoA", "access", "variable"],
-      ["g", "nanoS", "access", "constant"],
+      ["g", "nS", "access", "constant"],
       ["Vm", "milliV", "access", "boundary_condition"],
       ["E_Na", "milliV", "access", "boundary_condition"],
       ["m_V", "dimensionless", "access", "variable"],
