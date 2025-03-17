@@ -9,7 +9,7 @@
         <variable name="m_V_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_V" public_interface="in" units="ms"/>
         <variable name="V_50" public_interface="in" units="milliV"/>
-        <variable name="I_piezo" public_interface="out" units="nanoA"/>
+        <variable name="I_piezo" public_interface="out" units="picoA"/>
         <variable name="E_Na" public_interface="in" units="milliV"/>
         <variable name="k_V" public_interface="in" units="milliV"/>
         <!--!!!!! Here you need to define variables and constants used for the stretch sensitive gating.-->
