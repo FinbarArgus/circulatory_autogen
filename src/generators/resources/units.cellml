@@ -248,6 +248,10 @@
         <unit prefix="milli" units="mole"/>
         <unit exponent="-1" units="litre"/>
     </units>
+    <units name="milliM">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+    </units>
     <!-- concentration (uM)-->
     <units name="uM">
         <unit prefix="micro" units="mole"/>
