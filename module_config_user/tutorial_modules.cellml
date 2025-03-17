@@ -2024,6 +2024,7 @@
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <variable name="h" public_interface="out" units="metre"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
+        <variable name="K_tube_0" public_interface="out" units="J_per_m3"/>
         <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -2062,10 +2063,9 @@
                 </apply>
             </apply>
             <!--!!!!! Here calculate r_ratio as the ratio of r and r_us-->
-            <!--!!!!! Here you need to define a K_CA_mod parameter and multiply it with the RHS of the K_tube calculation.-->
             <apply>
                 <eq/>
-                <ci>K_tube</ci>
+                <ci>K_tube_0</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -2080,6 +2080,12 @@
                     </apply>
                     <ci>r_us</ci>
                 </apply>
+            </apply>
+            <!--!!!!! Here you need to define a K_CA_mod parameter and multiply it with the uncontrolled K_tube_0 to get K_tube.-->
+            <apply>
+                <eq/>
+                <ci>K_tube</ci>
+                <ci>K_tube_0</ci>
             </apply>
             <apply>
                 <eq/>

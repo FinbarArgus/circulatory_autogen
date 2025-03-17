@@ -234,6 +234,7 @@
     "variables_and_units":
     [
       ["K_tube", "J_per_m3", "access", "variable"],
+      ["K_tube_0", "J_per_m3", "access", "variable"],
       ["K_tube_visco", "Js_per_m6", "access", "variable"],
       ["l", "metre", "access", "boundary_condition"],
       ["r_us", "metre", "access", "boundary_condition"],
