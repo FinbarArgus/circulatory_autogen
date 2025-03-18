@@ -1,0 +1,3 @@
+vessel_name,                  param_name,       param_type,       min,        max,    name_for_plotting
+NES,CaMKII,        const,0.01,100,CaMKII_{basal}
+NES,AC2cAMP_conversion,        const,0.01,10,AC2cAMP_{conversion}
