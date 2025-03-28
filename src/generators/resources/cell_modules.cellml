@@ -1494,6 +1494,7 @@
             </apply>
             <!-- This tau_h equation has been modified. Make sure it is consistant with experimental data
  I changed it to increase restitution period of the Na Channel, stays closed for longer after firing, and to simplify it.-->
+            <!-- tau_h     = tau_h_min+(tau_h_max-tau_h_min)/(1{dimensionless}+exp(-(V_mid_h+10{milliV}+V)/14{milliV})+exp((V_mid_h-20{milliV}+V)/1.556{milliV}));-->
             <apply>
                 <eq/>
                 <ci>tau_h</ci>
@@ -1535,11 +1536,11 @@
                                         <apply>
                                             <minus/>
                                             <ci>V_mid_h</ci>
-                                            <cn cellml:units="milliV">20</cn>
+                                            <cn cellml:units="milliV">10</cn>
                                         </apply>
                                         <ci>V</ci>
                                     </apply>
-                                    <cn cellml:units="milliV">1.556</cn>
+                                    <cn cellml:units="milliV">6</cn>
                                 </apply>
                             </apply>
                         </apply>
@@ -2871,6 +2872,7 @@
         <variable name="delta_gM" public_interface="in" units="microS"/>
         <variable name="tau_w_num" public_interface="in" units="millis"/>
         <variable name="V_mid_w" public_interface="in" units="milliV"/>
+        <variable name="Delta_V_mid_w" public_interface="in" units="milliV"/>
         <variable name="V_den_w" public_interface="in" units="milliV"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
@@ -2899,6 +2901,7 @@
                                         <plus/>
                                         <ci>V_rest_approx</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <ci>V_den_w</ci>
@@ -2926,6 +2929,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <ci>V_den_w</ci>
@@ -2956,6 +2960,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                     <cn cellml:units="milliV">15</cn>
                                 </apply>
@@ -2971,6 +2976,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">25</cn>
@@ -5513,6 +5519,9 @@ Vol_ER = Vol*c_ER;-->
  This needs unit change from millis.-->
         <!-- ode(NE, t) = 1e3{dimensionless}*n_cleft*E*a_cleft/N_avo/V_cleft-NE*0.001{per_s};
  TODO improve this equation-->
+        <variable name="Cai_NE_base" public_interface="in" units="millimolar"/>
+        <variable name="k_NE" public_interface="in" units="per_s"/>
+        <variable name="k_NET" public_interface="in" units="per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5527,12 +5536,16 @@ Vol_ER = Vol*c_ER;-->
                     <minus/>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_s">100</cn>
-                        <ci>Cai</ci>
+                        <ci>k_NE</ci>
+                        <apply>
+                            <minus/>
+                            <ci>Cai</ci>
+                            <ci>Cai_NE_base</ci>
+                        </apply>
                     </apply>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_s">100</cn>
+                        <ci>k_NET</ci>
                         <apply>
                             <minus/>
                             <ci>NE</ci>
