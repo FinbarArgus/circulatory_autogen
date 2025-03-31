@@ -1540,7 +1540,7 @@
                                         </apply>
                                         <ci>V</ci>
                                     </apply>
-                                    <cn cellml:units="milliV">6</cn>
+                                    <cn cellml:units="milliV">3</cn>
                                 </apply>
                             </apply>
                         </apply>
@@ -2874,6 +2874,7 @@
         <variable name="V_mid_w" public_interface="in" units="milliV"/>
         <variable name="Delta_V_mid_w" public_interface="in" units="milliV"/>
         <variable name="V_den_w" public_interface="in" units="milliV"/>
+        <variable name="tau_w_min" public_interface="in" units="millis"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
         <!-- (from Golomb2006Contribution, pyramidal rat cells!!) z changed to w
@@ -2945,41 +2946,45 @@
                 <eq/>
                 <ci>tau_w</ci>
                 <apply>
-                    <divide/>
-                    <ci>tau_w_num</ci>
+                    <plus/>
+                    <ci>tau_w_min</ci>
                     <apply>
-                        <plus/>
+                        <divide/>
+                        <ci>tau_w_num</ci>
                         <apply>
-                            <times/>
-                            <cn cellml:units="dimensionless">2.0</cn>
+                            <plus/>
+                            <apply>
+                                <times/>
+                                <cn cellml:units="dimensionless">2.0</cn>
+                                <apply>
+                                    <exp/>
+                                    <apply>
+                                        <divide/>
+                                        <apply>
+                                            <plus/>
+                                            <ci>V</ci>
+                                            <ci>V_mid_w</ci>
+                                            <ci>Delta_V_mid_w</ci>
+                                        </apply>
+                                        <cn cellml:units="milliV">15</cn>
+                                    </apply>
+                                </apply>
+                            </apply>
                             <apply>
                                 <exp/>
                                 <apply>
                                     <divide/>
                                     <apply>
-                                        <plus/>
-                                        <ci>V</ci>
-                                        <ci>V_mid_w</ci>
-                                        <ci>Delta_V_mid_w</ci>
+                                        <minus/>
+                                        <apply>
+                                            <plus/>
+                                            <ci>V</ci>
+                                            <ci>V_mid_w</ci>
+                                            <ci>Delta_V_mid_w</ci>
+                                        </apply>
                                     </apply>
-                                    <cn cellml:units="milliV">15</cn>
+                                    <cn cellml:units="milliV">25</cn>
                                 </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <exp/>
-                            <apply>
-                                <divide/>
-                                <apply>
-                                    <minus/>
-                                    <apply>
-                                        <plus/>
-                                        <ci>V</ci>
-                                        <ci>V_mid_w</ci>
-                                        <ci>Delta_V_mid_w</ci>
-                                    </apply>
-                                </apply>
-                                <cn cellml:units="milliV">25</cn>
                             </apply>
                         </apply>
                     </apply>

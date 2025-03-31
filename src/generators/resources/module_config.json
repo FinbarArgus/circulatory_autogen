@@ -6067,6 +6067,7 @@
       ["tau_h", "millis", "access", "variable"],
       ["tau_h_min", "millis", "access", "constant"],
       ["tau_h_max", "millis", "access", "constant"],
+      ["tau_w_min", "millis", "access", "constant"],
       ["tau_c", "millis", "access", "variable"],
       ["tau_c_min", "millis", "access", "constant"],
       ["tau_c_max", "millis", "access", "constant"],
