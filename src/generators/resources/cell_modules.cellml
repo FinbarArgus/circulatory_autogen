@@ -2257,6 +2257,7 @@
         <variable name="a_inf" public_interface="out" units="dimensionless"/>
         <variable name="ah_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_a" public_interface="out" units="millis"/>
+        <variable name="tau_a_min" public_interface="in" units="millis"/>
         <variable name="tau_ah" public_interface="out" units="millis"/>
         <variable name="V_mid_a" public_interface="in" units="milliV"/>
         <variable name="V_den_a" public_interface="in" units="milliV"/>
@@ -2369,8 +2370,9 @@
             <apply>
                 <eq/>
                 <ci>tau_a</ci>
-                <cn cellml:units="millis">0.8</cn>
+                <ci>tau_a_min</ci>
             </apply>
+            <!-- was 0.8-->
             <!-- I changed tau_a because the time dynamics don't change much.
 0.2{millis}+1{dimensionless}/(3.7{per_millis}*exp(0.03856{per_milliV}*V)+0.05362{per_millis}*exp(-0.04448{per_milliV}*V));-->
             <apply>
