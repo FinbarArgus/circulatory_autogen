@@ -1281,18 +1281,26 @@
         <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
         <variable name="h_init" public_interface="out" units="dimensionless"/>
         <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
+        <variable name="j_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="j_init" name="j" public_interface="out" units="dimensionless"/>
         <variable name="V_mid_m" public_interface="out" units="milliV"/>
         <variable name="V_mid_m_max" public_interface="in" units="milliV"/>
         <variable name="V_den_m" public_interface="in" units="milliV"/>
         <variable name="V_mid_h" public_interface="out" units="milliV"/>
         <variable name="V_mid_h_max" public_interface="in" units="milliV"/>
         <variable name="V_den_h" public_interface="in" units="milliV"/>
+        <variable name="V_mid_j" public_interface="in" units="milliV"/>
+        <variable name="V_den_j" public_interface="in" units="milliV"/>
         <variable name="m_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_inf" public_interface="out" units="dimensionless"/>
+        <variable name="j_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_m" public_interface="out" units="millis"/>
         <variable name="tau_h" public_interface="out" units="millis"/>
+        <variable name="tau_j" public_interface="out" units="millis"/>
         <variable name="tau_h_min" public_interface="in" units="millis"/>
         <variable name="tau_h_max" public_interface="in" units="millis"/>
+        <variable name="tau_j_min" public_interface="in" units="millis"/>
+        <variable name="tau_j_max" public_interface="in" units="millis"/>
         <!-- var Cai_I_Na_mid: millimolar {pub: in};
  var Cai_I_Na_den: millimolar {pub: in};-->
         <variable name="k_thresh_m" public_interface="in" units="milliV"/>
@@ -1395,6 +1403,30 @@
             </apply>
             <apply>
                 <eq/>
+                <ci>j_init</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <plus/>
+                                    <ci>V_rest_approx</ci>
+                                    <ci>V_mid_j</ci>
+                                </apply>
+                                <ci>V_den_j</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <ci>m_inf</ci>
                 <apply>
                     <divide/>
@@ -1439,6 +1471,30 @@
                                     <ci>V_mid_h</ci>
                                 </apply>
                                 <ci>V_den_h</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>j_inf</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <plus/>
+                                    <ci>V</ci>
+                                    <ci>V_mid_j</ci>
+                                </apply>
+                                <ci>V_den_j</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -1536,11 +1592,63 @@
                                         <apply>
                                             <minus/>
                                             <ci>V_mid_h</ci>
-                                            <cn cellml:units="milliV">10</cn>
+                                            <cn cellml:units="milliV">20</cn>
                                         </apply>
                                         <ci>V</ci>
                                     </apply>
-                                    <cn cellml:units="milliV">3</cn>
+                                    <cn cellml:units="milliV">2</cn>
+                                </apply>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>tau_j</ci>
+                <apply>
+                    <plus/>
+                    <ci>tau_j_min</ci>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <minus/>
+                            <ci>tau_j_max</ci>
+                            <ci>tau_j_min</ci>
+                        </apply>
+                        <apply>
+                            <plus/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <apply>
+                                <exp/>
+                                <apply>
+                                    <divide/>
+                                    <apply>
+                                        <minus/>
+                                        <apply>
+                                            <plus/>
+                                            <ci>V_mid_j</ci>
+                                            <cn cellml:units="milliV">10</cn>
+                                            <ci>V</ci>
+                                        </apply>
+                                    </apply>
+                                    <cn cellml:units="milliV">14</cn>
+                                </apply>
+                            </apply>
+                            <apply>
+                                <exp/>
+                                <apply>
+                                    <divide/>
+                                    <apply>
+                                        <plus/>
+                                        <apply>
+                                            <minus/>
+                                            <ci>V_mid_j</ci>
+                                            <cn cellml:units="milliV">20</cn>
+                                        </apply>
+                                        <ci>V</ci>
+                                    </apply>
+                                    <cn cellml:units="milliV">2</cn>
                                 </apply>
                             </apply>
                         </apply>
@@ -1609,6 +1717,36 @@
             </apply>
             <apply>
                 <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>j</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>j_inf</ci>
+                        <ci>j</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <abs/>
+                            <apply>
+                                <divide/>
+                                <ci>tau_j</ci>
+                                <cn cellml:units="millis_per_s">1000</cn>
+                            </apply>
+                        </apply>
+                        <ci>epsilon_tau</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
                 <ci>i_Na</ci>
                 <apply>
                     <times/>
@@ -1625,6 +1763,7 @@
                         <cn cellml:units="dimensionless">3</cn>
                     </apply>
                     <ci>h</ci>
+                    <ci>j</ci>
                 </apply>
             </apply>
         </math>
