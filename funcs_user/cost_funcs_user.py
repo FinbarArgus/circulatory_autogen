@@ -58,6 +58,12 @@ def multimodal_gaussian(output, prob_dist_params, weight):
         print('!!!!!!!!!!!!')
         exit()
 
+    if sum(prob_dist_params["scales"]) != 1:
+        print('!!!!!!!!!!!!')
+        print("ERROR scales in prob_dist_params for multimodal_gaussian in obs_data.json need to sum to 1")
+        print('!!!!!!!!!!!!')
+        exit()
+
     # apply log-sum-exp trick to avoid numerical instability with large exp values
     # this is log(sum(exp(v_i))) = max(v) + log(sum_i(exp(v_i - max(v))) 
 
