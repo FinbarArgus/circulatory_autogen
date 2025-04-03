@@ -130,38 +130,6 @@ class SimulationHelper():
                     param_init[JJ].append(self.data.states()[param_name])
                 elif param_name in self.data.constants():
                     param_init[JJ].append(self.data.constants()[param_name])
-                elif param_name.startswith('global'):
-                    param_name_exists = False
-                    for name in self.data.states():
-                        if name.endswith(param_name.split('/')[-1]):
-                            if param_name_exists == False:
-                                param_init[JJ].append(self.data.states()[name])
-                                global_val = self.data.states()[name]
-                                param_name_exists = True
-                            else:
-                                if global_val != self.data.states()[name]:
-                                    print(f'global parameter {param_name} has different values in different states')
-                                    print('exiting')
-                                    exit()
-                    for name in self.data.constants():
-                        if name.endswith(param_name.split('/')[-1]):
-                            if param_name_exists == False:
-                                param_init[JJ].append(self.data.constants()[name])
-                                global_val = self.data.constants()[name]
-                                param_name_exists = True
-                            else:
-                                if global_val != self.data.constants()[name]:
-                                    print(f'global parameter {param_name} has different values in different states')
-                                    print('exiting')
-                                    exit()
-                    if not param_name_exists:
-                        print(f'global parameter name of {param_name.split('/')} doesn\'t exist in either constants or states'
-                                f'The states are:')
-                        print([name for name in self.data.states()])
-                        print('the constants are:')
-                        print([name for name in self.data.constants()])
-                        exit()
-                    
                 else:
                     print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
                             f'The states are:')
@@ -183,24 +151,6 @@ class SimulationHelper():
                     self.data.states()[param_name] = param_vals[JJ]
                 elif param_name in self.data.constants():
                     self.data.constants()[param_name] = param_vals[JJ]
-                elif param_name.startswith('global'):
-                    param_name_exists = False
-                    for name in self.data.states():
-                        if name.endswith(param_name.split('/')[-1]):
-                            self.data.states()[name] = param_vals[JJ]
-                            param_name_exists = True
-                    for name in self.data.constants():
-                        if name.endswith(param_name.split('/')[-1]):
-                            self.data.constants()[name] = param_vals[JJ]
-                            param_name_exists = True
-                    if not param_name_exists:
-                        print(f'global parameter name of {param_name.split('/')} doesn\'t exist in either constants or states'
-                                f'The states are:')
-                        print([name for name in self.data.states()])
-                        print('the constants are:')
-                        print([name for name in self.data.constants()])
-                        exit()
-                    
                 else:
                     print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
                             f'The states are:')
