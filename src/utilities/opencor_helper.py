@@ -121,29 +121,18 @@ class SimulationHelper():
     def get_init_param_vals(self, param_names):
         param_init = []
         for JJ, param_name_or_list in enumerate(param_names):
-            if isinstance(param_name_or_list, list):
-                param_init.append([])
-                for param_name in param_name_or_list:
-                    if param_name in self.data.states():
-                        param_init[JJ].append(self.data.states()[param_name])
-                    elif param_name in self.data.constants():
-                        param_init[JJ].append(self.data.constants()[param_name])
-                    else:
-                        print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                              f'The states are:')
-                        print([name for name in self.data.states()])
-                        print('the constants are:')
-                        print([name for name in self.data.constants()])
-                        exit()
-            else:
-                param_name = param_name_or_list
+            if not isinstance(param_name_or_list, list):
+                param_name_or_list = [param_name_or_list]
+                
+            param_init.append([])
+            for param_name in param_name_or_list:
                 if param_name in self.data.states():
-                    param_init.append(self.data.states()[param_name])
+                    param_init[JJ].append(self.data.states()[param_name])
                 elif param_name in self.data.constants():
-                    param_init.append(self.data.constants()[param_name])
+                    param_init[JJ].append(self.data.constants()[param_name])
                 else:
                     print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                          f'The states are:')
+                            f'The states are:')
                     print([name for name in self.data.states()])
                     print('the constants are:')
                     print([name for name in self.data.constants()])
@@ -154,29 +143,17 @@ class SimulationHelper():
     def set_param_vals(self, param_names, param_vals):
         # ensure param_vals stores state values first, then constant values
         for JJ, param_name_or_list in enumerate(param_names):
-            if isinstance(param_name_or_list, list):
-                for param_name in param_name_or_list:
-                    if param_name in self.data.states():
-                        self.data.states()[param_name] = param_vals[JJ]
-                    elif param_name in self.data.constants():
-                        self.data.constants()[param_name] = param_vals[JJ]
-                    else:
-                        print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                              f'The states are:')
-                        print([name for name in self.data.states()])
-                        print('the constants are:')
-                        print([name for name in self.data.constants()])
-                        exit()
+            if not isinstance(param_name_or_list, list):
+                param_name_or_list = [param_name_or_list]
 
-            else:
-                param_name = param_name_or_list
+            for param_name in param_name_or_list:
                 if param_name in self.data.states():
                     self.data.states()[param_name] = param_vals[JJ]
                 elif param_name in self.data.constants():
                     self.data.constants()[param_name] = param_vals[JJ]
                 else:
                     print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                          f'The states are:')
+                            f'The states are:')
                     print([name for name in self.data.states()])
                     print('the constants are:')
                     print([name for name in self.data.constants()])
