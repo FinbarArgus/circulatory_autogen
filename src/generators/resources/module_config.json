@@ -9169,18 +9169,18 @@
       {
         "port_type":"vessel_port",
         "variables":["v_out_2","u"]
-      }
-    ],
-    "general_ports":
-    [
-      {
-        "port_type":"flow_in_out_port",
-        "variables":["v", "v_out_total"]
       },
       {
         "port_type":"length_and_radius_port",
         "variables":["l", "r"]
+      },
+      {
+        "port_type":"flow_in_out_port",
+        "variables":["v", "v_out_total"]
       }
+    ],
+    "general_ports":
+    [
     ],
     "variables_and_units":
     [
@@ -9220,18 +9220,18 @@
       {
         "port_type":"vessel_port",
         "variables":["v_d","u_out"]
-      }
-    ],
-    "general_ports":
-    [
-      {
-        "port_type":"flow_in_out_port",
-        "variables":["v", "v_d"]
       },
       {
         "port_type":"length_and_radius_port",
         "variables":["l", "r"]
+      },
+      {
+        "port_type":"flow_in_out_port",
+        "variables":["v", "v_d"]
       }
+    ],
+    "general_ports":
+    [
     ],
     "variables_and_units":
     [
@@ -9274,18 +9274,18 @@
       {
         "port_type":"vessel_port",
         "variables":["v","u_out"]
-      }
-    ],
-    "general_ports":
-    [
-      {
-        "port_type":"merge_flow_in_out_port",
-        "variables":["v_in_1", "v_in_2", "v"]
       },
       {
         "port_type":"length_and_radius_port",
         "variables":["l", "r"]
+      },
+      {
+        "port_type":"merge_flow_in_out_port",
+        "variables":["v_in_1", "v_in_2", "v"]
       }
+    ],
+    "general_ports":
+    [
     ],
     "variables_and_units":
     [
@@ -9322,6 +9322,10 @@
       {
         "port_type":"EW_diffusion",
         "variables":["C_P", "C_W", "x_P", "x_W"]
+      },
+      {
+        "port_type":"capillary_to_flux_port",
+        "variables":["C_P", "flux_c"]
       }
     ],
     "exit_ports":
@@ -9337,10 +9341,6 @@
     ],
     "general_ports":
     [
-      {
-        "port_type":"capillary_to_flux_port",
-        "variables":["C_P", "flux_c"]
-      }
     ],
     "variables_and_units":
     [
@@ -9386,17 +9386,7 @@
       {
         "port_type":"volume_port",
         "variables":["V"]
-      }
-    ],
-    "exit_ports":
-    [
-      {
-        "port_type":"gas_port",
-        "variables":["C_CO2_v","C_O2_v"]
-      }
-    ],
-    "general_ports":
-    [
+      },
       {
         "port_type":"length_and_radius_port",
         "variables":["L", "r"]
@@ -9404,11 +9394,21 @@
       {
         "port_type":"flow_in_out_port",
         "variables":["v_in", "v_out"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"gas_port",
+        "variables":["C_CO2_v","C_O2_v"]
       },
       {
         "port_type":"capillary_to_flux_port",
         "variables":["ub_O2_t", "flux_O2_c"]
       }
+    ],
+    "general_ports":
+    [
     ],
     "variables_and_units":
     [
@@ -9471,6 +9471,10 @@
       {
         "port_type":"volume_port",
         "variables":["V"]
+      },
+      {
+        "port_type":"merge_flow_in_out_port",
+        "variables":["v_in_1", "v_in_2", "v_out"]
       }
     ],
     "exit_ports":
@@ -9478,27 +9482,27 @@
       {
         "port_type":"gas_port",
         "variables":["C_CO2_v","C_O2_v"]
-      }
-    ],
-    "general_ports":
-    [
+      },
       {
         "port_type":"length_and_radius_port",
         "variables":["L", "r"]
-      },
-      {
-        "port_type":"merge_flow_in_out_port",
-        "variables":["v_in_1", "v_in_2", "v_out"]
       },
       {
         "port_type":"capillary_to_flux_port",
         "variables":["ub_O2_t", "flux_O2_c"]
       }
     ],
+    "general_ports":
+    [
+    ],
     "variables_and_units":
     [
-      ["C_CO2_a", "mol_per_m3", "access", "boundary_condition"],
-      ["C_O2_a", "mol_per_m3", "access", "boundary_condition"],
+      ["C_CO2_a", "mol_per_m3", "access", "variable"],
+      ["C_O2_a", "mol_per_m3", "access", "variable"],
+      ["C_CO2_a_1", "mol_per_m3", "access", "boundary_condition"],
+      ["C_O2_a_1", "mol_per_m3", "access", "boundary_condition"],
+      ["C_CO2_a_2", "mol_per_m3", "access", "boundary_condition"],
+      ["C_O2_a_2", "mol_per_m3", "access", "boundary_condition"],
       ["C_CO2_c", "mol_per_m3", "access", "variable"],
       ["C_O2_c", "mol_per_m3", "access", "variable"],
       ["C_O2_c_init", "mol_per_m3", "access", "constant"],

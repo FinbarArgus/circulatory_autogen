@@ -1039,7 +1039,7 @@ class CVS0DCellMLGenerator(object):
                       ' should be v')
                 exit()
 
-    def __check_input_output_ports(self, exit_ports, output_general_ports, entrance_ports, input_general_ports, exit_module, entrance_module):
+    def __check_input_output_ports(self, exit_ports, output_general_ports, entrance_ports, input_general_ports, upstream_module, downstream_module):
         # check that input and output modules have a matching port
         shared_exit_port = False
         shared_general_port = False
@@ -1055,13 +1055,13 @@ class CVS0DCellMLGenerator(object):
             shared_exit_port = True
         if len(output_general_ports) == 0:
             shared_general_port = True
-        if shared_exit_port == False or shared_general_port == False:
-            print(f'output module {exit_module} and input module {entrance_module} do not have a matching port,'
+        if shared_exit_port == False and shared_general_port == False:
+            print(f'upstream module {upstream_module} and downstream module {downstream_module} do not have a matching port,'
                   f'check the module configuration file')
-            print(f'output module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
-            print(f'output module general ports: {[general_port["port_type"] for general_port in output_general_ports]}')
-            print(f'input module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
-            print(f'input module general ports: {[general_port["port_type"] for general_port in input_general_ports]}')
+            print(f'upstream module exit ports: {[exit_port["port_type"] for exit_port in exit_ports]}')
+            print(f'upstream module general ports: {[general_port["port_type"] for general_port in output_general_ports]}')
+            print(f'downstream module entrance ports: {[entrance_port["port_type"] for entrance_port in entrance_ports]}')
+            print(f'downstream module general ports: {[general_port["port_type"] for general_port in input_general_ports]}')
             exit()
 
     def __write_mapping(self, wf, inp_name, out_name, inp_vars_list, out_vars_list):
