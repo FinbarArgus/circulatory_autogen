@@ -711,6 +711,18 @@ class CVS0DCellMLGenerator(object):
                             else:
                                 entrance_general_ports_connected[out_module][entrance_port_idx] = True
 
+                            # if only_one_port is set to true, then break from this for loop, as this is the only port that should be connected between 
+                            # these modules
+                            if 'only_one_port' in out_module_entrance_general_ports[out_port_idx].keys():
+                                if out_module_entrance_general_ports[out_port_idx]['only_one_port'] in ['True', True]:
+                                    break_out = True
+                                    break
+                            break_out = False
+                            
+                    if break_out:
+                        break_out = False
+                        break     
+
         return entrance_general_ports_connected
 
     def __write_terminal_venous_connection_comp(self, wf, vessel_df):
