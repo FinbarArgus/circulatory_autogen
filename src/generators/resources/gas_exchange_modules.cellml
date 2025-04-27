@@ -1664,6 +1664,7 @@
         <variable name="L" public_interface="in" units="metre"/>
         <variable name="r" public_interface="in" units="metre"/>
         <variable name="V" public_interface="out" units="m3"/>
+        <variable name="V_C" public_interface="in" units="m3"/>
         <!-- volume: Currently assumed constant, improve to account for changing
  ... capillary volume-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -1671,14 +1672,18 @@
                 <eq/>
                 <ci>V</ci>
                 <apply>
-                    <times/>
-                    <pi/>
+                    <plus/>
                     <apply>
-                        <power/>
-                        <ci>r</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <ci>L</ci>
                     </apply>
-                    <ci>L</ci>
+                    <ci>V_C</ci>
                 </apply>
             </apply>
         </math>
@@ -2311,7 +2316,7 @@
                                 <apply>
                                     <minus/>
                                     <ci>C_O2_sat</ci>
-                                    <ci>C_O2_c</ci>
+                                    <ci>C_O2_a</ci>
                                 </apply>
                             </apply>
                             <ci>a_1</ci>
@@ -2336,7 +2341,7 @@
                                 <apply>
                                     <minus/>
                                     <ci>C_CO2_sat</ci>
-                                    <ci>C_CO2_c</ci>
+                                    <ci>C_CO2_a</ci>
                                 </apply>
                             </apply>
                             <ci>a_2</ci>
@@ -2561,7 +2566,7 @@
                 <apply>
                     <times/>
                     <cn cellml:units="Pa_per_mmHg">133.32</cn>
-                    <ci>P_O2_c</ci>
+                    <ci>P_O2_a</ci>
                     <ci>S_O2</ci>
                 </apply>
             </apply>
@@ -2571,7 +2576,7 @@
                 <apply>
                     <times/>
                     <cn cellml:units="Pa_per_mmHg">133.32</cn>
-                    <ci>P_CO2_c</ci>
+                    <ci>P_CO2_a</ci>
                     <ci>S_CO2</ci>
                 </apply>
             </apply>
@@ -2761,6 +2766,7 @@
         <variable name="L" public_interface="in" units="metre"/>
         <variable name="r" public_interface="in" units="metre"/>
         <variable name="V" public_interface="out" units="m3"/>
+        <variable name="V_C" public_interface="in" units="m3"/>
         <!-- volume: Currently assumed constant, improve to account for changing
  ... capillary volume-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2768,14 +2774,18 @@
                 <eq/>
                 <ci>V</ci>
                 <apply>
-                    <times/>
-                    <pi/>
+                    <plus/>
                     <apply>
-                        <power/>
-                        <ci>r</ci>
-                        <cn cellml:units="dimensionless">2</cn>
+                        <times/>
+                        <pi/>
+                        <apply>
+                            <power/>
+                            <ci>r</ci>
+                            <cn cellml:units="dimensionless">2</cn>
+                        </apply>
+                        <ci>L</ci>
                     </apply>
-                    <ci>L</ci>
+                    <ci>V_C</ci>
                 </apply>
             </apply>
         </math>
