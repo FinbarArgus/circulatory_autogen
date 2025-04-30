@@ -357,7 +357,79 @@ def min_first_quarter(x, series_output=False):
         first_quarter_values = x[:quarter_len]
         return np.min(first_quarter_values)
 
+@series_to_constant
+def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance=None, dV_dt_thresh=10e3):
+    """
+    This function calculates the mean action potential threshold
+    using the peak detection algorithm from scipy.
+    It finds the peaks in the voltage signal and then 
+    moves back to pre AP (approximately) It then moves foreward until
+    dV/dt is greater than dV_dt_thresh, default is 10 mV/ms (10e3 mV/s) from platkiewicz2010Threshold.
 
+    # TODO this won't work with noise
+    """
+            
+    if series_output:
+        return V
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 1:
+        # there are no peaks, so set value to mean of the voltage
+        threshold = np.mean(V)
+    else:
+        prev_idx = 0
+        thresholds = []
+        for peak_idx in peak_idxs:
+            t_peak = t[peak_idx]
+            current_idx = int((peak_idx + prev_idx) *3/ 4)
+            dV_dt = 0
+            while dV_dt < dV_dt_thresh and current_idx < len(t) - 1:
+                dV_dt = (V[current_idx + 1] - V[current_idx]) / (t[current_idx + 1] - t[current_idx])
+                current_idx += 1
+            if current_idx < len(t) - 1:
+                thresholds.append(V[current_idx]) # looks better by eye when using current_idx-1
+                prev_idx = peak_idx
+            else:
+                # threshold not found for this peak, ignore it.
+                pass
+            
+        if len(thresholds) == 0:
+            # no thresholds found, exit
+            print("no thresholds found, setting cost to large")
+            threshold = 9999
+        else:
+            threshold = np.mean(thresholds)
+
+    return threshold
+
+@series_to_constant
+def mean_peak_to_trough_time(t, V, series_output=False, spike_min_thresh=None, distance=None):
+    """
+    This function calculates the time between the peak and trough of each action potential
+    then takes the mean of them all
+    """
+            
+    if series_output:
+        return V
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 1:
+        # there are no peaks, so set value to zero
+        t_diff = 0
+    else:
+        t_diff_times = []
+        for II in range(len(peak_idxs)):
+            t_peak = t[peak_idxs[II]]
+
+            next_peak_idx = peak_idxs[II + 1] if II + 1 < len(peak_idxs) else len(t) - 1
+            trough_idx = np.argmin(V[peak_idxs[II]:next_peak_idx]) + peak_idxs[II]
+            t_diff_times.append(t[trough_idx] - t_peak)
+            
+        t_diff = np.mean(t_diff_times)
+
+    return t_diff
 
 
 

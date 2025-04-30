@@ -1202,8 +1202,9 @@
                             <plus/>
                             <ci>i_Na</ci>
                             <ci>i_Ca_L</ci>
-                            <ci>i_Kv</ci>
-                            <ci>i_A</ci>
+                            <ci>i_Kv2</ci>
+                            <ci>i_Kv1_5</ci>
+                            <ci>i_Kv4_2</ci>
                             <ci>i_KCa_BK</ci>
                             <ci>i_KCa_SK</ci>
                             <ci>i_M</ci>
@@ -1281,75 +1282,35 @@
         <variable initial_value="m_init" name="m" public_interface="out" units="dimensionless"/>
         <variable name="h_init" public_interface="out" units="dimensionless"/>
         <variable initial_value="h_init" name="h" public_interface="out" units="dimensionless"/>
-        <variable name="j_init" public_interface="out" units="dimensionless"/>
-        <variable initial_value="j_init" name="j" public_interface="out" units="dimensionless"/>
-        <variable name="V_mid_m" public_interface="out" units="milliV"/>
-        <variable name="V_mid_m_max" public_interface="in" units="milliV"/>
+        <!-- var j_init: dimensionless {pub: out};
+ var j: dimensionless {init: j_init, pub: out};-->
+        <variable name="V_mid_m" public_interface="in" units="milliV"/>
         <variable name="V_den_m" public_interface="in" units="milliV"/>
-        <variable name="V_mid_h" public_interface="out" units="milliV"/>
-        <variable name="V_mid_h_max" public_interface="in" units="milliV"/>
+        <variable name="V_mid_h" public_interface="in" units="milliV"/>
         <variable name="V_den_h" public_interface="in" units="milliV"/>
-        <variable name="V_mid_j" public_interface="in" units="milliV"/>
-        <variable name="V_den_j" public_interface="in" units="milliV"/>
+        <!-- var V_mid_j: milliV {pub: in};
+ var V_den_j: milliV {pub: in};-->
         <variable name="m_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_inf" public_interface="out" units="dimensionless"/>
-        <variable name="j_inf" public_interface="out" units="dimensionless"/>
+        <!-- var j_inf: dimensionless {pub: out};-->
         <variable name="tau_m" public_interface="out" units="millis"/>
         <variable name="tau_h" public_interface="out" units="millis"/>
-        <variable name="tau_j" public_interface="out" units="millis"/>
+        <!-- var tau_j: millis {pub: out};-->
         <variable name="tau_h_min" public_interface="in" units="millis"/>
         <variable name="tau_h_max" public_interface="in" units="millis"/>
-        <variable name="tau_j_min" public_interface="in" units="millis"/>
-        <variable name="tau_j_max" public_interface="in" units="millis"/>
+        <!-- var tau_j_min: millis {pub: in};
+ var tau_j_max: millis {pub: in};-->
         <!-- var Cai_I_Na_mid: millimolar {pub: in};
  var Cai_I_Na_den: millimolar {pub: in};-->
         <variable name="k_thresh_m" public_interface="in" units="milliV"/>
         <variable name="k_thresh_h" public_interface="in" units="milliV"/>
-        <!-- dynamic threshold equation from platkiewicz2011Impact-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>V_mid_m</ci>
-                <apply>
-                    <plus/>
-                    <ci>V_mid_m_max</ci>
-                    <apply>
-                        <times/>
-                        <ci>k_thresh_m</ci>
-                        <apply>
-                            <log/>
-                            <apply>
-                                <plus/>
-                                <ci>h</ci>
-                                <cn cellml:units="dimensionless">0.01</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>V_mid_h</ci>
-                <apply>
-                    <plus/>
-                    <ci>V_mid_h_max</ci>
-                    <apply>
-                        <times/>
-                        <ci>k_thresh_h</ci>
-                        <apply>
-                            <log/>
-                            <apply>
-                                <plus/>
-                                <ci>h</ci>
-                                <cn cellml:units="dimensionless">0.01</cn>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
-            <!-- Removed calcium dependance of Na channel. the changing threshold is probably due to inactivation causing a more positive threshold.
+        <!-- dynamic threshold equation from platkiewicz2011Impact THIS WAS WRONG, REMOVE-->
+        <!-- V_mid_m = V_mid_m_max+k_thresh_m*log(h+0.01{dimensionless});
+ V_mid_h = V_mid_h_max+k_thresh_h*log(h+0.01{dimensionless});-->
+        <!-- Removed calcium dependance of Na channel. the changing threshold is probably due to inactivation causing a more positive threshold.
  V_mid_m = V_mid_m_min+(V_mid_m_max-V_mid_m_min)/(1{dimensionless}+exp((Cai-Cai_I_Na_mid)/Cai_I_Na_den));
  V_mid_h = V_mid_h_min+(V_mid_h_max-V_mid_h_min)/(1{dimensionless}+exp((Cai-Cai_I_Na_mid)/Cai_I_Na_den));-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>m_init</ci>
@@ -1368,7 +1329,7 @@
                                     <apply>
                                         <plus/>
                                         <ci>V_rest_approx</ci>
-                                        <ci>V_mid_m_max</ci>
+                                        <ci>V_mid_m</ci>
                                     </apply>
                                 </apply>
                                 <ci>V_den_m</ci>
@@ -1393,7 +1354,7 @@
                                 <apply>
                                     <plus/>
                                     <ci>V_rest_approx</ci>
-                                    <ci>V_mid_h_max</ci>
+                                    <ci>V_mid_h</ci>
                                 </apply>
                                 <ci>V_den_h</ci>
                             </apply>
@@ -1401,30 +1362,7 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>j_init</ci>
-                <apply>
-                    <divide/>
-                    <cn cellml:units="dimensionless">1</cn>
-                    <apply>
-                        <plus/>
-                        <cn cellml:units="dimensionless">1</cn>
-                        <apply>
-                            <exp/>
-                            <apply>
-                                <divide/>
-                                <apply>
-                                    <plus/>
-                                    <ci>V_rest_approx</ci>
-                                    <ci>V_mid_j</ci>
-                                </apply>
-                                <ci>V_den_j</ci>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- j_init = 1{dimensionless}/(1{dimensionless}+exp((V_rest_approx+V_mid_j)/V_den_j));-->
             <apply>
                 <eq/>
                 <ci>m_inf</ci>
@@ -1476,30 +1414,7 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>j_inf</ci>
-                <apply>
-                    <divide/>
-                    <cn cellml:units="dimensionless">1</cn>
-                    <apply>
-                        <plus/>
-                        <cn cellml:units="dimensionless">1</cn>
-                        <apply>
-                            <exp/>
-                            <apply>
-                                <divide/>
-                                <apply>
-                                    <plus/>
-                                    <ci>V</ci>
-                                    <ci>V_mid_j</ci>
-                                </apply>
-                                <ci>V_den_j</ci>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- j_inf  = 1{dimensionless}/(1{dimensionless}+exp((V+V_mid_j)/V_den_j));-->
             <!-- I changed tau_m so it is dependent on V_mid_h.
  I have made sure it has the same maximum tau_m as in Beluzzi1991 easier to fit.
  TODO Need to compare this to experimental data.-->
@@ -1512,7 +1427,7 @@
                     <cn cellml:units="millis">0.06</cn>
                     <apply>
                         <divide/>
-                        <cn cellml:units="millis">0.4</cn>
+                        <cn cellml:units="millis">0.8</cn>
                         <apply>
                             <plus/>
                             <apply>
@@ -1603,58 +1518,7 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>tau_j</ci>
-                <apply>
-                    <plus/>
-                    <ci>tau_j_min</ci>
-                    <apply>
-                        <divide/>
-                        <apply>
-                            <minus/>
-                            <ci>tau_j_max</ci>
-                            <ci>tau_j_min</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <exp/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <minus/>
-                                        <apply>
-                                            <plus/>
-                                            <ci>V_mid_j</ci>
-                                            <cn cellml:units="milliV">10</cn>
-                                            <ci>V</ci>
-                                        </apply>
-                                    </apply>
-                                    <cn cellml:units="milliV">14</cn>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <exp/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>V_mid_j</ci>
-                                            <cn cellml:units="milliV">20</cn>
-                                        </apply>
-                                        <ci>V</ci>
-                                    </apply>
-                                    <cn cellml:units="milliV">2</cn>
-                                </apply>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- tau_j     = tau_j_min+(tau_j_max-tau_j_min)/(1{dimensionless}+exp(-(V_mid_j+10{milliV}+V)/14{milliV})+exp((V_mid_j-20{milliV}+V)/2{milliV}));-->
             <apply>
                 <eq/>
                 <apply>
@@ -1715,36 +1579,7 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>j</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <minus/>
-                        <ci>j_inf</ci>
-                        <ci>j</ci>
-                    </apply>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <abs/>
-                            <apply>
-                                <divide/>
-                                <ci>tau_j</ci>
-                                <cn cellml:units="millis_per_s">1000</cn>
-                            </apply>
-                        </apply>
-                        <ci>epsilon_tau</ci>
-                    </apply>
-                </apply>
-            </apply>
+            <!-- ode(j, t) = (j_inf-j)/(abs(tau_j/1000{millis_per_s})+epsilon_tau);-->
             <apply>
                 <eq/>
                 <ci>i_Na</ci>
@@ -1763,7 +1598,6 @@
                         <cn cellml:units="dimensionless">3</cn>
                     </apply>
                     <ci>h</ci>
-                    <ci>j</ci>
                 </apply>
             </apply>
         </math>
@@ -2090,20 +1924,20 @@
                 </apply>
             </apply>
         </math>
-        <!-- I_Kv-->
-        <variable name="i_Kv" public_interface="out" units="nanoA"/>
-        <variable name="g_Kv" public_interface="in" units="microS"/>
-        <variable name="n1_init" public_interface="out" units="dimensionless"/>
-        <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
-        <variable name="n1_inf" public_interface="out" units="dimensionless"/>
-        <variable name="tau_n1" public_interface="out" units="millis"/>
-        <variable name="V_mid_n1" public_interface="in" units="milliV"/>
-        <variable name="V_den_n1" public_interface="in" units="milliV"/>
+        <!-- I_Kv2 This is the delayed rectifier in the SN (See Davis2021 section 1.4.2.2)-->
+        <variable name="i_Kv2" public_interface="out" units="nanoA"/>
+        <variable name="g_Kv2" public_interface="in" units="microS"/>
+        <variable name="m_Kv2_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="m_Kv2_init" name="m_Kv2" public_interface="out" units="dimensionless"/>
+        <variable name="m_Kv2_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_m_Kv2" public_interface="out" units="millis"/>
+        <variable name="V_mid_m_Kv2" public_interface="in" units="milliV"/>
+        <variable name="V_den_m_Kv2" public_interface="in" units="milliV"/>
         <!-- these equations modified from Belucci but fit to the same data-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>n1_init</ci>
+                <ci>m_Kv2_init</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2119,10 +1953,10 @@
                                     <apply>
                                         <plus/>
                                         <ci>V_rest_approx</ci>
-                                        <ci>V_mid_n1</ci>
+                                        <ci>V_mid_m_Kv2</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_den_n1</ci>
+                                <ci>V_den_m_Kv2</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2130,7 +1964,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>n1_inf</ci>
+                <ci>m_Kv2_inf</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2146,10 +1980,10 @@
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <ci>V_mid_n1</ci>
+                                        <ci>V_mid_m_Kv2</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_den_n1</ci>
+                                <ci>V_den_m_Kv2</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2157,7 +1991,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>tau_n1</ci>
+                <ci>tau_m_Kv2</ci>
                 <apply>
                     <plus/>
                     <cn cellml:units="millis">2.31</cn>
@@ -2172,7 +2006,7 @@
                                     <divide/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_mid_n1</ci>
+                                        <ci>V_mid_m_Kv2</ci>
                                         <ci>V</ci>
                                         <cn cellml:units="milliV">10</cn>
                                     </apply>
@@ -2187,7 +2021,7 @@
                                         <minus/>
                                         <apply>
                                             <plus/>
-                                            <ci>V_mid_n1</ci>
+                                            <ci>V_mid_m_Kv2</ci>
                                             <ci>V</ci>
                                             <cn cellml:units="milliV">10</cn>
                                         </apply>
@@ -2206,14 +2040,14 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>n1</ci>
+                    <ci>m_Kv2</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
                         <minus/>
-                        <ci>n1_inf</ci>
-                        <ci>n1</ci>
+                        <ci>m_Kv2_inf</ci>
+                        <ci>m_Kv2</ci>
                     </apply>
                     <apply>
                         <plus/>
@@ -2221,7 +2055,7 @@
                             <abs/>
                             <apply>
                                 <divide/>
-                                <ci>tau_n1</ci>
+                                <ci>tau_m_Kv2</ci>
                                 <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
@@ -2231,43 +2065,38 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>i_Kv</ci>
+                <ci>i_Kv2</ci>
                 <apply>
                     <times/>
-                    <ci>g_Kv</ci>
+                    <ci>g_Kv2</ci>
                     <apply>
                         <minus/>
                         <ci>V</ci>
                         <ci>E_K</ci>
                     </apply>
-                    <ci>n1</ci>
+                    <ci>m_Kv2</ci>
                 </apply>
             </apply>
         </math>
-        <!-- iA
- IMPORTANT
- in Tao's matlab code, this is ek, the cardiomyocyte nernst potential, not E_K, the SN nernst potential, which is an error from them
- In Belluzi and Sacchi this is calculated differently again from end of cycle concentration. Improve this-->
-        <variable name="i_A" public_interface="out" units="nanoA"/>
-        <variable name="g_A" public_interface="in" units="microS"/>
-        <variable name="a_init" public_interface="out" units="dimensionless"/>
-        <variable initial_value="a_init" name="a" public_interface="out" units="dimensionless"/>
-        <variable name="ah_init" public_interface="out" units="dimensionless"/>
-        <variable initial_value="ah_init" name="ah" public_interface="out" units="dimensionless"/>
-        <variable name="a_inf" public_interface="out" units="dimensionless"/>
-        <variable name="ah_inf" public_interface="out" units="dimensionless"/>
-        <variable name="tau_a" public_interface="out" units="millis"/>
-        <variable name="tau_a_min" public_interface="in" units="millis"/>
-        <variable name="tau_ah" public_interface="out" units="millis"/>
-        <variable name="V_mid_a" public_interface="in" units="milliV"/>
-        <variable name="V_den_a" public_interface="in" units="milliV"/>
-        <variable name="V_mid_ah" public_interface="in" units="milliV"/>
-        <variable name="V_den_ah" public_interface="in" units="milliV"/>
-        <!-- V_mid_a = V_mid_ah-35{milliV};-->
+        <!-- i_Kv1_5. This is part of the A type current, the fast activating, fast inactivating current-->
+        <variable name="i_Kv1_5" public_interface="out" units="nanoA"/>
+        <variable name="g_Kv1_5" public_interface="in" units="microS"/>
+        <variable name="m_Kv1_5_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="m_Kv1_5_init" name="m_Kv1_5" public_interface="out" units="dimensionless"/>
+        <variable name="h_Kv1_5_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="h_Kv1_5_init" name="h_Kv1_5" public_interface="out" units="dimensionless"/>
+        <variable name="m_Kv1_5_inf" public_interface="out" units="dimensionless"/>
+        <variable name="h_Kv1_5_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_m_Kv1_5" public_interface="out" units="millis"/>
+        <variable name="tau_h_Kv1_5" public_interface="out" units="millis"/>
+        <variable name="V_mid_m_Kv1_5" public_interface="in" units="milliV"/>
+        <variable name="V_den_m_Kv1_5" public_interface="in" units="milliV"/>
+        <variable name="V_mid_h_Kv1_5" public_interface="in" units="milliV"/>
+        <variable name="V_den_h_Kv1_5" public_interface="in" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>a_init</ci>
+                <ci>m_Kv1_5_init</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2283,10 +2112,10 @@
                                     <apply>
                                         <plus/>
                                         <ci>V_rest_approx</ci>
-                                        <ci>V_mid_a</ci>
+                                        <ci>V_mid_m_Kv1_5</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_den_a</ci>
+                                <ci>V_den_m_Kv1_5</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2294,7 +2123,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>ah_init</ci>
+                <ci>h_Kv1_5_init</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2308,9 +2137,9 @@
                                 <apply>
                                     <plus/>
                                     <ci>V_rest_approx</ci>
-                                    <ci>V_mid_ah</ci>
+                                    <ci>V_mid_h_Kv1_5</ci>
                                 </apply>
-                                <ci>V_den_ah</ci>
+                                <ci>V_den_h_Kv1_5</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2318,7 +2147,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>a_inf</ci>
+                <ci>m_Kv1_5_inf</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2334,10 +2163,10 @@
                                     <apply>
                                         <plus/>
                                         <ci>V</ci>
-                                        <ci>V_mid_a</ci>
+                                        <ci>V_mid_m_Kv1_5</ci>
                                     </apply>
                                 </apply>
-                                <ci>V_den_a</ci>
+                                <ci>V_den_m_Kv1_5</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2345,7 +2174,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>ah_inf</ci>
+                <ci>h_Kv1_5_inf</ci>
                 <apply>
                     <divide/>
                     <cn cellml:units="dimensionless">1</cn>
@@ -2359,9 +2188,9 @@
                                 <apply>
                                     <plus/>
                                     <ci>V</ci>
-                                    <ci>V_mid_ah</ci>
+                                    <ci>V_mid_h_Kv1_5</ci>
                                 </apply>
-                                <ci>V_den_ah</ci>
+                                <ci>V_den_h_Kv1_5</ci>
                             </apply>
                         </apply>
                     </apply>
@@ -2369,67 +2198,59 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>tau_a</ci>
-                <ci>tau_a_min</ci>
-            </apply>
-            <!-- was 0.8-->
-            <!-- I changed tau_a because the time dynamics don't change much.
-0.2{millis}+1{dimensionless}/(3.7{per_millis}*exp(0.03856{per_milliV}*V)+0.05362{per_millis}*exp(-0.04448{per_milliV}*V));-->
-            <apply>
-                <eq/>
-                <ci>tau_ah</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <minus/>
-                            <cn cellml:units="millis_per_milliV">0.038</cn>
-                        </apply>
-                        <ci>V</ci>
-                    </apply>
-                    <cn cellml:units="millis">6</cn>
-                    <apply>
-                        <divide/>
-                        <cn cellml:units="millis">87</cn>
+                <ci>tau_m_Kv1_5</ci>
+                <piecewise>
+                    <piece>
                         <apply>
                             <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
                             <apply>
-                                <exp/>
+                                <times/>
                                 <apply>
-                                    <divide/>
-                                    <apply>
-                                        <minus/>
-                                        <apply>
-                                            <plus/>
-                                            <ci>V_mid_ah</ci>
-                                            <ci>V</ci>
-                                        </apply>
-                                    </apply>
-                                    <cn cellml:units="milliV">5</cn>
+                                    <minus/>
+                                    <cn cellml:units="millis_per_milliV">0.1165</cn>
                                 </apply>
+                                <ci>V</ci>
                             </apply>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <exp/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>V_mid_ah</ci>
-                                            <cn cellml:units="milliV">25</cn>
-                                        </apply>
-                                        <ci>V</ci>
-                                    </apply>
-                                    <cn cellml:units="milliV">1.4</cn>
-                                </apply>
-                            </apply>
+                            <cn cellml:units="millis">8.33</cn>
                         </apply>
-                    </apply>
-                </apply>
+                        <apply>
+                            <lt/>
+                            <ci>V</ci>
+                            <cn cellml:units="mV">50</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="millis">2</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>tau_h_Kv1_5</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <plus/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <cn cellml:units="millis_per_milliV">15.5</cn>
+                                </apply>
+                                <ci>V</ci>
+                            </apply>
+                            <cn cellml:units="millis">1620</cn>
+                        </apply>
+                        <apply>
+                            <lt/>
+                            <ci>V</ci>
+                            <cn cellml:units="mV">100</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="millis">50</cn>
+                    </otherwise>
+                </piecewise>
             </apply>
             <apply>
                 <eq/>
@@ -2438,14 +2259,14 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>a</ci>
+                    <ci>m_Kv1_5</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
                         <minus/>
-                        <ci>a_inf</ci>
-                        <ci>a</ci>
+                        <ci>m_Kv1_5_inf</ci>
+                        <ci>m_Kv1_5</ci>
                     </apply>
                     <apply>
                         <plus/>
@@ -2453,7 +2274,7 @@
                             <abs/>
                             <apply>
                                 <divide/>
-                                <ci>tau_a</ci>
+                                <ci>tau_m_Kv1_5</ci>
                                 <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
@@ -2468,14 +2289,14 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>ah</ci>
+                    <ci>h_Kv1_5</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
                         <minus/>
-                        <ci>ah_inf</ci>
-                        <ci>ah</ci>
+                        <ci>h_Kv1_5_inf</ci>
+                        <ci>h_Kv1_5</ci>
                     </apply>
                     <apply>
                         <plus/>
@@ -2483,7 +2304,7 @@
                             <abs/>
                             <apply>
                                 <divide/>
-                                <ci>tau_ah</ci>
+                                <ci>tau_h_Kv1_5</ci>
                                 <cn cellml:units="millis_per_s">1000</cn>
                             </apply>
                         </apply>
@@ -2493,17 +2314,311 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>i_A</ci>
+                <ci>i_Kv1_5</ci>
                 <apply>
                     <times/>
-                    <ci>g_A</ci>
+                    <ci>g_Kv1_5</ci>
+                    <ci>m_Kv1_5</ci>
+                    <ci>h_Kv1_5</ci>
                     <apply>
                         <minus/>
                         <ci>V</ci>
                         <ci>E_K</ci>
                     </apply>
-                    <ci>a</ci>
-                    <ci>ah</ci>
+                </apply>
+            </apply>
+        </math>
+        <!-- i_Kv4_2. This is part of the A type current, the fast activating, fast inactivating current-->
+        <variable name="i_Kv4_2" public_interface="out" units="nanoA"/>
+        <variable name="g_Kv4_2" public_interface="in" units="microS"/>
+        <variable name="m_Kv4_2_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="m_Kv4_2_init" name="m_Kv4_2" public_interface="out" units="dimensionless"/>
+        <variable name="h_Kv4_2_init" public_interface="out" units="dimensionless"/>
+        <variable initial_value="h_Kv4_2_init" name="h_Kv4_2" public_interface="out" units="dimensionless"/>
+        <variable name="m_Kv4_2_inf" public_interface="out" units="dimensionless"/>
+        <variable name="h_Kv4_2_inf" public_interface="out" units="dimensionless"/>
+        <variable name="tau_m_Kv4_2" public_interface="out" units="millis"/>
+        <variable name="tau_h_Kv4_2" public_interface="out" units="millis"/>
+        <variable name="V_mid_m_Kv4_2" public_interface="in" units="milliV"/>
+        <variable name="V_den_m_Kv4_2" public_interface="in" units="milliV"/>
+        <variable name="V_mid_h_Kv4_2" public_interface="in" units="milliV"/>
+        <variable name="V_den_h_Kv4_2" public_interface="in" units="milliV"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>m_Kv4_2_init</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <plus/>
+                                        <ci>V_rest_approx</ci>
+                                        <ci>V_mid_m_Kv4_2</ci>
+                                    </apply>
+                                </apply>
+                                <ci>V_den_m_Kv4_2</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>h_Kv4_2_init</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <plus/>
+                                    <ci>V_rest_approx</ci>
+                                    <ci>V_mid_h_Kv4_2</ci>
+                                </apply>
+                                <ci>V_den_h_Kv4_2</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>m_Kv4_2_inf</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <apply>
+                                        <plus/>
+                                        <ci>V</ci>
+                                        <ci>V_mid_m_Kv4_2</ci>
+                                    </apply>
+                                </apply>
+                                <ci>V_den_m_Kv4_2</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>h_Kv4_2_inf</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <plus/>
+                                    <ci>V</ci>
+                                    <ci>V_mid_h_Kv4_2</ci>
+                                </apply>
+                                <ci>V_den_h_Kv4_2</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!-- WAS
+ 1.0{millis}/(0.026{dimensionless}*exp(-0.026{per_milliV}*V)+35{dimensionless}*exp(0.136{per_milliV}*V));-->
+            <apply>
+                <eq/>
+                <ci>tau_m_Kv4_2</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="millis">0.2</cn>
+                            <apply>
+                                <plus/>
+                                <apply>
+                                    <times/>
+                                    <cn cellml:units="dimensionless">0.026</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <times/>
+                                            <apply>
+                                                <minus/>
+                                                <cn cellml:units="per_milliV">0.026</cn>
+                                            </apply>
+                                            <ci>V</ci>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                                <apply>
+                                    <times/>
+                                    <cn cellml:units="dimensionless">35</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <times/>
+                                            <cn cellml:units="per_milliV">0.136</cn>
+                                            <ci>V</ci>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <lt/>
+                            <ci>V</ci>
+                            <cn cellml:units="mV">50</cn>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <apply>
+                            <plus/>
+                            <apply>
+                                <divide/>
+                                <cn cellml:units="millis">1.7</cn>
+                                <apply>
+                                    <plus/>
+                                    <cn cellml:units="dimensionless">1</cn>
+                                    <apply>
+                                        <exp/>
+                                        <apply>
+                                            <divide/>
+                                            <apply>
+                                                <minus/>
+                                                <apply>
+                                                    <minus/>
+                                                    <cn cellml:units="milliV">42</cn>
+                                                </apply>
+                                                <ci>V</ci>
+                                            </apply>
+                                            <apply>
+                                                <minus/>
+                                                <cn cellml:units="milliV">26</cn>
+                                            </apply>
+                                        </apply>
+                                    </apply>
+                                </apply>
+                            </apply>
+                            <cn cellml:units="millis">0.34</cn>
+                        </apply>
+                    </otherwise>
+                </piecewise>
+            </apply>
+            <!-- WAS 
+ tau_h_Kv4_2     = 0.01{millis_per_milliV}*V+6.7{millis};-->
+            <apply>
+                <eq/>
+                <ci>tau_h_Kv4_2</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <cn cellml:units="millis_per_milliV">0.01</cn>
+                        <ci>V</ci>
+                    </apply>
+                    <cn cellml:units="millis">6.7</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>m_Kv4_2</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>m_Kv4_2_inf</ci>
+                        <ci>m_Kv4_2</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <abs/>
+                            <apply>
+                                <divide/>
+                                <ci>tau_m_Kv4_2</ci>
+                                <cn cellml:units="millis_per_s">1000</cn>
+                            </apply>
+                        </apply>
+                        <ci>epsilon_tau</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>h_Kv4_2</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <ci>h_Kv4_2_inf</ci>
+                        <ci>h_Kv4_2</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <abs/>
+                            <apply>
+                                <divide/>
+                                <ci>tau_h_Kv4_2</ci>
+                                <cn cellml:units="millis_per_s">1000</cn>
+                            </apply>
+                        </apply>
+                        <ci>epsilon_tau</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>i_Kv4_2</ci>
+                <apply>
+                    <times/>
+                    <ci>g_Kv4_2</ci>
+                    <apply>
+                        <power/>
+                        <ci>m_Kv4_2</ci>
+                        <cn cellml:units="dimensionless">3</cn>
+                    </apply>
+                    <ci>h_Kv4_2</ci>
+                    <apply>
+                        <minus/>
+                        <ci>V</ci>
+                        <ci>E_K</ci>
+                    </apply>
                 </apply>
             </apply>
         </math>
@@ -2999,7 +3114,7 @@
             </apply>
         </math>
         <!-- I_M 
- TODO does this do some of the same things as ikv and iA, how do we differentiate these?
+ TODO does this do some of the same things as iKv2 and iA, how do we differentiate these?
  TODO calculate cAMP concentration
  TODO figure out what units cAMP is supposed to have. is it between 0 and 1?-->
         <variable name="i_M" public_interface="out" units="nanoA"/>
@@ -3181,8 +3296,8 @@
         <variable name="g_leak_Na" public_interface="in" units="microS"/>
         <variable name="g_leak_K" public_interface="in" units="microS"/>
         <!--Currently this changes as E_k and E_Na change...
- This assumes only currents at hyperpolarisation are leak currents, i_Nak, i_Na, and i_M, i_kCa_SK, and i_kv-->
-        <!-- g_leak_Na = max(-(i_leak_K_init+i_NaK_init+i_NaCa_init+i_M_init+i_KCa_SK_init+i_Kv_init)/(V_rest_approx-E_Na_init), 0{microS});-->
+ This assumes only currents at hyperpolarisation are leak currents, i_Nak, i_Na, and i_M, i_kCa_SK, and i_Kv2-->
+        <!-- g_leak_Na = max(-(i_leak_K_init+i_NaK_init+i_NaCa_init+i_M_init+i_KCa_SK_init+i_Kv2_init)/(V_rest_approx-E_Na_init), 0{microS});-->
         <!-- currently leave out i_Na in case rest causes spiking-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -4323,8 +4438,9 @@
         <variable name="Ki_init" public_interface="in" units="millimolar"/>
         <variable initial_value="Ki_init" name="Ki" public_interface="out" units="millimolar"/>
         <variable name="Ko" public_interface="in" units="millimolar"/>
-        <variable name="j_KA" public_interface="out" units="mol_per_s"/>
-        <variable name="j_Kv" public_interface="out" units="mol_per_s"/>
+        <variable name="j_Kv1_5" public_interface="out" units="mol_per_s"/>
+        <variable name="j_Kv4_2" public_interface="out" units="mol_per_s"/>
+        <variable name="j_Kv2" public_interface="out" units="mol_per_s"/>
         <variable name="j_KCa_BK" public_interface="out" units="mol_per_s"/>
         <variable name="j_KCa_SK" public_interface="out" units="mol_per_s"/>
         <variable name="j_KM" public_interface="out" units="mol_per_s"/>
@@ -4334,14 +4450,14 @@
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
-                <ci>j_KA</ci>
+                <ci>j_Kv1_5</ci>
                 <apply>
                     <times/>
                     <apply>
                         <divide/>
                         <apply>
                             <minus/>
-                            <ci>i_A</ci>
+                            <ci>i_Kv1_5</ci>
                         </apply>
                         <ci>F</ci>
                     </apply>
@@ -4350,14 +4466,30 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>j_Kv</ci>
+                <ci>j_Kv4_2</ci>
                 <apply>
                     <times/>
                     <apply>
                         <divide/>
                         <apply>
                             <minus/>
-                            <ci>i_Kv</ci>
+                            <ci>i_Kv4_2</ci>
+                        </apply>
+                        <ci>F</ci>
+                    </apply>
+                    <cn cellml:units="A_per_nanoA" type="e-notation">1<sep/>-9</cn>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>j_Kv2</ci>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <apply>
+                            <minus/>
+                            <ci>i_Kv2</ci>
                         </apply>
                         <ci>F</ci>
                     </apply>
@@ -4459,8 +4591,9 @@
                     <divide/>
                     <apply>
                         <plus/>
-                        <ci>j_KA</ci>
-                        <ci>j_Kv</ci>
+                        <ci>j_Kv1_5</ci>
+                        <ci>j_Kv4_2</ci>
+                        <ci>j_Kv2</ci>
                         <ci>j_KCa_BK</ci>
                         <ci>j_KCa_SK</ci>
                         <ci>j_KM</ci>
