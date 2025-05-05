@@ -563,6 +563,10 @@ class CVS0DParamID():
                     fig_phase, axs_phase = plt.subplots(squeeze=False)
                     axs_phase = axs_phase[0,0]
                 plot_saved = False
+        
+        # save std error and percentage error
+        np.save(os.path.join(self.output_dir, 'percent_error_vec.npy'), percent_error_vec)
+        np.save(os.path.join(self.output_dir, 'std_error_vec.npy'), std_error_vec)
 
         # save final plot if it is not a full set of subplots
         if not plot_saved:
@@ -577,7 +581,6 @@ class CVS0DParamID():
             plt.close()
 
         # Make a bar plot with all percentage errors.
-        fig, axs = plt.subplots()
         obs_names_for_plot_list = []
 
         for II in range(self.obs_info["num_obs"]):
@@ -585,55 +588,64 @@ class CVS0DParamID():
             obs_names_for_plot_list.append(name_str)
         obs_names_for_plot = np.array(obs_names_for_plot_list)
 
-        bar_list = axs.bar(obs_names_for_plot, percent_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
-        axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
+        num_plots = len(obs_names_for_plot)// 10 + 1
 
-        # bar_list[0].set_facecolor('r')
-        # bar_list[1].set_facecolor('r')
+        for plot_idx in range(num_plots):
+            fig, axs = plt.subplots()
+            if plot_idx == num_plots - 1:
+                bar_list = axs.bar(obs_names_for_plot[plot_idx*10:], percent_error_vec[plot_idx*10:], label='% error', width=1.0, color='b', edgecolor='black')
+            else:
+                bar_list = axs.bar(obs_names_for_plot[plot_idx*10:plot_idx*10+10], percent_error_vec[plot_idx*10:plot_idx*10+10], label='% error', width=1.0, color='b', edgecolor='black')
 
-        # axs.legend()
-        axs.set_ylabel(r'E$_{\%}$')
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.eps'))
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.pdf'))
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.png'))
-        plt.close()
+            # axs.set_ylim(ymin=0.0)
+            # axs.set_yticks(np.arange(0, 21, 10))
+            axs.axhline(y=0.0,linewidth= 3, color='k', linestyle= 'dotted')
 
-        #plot error as number of standard deviations of
-        fig, axs = plt.subplots()
-        bar_list = axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
-        axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
+            # bar_list[0].set_facecolor('r')
+            # bar_list[1].set_facecolor('r')
 
-        # save std error and percentage error
+            # axs.legend()
+            axs.set_ylabel(r'E$_{\%}$')
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
+            plt.close()
 
-        np.save(os.path.join(self.output_dir, 'percent_error_vec.npy'), percent_error_vec)
-        np.save(os.path.join(self.output_dir, 'std_error_vec.npy'), std_error_vec)
-        
+            #plot error as number of standard deviations of
+            fig, axs = plt.subplots()
+            if plot_idx == num_plots - 1:
+                bar_list = axs.bar(obs_names_for_plot[plot_idx*10:], std_error_vec[plot_idx*10:], label='% error', width=1.0, color='b', edgecolor='black')
+            else:
+                bar_list = axs.bar(obs_names_for_plot[plot_idx*10:plot_idx*10+10], std_error_vec[plot_idx*10:plot_idx*10+10], label='% error', width=1.0, color='b', edgecolor='black')
+            axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
-        # bar_list[0].set_facecolor('r')
-        # bar_list[1].set_facecolor('r')
+            
 
-        # axs.legend()
-        axs.set_ylabel('E$_{std}$')
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'std_error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.eps'))
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'std_error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.pdf'))
-        plt.savefig(os.path.join(self.plot_dir,
-                                 f'std_error_bars_{self.file_name_prefix}_'
-                                 f'{self.param_id_obs_file_prefix}.png'))
-        plt.close()
+            # bar_list[0].set_facecolor('r')
+            # bar_list[1].set_facecolor('r')
+
+            # axs.legend()
+            axs.set_ylabel('E$_{std}$')
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'std_error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.eps'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'std_error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.pdf'))
+            plt.savefig(os.path.join(self.plot_dir,
+                                    f'std_error_bars_{self.file_name_prefix}_'
+                                    f'{self.param_id_obs_file_prefix}_{plot_idx}.png'))
+            plt.close()
 
         print('______observable errors______')
         for obs_idx in range(self.obs_info["num_obs"]):

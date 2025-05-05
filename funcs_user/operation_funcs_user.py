@@ -97,7 +97,7 @@ def calc_spike_period(t, V, series_output=False):
     return period
 
 @series_to_constant
-def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10):
+def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10, start_frac=0.0, end_frac=1.0):
     """
     this calculates the number of spikes per 
     second in the given window. Not an accurate actual 
@@ -107,10 +107,13 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
+    # get the start and end of the window
+    start_idx = int(start_frac*(len(t)-1))
+    end_idx = int(end_frac*(len(t)-1))
+    peak_idxs, peak_properties = find_peaks(V[start_idx:end_idx], height=spike_min_thresh)
 
     # TODO maybe check peak properties here
-    spikes_per_s = len(peak_idxs)/(t[-1] - t[0])
+    spikes_per_s = len(peak_idxs)/(t[end_idx] - t[start_idx])
     return spikes_per_s
 
 @series_to_constant
@@ -202,9 +205,13 @@ def first_period(t, V, series_output=False, spike_min_thresh=None, distance=None
     # set distance = 5 to make sure it doesn't count a peak as two
     peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
     # TODO maybe check peak properties here
-    if len(peak_idxs) < 2:
+    if len(peak_idxs) < 1:
         # there aren't enough peaks to calculate a period
         # so set the period_diff to the max time of the simulation
+        first_period = t[-1] - t[0]
+    elif len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a first period
+        # so set the period_diff to the time to the first peak
         first_period = t[-1] - t[0]
     else:
         # calculate peaks without a threshold after first peak

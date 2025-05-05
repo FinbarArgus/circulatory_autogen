@@ -1864,7 +1864,7 @@
                     <apply>
                         <minus/>
                         <ci>h_Na1_6_inf</ci>
-                        <ci>h</ci>
+                        <ci>h_Na1_6</ci>
                     </apply>
                     <apply>
                         <plus/>
