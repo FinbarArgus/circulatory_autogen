@@ -391,11 +391,14 @@ def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance
             t_peak = t[peak_idx]
             current_idx = int((peak_idx + prev_idx) *3/ 4)
             dV_dt = 0
+            dV_dt_prev = 0
             while dV_dt < dV_dt_thresh and current_idx < len(t) - 1:
+                dV_dt_prev = dV_dt
                 dV_dt = (V[current_idx + 1] - V[current_idx]) / (t[current_idx + 1] - t[current_idx])
                 current_idx += 1
             if current_idx < len(t) - 1:
-                thresholds.append(V[current_idx]) # looks better by eye when using current_idx-1
+                interp_thresh = np.interp(dV_dt_thresh, [dV_dt_prev, dV_dt], [V[current_idx-1], V[current_idx]])
+                thresholds.append(interp_thresh) 
                 prev_idx = peak_idx
             else:
                 # threshold not found for this peak, ignore it.
