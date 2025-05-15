@@ -2639,7 +2639,7 @@
         <variable name="m_Kv4_2_inf" public_interface="out" units="dimensionless"/>
         <variable name="h_Kv4_2_inf" public_interface="out" units="dimensionless"/>
         <variable name="tau_m_Kv4_2" public_interface="out" units="millis"/>
-        <variable name="tau_h_Kv4_2" public_interface="out" units="millis"/>
+        <variable name="tau_h_Kv4_2" public_interface="in" units="millis"/>
         <variable name="V_mid_m_Kv4_2" public_interface="in" units="milliV"/>
         <variable name="V_den_m_Kv4_2" public_interface="in" units="milliV"/>
         <variable name="V_mid_h_Kv4_2" public_interface="in" units="milliV"/>
@@ -2830,19 +2830,6 @@
             </apply>
             <!-- WAS 
  tau_h_Kv4_2     = 0.01{millis_per_milliV}*V+6.7{millis};-->
-            <apply>
-                <eq/>
-                <ci>tau_h_Kv4_2</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <cn cellml:units="millis_per_milliV">0.01</cn>
-                        <ci>V</ci>
-                    </apply>
-                    <cn cellml:units="millis">6.7</cn>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <apply>

@@ -6102,7 +6102,7 @@
       ["tau_m_Kv1_5", "millis", "access", "variable"],
       ["tau_h_Kv1_5", "millis", "access", "variable"],
       ["tau_m_Kv4_2", "millis", "access", "variable"],
-      ["tau_h_Kv4_2", "millis", "access", "variable"],
+      ["tau_h_Kv4_2", "millis", "access", "constant"],
       ["tau_m_BK", "millis", "access", "variable"],
       ["tau_h_BK", "millis", "access", "variable"],
       ["tau_z_BK", "millis", "access", "constant"],
