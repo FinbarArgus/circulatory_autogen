@@ -56,7 +56,7 @@ is mainly used to simulate for an amout of time to reach steady state or periodi
 Examples of `obs_data.json`, `data_item` entries are shown in below figures for constant, constant with operation_kwargs, series, and frequency data types, respectively. 
 
 ![obs_data.json for constant](images/obs-data-constant.png)
-![obs_data.json for constant](images/obs-data-constant2.png)
+![obs_data.json for constant 2](images/obs-data-constant2.png)
 ![obs_data.json for  series](images/obs-data-series.png)
 ![obs_data.json for frequency](images/obs-data-frequency.png)
 
@@ -83,7 +83,7 @@ To enable flexibility we allow you to create your own user-defined operation fun
 Available operation functions can be found in `src/param_id/operation_funcs.py` and in the file made for adding your own operation functions in `funcs_user/operation_funcs_user.py`.
 Here is an example of an operation function for calculating the ratio of the two peaks (used for mitral valve flow).
 
-![obs_data.json for constant](images/E-A-ratio.png)
+![Operation func example](images/E-A-ratio.png)
 
 Note:
 
@@ -97,7 +97,7 @@ Note:
 To allow even more flexibility, we also allow users to define their own cost functions (or likelihood functions). These can be found at `funcs_user/cost_funcs_user.py`.
 An example for the maximum likelihood estimator for gaussian noise (equivalent to weighted mean squared error) is:
 
-![obs_data.json for constant](images/cost-func.png)
+![cost func example](images/cost-func.png)
 
 Note:
 
