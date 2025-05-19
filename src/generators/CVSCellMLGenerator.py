@@ -713,8 +713,8 @@ class CVS0DCellMLGenerator(object):
 
                             # if only_one_port is set to true, then break from this for loop, as this is the only port that should be connected between 
                             # these modules
-                            if 'only_one_port' in out_module_entrance_general_ports[out_port_idx].keys():
-                                if out_module_entrance_general_ports[out_port_idx]['only_one_port'] in ['True', True]:
+                            if 'only_one_port' in out_module_entrance_general_ports[entrance_port_idx].keys():
+                                if out_module_entrance_general_ports[entrance_port_idx]['only_one_port'] in ['True', True]:
                                     break_out = True
                                     break
                             break_out = False

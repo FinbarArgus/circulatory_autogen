@@ -9236,6 +9236,10 @@
         "variables":["l", "r"]
       },
       {
+        "port_type":"volume_port",
+        "variables":["q"]
+      },
+      {
         "port_type":"flow_in_out_port",
         "variables":["v", "v_out_total"]
       }
@@ -9249,6 +9253,8 @@
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_C_init", "m3", "access", "constant"],
+      ["q", "m3", "access", "variable"],
+      ["q_us", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
@@ -9291,6 +9297,10 @@
         "variables":["l", "r"]
       },
       {
+        "port_type":"volume_port",
+        "variables":["q"]
+      },
+      {
         "port_type":"flow_in_out_port",
         "variables":["v", "v_d"]
       }
@@ -9304,6 +9314,8 @@
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_C_init", "m3", "access", "constant"],
+      ["q", "m3", "access", "variable"],
+      ["q_us", "m3", "access", "variable"],
       ["v_d", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
@@ -9349,6 +9361,10 @@
         "variables":["l", "r"]
       },
       {
+        "port_type":"volume_port",
+        "variables":["q"]
+      },
+      {
         "port_type":"merge_flow_in_out_port",
         "variables":["v_in_1", "v_in_2", "v"]
       }
@@ -9362,6 +9378,8 @@
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_C_init", "m3", "access", "constant"],
+      ["q", "m3", "access", "variable"],
+      ["q_us", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
@@ -9404,6 +9422,10 @@
         "variables":["l", "r"]
       },
       {
+        "port_type":"volume_port",
+        "variables":["q"]
+      },
+      {
         "port_type":"flow_in_out_port",
         "variables":["v_in", "v"]
       }
@@ -9417,6 +9439,8 @@
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_C_init", "m3", "access", "constant"],
+      ["q", "m3", "access", "variable"],
+      ["q_us", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "no_access", "constant"],
@@ -9574,7 +9598,7 @@
       ["C_0", "dimensionless", "access", "variable"],
       ["L", "metre", "access", "boundary_condition"],
       ["r", "metre", "access", "boundary_condition"],
-      ["V", "m3", "access", "variable"],
+      ["V", "m3", "access", "boundary_condition"],
       ["exp_threshold", "millimolar", "access", "constant"],
       ["S_O2", "mol_per_m3_per_Pa", "access", "constant"],
       ["S_CO2", "mol_per_m3_per_Pa", "access", "constant"],
@@ -9687,7 +9711,7 @@
       ["C_0", "dimensionless", "access", "variable"],
       ["L", "metre", "access", "boundary_condition"],
       ["r", "metre", "access", "boundary_condition"],
-      ["V", "m3", "access", "variable"],
+      ["V", "m3", "access", "boundary_condition"],
       ["exp_threshold", "millimolar", "access", "constant"],
       ["S_O2", "mol_per_m3_per_Pa", "access", "constant"],
       ["S_CO2", "mol_per_m3_per_Pa", "access", "constant"],

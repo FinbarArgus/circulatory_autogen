@@ -1663,30 +1663,7 @@
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable name="L" public_interface="in" units="metre"/>
         <variable name="r" public_interface="in" units="metre"/>
-        <variable name="V" public_interface="out" units="m3"/>
-        <variable name="V_C" public_interface="in" units="m3"/>
-        <!-- volume: Currently assumed constant, improve to account for changing
- ... capillary volume-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>V</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <pi/>
-                        <apply>
-                            <power/>
-                            <ci>r</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
-                        <ci>L</ci>
-                    </apply>
-                    <ci>V_C</ci>
-                </apply>
-            </apply>
-        </math>
+        <variable name="V" public_interface="in" units="m3"/>
         <!-- unbound concentrations-->
         <variable name="ub_O2_c" public_interface="out" units="millimolar"/>
         <variable name="ub_O2_t" public_interface="in" units="millimolar"/>
@@ -2765,30 +2742,7 @@
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable name="L" public_interface="in" units="metre"/>
         <variable name="r" public_interface="in" units="metre"/>
-        <variable name="V" public_interface="out" units="m3"/>
-        <variable name="V_C" public_interface="in" units="m3"/>
-        <!-- volume: Currently assumed constant, improve to account for changing
- ... capillary volume-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>V</ci>
-                <apply>
-                    <plus/>
-                    <apply>
-                        <times/>
-                        <pi/>
-                        <apply>
-                            <power/>
-                            <ci>r</ci>
-                            <cn cellml:units="dimensionless">2</cn>
-                        </apply>
-                        <ci>L</ci>
-                    </apply>
-                    <ci>V_C</ci>
-                </apply>
-            </apply>
-        </math>
+        <variable name="V" public_interface="in" units="m3"/>
         <!-- unbound concentrations-->
         <variable name="ub_O2_c" public_interface="out" units="millimolar"/>
         <variable name="ub_O2_t" public_interface="in" units="millimolar"/>

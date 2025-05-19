@@ -12914,8 +12914,33 @@ u_out = 0{J_per_m3};-->
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <variable name="q" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_us</ci>
+                <apply>
+                    <times/>
+                    <pi/>
+                    <apply>
+                        <power/>
+                        <ci>r</ci>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <ci>l</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us</ci>
+                    <ci>q_C</ci>
+                </apply>
+            </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>h</ci>
@@ -13069,8 +13094,33 @@ u_out = 0{J_per_m3};-->
         <variable name="v_out_total" public_interface="out" units="m3_per_s"/>
         <variable name="q_C_init" public_interface="in" units="m3"/>
         <variable initial_value="q_C_init" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <variable name="q" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_us</ci>
+                <apply>
+                    <times/>
+                    <pi/>
+                    <apply>
+                        <power/>
+                        <ci>r</ci>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <ci>l</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us</ci>
+                    <ci>q_C</ci>
+                </apply>
+            </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>h</ci>
@@ -13232,8 +13282,33 @@ u_out = 0{J_per_m3};-->
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable name="q_C_init" public_interface="in" units="m3"/>
         <variable initial_value="q_C_init" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <variable name="q" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_us</ci>
+                <apply>
+                    <times/>
+                    <pi/>
+                    <apply>
+                        <power/>
+                        <ci>r</ci>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <ci>l</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us</ci>
+                    <ci>q_C</ci>
+                </apply>
+            </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>h</ci>
@@ -13408,8 +13483,33 @@ u_out = 0{J_per_m3};-->
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable name="q_C_init" public_interface="in" units="m3"/>
         <variable initial_value="q_C_init" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <variable name="q" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_us</ci>
+                <apply>
+                    <times/>
+                    <pi/>
+                    <apply>
+                        <power/>
+                        <ci>r</ci>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <ci>l</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us</ci>
+                    <ci>q_C</ci>
+                </apply>
+            </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>h</ci>
@@ -13569,8 +13669,33 @@ u_out = 0{J_per_m3};-->
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable name="q_C_init" public_interface="in" units="m3"/>
         <variable initial_value="q_C_init" name="q_C" public_interface="out" units="m3"/>
-        <!-- Constitutive Relations-->
+        <variable name="q" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_us</ci>
+                <apply>
+                    <times/>
+                    <pi/>
+                    <apply>
+                        <power/>
+                        <ci>r</ci>
+                        <cn cellml:units="dimensionless">2</cn>
+                    </apply>
+                    <ci>l</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_us</ci>
+                    <ci>q_C</ci>
+                </apply>
+            </apply>
+            <!-- Constitutive Relations-->
             <apply>
                 <eq/>
                 <ci>h</ci>
