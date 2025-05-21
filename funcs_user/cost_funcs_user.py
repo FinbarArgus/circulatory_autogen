@@ -26,6 +26,7 @@ def gaussian_MLE(output, desired_mean, std, weight):
         cost = np.sum(cost)/len(output)
     
     return cost
+
 # TODO we need to create derivative functions for each cost with respect to the outputs so that we can pass 
 
 def MSE(*args, **kwargs):
