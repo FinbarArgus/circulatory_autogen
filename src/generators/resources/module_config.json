@@ -935,74 +935,6 @@
     ]
   },
   {
-    "vessel_type":"split_junction",
-    "BC_type":"pv_nonlinear",
-    "module_format":"cellml",
-    "module_file":"BG_modules.cellml",
-    "module_type":"pv_split_nonlinear_type",
-    "entrance_ports":
-    [
-      {
-        "port_type":"vessel_port",
-        "variables":["v","u_in"]
-      }
-    ],
-    "exit_ports":
-    [
-      {
-        "port_type":"vessel_port",
-        "variables":["v_out_1","u"]
-      },
-      {
-        "port_type":"vessel_port",
-        "variables":["v_out_2","u"]
-      },
-      {
-        "port_type":"pressure_and_deriv_port",
-        "variables":["u","du_dt"]
-      },
-      
-      {
-        "port_type":"pressure_feedback_port",
-        "variables":["u"]
-      },
-      
-      {
-        "port_type":"flow_feedback_port",
-        "variables":["v"]
-      }
-      
-      
-    ],
-    "general_ports":[],
-    "variables_and_units":
-    [
-      ["u", "J_per_m3", "access", "variable"],
-      ["du_dt", "J_per_m3s", "access", "variable"],
-      ["v", "m3_per_s", "access", "variable"],
-      ["q_C", "m3", "access", "variable"],
-      ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
-      ["K_tube", "J_per_m3", "access", "constant"],
-      ["m_tube", "dimensionless", "access", "constant"],
-      ["n_tube", "dimensionless", "access", "constant"],
-      ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
-      ["theta", "dimensionless", "no_access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
-      ["beta_g", "dimensionless", "no_access", "global_constant"],
-      ["rho", "Js2_per_m5", "no_access", "global_constant"],
-      ["mu", "Js_per_m3", "no_access", "global_constant"],
-      ["g", "m_per_s2", "no_access", "global_constant"],
-      ["v_out_1", "m3_per_s", "access", "boundary_condition"],
-      ["v_out_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "constant"]
-    ]
-  },
-  {
     "vessel_type":"split_junction_simple",
     "BC_type":"pv",
     "module_format":"cellml",
@@ -1246,57 +1178,6 @@
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"]
-    ]
-  },
-  {
-    "vessel_type":"merge_junction",
-    "BC_type":"vp_nonlinear",
-    "module_format":"cellml",
-    "module_file":"BG_modules.cellml",
-    "module_type":"vp_merge_nonlinear_type",
-    "entrance_ports":
-    [
-      {
-        "port_type":"vessel_port",
-        "variables":["v_in_1","u"]
-      },
-      {
-        "port_type":"vessel_port",
-        "variables":["v_in_2","u"]
-      }
-    ],
-    "exit_ports":
-    [
-      {
-        "port_type":"vessel_port",
-        "variables":["v","u_out"]
-      }
-    ],
-    "general_ports":[],
-    "variables_and_units":
-    [
-      ["u", "J_per_m3", "access", "variable"],
-      ["v", "m3_per_s", "access", "variable"],
-      ["q_C", "m3", "access", "variable"],
-      ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
-      ["K_tube", "J_per_m3", "access", "constant"],
-      ["m_tube", "dimensionless", "access", "constant"],
-      ["n_tube", "dimensionless", "access", "constant"],
-      ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
-      ["theta", "dimensionless", "no_access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
-      ["beta_g", "dimensionless", "no_access", "global_constant"],
-      ["rho", "Js2_per_m5", "no_access", "global_constant"],
-      ["mu", "Js_per_m3", "no_access", "global_constant"],
-      ["g", "m_per_s2", "no_access", "global_constant"],
-      ["v_in_1", "m3_per_s", "access", "boundary_condition"],
-      ["v_in_2", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
