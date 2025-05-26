@@ -241,7 +241,7 @@
             </apply>
         </math>
     </component>
-    <component name="pv_nonlinear_type">
+    <component name="pv_nonlinear_rFix_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
@@ -681,7 +681,7 @@
     </component>
     <!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-//
 &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-//-->
-    <component name="vp_nonlinear_type">
+    <component name="vp_nonlinear_rFix_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
@@ -1162,7 +1162,7 @@
             </apply>
         </math>
     </component>
-    <component name="pp_nonlinear_type">
+    <component name="pp_nonlinear_rFix_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
@@ -3811,7 +3811,7 @@
             </apply>
         </math>
     </component>
-    <component name="pv_split_nonlinear_type">
+    <component name="pv_split_nonlinear_rFix_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
@@ -5552,7 +5552,7 @@
             </apply>
         </math>
     </component>
-    <component name="vp_merge_nonlinear_type">
+    <component name="vp_merge_nonlinear_rFix_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="mu" public_interface="in" units="Js_per_m3"/>
