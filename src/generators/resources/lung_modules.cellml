@@ -137,7 +137,11 @@
                         <ci>P_m</ci>
                         <ci>P_l</ci>
                     </apply>
-                    <ci>R_ml</ci>
+                    <apply>
+                        <times/>
+                        <ci>R_ml</ci>
+                        <ci>R_scale</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
@@ -174,7 +178,11 @@
                         <ci>P_l</ci>
                         <ci>P_t</ci>
                     </apply>
-                    <ci>R_lt</ci>
+                    <apply>
+                        <times/>
+                        <ci>R_lt</ci>
+                        <ci>R_scale</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
@@ -220,7 +228,11 @@
                         <ci>P_t</ci>
                         <ci>P_b</ci>
                     </apply>
-                    <ci>R_tb</ci>
+                    <apply>
+                        <times/>
+                        <ci>R_tb</ci>
+                        <ci>R_scale</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
@@ -266,7 +278,11 @@
                         <ci>P_b</ci>
                         <ci>P_A</ci>
                     </apply>
-                    <ci>R_bA</ci>
+                    <apply>
+                        <times/>
+                        <ci>R_bA</ci>
+                        <ci>R_scale</ci>
+                    </apply>
                 </apply>
             </apply>
             <!-- v_Awall = v_bA-->
