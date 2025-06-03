@@ -6164,6 +6164,7 @@
       ["K_tube", "J_per_m3", "access", "variable"],
       ["r_0", "metre", "access", "boundary_condition"],
       ["E", "J_per_m3", "access", "constant"],
+      ["nu", "dimensionless", "no_access", "global_constant"],
       ["a_vessel", "dimensionless", "no_access", "global_constant"],
       ["b_vessel", "per_m", "no_access", "global_constant"],
       ["c_vessel", "dimensionless", "no_access", "global_constant"],
@@ -6206,6 +6207,8 @@
       ["l", "metre", "access", "boundary_condition"],
       ["r_0", "metre", "access", "boundary_condition"],
       ["E", "J_per_m3", "access", "constant"],
+      ["nu", "dimensionless", "no_access", "global_constant"],
+      ["SMvolfrac_art", "dimensionless", "no_access", "global_constant"],
       ["K_m", "Js_per_m3", "access", "constant"],
       ["a_vessel", "dimensionless", "no_access", "global_constant"],
       ["b_vessel", "per_m", "no_access", "global_constant"],
@@ -6282,6 +6285,7 @@
       ["l", "metre", "access", "boundary_condition"],
       ["r_0", "metre", "access", "boundary_condition"],
       ["K_m", "Js_per_m3", "access", "constant"],
+      ["SMvolfrac_art", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["m_tube", "dimensionless", "access", "constant"],
       ["n_tube", "dimensionless", "access", "constant"],
@@ -6315,7 +6319,8 @@
     [
       ["K_tube", "J_per_m3", "access", "variable"],
       ["hr_ratio", "dimensionless", "access", "boundary_condition"],
-      ["E", "J_per_m3", "access", "constant"]
+      ["E", "J_per_m3", "access", "constant"],
+      ["nu", "dimensionless", "no_access", "global_constant"]
     ]
   },
   {
@@ -6359,6 +6364,8 @@
       ["r_0", "metre", "access", "boundary_condition"],
       ["hr_ratio", "dimensionless", "access", "boundary_condition"],
       ["E", "J_per_m3", "access", "constant"],
+      ["nu", "dimensionless", "no_access", "global_constant"],
+      ["SMvolfrac_ven", "dimensionless", "no_access", "global_constant"],
       ["K_m", "Js_per_m3", "access", "constant"]
     ]
   },
@@ -6432,6 +6439,7 @@
       ["l", "metre", "access", "boundary_condition"],
       ["r_0", "metre", "access", "boundary_condition"],
       ["K_m", "Js_per_m3", "access", "constant"],
+      ["SMvolfrac_ven", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["m_tube", "dimensionless", "access", "constant"],
       ["n_tube", "dimensionless", "access", "constant"],
