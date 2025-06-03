@@ -11,3 +11,4 @@ opencor_pythonshell_path=/hpc/bghi639/Software/OpenCOR-0-7-1-Linux/pythonshell
 # opencor_pythonshell_path=/home/farg967/software/OpenCOR-0-7-1-Linux/pythonshell
 # opencor_pythonshell_path=/home/ash252/Downloads/OpenCOR-2021-10-05-Linux/pythonshell
 # opencor_pythonshell_path=/home/bghi639/Software/OpenCOR-0-7-1-Linux/pythonshell
+# opencor_pythonshell_path=/home/bghi639/Software/OpenCOR-0-8-1-Linux/pythonshell
