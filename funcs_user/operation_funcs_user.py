@@ -196,6 +196,60 @@ def min_period(t, V, series_output=False, spike_min_thresh=None, distance=None):
     return period_min
 
 @series_to_constant
+def first_period(t, V, series_output=False, spike_min_thresh=None, distance=None):
+    if series_output:
+        return V
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 2:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        first_period = t[-1] - t[0]
+    else:
+        # calculate peaks without a threshold after first peak
+        V_2 = V[peak_idxs[0]-2:] # first peak will be the same peak
+        t_2 = t[peak_idxs[0]-2:] # first peak will be the same peak
+        threshold_for_spike = min(V[peak_idxs[0]:peak_idxs[1]]) + 10 # setting this to try to ignore some noise
+        peak_idxs_2, peak_properties_2 = find_peaks(V_2, height=threshold_for_spike, distance=distance)
+
+        if len(peak_idxs_2) < 2:
+            # there should have been another peak but for some reason it wasn't detected...
+            first_period = t[-1] - t[0]
+        else:
+            # calculate the period
+            first_period = t_2[peak_idxs_2[1]] - t[peak_idxs[0]]
+
+    return first_period
+
+@series_to_constant
+def second_period(t, V, series_output=False, spike_min_thresh=None, distance=None):
+    if series_output:
+        return V
+    # set distance = 5 to make sure it doesn't count a peak as two
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh, distance=distance)
+    # TODO maybe check peak properties here
+    if len(peak_idxs) < 3:
+        # there aren't enough peaks to calculate a period
+        # so set the period_diff to the max time of the simulation
+        second_period = t[-1] - t[0]
+    else:
+        # calculate peaks without a threshold after first peak
+        V_2 = V[peak_idxs[1]-2:] # first peak of the next peak calc will be the same peak
+        t_2 = t[peak_idxs[1]-2:] 
+        threshold_for_spike = min(V[peak_idxs[1]:peak_idxs[2]]) + 10 # setting this to try to ignore some noise
+        peak_idxs_2, peak_properties_2 = find_peaks(V_2, height=threshold_for_spike, distance=distance)
+
+        if len(peak_idxs_2) < 2:
+            # there should have been another peak but for some reason it wasn't detected...
+            second_period = t[-1] - t[0]
+        else:
+            # calculate the period
+            second_period = t_2[peak_idxs_2[1]] - t[peak_idxs[1]]
+
+    return second_period
+
+@series_to_constant
 def E_A_ratio(t, x, T, series_output=False):
     if series_output:
         return x

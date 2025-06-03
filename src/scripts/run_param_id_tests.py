@@ -55,6 +55,8 @@ if __name__ == '__main__':
         inp_data_dict['plot_predictions'] = True
         run_param_id(inp_data_dict)
 
+
+        
         # also test running autogeneration with the fit parameters
         generate_with_new_architecture(True, inp_data_dict)
 

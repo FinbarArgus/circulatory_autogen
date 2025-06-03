@@ -611,6 +611,12 @@ class CVS0DParamID():
         bar_list = axs.bar(obs_names_for_plot, std_error_vec, label='% error', width=1.0, color='b', edgecolor='black')
         axs.axhline(y=0.0,linewidth=3, color='k', linestyle= 'dotted')
 
+        # save std error and percentage error
+
+        np.save(os.path.join(self.output_dir, 'percent_error_vec.npy'), percent_error_vec)
+        np.save(os.path.join(self.output_dir, 'std_error_vec.npy'), std_error_vec)
+        
+
         # bar_list[0].set_facecolor('r')
         # bar_list[1].set_facecolor('r')
 
@@ -1491,7 +1497,7 @@ class CVS0DParamID():
                                                input_params["param_name"][II]for JJ in
                                                range(len(input_params["vessel_name"][II]))])
 
-                if input_params["vessel_name"][II][0] == 'heart':
+                if input_params["vessel_name"][II][0] == 'global':
                     param_names_for_gen.append([input_params["param_name"][II]])
 
                 else:
@@ -2750,13 +2756,11 @@ class OpencorParamID():
         # for now we just concatenate results for subexperiments 
         pred_output_list = []                           
         for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
-            subexp_count = int(np.sum([num_sub for num_sub in 
-                                        self.protocol_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
             if this_sub_idx == 0:
                 # the last 3 idxs are, pred_idx, operand_idx, time_idx
-                pred_output_list.append(np.array(pred_operand_outputs[subexp_count])[:,0,:])
+                pred_output_list.append(np.array(pred_operand_outputs[this_sub_idx])[:,0,:])
             else:
-                pred_output_list.append(np.array(pred_operand_outputs[subexp_count])[:,0,1:])
+                pred_output_list.append(np.array(pred_operand_outputs[this_sub_idx])[:,0,1:])
         pred_outputs = np.concatenate(pred_output_list, axis=1)
         return pred_outputs
 

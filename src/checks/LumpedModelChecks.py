@@ -98,6 +98,8 @@ class LumpedPortVariableCheck(AbstractLumpedCheck):
         variables_list = [vessel_row["variables_and_units"][II][0] for II in range(len(vessel_row["variables_and_units"]))]
         for port in vessel_row["entrance_ports"] + vessel_row["exit_ports"]:
             for port_variable in port["variables"]:
+                if port_variable in ["", None, "None", "none"]:
+                    continue
                 if port_variable not in variables_list:
                     print(f'the port variable {port_variable} '
                         f'is not a variable for vessel type: {vessel_row["vessel_type"]}, BC_type: {vessel_row["BC_type"]}')

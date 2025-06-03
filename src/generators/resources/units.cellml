@@ -248,6 +248,10 @@
         <unit prefix="milli" units="mole"/>
         <unit exponent="-1" units="litre"/>
     </units>
+    <units name="milliM">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+    </units>
     <!-- concentration (uM)-->
     <units name="uM">
         <unit prefix="micro" units="mole"/>
@@ -331,11 +335,6 @@
         <unit units="joule"/>
         <unit exponent="-1" units="mole"/>
         <unit exponent="-1" units="kelvin"/>
-    </units>
-    <!-- faraday constant-->
-    <units name="C_per_mol">
-        <unit units="coulomb"/>
-        <unit exponent="-1" units="mole"/>
     </units>
     <!-- diffusivity (mass)-->
     <units name="m2_per_s">
@@ -575,16 +574,15 @@
         <unit prefix="nano" units="ampere"/>
         <unit exponent="-1" prefix="milli" units="ampere"/>
     </units>
+    <units name="nanoA_per_A">
+        <unit prefix="nano" units="ampere"/>
+        <unit exponent="-1" units="ampere"/>
+    </units>
     <units name="A_per_nanoA">
         <unit exponent="-1" prefix="nano" units="ampere"/>
         <unit units="ampere"/>
     </units>
-    <units name="J_per_MK">
-        <unit units="joule"/>
-        <unit exponent="-1" units="mole"/>
-        <unit exponent="-1" units="kelvin"/>
-    </units>
-    <units name="C_per_M">
+    <units name="C_per_mol">
         <unit units="coulomb"/>
         <unit exponent="-1" units="mole"/>
     </units>
@@ -593,7 +591,7 @@
         <unit exponent="-1" units="joule"/>
         <unit exponent="-1" prefix="milli" units="second"/>
     </units>
-    <units name="m3_per_M_millis">
+    <units name="m3_per_mol_millis">
         <unit exponent="3" units="metre"/>
         <unit exponent="-1" units="mole"/>
         <unit exponent="-1" prefix="milli" units="second"/>

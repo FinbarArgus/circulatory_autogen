@@ -26,6 +26,7 @@ def gaussian_MLE(output, desired_mean, std, weight):
         cost = np.sum(cost)/len(output)
     
     return cost
+
 # TODO we need to create derivative functions for each cost with respect to the outputs so that we can pass 
 
 def MSE(*args, **kwargs):
@@ -55,6 +56,12 @@ def multimodal_gaussian(output, prob_dist_params, weight):
         print('!!!!!!!!!!!!')
         print("ERROR prob_dist_params in obs_data.json needs to be a dict with entries:")
         print(allowable_keys_list)
+        print('!!!!!!!!!!!!')
+        exit()
+
+    if sum(prob_dist_params["scales"]) != 1:
+        print('!!!!!!!!!!!!')
+        print("ERROR scales in prob_dist_params for multimodal_gaussian in obs_data.json need to sum to 1")
         print('!!!!!!!!!!!!')
         exit()
 

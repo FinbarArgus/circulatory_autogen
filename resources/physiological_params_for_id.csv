@@ -1,7 +1,7 @@
 vessel_name,                  param_name,       min,        max,    name_for_plotting, prior
-heart,                        q_lv_init,        5e-4,       28e-4,  q_{sbv},           uniform
-heart,                        E_lv_A,           1e8,        5e8,    E_{lvA},           uniform
-heart,                        E_rv_A,           2e7,        1.5e8,  E_{rvA},           uniform
+global,                        q_lv_init,        5e-4,       28e-4,  q_{sbv},           uniform
+global,                        E_lv_A,           1e8,        5e8,    E_{lvA},           uniform
+global,                        E_rv_A,           2e7,        1.5e8,  E_{rvA},           uniform
 par,                          R,                1e5,        1.2e7,  R_{par},           uniform
 leg_L_T leg_R_T,              R_T,              4e8,        4e9,    R_{LE_T},          uniform
 arm_L_T arm_R_T,              R_T,              6e8,        1e10,   R_{BR_T},          uniform

@@ -58,8 +58,20 @@ class CSV0DModelParser(object):
 
 
         module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_path, self.module_config_user_dir)
+        
+        # Check for repeated entries of vessel_type and BC_type in module_df
+        duplicates = module_df[module_df.duplicated(subset=["vessel_type", "BC_type"], keep=False)]
+        if not duplicates.empty:
+            print("ERROR: Repeated entries of vessel_type and BC_type found in module_config.json:")
+            print(duplicates)
+            exit()
+         
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, module_df)
+
+        ports_columns = ["entrance_ports", "exit_ports", "general_ports"]
+        for col in ports_columns:
+            vessels_df[col] = vessels_df[col].apply(lambda x: [] if x == "None" else x)
 
         # TODO change to using a pandas dataframe
         parameters_array_orig = self.csv_parser.get_data_as_nparray(self.parameter_filename, True)

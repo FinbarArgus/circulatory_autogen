@@ -26,27 +26,23 @@ Clone the Circulatory Autogen project from the [GitHub repository](https://githu
 
     - `git remote add upstream https://github.com/FinbarArgus/circulatory_autogen`
 
-!!! Note
-    Running on Windows is in development. It should work but hasn't been thoroughly tested. See [Running on Windows](#running-on-windows) for more information.
-
-    If you're on Windows, you should download gitbash from [here](https://git-scm.com/downloads) so that you can run the bash scripts. 
-
-    Alternatively, you could install a virtual Linux machine. One of these virtual linux machines is VirtualBox Oracle, which can be downloaded from [here](https://www.virtualbox.org/).
-    To set up the VirtualBox you would need to download the latest version of Ubuntu using this [link](https://ubuntu.com/download/desktop).
 
 
 ## Directory Definition
 
-In this tutorial, we define the **CA_dir** as the directory where the Github Circulatory Autogen project has been cloned. For example, on our computer, this directory is as below:
+In this tutorial, we define the **project_dir** as the directory where the Github Circulatory Autogen project has been cloned. For example, on our computer, this directory is as below:
 
-`[CA_dir]: ~/Documents/git_projects/Circulatory_autogen`
+`[project_dir]: ~/Documents/git_projects/Circulatory_autogen`
 
 Also, the OpenCOR directory is needed for installing the necessary python libraries, which we defined as the **OpenCOR_dir**, e.g.:
 
 `[OpenCOR_dir]: ~/Desktop/OpenCOR-0-8-1-Linux/`
 
+<!-- If you have Windows but would prefer to use a linux distribution for running CA, you could install a virtual Linux machine. One of these virtual linux machines is VirtualBox Oracle, which can be downloaded from [here](https://www.virtualbox.org/). -->
+ <!-- To set up the VirtualBox you would need to download the latest version of Ubuntu using this [link](https://ubuntu.com/download/desktop). -->
+
 !!! info
-    If running on the ABI HPC, you can use the installed OpenCOR version at the path: **/hpc/farg967/OpenCOR-0-8-1-Linux/** and Ignore the below installation steps, as the libraries are already installed.
+    If running on the ABI HPC, you can use the installed OpenCOR version at the path: **/hpc/farg967/OpenCOR-0-8-1-Linux/** and Ignore the below installation steps, as the libraries are already installed. See [running on hpc](running-on-hpc.md)
 
 ## Python and Libraries Installation
 
@@ -74,7 +70,7 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
     **Required packages for autogeneration**:
     pandas pyyaml rdflib
 
-    **Recommended but nor required packages for autogeneration (allows for better error checking)**:
+    **Recommended (but not required) packages for autogeneration (allows for better error checking)**:
     libcellml
 
     **Required packages for parameter identification**:
@@ -88,7 +84,7 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
 
 ## Setting up your python path
 
-Open `[CA_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `opencor_pythonshell_path` to the directory of pythonshell in the **OpenCOR_dir**: 
+Open `[project_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `opencor_pythonshell_path` to the directory of pythonshell in the **OpenCOR_dir**: 
 
 !!! Note
     === "Linux and Mac"
@@ -103,8 +99,13 @@ Open `[CA_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `
         Note that the windows path conventions need to be used with C: and "\ rather than "/".
         ```
 
+!!! Note
+    This tutorial assumes you will be running .sh commands (if you're on Windows, you should download gitbash from [here](https://git-scm.com/downloads) so that you can run the bash scripts). 
+
+    However, alternatively (**especially if you want to debug**), you can use an IDE of your choice, set the python path equal to the `opencor_pythonshell_path` and run the python scripts that are called to within the bash scripts (open the relevent .sh file to find the corresponding python script name). The scripts are located at `project_dir]/src/scripts/`
+
 !!! warning
-    Intalling **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
+    Installing **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
 
     === "Linux"
         ```
@@ -137,14 +138,13 @@ Open `[CA_dir]/user_run_files/opencor_pythonshell_path.sh` file and change the `
     ```
 
 !!! warning
+    For **OpenCOR < 0.8**
     if you get an SSL error you must do the following before the pip install:
 
         cd [OpenCOR_dir]/python/bin
         export LD_LIBRARY_PATH=[OpenCOR_dir]/lib
 
     This would let the system know where to look for libcrypto.so.3 when loading the ssl module.
-    This should only be a problem in **OpenCOR < 0.8**
-
 
 
 !!! info "Changes to be made"
