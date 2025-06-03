@@ -28,10 +28,14 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"]
     ]
@@ -66,8 +70,12 @@
       ["v", "m3_per_s", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
@@ -109,12 +117,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["v_out", "m3_per_s", "access", "boundary_condition"],
-      ["I", "Js2_per_m6", "access", "constant"]
+      ["v_out", "m3_per_s", "access", "boundary_condition"]
     ]
   },
   {
@@ -155,9 +168,13 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -200,12 +217,18 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["I", "Js2_per_m6", "access", "constant"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"]
     ]
   },
   {
@@ -240,9 +263,14 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -285,10 +313,18 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"]
     ]
@@ -349,9 +385,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -854,9 +898,13 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -910,16 +958,20 @@
         "variables":["v"]
       }
       
-      
     ],
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_in", "J_per_m3", "access", "boundary_condition"]
@@ -963,9 +1015,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -1009,9 +1069,13 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -1055,10 +1119,15 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"]
@@ -1092,10 +1161,19 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"]
@@ -1133,9 +1211,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -1183,10 +1269,19 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
       ["I", "Js2_per_m6", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"]
@@ -1232,9 +1327,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["E", "J_per_m3", "access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "no_access", "constant"],
+      ["r_0", "metre", "no_access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -1922,6 +2025,14 @@
       {
         "port_type":"flow_port",
         "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
       }
     ],
     "variables_and_units":
@@ -1929,14 +2040,15 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
-      ["K_tube", "J_per_m3", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
       ["m_tube", "dimensionless", "access", "constant"],
       ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
@@ -1945,8 +2057,6 @@
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
-      ["v_in", "m3_per_s", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
       ["I_scale", "dimensionless", "access", "constant"]
     ]
@@ -1979,14 +2089,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
-      ["u_ext", "J_per_m3", "access", "constant"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["I", "Js2_per_m6", "access", "constant"],
-      ["v_out", "m3_per_s", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"]
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["v_out", "m3_per_s", "access", "boundary_condition"]
     ]
   },
   {
@@ -2017,12 +2130,18 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["I", "Js2_per_m6", "access", "constant"]
+      ["u_out", "J_per_m3", "access", "boundary_condition"]
     ]
   },
   {
@@ -2051,21 +2170,31 @@
       {
         "port_type":"flow_feedback_port",
         "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
       }
     ],
     "variables_and_units":
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
-      ["K_tube", "J_per_m3", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
       ["m_tube", "dimensionless", "access", "constant"],
       ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
@@ -2074,8 +2203,6 @@
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
-      ["u_out", "J_per_m3", "access", "boundary_condition"],
-      ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
       ["I_scale", "dimensionless", "access", "constant"]
     ]
@@ -2108,12 +2235,21 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
       ["R", "Js_per_m6", "access", "constant"],
       ["C", "m6_per_J", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
-      ["v_in", "m3_per_s", "access", "boundary_condition"],
-      ["I", "Js2_per_m6", "access", "constant"]
+      ["v_in", "m3_per_s", "access", "boundary_condition"]
     ]
   },
   {
@@ -2961,7 +3097,6 @@
       ["q_T", "m3", "access", "variable"]
     ]
   },
-
   {
     "vessel_type":"terminalOL",
     "BC_type":"pp_controller",
@@ -2993,17 +3128,61 @@
     "variables_and_units":
     [
       ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
       ["pressure_venous_dist", "J_per_m3", "no_access", "global_constant"],
-      ["I_T", "Js2_per_m6", "no_access", "constant"],
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["v_T", "m3_per_s", "access", "variable"],
       ["q_T", "m3", "access", "variable"],
-      ["pressure_d", "J_per_m3", "no_access", "global_constant"],
       ["R_T", "Js_per_m6", "access", "variable"],
       ["C_T", "m6_per_J", "access", "constant"],
+      ["I_T", "Js2_per_m6", "no_access", "constant"],
       ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
-      ["BFF_ASL", "dimensionless", "access", "constant"]
+      ["BFF_ASL", "dimensionless", "access", "constant"],
+      ["pressure_d", "J_per_m3", "no_access", "global_constant"],
+      ["error_flow_percent", "dimensionless", "access", "variable"]     
+    ]
+  },
+  {
+    "vessel_type":"terminalOL",
+    "BC_type":"pp_wFB",
+    "module_format":"cellml",
+    "module_file":"open_loop_modules.cellml",
+    "module_type":"pp_T_OL_wFB_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      },
+      {
+        "port_type":"pressure_feed_port",
+        "variables":["u_a"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"multi_port_controller",
+        "variables":["u"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["pressure_venous_dist", "J_per_m3", "no_access", "global_constant"],
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_T", "m3_per_s", "access", "variable"],
+      ["q_T", "m3", "access", "variable"],
+      ["R_T", "Js_per_m6", "access", "variable"],
+      ["C_T", "m6_per_J", "access", "constant"],
+      ["I_T", "Js2_per_m6", "no_access", "constant"],
+      ["meanflow_4dflow", "m3_per_s", "no_access", "global_constant"],
+      ["BFF_ASL", "dimensionless", "access", "constant"],
+      ["pressure_d", "J_per_m3", "no_access", "global_constant"],
+      ["error_flow_percent", "dimensionless", "access", "variable"] 
     ]
   },
 
@@ -3210,7 +3389,6 @@
     ]
   },
 
-
   {
     "vessel_type":"inlet_flow",
     "BC_type":"nn_adan",
@@ -3255,7 +3433,28 @@
       ["T", "second", "access", "global_constant"]
     ]
   },
-
+  {
+    "vessel_type":"inlet_flow",
+    "BC_type":"nn_aorticbif",
+    "module_format":"cellml",
+    "module_file":"open_loop_modules.cellml",
+    "module_type":"aorticbif_flow_BC_type",
+    "entrance_ports":
+    [
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v", "P"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["v", "m3_per_s", "access", "variable"],
+      ["T", "second", "access", "global_constant"]
+    ]
+  },
   
   {
     "vessel_type":"terminalOL",
@@ -3347,7 +3546,6 @@
     ]
   },
 
-
   {
     "vessel_type":"terminal2",
     "BC_type":"pp_controller",
@@ -3392,7 +3590,6 @@
     ]
   },
   {
-
     "vessel_type":"coupler",
     "BC_type":"pv_0D_1D",
     "module_format":"cellml",
@@ -5951,11 +6148,7 @@
     [
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -5969,8 +6162,8 @@
     "variables_and_units":
     [
       ["K_tube", "J_per_m3", "access", "variable"],
-      ["r_us", "metre", "access", "boundary_condition"],
-      ["E", "J_per_m3", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["E", "J_per_m3", "access", "constant"],
       ["a_vessel", "dimensionless", "no_access", "global_constant"],
       ["b_vessel", "per_m", "no_access", "global_constant"],
       ["c_vessel", "dimensionless", "no_access", "global_constant"],
@@ -5991,15 +6184,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6019,13 +6204,241 @@
       ["K_tube", "J_per_m3", "access", "variable"],
       ["K_tube_visco", "Js_per_m6", "access", "variable"],
       ["l", "metre", "access", "boundary_condition"],
-      ["r_us", "metre", "access", "boundary_condition"],
-      ["E", "J_per_m3", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["K_m", "Js_per_m3", "access", "constant"],
       ["a_vessel", "dimensionless", "no_access", "global_constant"],
       ["b_vessel", "per_m", "no_access", "global_constant"],
       ["c_vessel", "dimensionless", "no_access", "global_constant"],
       ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_fromPWV",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_fromPWV_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["k_1", "J_per_m3", "no_access", "global_constant"],
+      ["k_2", "per_m", "no_access", "global_constant"],
+      ["k_3", "J_per_m3", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_visco_fromPWV",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_visco_fromPWV_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["K_tube_visco", "Js_per_m6", "access", "variable"],
+      ["l", "metre", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["K_m", "Js_per_m3", "access", "constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["k_1", "J_per_m3", "no_access", "global_constant"],
+      ["k_2", "per_m", "no_access", "global_constant"],
+      ["k_3", "J_per_m3", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_const_ven",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_const_ven_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"hr_ratio_port",
+        "variables":["hr_ratio"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["hr_ratio", "dimensionless", "access", "boundary_condition"],
+      ["E", "J_per_m3", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_visco_const_ven",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_visco_const_ven_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"hr_ratio_port",
+        "variables":["hr_ratio"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["K_tube_visco", "Js_per_m6", "access", "variable"],
+      ["l", "metre", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["hr_ratio", "dimensionless", "access", "boundary_condition"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["K_m", "Js_per_m3", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_fromPWV_ven",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_fromPWV_ven_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["c0_max", "m_per_s", "no_access", "global_constant"],
+      ["c0_min", "m_per_s", "no_access", "global_constant"],
+      ["r0_max", "metre", "no_access", "global_constant"],
+      ["r0_min", "metre", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"material_prop_visco_fromPWV_ven",
+    "BC_type":"nn",
+    "module_format":"cellml",
+    "module_file":"vessel_properties_modules.cellml",
+    "module_type":"material_prop_visco_fromPWV_ven_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "exit_ports":
+    [
+      
+    ],
+    "variables_and_units":
+    [
+      ["K_tube", "J_per_m3", "access", "variable"],
+      ["K_tube_visco", "Js_per_m6", "access", "variable"],
+      ["l", "metre", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
+      ["K_m", "Js_per_m3", "access", "constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["c0_max", "m_per_s", "no_access", "global_constant"],
+      ["c0_min", "m_per_s", "no_access", "global_constant"],
+      ["r0_max", "metre", "no_access", "global_constant"],
+      ["r0_min", "metre", "no_access", "global_constant"]
     ]
   },
 
@@ -6054,11 +6467,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6069,16 +6478,15 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["l", "metre", "no_access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6088,7 +6496,7 @@
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6116,11 +6524,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6131,16 +6535,16 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["l", "metre", "no_access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6150,7 +6554,7 @@
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6182,15 +6586,7 @@
         },
         {
           "port_type":"radius_port",
-          "variables":["r_us"]
-        },
-        {
-          "port_type":"elastic_mod_port",
-          "variables":["E"]
-        },
-        {
-          "port_type":"visco_mod_port",
-          "variables":["K_m"]
+          "variables":["r_0"]
         },
         {
           "port_type":"stiffness_port",
@@ -6205,13 +6601,12 @@
       [
         ["u", "J_per_m3", "access", "variable"],
         ["v", "m3_per_s", "access", "variable"],
-        ["E", "J_per_m3", "access", "constant"],
         ["u_in", "J_per_m3", "access", "boundary_condition"],
         ["v_out", "m3_per_s", "access", "boundary_condition"],
         ["u_ext", "J_per_m3", "access", "constant"],
         ["q_C", "m3", "access", "variable"],
         ["q_total", "m3", "access", "variable"],
-        ["q_us", "m3", "access", "variable"],
+        ["q_0", "m3", "access", "variable"],
         ["mu", "Js_per_m3", "no_access", "global_constant"],
         ["rho", "Js2_per_m5", "no_access", "global_constant"],
         ["g", "m_per_s2", "no_access", "global_constant"],
@@ -6219,14 +6614,14 @@
         ["theta", "dimensionless", "no_access", "constant"],
         ["l", "metre", "no_access", "constant"],
         ["r", "metre", "access", "variable"],
-        ["r_us", "metre", "access", "constant"],
+        ["r_0", "metre", "access", "constant"],
+        ["u_0", "J_per_m3", "access", "constant"],
         ["K_tube", "J_per_m3", "access", "boundary_condition"],
-        ["m_tube", "dimensionless", "access", "global_constant"],
-        ["n_tube", "dimensionless", "access", "global_constant"],
+        ["m_tube", "dimensionless", "access", "constant"],
+        ["n_tube", "dimensionless", "access", "constant"],
         ["R_flag", "dimensionless", "access", "global_constant"],
-        ["I_scale", "dimensionless", "access", "global_constant"],
-        ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-        ["K_m", "Js_per_m3", "access", "constant"] 
+        ["I_scale", "dimensionless", "access", "constant"],
+        ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
       ]
   },
   {
@@ -6254,11 +6649,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6269,16 +6660,15 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6288,7 +6678,7 @@
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6316,11 +6706,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6331,16 +6717,16 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6350,7 +6736,7 @@
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6382,15 +6768,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6405,13 +6783,12 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -6419,14 +6796,14 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],  
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],  
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"],
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -6458,11 +6835,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6473,16 +6846,16 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6492,7 +6865,7 @@
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6524,11 +6897,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6539,16 +6908,17 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
+      ["v_d", "m3_per_s", "access", "variable"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6558,7 +6928,7 @@
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6594,15 +6964,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6618,13 +6980,12 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["v_d", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -6632,14 +6993,14 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"],
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -6667,11 +7028,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6683,29 +7040,28 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]      
+      ["I_scale", "dimensionless", "access", "constant"]      
     ]
   },
   {
@@ -6733,11 +7089,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6749,16 +7101,15 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -6766,12 +7117,13 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]      
+      ["I_scale", "dimensionless", "access", "constant"]      
     ]
   },
   {
@@ -6803,15 +7155,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6827,16 +7171,15 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -6844,14 +7187,14 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"],
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]  
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -6891,11 +7234,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6907,16 +7246,15 @@
       ["u", "J_per_m3", "access", "variable"],
       ["du_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -6927,7 +7265,7 @@
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -6967,11 +7305,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -6983,16 +7317,16 @@
       ["u", "J_per_m3", "access", "variable"],
       ["du_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -7003,7 +7337,7 @@
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7047,15 +7381,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7071,14 +7397,13 @@
       ["u", "J_per_m3", "access", "variable"],
       ["du_dt", "J_per_m3s", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["u_in", "J_per_m3", "access", "boundary_condition"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7086,14 +7411,14 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"], 
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"], 
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -7125,11 +7450,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7141,30 +7462,29 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7196,11 +7516,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7212,17 +7528,17 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7230,12 +7546,12 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7271,15 +7587,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7295,17 +7603,17 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in", "m3_per_s", "access", "boundary_condition"],
       ["v_out_1", "m3_per_s", "access", "boundary_condition"],
       ["v_out_2", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7313,14 +7621,13 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "no_access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"],
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -7348,11 +7655,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7363,16 +7666,15 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -7383,7 +7685,7 @@
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7411,11 +7713,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7426,16 +7724,16 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["u_ext", "J_per_m3", "access", "constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
@@ -7446,7 +7744,7 @@
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7478,15 +7776,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7501,14 +7791,14 @@
     [
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["u_out", "J_per_m3", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7516,14 +7806,13 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"], 
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"], 
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   },
   {
@@ -7551,11 +7840,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7567,30 +7852,29 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
       ["beta_g", "dimensionless", "no_access", "global_constant"],
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
-      ["r", "metre", "access", "constant"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   }, 
   {
@@ -7618,11 +7902,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7634,17 +7914,17 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7652,12 +7932,12 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"]
+      ["I_scale", "dimensionless", "access", "constant"]
     ]
   },
   {
@@ -7689,15 +7969,7 @@
       },
       {
         "port_type":"radius_port",
-        "variables":["r_us"]
-      },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
+        "variables":["r_0"]
       },
       {
         "port_type":"stiffness_port",
@@ -7713,17 +7985,17 @@
       ["u", "J_per_m3", "access", "variable"],
       ["v", "m3_per_s", "access", "variable"],
       ["u_d", "J_per_m3", "access", "variable"],
-      ["E", "J_per_m3", "access", "constant"],
       ["v_in_1", "m3_per_s", "access", "boundary_condition"],
       ["v_in_2", "m3_per_s", "access", "boundary_condition"],
       ["v_out", "m3_per_s", "access", "boundary_condition"],
       ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
       ["q_C", "m3", "access", "variable"],
       ["q_total", "m3", "access", "variable"],
-      ["q_us", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
       ["q_C_d", "m3", "access", "variable"],
       ["q_total_d", "m3", "access", "variable"],
-      ["q_us_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
       ["mu", "Js_per_m3", "no_access", "global_constant"],
       ["rho", "Js2_per_m5", "no_access", "global_constant"],
       ["g", "m_per_s2", "no_access", "global_constant"],
@@ -7731,14 +8003,1199 @@
       ["theta", "dimensionless", "no_access", "constant"],
       ["l", "metre", "access", "constant"],
       ["r", "metre", "access", "variable"],
-      ["r_us", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
       ["K_tube", "J_per_m3", "access", "boundary_condition"],
-      ["m_tube", "dimensionless", "access", "global_constant"],
-      ["n_tube", "dimensionless", "access", "global_constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
       ["R_flag", "dimensionless", "access", "global_constant"],
-      ["I_scale", "dimensionless", "access", "global_constant"],
-      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "constant"]
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
+    ]
+  },
+
+  {
+    "vessel_type":"MinNout_junction",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_MinNout_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["a_vessel", "dimensionless", "no_access", "global_constant"],
+      ["b_vessel", "per_m", "no_access", "global_constant"],
+      ["c_vessel", "dimensionless", "no_access", "global_constant"],
+      ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"MinNout_junction",
+    "BC_type":"vv_nonlinear_constR",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_MinNout_nonlinear_constR_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"MinNout_junction",
+    "BC_type":"vv_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_MinNout_nonlinear_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"MinNout_junction",
+    "BC_type":"vv_nonlinear_visco",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_MinNout_nonlinear_visco_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vp",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_Min_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["a_vessel", "dimensionless", "no_access", "global_constant"],
+      ["b_vessel", "per_m", "no_access", "global_constant"],
+      ["c_vessel", "dimensionless", "no_access", "global_constant"],
+      ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vp_nonlinear_constR",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_Min_nonlinear_constR_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vp_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_Min_nonlinear_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vp_nonlinear_visco",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_Min_nonlinear_visco_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      },
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Min_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["u_C_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["a_vessel", "dimensionless", "no_access", "global_constant"],
+      ["b_vessel", "per_m", "no_access", "global_constant"],
+      ["c_vessel", "dimensionless", "no_access", "global_constant"],
+      ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vv_nonlinear_constR",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Min_nonlinear_constR_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vv_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Min_nonlinear_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Min_junction",
+    "BC_type":"vv_nonlinear_visco",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Min_nonlinear_visco_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in_sum","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out","u_d"]
+      },
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+      ["v_out", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"pv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_Nout_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u"]
+      },
+      {
+        "port_type":"pressure_and_deriv_port",
+        "variables":["u_C","du_C_dt"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["du_C_dt", "J_per_m3s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["a_vessel", "dimensionless", "no_access", "global_constant"],
+      ["b_vessel", "per_m", "no_access", "global_constant"],
+      ["c_vessel", "dimensionless", "no_access", "global_constant"],
+      ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"pv_nonlinear_constR",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_Nout_nonlinear_constR_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u"]
+      },
+      {
+        "port_type":"pressure_and_deriv_port",
+        "variables":["u","du_dt"]
+      },
+      {
+        "port_type":"pressure_feedback_port",
+        "variables":["u"]
+      },   
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["du_dt", "J_per_m3s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"pv_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_Nout_nonlinear_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u"]
+      },
+      {
+        "port_type":"pressure_and_deriv_port",
+        "variables":["u","du_dt"]
+      },
+      {
+        "port_type":"pressure_feedback_port",
+        "variables":["u"]
+      },   
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["du_dt", "J_per_m3s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"pv_nonlinear_visco",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"pv_Nout_nonlinear_visco_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_in"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u"]
+      },
+      {
+        "port_type":"pressure_and_deriv_port",
+        "variables":["u","du_dt"]
+      },
+      {
+        "port_type":"pressure_feedback_port",
+        "variables":["u"]
+      },     
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_in", "J_per_m3", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["du_dt", "J_per_m3s", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"vv",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Nout_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["u_C", "J_per_m3", "access", "variable"],
+      ["u_C_d", "J_per_m3", "access", "variable"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["a_vessel", "dimensionless", "no_access", "global_constant"],
+      ["b_vessel", "per_m", "no_access", "global_constant"],
+      ["c_vessel", "dimensionless", "no_access", "global_constant"],
+      ["d_vessel", "per_m", "no_access", "global_constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"vv_nonlinear_constR",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Nout_nonlinear_constR_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"vv_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Nout_nonlinear_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"]
+    ]
+  },
+  {
+    "vessel_type":"Nout_junction",
+    "BC_type":"vv_nonlinear_visco",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vv_Nout_nonlinear_visco_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_out_sum","u_d"]
+      },
+      {
+        "port_type":"flow_feedback_port",
+        "variables":["v"]
+      },
+      {
+        "port_type":"len_port",
+        "variables":["l"]
+      },
+      {
+        "port_type":"radius_port",
+        "variables":["r_0"]
+      },
+      {
+        "port_type":"stiffness_port",
+        "variables":["K_tube"]
+      },
+      {
+        "port_type":"visco_coeff_port",
+        "variables":["K_tube_visco"]
+      }
+    ],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["u_d", "J_per_m3", "access", "variable"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"],
+      ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["q_C", "m3", "access", "variable"],
+      ["q_total", "m3", "access", "variable"],
+      ["q_0", "m3", "access", "variable"],
+      ["q_C_d", "m3", "access", "variable"],
+      ["q_total_d", "m3", "access", "variable"],
+      ["q_0_d", "m3", "access", "variable"],
+      ["mu", "Js_per_m3", "no_access", "global_constant"],
+      ["rho", "Js2_per_m5", "no_access", "global_constant"],
+      ["g", "m_per_s2", "no_access", "global_constant"],
+      ["beta_g", "dimensionless", "no_access", "global_constant"],
+      ["theta", "dimensionless", "no_access", "constant"],
+      ["l", "metre", "access", "constant"],
+      ["r", "metre", "access", "variable"],
+      ["r_0", "metre", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["R_flag", "dimensionless", "access", "global_constant"],
+      ["I_scale", "dimensionless", "access", "constant"],
+      ["K_tube", "J_per_m3", "access", "boundary_condition"],
+      ["K_tube_visco", "Js_per_m6", "access", "boundary_condition"]
     ]
   }
 
