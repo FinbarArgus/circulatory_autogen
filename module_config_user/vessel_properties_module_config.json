@@ -1,6 +1,6 @@
 [
   {
-    "vessel_type":"material_prop_const",
+    "vessel_type":"material_prop_const_tutorial",
     "BC_type":"nn",
     "module_format":"cellml",
     "module_file":"vessel_properties_modules.cellml",
@@ -38,7 +38,7 @@
     ]
   },
   {
-    "vessel_type":"material_prop_visco_const",
+    "vessel_type":"material_prop_visco_const_tutorial",
     "BC_type":"nn",
     "module_format":"cellml",
     "module_file":"vessel_properties_modules.cellml",
