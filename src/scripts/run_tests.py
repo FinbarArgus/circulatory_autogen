@@ -67,6 +67,18 @@ if __name__ == '__main__':
         inp_data_dict['file_prefix'] = 'SN_to_cAMP'
         inp_data_dict['input_param_file'] = 'SN_to_cAMP_parameters.csv'
         generate_with_new_architecture(False, inp_data_dict)
+        
+        print('')
+        print('running generic junction autogeneration test')
+        inp_data_dict['file_prefix'] = 'generic_junction_test'
+        inp_data_dict['input_param_file'] = 'generic_junction_test_parameters.csv'
+        generate_with_new_architecture(False, inp_data_dict)
+
+        print('')
+        print('running generic junction open loop autogeneration test')
+        inp_data_dict['file_prefix'] = 'generic_junction_OL_test'
+        inp_data_dict['input_param_file'] = 'generic_junction_OL_test_parameters.csv'
+        generate_with_new_architecture(False, inp_data_dict)
 
         # commenting out because it is very slow
         # print('')
