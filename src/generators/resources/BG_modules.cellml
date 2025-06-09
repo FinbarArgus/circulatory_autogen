@@ -2241,7 +2241,7 @@
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
         <variable name="I" public_interface="in" units="Js2_per_m6"/>
-        <variable name="R_0" public_interface="in" units="Js_per_m6"/>
+        <variable name="R" public_interface="in" units="Js_per_m6"/>
         <!-- State Variables-->
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
