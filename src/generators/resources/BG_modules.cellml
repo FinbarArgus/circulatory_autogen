@@ -2242,6 +2242,9 @@
         <!-- Constitutive parameters-->
         <variable name="I" public_interface="in" units="Js2_per_m6"/>
         <variable name="R" public_interface="in" units="Js_per_m6"/>
+        <variable name="K_tube" public_interface="in" units="J_per_m3"/>
+        <variable name="m_tube" public_interface="in" units="J_per_m3"/>
+        <variable name="n_tube" public_interface="in" units="J_per_m3"/>
         <!-- State Variables-->
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
@@ -2330,7 +2333,7 @@
                                 <power/>
                                 <apply>
                                     <divide/>
-                                    <ci>q_total</ci>
+                                    <ci>q</ci>
                                     <ci>q_0</ci>
                                 </apply>
                                 <ci>m_tube</ci>
@@ -2339,8 +2342,8 @@
                                 <power/>
                                 <apply>
                                     <divide/>
-                                    <ci>q_total</ci>
-                                    <ci>q_us</ci>
+                                    <ci>q</ci>
+                                    <ci>q_0</ci>
                                 </apply>
                                 <ci>n_tube</ci>
                             </apply>
