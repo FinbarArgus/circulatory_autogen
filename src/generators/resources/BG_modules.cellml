@@ -2256,6 +2256,7 @@
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable name="R_nonlinear" public_interface="out" units="Js_per_m6"/>
+        <!-- IMPORTANT, I AM USING q_init in this nonlinear law. to allow freedom on the Resistance set point.-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
