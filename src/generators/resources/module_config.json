@@ -38,6 +38,50 @@
     ]
   },
   {
+    "vessel_type":"arterial_simple",
+    "BC_type":"vp_nonlinear",
+    "module_format":"cellml",
+    "module_file":"BG_modules.cellml",
+    "module_type":"vp_simple_type",
+    "entrance_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v_in","u"]
+      }
+    ],
+    "exit_ports":
+    [
+      {
+        "port_type":"vessel_port",
+        "variables":["v","u_out"]
+      },
+      {
+        "port_type":"flow_port",
+        "variables":["v"]
+      }
+    ],
+    "general_ports":[],
+    "variables_and_units":
+    [
+      ["u", "J_per_m3", "access", "variable"],
+      ["u_0", "J_per_m3", "access", "constant"],
+      ["v", "m3_per_s", "access", "variable"],
+      ["q", "m3", "access", "variable"],
+      ["q_init", "m3", "access", "constant"],
+      ["q_0", "m3", "access", "constant"],
+      ["R", "Js_per_m6", "access", "constant"],
+      ["R_nonlinear", "Js_per_m6", "access", "variable"],
+      ["K_tube", "J_per_m3", "access", "constant"],
+      ["m_tube", "dimensionless", "access", "constant"],
+      ["n_tube", "dimensionless", "access", "constant"],
+      ["u_ext", "J_per_m3", "access", "constant"],
+      ["I", "Js2_per_m6", "access", "constant"],
+      ["u_out", "J_per_m3", "access", "boundary_condition"],
+      ["v_in", "m3_per_s", "access", "boundary_condition"]
+    ]
+  },
+  {
     "vessel_type":"arterial",
     "BC_type":"vp",
     "module_format":"cellml",
