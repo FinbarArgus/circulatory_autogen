@@ -147,7 +147,32 @@ if __name__ == '__main__':
         # also test plotting
         plot_param_id(inp_data_dict)
         # TODO More tests here. 
-        # Add the lung_ROM to test the frequency domain fitting
+        # Add the NEs control SAN model here, mention is not final model, some parameters still need experimental data to calibrate
+        
+        print('')
+        print('running NESAN parameter id test')
+        inp_data_dict['file_prefix'] = 'NESAN'
+        inp_data_dict['input_param_file'] = 'NESAN_parameters.csv'
+        inp_data_dict['param_id_method'] = 'genetic_algorithm'
+        inp_data_dict['solver'] = 'CVODE'
+        inp_data_dict['pre_time'] = 999 # this gets overwritten by the obs_data.json file
+        inp_data_dict['sim_time'] = 999 # this gets overwritten by the obs_data.json file
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['dt'] = 0.0001
+        inp_data_dict['DEBUG'] = True
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/NESAN_obs_data.json')
+        inp_data_dict['do_mcmc'] = True
+        inp_data_dict['debug_ga_options']['num_calls_to_function'] = 30
+        inp_data_dict['plot_predictions'] = True
+        run_param_id(inp_data_dict)
+
+        # also test running autogeneration with the fit parameters
+        generate_with_new_architecture(True, inp_data_dict)
+
+        # also test plotting
+        plot_param_id(inp_data_dict)
 
         print('param ID tests complete. TODO add more param id tests to test',
               'all functionality')
