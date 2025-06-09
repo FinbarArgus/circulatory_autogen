@@ -24,7 +24,7 @@ class CSV0DModelParser(object):
         self.vessel_filename = vessel_filename
         self.parameter_filename = parameter_filename
         self.parameter_id_dir = parameter_id_dir
-        self.module_config_path = os.path.join(generator_resources_dir_path, 'module_config.json')
+        self.module_config_dir = generator_resources_dir_path
         self.module_config_user_dir = os.path.join(base_dir, 'module_config_user')
         self.csv_parser = CSVFileParser()
         self.json_parser = JSONFileParser()
@@ -57,7 +57,7 @@ class CSV0DModelParser(object):
             exit()
 
 
-        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_path, self.module_config_user_dir)
+        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_dir, self.module_config_user_dir)
         
         # Check for repeated entries of vessel_type and BC_type in module_df
         duplicates = module_df[module_df.duplicated(subset=["vessel_type", "BC_type"], keep=False)]
