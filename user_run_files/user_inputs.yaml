@@ -7,6 +7,17 @@ file_prefix: 3compartment
 # parameters file will be generated with spaces for the required parameters
 input_param_file: 3compartment_parameters.csv
 
+# input_param_file: vital_stage1adan_merged_wSinks_OL_simStep_C0_parameters.csv
+# input_param_file: vital_stage1adan_merged_wSinks_OL_simStepSS_C0_parameters.csv
+# input_param_file: vital_stage1adan_merged_wSinks_OL_calibStep_C0_parameters.csv # Calibration0
+# input_param_file: vital_stage1adan_merged_wSinks_OL_calibStep_C0_MODconn_parameters.csv # Calibration0
+# input_param_file: vital_stage1adan_merged_wSinks_OL_calibStep_C1_parameters.csv # Calibration1
+# input_param_file: vital_stage1adan_merged_wSinks_OL_calibStep_C2_parameters.csv # Calibration2
+# input_param_file: vital_stage1adan_merged_wSinks_OL_calibStep_C2_MOD_parameters.csv # Calibration2
+# input_param_file: vital_stage1adan_merged_wSinks_OL_simStepWcalib_C0_parameters.csv # Calibration0
+# input_param_file: vital_stage1adan_merged_wSinks_OL_simStepWcalib_C1_parameters.csv # Calibration1
+# input_param_file: vital_stage1adan_merged_wSinks_OL_simStepWcalib_C2_parameters.csv # Calibration2
+
 # cpp generation inputs
 # solver options are: RK4, forward_euler, CVODE
 # TODO make this also change the solver in the opencor sims when not generating cpp.
