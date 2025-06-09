@@ -2243,8 +2243,8 @@
         <variable name="I" public_interface="in" units="Js2_per_m6"/>
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="K_tube" public_interface="in" units="J_per_m3"/>
-        <variable name="m_tube" public_interface="in" units="J_per_m3"/>
-        <variable name="n_tube" public_interface="in" units="J_per_m3"/>
+        <variable name="m_tube" public_interface="in" units="dimensionless"/>
+        <variable name="n_tube" public_interface="in" units="dimensionless"/>
         <!-- State Variables-->
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
