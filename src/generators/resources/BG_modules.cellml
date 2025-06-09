@@ -2267,7 +2267,7 @@
                         <power/>
                         <apply>
                             <divide/>
-                            <ci>q_0</ci>
+                            <ci>q_init</ci>
                             <ci>q</ci>
                         </apply>
                         <cn cellml:units="dimensionless">2</cn>
