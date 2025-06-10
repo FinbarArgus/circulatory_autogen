@@ -69,7 +69,8 @@ The entries in the data_item list in the `obs_data.json` file are:
 - **weight**: The weighting to put on this observables entry in the cost function. Default should be 1.0
 - **std**: The standard deviation which is used in the cost function. The cost function is the relative absolute error (AE) or mean squared error (MRE), each normalised by the std.
 - **value**: The value of the ground truth, either a scalar for constant data_type, or a list of values for series or frequency data_types.
-- **sample_rate**: not needed or set to "null" for constant and frequency data_types. It defines the sample rate of the observable series values.
+- **obs_dt**: not needed or set to "null" for constant and frequency data_types. It defines the dt for the observable series values.
+Not to be confused with the dt for the model simulation outputs.
 - **operation**: This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[CA_dir]/src/param_id/operation_funcs.py` and in `[CA_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
 - **operation_kwargs**: This is a dictionary of key word arguments (kwargs) and their values that links to the kwargs in the chosen python operation function.
 - **operands**: The above defined "operation" can take in multiple variables. If operands is defined, then the "variable" entry will be a placeholder name for the calculated variable and the operands will define the model variables that are used to calculate the final feature that will be compared to the observable value entry/s.

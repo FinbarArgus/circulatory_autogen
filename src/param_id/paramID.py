@@ -308,7 +308,7 @@ class CVS0DParamID():
 
 
                     if len(self.obs_info["ground_truth_series"]) > 0:
-                        if self.obs_info["dt"][series_idx] == self.dt:
+                        if self.obs_info["obs_dt"][series_idx] == self.dt:
                             min_len_series = min(self.obs_info["ground_truth_series"][series_idx].shape[0], len(best_fit_obs_series[0]))
                         else:
                             min_len_series = len(best_fit_obs_series[0])
@@ -469,10 +469,10 @@ class CVS0DParamID():
                                                             self.obs_info["std_const_vec"][const_idx]
                         elif self.obs_info["data_types"][II] == "series":
 
-                            if self.obs_info["dt"][series_idx] != self.dt:
+                            if self.obs_info["obs_dt"][series_idx] != self.dt:
                                 # interpolate the series to the dt of the ground truth series
                                 time_series = np.linspace(0, best_fit_obs_series[series_idx].shape[0]*self.dt, best_fit_obs_series[series_idx].shape[0])
-                                obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["dt"][series_idx],
+                                obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["obs_dt"][series_idx],
                                                                 self.obs_info["ground_truth_series"][series_idx].shape[0])
 
                                 series_entry = np.interp(obs_time_series, time_series, best_fit_obs_series[series_idx])
@@ -1588,10 +1588,10 @@ class CVS0DParamID():
                     exit()
                 dt_list.append(self.gt_df.iloc[II]["dt"])
         
-        self.obs_info["dt"] = np.array(dt_list)
+        self.obs_info["obs_dt"] = np.array(dt_list)
         
-        if len(self.obs_info["dt"]) > 0:
-            if min(self.obs_info["dt"]) < self.dt:
+        if len(self.obs_info["obs_dt"]) > 0:
+            if min(self.obs_info["obs_dt"]) < self.dt:
                 print("one of the dt in obs_data.json is less than the dt in user_inputs.yaml, the output timestep"
                     "defined in user_inputs.yaml must be less than the smallest dt for your data. Exiting")
                 exit()
@@ -2847,10 +2847,10 @@ class OpencorParamID():
             #                                 self.obs_info["std_series_vec"].reshape(-1, 1))) / min_len_series
 
             for series_idx in range(len(series)):
-                if self.obs_info["dt"][series_idx] != self.dt:
+                if self.obs_info["obs_dt"][series_idx] != self.dt:
                     # interpolate the series to the dt of the ground truth series
                     time_series = np.linspace(0, series[series_idx].shape[0]*self.dt, series[series_idx].shape[0])
-                    obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["dt"][series_idx],
+                    obs_time_series = np.linspace(0, self.obs_info["ground_truth_series"][series_idx].shape[0]*self.obs_info["obs_dt"][series_idx],
                                                     self.obs_info["ground_truth_series"][series_idx].shape[0])
 
                     series_entry = np.interp(obs_time_series, time_series, series[series_idx])
