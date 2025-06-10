@@ -34,6 +34,11 @@ This file defines the simulation protocol (protocol_info), and ground truth obse
 
 File path of the obs_data.json file should be defined as **param_id_obs_path** in `[CA_dir]/user_run_files/user_inputs.yaml`.
 
+!!! Note
+    IMPORTANT: For creating obs_data.json files in python (strongly recommended over modifying the json by hand
+    you can use the helper class in `src/utilities/obs_data_helpers.py`. See `src/scripts/example_format_obs_data_json_file.py` for an example 
+    that you can copy and change for your parameter identification task.
+
 # protocol info
 
 The protocol info defines the numerical experiments you will be running. Here is an example for a sympathetic neuron calibration where the input current is changed
