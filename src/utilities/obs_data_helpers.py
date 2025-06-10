@@ -74,9 +74,12 @@ class ObsDataCreator:
         entry: dictionary containing the data item
         """
         required_keys = ['variable', 'name_for_plotting', 'data_type', 'operation', 'operands', 
-                         'unit', 'weight', 'value', 'std', 
-                         'experiment_idx', 'subexperiment_idx']
+                         'unit', 'weight', 'value', 'std']
                          
+        if 'subexperiment_idx' not in entry:
+            entry['subexperiment_idx'] = 0  # default to 0 if not provided
+        if 'experiment_idx' not in entry:
+            entry['experiment_idx'] = 0  # default to 0 if not provided
         for key in required_keys:
             if key not in entry:
                 raise ValueError(f"Entry is missing required key: {key}")
