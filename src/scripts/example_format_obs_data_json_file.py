@@ -9,7 +9,13 @@ example_data_dir = os.path.join(scripts_dir, 'example_data')
 sys.path.append(os.path.join(root_dir, 'src/utilities'))
 from obs_data_helpers import ObsDataCreator
 
-if __name__ == "__main__":
+def example_format_obs_data_json_file():
+    """
+    Example function to demonstrate how to use the ObsDataCreator class
+    to create a JSON file for observation data.
+    This function creates a JSON file with protocol information, prediction items,
+    and data items based on example data.
+    """
     # here is an exaple of using the above class with an example data file
 
     # Load the data that you want to use as ground truth
@@ -18,7 +24,7 @@ if __name__ == "__main__":
 
     # output path for the JSON file
     # change this to the desired output path
-    output_path = os.path.join(example_data_dir, 'NKE_pump_obs_data.json')
+    output_path = os.path.join(root_dir, 'resources', 'NKE_pump_obs_data.json')
     data = pd.read_csv(data_file)
 
     # access the data in the way you want it
@@ -90,3 +96,8 @@ if __name__ == "__main__":
     print(obs_data_dict)
     obs_data_creator.dump_to_path(output_path)
 
+if __name__ == "__main__":
+    example_format_obs_data_json_file()
+    print(f"Observation data JSON file created at: {os.path.join(root_dir, 'resources',
+          'NKE_pump_obs_data.json')}")
+    # This script demonstrates how to create a JSON file for observation data

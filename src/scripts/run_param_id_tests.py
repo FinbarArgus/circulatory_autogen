@@ -11,6 +11,7 @@ user_inputs_dir = os.path.join(root_dir_path, 'user_run_files')
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from scripts.param_id_run_script import run_param_id
 from scripts.plot_param_id_script import plot_param_id
+from scripts.example_format_obs_data_json_file import example_format_obs_data_json_file
 
 if __name__ == '__main__':
     try:
@@ -23,6 +24,34 @@ if __name__ == '__main__':
         # print('running 3compartment autogeneration test')
         # inp_data_dict['file_prefix'] = '3compartment'
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
+
+        print('running test for obs_data file creation with NKE pump model')
+        inp_data_dict['file_prefix'] = 'NKE_pump'
+        inp_data_dict['input_param_file'] = 'NKE_pump_parameters.csv'
+        inp_data_dict['model_type'] = 'cellml_only'
+        inp_data_dict['solver'] = 'CVODE'
+        inp_data_dict['DEBUG'] = True
+        inp_data_dict['pre_time'] = 1
+        inp_data_dict['sim_time'] = 100
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['dt'] = 0.01
+        inp_data_dict['param_id_method'] = 'genetic_algorithm'
+        inp_data_dict['plot_predictions'] = True
+        
+        # delete the obs_data file if it exists
+        obs_data_path = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
+        if os.path.exists(obs_data_path):
+            os.remove(obs_data_path)
+            print('removed existing obs_data file at', obs_data_path)
+
+        # generate the obs_data file
+        example_format_obs_data_json_file()
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
+        # now test the param id for the NKE pump model and the generated
+        # obs_data file
+        run_param_id(inp_data_dict)
 
         # generate_with_new_architecture(False, inp_data_dict)
         if 'user_inputs_path_override' in inp_data_dict.keys():
