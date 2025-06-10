@@ -49,6 +49,8 @@ if __name__ == '__main__':
         # generate the obs_data file
         example_format_obs_data_json_file()
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
+        # generate the model
+        generate_with_new_architecture(False, inp_data_dict)
         # now test the param id for the NKE pump model and the generated
         # obs_data file
         run_param_id(inp_data_dict)
