@@ -1315,6 +1315,32 @@ class CVS0DParamID():
             else:
                 self.obs_info["operation_kwargs"].append({})
 
+            if self.gt_df.iloc[II]["data_type"] == "series":
+                if 'sample_rate' in self.gt_df.iloc[II].keys():
+                    print(f'WARNING sample_rate found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
+                        'this is deprecated, please use obs_dt instead. Setting obs_dt = (1 / sample_rate)')
+                    self.obs_info["obs_dt"] = 1 / self.gt_df.iloc[II]["sample_rate"]
+                if 'dt' in self.gt_df.iloc[II].keys():
+                    print(f'WARNING dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
+                        'this is deprecated, please use obs_dt instead. Setting obs_dt = dt')
+                    self.obs_info["obs_dt"] = self.gt_df.iloc[II]["dt"]
+            else: 
+                if 'obs_dt' in self.gt_df.iloc[II].keys():
+                    print(f'obs_dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
+                            f'with data type {self.gt_df.iloc[II]['data_type']}. obs_dt should only be used for series data. Exiting')
+                    exit()
+                if 'dt' in self.gt_df.iloc[II].keys():
+                    print(f'WARNING dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
+                            f'with data type {self.gt_df.iloc[II]['data_type']}. dt is deprecated for obs_dt ',
+                            'and obs_dt should only be used for series data. Exiting')
+                    exit()
+                if 'sample_rate' in self.gt_df.iloc[II].keys():
+                    print(f'WARNING sample_rate found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
+                            f'with data type {self.gt_df.iloc[II]['data_type']}. sample_rate is deprecated for obs_dt ',
+                            'and obs_dt should only be used for series data. Exiting')
+                    exit()
+
+
         self.obs_info["num_obs"] = len(self.obs_info["obs_names"])
 
         # how much to weight the different observable errors by
