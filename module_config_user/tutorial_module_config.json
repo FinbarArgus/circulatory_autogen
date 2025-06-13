@@ -215,17 +215,10 @@
         "variables":["l"]
       },
       {
-        "port_type":"radius_us_and_s_port",
-        "variables":["r_us", "r"]
+        "port_type":"radius_0_and_s_port",
+        "variables":["r_0", "r"]
       },
-      {
-        "port_type":"elastic_mod_port",
-        "variables":["E"]
-      },
-      {
-        "port_type":"visco_mod_port",
-        "variables":["K_m"]
-      },
+      
       {
         "port_type":"stiffness_port",
         "variables":["K_tube"]
@@ -241,11 +234,11 @@
       ["K_tube_0", "J_per_m3", "access", "variable"],
       ["K_tube_visco", "Js_per_m6", "access", "variable"],
       ["l", "metre", "access", "boundary_condition"],
-      ["r_us", "metre", "access", "boundary_condition"],
+      ["r_0", "metre", "access", "boundary_condition"],
       ["r", "metre", "access", "boundary_condition"],
-      ["E", "J_per_m3", "access", "boundary_condition"],
-      ["K_m", "Js_per_m3", "access", "boundary_condition"],
-      ["Ca", "milliM", "access", "boundary_condition"],
+      ["E", "J_per_m3", "access", "constant"],
+      ["K_m", "Js_per_m3", "access", "constant"],
+      ["Ca_i", "milliM", "access", "boundary_condition"],
       ["Ca_50", "milliM", "access", "constant"],
       ["k_Ca", "milliM", "access", "constant"],
       ["a_vessel", "dimensionless", "no_access", "global_constant"],

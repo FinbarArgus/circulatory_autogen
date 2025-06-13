@@ -18,3 +18,4 @@ nav:
   - Parameter Identification: parameter-identification.md
   - "Example: 3Compartment Model": example-3compartment-model.md
   - Running on the HPC: running-on-hpc.md
+  - Other Useful Features: other-features.md
