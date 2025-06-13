@@ -90,7 +90,7 @@ if __name__ == '__main__':
         print('running generic junction open loop 2 autogeneration test')
         inp_data_dict['file_prefix'] = 'generic_junction_test2_open_loop'
         inp_data_dict['input_param_file'] = 'generic_junction_test_open_loop_parameters.csv'
-        generate_with_new_architecture(False, inp_data_dict)
+        generate_with_new_architecture(False, inp_data_dict)  
 
         # commenting out because it is very slow
         # print('')

@@ -1162,7 +1162,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -1171,23 +1171,8 @@
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -1289,7 +1274,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -1299,23 +1284,8 @@
         <variable initial_value="0.0" name="v_d" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -1459,7 +1429,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
@@ -1471,23 +1441,8 @@
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -1668,7 +1623,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in" public_interface="in" units="m3_per_s"/>
@@ -1677,23 +1632,8 @@
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -3474,7 +3414,7 @@
             </apply>
         </math>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -3485,23 +3425,8 @@
         <variable name="du_C_dt" public_interface="out" units="J_per_m3s"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -4251,19 +4176,8 @@
         <variable name="C" public_interface="in" units="m6_per_J"/>
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>R_v</ci>
-                <apply>
-                    <divide/>
-                    <cn cellml:units="second">0.01</cn>
-                    <ci>C</ci>
-                </apply>
-            </apply>
-        </math>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
@@ -4276,23 +4190,8 @@
         <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
         <variable name="v_out_1" public_interface="in" units="m3_per_s"/>
         <variable name="v_out_2" public_interface="in" units="m3_per_s"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -4301,6 +4200,15 @@
                     <ci>q_C</ci>
                     <ci>q_C_d</ci>
                     <ci>q_0</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>R_v</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="second">0.01</cn>
+                    <ci>C</ci>
                 </apply>
             </apply>
             <!-- Conservation Laws-->
@@ -4839,7 +4747,8 @@
                 <apply>
                     <plus/>
                     <ci>q_C</ci>
-                    <ci>q_C_dq_0</ci>
+                    <ci>q_C_d</ci>
+                    <ci>q_0</ci>
                 </apply>
             </apply>
             <!-- Constitutive Relations-->
@@ -5388,7 +5297,7 @@
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
@@ -5398,23 +5307,8 @@
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -5524,19 +5418,8 @@
         <variable name="C" public_interface="in" units="m6_per_J"/>
         <variable name="R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>R_v</ci>
-                <apply>
-                    <divide/>
-                    <cn cellml:units="second">0.01</cn>
-                    <ci>C</ci>
-                </apply>
-            </apply>
-        </math>
         <!-- State Variables-->
-        <variable name="r_0" public_interface="in" units="metre"/>
+        <variable name="q_0" public_interface="in" units="m3"/>
         <variable name="u_0" public_interface="in" units="J_per_m3"/>
         <variable name="u_ext" public_interface="in" units="J_per_m3"/>
         <variable name="v_in_1" public_interface="in" units="m3_per_s"/>
@@ -5549,23 +5432,8 @@
         <variable name="v_out" public_interface="in" units="m3_per_s"/>
         <variable initial_value="0.0" name="q_C" public_interface="out" units="m3"/>
         <variable initial_value="0.0" name="q_C_d" public_interface="out" units="m3"/>
-        <variable name="q_0" public_interface="out" units="m3"/>
         <variable name="q" public_interface="out" units="m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>q_0</ci>
-                <apply>
-                    <times/>
-                    <pi/>
-                    <apply>
-                        <power/>
-                        <ci>r_0</ci>
-                        <cn cellml:units="dimensionless">2</cn>
-                    </apply>
-                    <ci>l</ci>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>q</ci>
@@ -5573,6 +5441,15 @@
                     <plus/>
                     <ci>q_Cq_C_d</ci>
                     <ci>q_0</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>R_v</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="second">0.01</cn>
+                    <ci>C</ci>
                 </apply>
             </apply>
             <!-- Conservation Laws-->

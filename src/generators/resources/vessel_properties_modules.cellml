@@ -12,14 +12,9 @@
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
         <variable name="d_vessel" public_interface="in" units="per_m"/>
         <variable name="h" public_interface="out" units="metre"/>
+        <variable name="nu" public_interface="in" units="dimensionless"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
             <apply>
                 <eq/>
                 <ci>h</ci>
@@ -90,26 +85,8 @@
         <variable name="E" public_interface="in" units="J_per_m3"/>
         <variable name="K_m" public_interface="in" units="Js_per_m3"/>
         <variable name="Gamma" public_interface="out" units="Js_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
-        <!-- Gamma is the wall viscosity
- evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle
- for arteries, smooth muscle fraction of 10% (from Toro et al. 2021)-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>Gamma</ci>
-                <apply>
-                    <times/>
-                    <cn cellml:units="dimensionless">0.1</cn>
-                    <ci>K_m</ci>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
-        </math>
+        <variable name="SMvolfrac_art" public_interface="in" units="dimensionless"/>
+        <variable name="nu" public_interface="in" units="dimensionless"/>
         <variable name="a_vessel" public_interface="in" units="dimensionless"/>
         <variable name="b_vessel" public_interface="in" units="per_m"/>
         <variable name="c_vessel" public_interface="in" units="dimensionless"/>
@@ -153,7 +130,18 @@
                     </apply>
                 </apply>
             </apply>
-            <!--K_tube = 4{dimensionless}/3{dimensionless}*E*h/r_0;-->
+            <!-- Gamma is the wall viscosity
+ evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle SMvolfrac
+ Gamma = 0.1{dimensionless}*K_m;-->
+            <apply>
+                <eq/>
+                <ci>Gamma</ci>
+                <apply>
+                    <times/>
+                    <ci>SMvolfrac_art</ci>
+                    <ci>K_m</ci>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>K_tube</ci>
@@ -218,14 +206,8 @@
         <variable name="k_2" public_interface="in" units="per_m"/>
         <variable name="k_3" public_interface="in" units="J_per_m3"/>
         <variable name="c0" public_interface="out" units="m_per_s"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
             <apply>
                 <eq/>
                 <ci>c0</ci>
@@ -297,29 +279,22 @@
         <variable name="c0" public_interface="out" units="m_per_s"/>
         <variable name="K_m" public_interface="in" units="Js_per_m3"/>
         <variable name="Gamma" public_interface="out" units="Js_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
+        <variable name="SMvolfrac_art" public_interface="in" units="dimensionless"/>
+        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
+        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
         <!-- Gamma is the wall viscosity
- evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle
- for arteries, smooth muscle fraction of 10% (from Toro et al. 2021)-->
+ evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle SMvolfrac
+ Gamma = 0.1{dimensionless}*K_m;-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>Gamma</ci>
                 <apply>
                     <times/>
-                    <cn cellml:units="dimensionless">0.1</cn>
+                    <ci>SMvolfrac_art</ci>
                     <ci>K_m</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
-        </math>
-        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>c0</ci>
@@ -412,14 +387,9 @@
         <variable name="t" public_interface="in" units="second"/>
         <variable name="hr_ratio" public_interface="in" units="dimensionless"/>
         <variable name="E" public_interface="in" units="J_per_m3"/>
+        <variable name="nu" public_interface="in" units="dimensionless"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
             <apply>
                 <eq/>
                 <ci>K_tube</ci>
@@ -459,29 +429,23 @@
         <variable name="E" public_interface="in" units="J_per_m3"/>
         <variable name="K_m" public_interface="in" units="Js_per_m3"/>
         <variable name="Gamma" public_interface="out" units="Js_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
+        <variable name="SMvolfrac_ven" public_interface="in" units="dimensionless"/>
+        <variable name="nu" public_interface="in" units="dimensionless"/>
+        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
+        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
         <!-- Gamma is the wall viscosity
- evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle
- for veins, smooth muscle fraction of 8% (from Toro et al. 2021)-->
+ evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle SMvolfrac
+ Gamma = 0.08{dimensionless}*K_m;-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>Gamma</ci>
                 <apply>
                     <times/>
-                    <cn cellml:units="dimensionless">0.08</cn>
+                    <ci>SMvolfrac_ven</ci>
                     <ci>K_m</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
-        </math>
-        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>K_tube</ci>
@@ -552,13 +516,7 @@
         <variable name="c0_min" public_interface="in" units="m_per_s"/>
         <variable name="c0" public_interface="out" units="m_per_s"/>
         <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
             <apply>
                 <eq/>
                 <ci>c0</ci>
@@ -628,29 +586,22 @@
         <variable name="c0" public_interface="out" units="m_per_s"/>
         <variable name="K_m" public_interface="in" units="Js_per_m3"/>
         <variable name="Gamma" public_interface="out" units="Js_per_m3"/>
-        <variable name="nu" public_interface="out" units="dimensionless"/>
+        <variable name="SMvolfrac_ven" public_interface="in" units="dimensionless"/>
+        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
+        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
         <!-- Gamma is the wall viscosity
- evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle
- for veins, smooth muscle fraction of 8% (from Toro et al. 2021)-->
+ evaluated as the product of the viscoelastic parameter K_m and the volume fraction of smooth muscle SMvolfrac
+ Gamma = 0.08{dimensionless}*K_m;-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>Gamma</ci>
                 <apply>
                     <times/>
-                    <cn cellml:units="dimensionless">0.08</cn>
+                    <ci>SMvolfrac_ven</ci>
                     <ci>K_m</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>nu</ci>
-                <cn cellml:units="dimensionless">0.5</cn>
-            </apply>
-        </math>
-        <variable name="K_tube" public_interface="out" units="J_per_m3"/>
-        <variable name="K_tube_visco" public_interface="out" units="Js_per_m6"/>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>c0</ci>
