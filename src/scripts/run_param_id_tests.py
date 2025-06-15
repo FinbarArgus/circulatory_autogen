@@ -155,8 +155,8 @@ if __name__ == '__main__':
 
         print('')
         print('running SN_to_cAMP parameter id test')
-        inp_data_dict['file_prefix'] = 'SN_to_cAMP'
-        inp_data_dict['input_param_file'] = 'SN_to_cAMP_parameters.csv'
+        inp_data_dict['file_prefix'] = 'SN_simple'
+        inp_data_dict['input_param_file'] = 'SN_simple_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
         inp_data_dict['solver'] = 'CVODE'
         inp_data_dict['pre_time'] = 999 # this gets overwritten by the obs_data.json file

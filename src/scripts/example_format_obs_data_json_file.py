@@ -28,7 +28,6 @@ def example_format_obs_data_json_file():
     data = pd.read_csv(data_file)
 
     # access the data in the way you want it
-    print(data.columns)
     time = data['environment | t (second)'].values
 
     # create obs_data_creator instance
@@ -93,7 +92,6 @@ def example_format_obs_data_json_file():
     # add more entries to data_items if you have more data to add
 
     obs_data_dict = obs_data_creator.get_obs_data_dict()
-    print(obs_data_dict)
     obs_data_creator.dump_to_path(output_path)
 
 if __name__ == "__main__":

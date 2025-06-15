@@ -1750,6 +1750,7 @@ return 0;
                 f.write(mainScript)
         
         print("Cpp files generated. Check they run properly")
+        return True # TODO check if they run properly
 
 class CVS1DCppGenerator(object):
     '''

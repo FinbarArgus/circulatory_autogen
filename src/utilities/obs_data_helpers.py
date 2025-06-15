@@ -89,6 +89,7 @@ class ObsDataCreator:
             elif 'dt' in entry.keys():
                 print("Warning: 'dt' for the time step of series data items is deprecated, ",
                       "please use 'obs_dt' instead. Setting 'obs_dt' to 'dt'.")
+                entry['obs_dt'] = entry['dt']
                 pass
             else:
                 raise ValueError(f"obs_dt is required for series entries")

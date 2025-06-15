@@ -50,7 +50,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     if inp_data_dict['model_type'] == 'cellml_only':
         code_generator = CVS0DCellMLGenerator(model, generated_models_subdir, file_prefix,
                                           resources_dir=resources_dir)
-        code_generator.generate_files()
+        success = code_generator.generate_files()
     elif inp_data_dict['model_type'] == 'cpp':
         if inp_data_dict['couple_to_1d']:
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix,
@@ -64,11 +64,13 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
 
         code_generator.generate_cellml()
         code_generator.annotate_cellml()
-        code_generator.generate_cpp()
+        success = code_generator.generate_cpp()
 
     else: 
         print('model_type must be either cellml_only or cpp, not ' + inp_data_dict['model_type'])
         exit()
+        
+    return success
 
 
 if __name__ == '__main__':

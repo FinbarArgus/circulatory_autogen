@@ -8,7 +8,6 @@ sys.path.append(os.path.join(root_dir, 'src'))
 
 user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
-from parsers.PrimitiveParsers import YamlFileParser
 
 if __name__ == '__main__':
     try:
@@ -162,7 +161,9 @@ if __name__ == '__main__':
 
             print('')
             print('Running Sympathetic neuron test in CA_users directory')
-            yaml_file_parser = YamlFileParser()
+            inp_data_dict['model_type'] = 'cellml_only'
+            inp_data_dict['solver'] = 'CVODE'
+            inp_data_dict['couple_to_1d'] = False
             # TODO move this to the circulatory autogen directory when this model is published.
             inp_data_dict['user_inputs_path_override'] = os.path.join(CA_user_dir, 'SN_simple', 'SN_simple_user_inputs.yaml')
             success = generate_with_new_architecture(False, inp_data_dict)

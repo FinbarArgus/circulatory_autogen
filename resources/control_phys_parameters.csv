@@ -53,6 +53,7 @@ R_lt_lung,Js_per_m6,33016,Rideout1991
 R_tb_lung,Js_per_m6,30017,Rideout1991
 R_bA_lung,Js_per_m6,8006,Rideout1991
 R_plwall_lung,Js_per_m6,10000,Rideout1991
+R_scale_lung,Js_per_m6,1.0,user_defined
 C_l_lung,m6_per_J,0.000000012959,YasuhiroFukui1972
 C_t_lung,m6_per_J,0.000000024286,YasuhiroFukui1972
 C_b_lung,m6_per_J,0.0000013367,YasuhiroFukui1972

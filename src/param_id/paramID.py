@@ -1331,11 +1331,11 @@ class CVS0DParamID():
                 if 'sample_rate' in self.gt_df.iloc[II].keys():
                     print(f'WARNING sample_rate found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
                         'this is deprecated, please use obs_dt instead. Setting obs_dt = (1 / sample_rate)')
-                    self.obs_info["obs_dt"] = 1 / self.gt_df.iloc[II]["sample_rate"]
+                    self.gt_df.iloc[II]["obs_dt"] = 1 / self.gt_df.iloc[II]["sample_rate"]
                 if 'dt' in self.gt_df.iloc[II].keys():
                     print(f'WARNING dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
                         'this is deprecated, please use obs_dt instead. Setting obs_dt = dt')
-                    self.obs_info["obs_dt"] = self.gt_df.iloc[II]["dt"]
+                    self.gt_df.iloc[II]["obs_dt"] = self.gt_df.iloc[II]["dt"]
             else: 
                 if 'obs_dt' in self.gt_df.iloc[II].keys():
                     print(f'obs_dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
@@ -1621,10 +1621,10 @@ class CVS0DParamID():
         dt_list = []
         for II in range(self.gt_df.shape[0]):
             if self.gt_df.iloc[II]["data_type"] == "series":
-                if "dt" not in self.gt_df.iloc[II].keys():
+                if "obs_dt" not in self.gt_df.iloc[II].keys():
                     print("dt not found in obs_data.json for series data, exiting")
                     exit()
-                dt_list.append(self.gt_df.iloc[II]["dt"])
+                dt_list.append(self.gt_df.iloc[II]["obs_dt"])
         
         self.obs_info["obs_dt"] = np.array(dt_list)
         
