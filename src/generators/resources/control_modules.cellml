@@ -988,56 +988,23 @@
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- IMPORTANT: THIS MODULE HAS BEEN MODIFIED TO CONTROL COMPLIANCE INSTEAD OF UNSTRESSED VOLUME. PARAMS ARE UNVALIDATED-->
         <!-- Constants-->
-        <variable name="G_theta_us" public_interface="in" units="m3"/>
-        <variable name="G_theta_compliance" public_interface="in" units="m6_per_J"/>
+        <variable name="G_theta_us" public_interface="in" units="dimensionless"/>
+        <variable name="G_theta_compliance" public_interface="in" units="dimensionless"/>
         <variable name="f_es_min" public_interface="in" units="per_s"/>
         <variable name="tau_theta_us" public_interface="in" units="second"/>
         <variable name="tau_theta_compliance" public_interface="in" units="second"/>
         <!-- Variables-->
         <variable name="f_s" public_interface="in" units="per_s"/>
-        <variable initial_value="0.0" name="Delta_theta_us" public_interface="out" units="m3"/>
-        <variable name="sigma_theta_us" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="Delta_theta_compliance" public_interface="out" units="m6_per_J"/>
-        <variable name="sigma_theta_compliance" public_interface="out" units="m6_per_J"/>
+        <variable name="Delta_theta_us" public_interface="out" units="m3"/>
+        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="m3"/>
+        <variable name="Delta_theta_compliance" public_interface="out" units="m6_per_J"/>
+        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="m6_per_J"/>
         <!-- Equations-->
-        <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.-->
+        <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.
+ changed the below from ln to hill function so we can limit the amount it can change compliance and us volume. Now G_theta_us is the maximum amount of change
+ that can occur to the us volume
+ G_theta is now a max proportion of us volume or compliance that can be decreased.-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>sigma_theta_us</ci>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <ci>G_theta_us</ci>
-                            <apply>
-                                <ln/>
-                                <apply>
-                                    <times/>
-                                    <cn cellml:units="second">1</cn>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>f_s</ci>
-                                            <ci>f_es_min</ci>
-                                        </apply>
-                                        <cn cellml:units="per_s">1</cn>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>f_s</ci>
-                            <ci>f_es_min</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="m3">0</cn>
-                    </otherwise>
-                </piecewise>
-            </apply>
             <apply>
                 <eq/>
                 <apply>
@@ -1045,15 +1012,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Delta_theta_us</ci>
+                    <ci>sigma_theta_us</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <plus/>
+                        <minus/>
                         <apply>
-                            <minus/>
-                            <ci>Delta_theta_us</ci>
+                            <max/>
+                            <apply>
+                                <minus/>
+                                <ci>f_s</ci>
+                                <ci>f_es_min</ci>
+                            </apply>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                         <ci>sigma_theta_us</ci>
                     </apply>
@@ -1062,39 +1034,20 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>sigma_theta_compliance</ci>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <ci>G_theta_compliance</ci>
-                            <apply>
-                                <ln/>
-                                <apply>
-                                    <times/>
-                                    <cn cellml:units="second">1</cn>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>f_s</ci>
-                                            <ci>f_es_min</ci>
-                                        </apply>
-                                        <cn cellml:units="per_s">1</cn>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>f_s</ci>
-                            <ci>f_es_min</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="m3">0</cn>
-                    </otherwise>
-                </piecewise>
+                <ci>Delta_theta_us</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>G_theta_compliance</ci>
+                        <ci>sigma_theta_us</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>f_es_min</ci>
+                        <ci>sigma_theta_us</ci>
+                    </apply>
+                </apply>
             </apply>
             <apply>
                 <eq/>
@@ -1103,19 +1056,41 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Delta_theta_compliance</ci>
+                    <ci>sigma_theta_compliance</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <plus/>
+                        <minus/>
                         <apply>
-                            <minus/>
-                            <ci>Delta_theta_compliance</ci>
+                            <max/>
+                            <apply>
+                                <minus/>
+                                <ci>f_s</ci>
+                                <ci>f_es_min</ci>
+                            </apply>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                         <ci>sigma_theta_compliance</ci>
                     </apply>
                     <ci>tau_theta_compliance</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Delta_theta_compliance</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>G_theta_compliance</ci>
+                        <ci>sigma_theta_compliance</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>f_es_min</ci>
+                        <ci>sigma_theta_compliance</ci>
+                    </apply>
                 </apply>
             </apply>
         </math>

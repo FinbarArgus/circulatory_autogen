@@ -1979,18 +1979,26 @@
                 <eq/>
                 <ci>q_us_wCont</ci>
                 <apply>
-                    <plus/>
+                    <times/>
                     <ci>q_us_0</ci>
-                    <ci>Delta_q_us</ci>
+                    <apply>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>Delta_q_us</ci>
+                    </apply>
                 </apply>
             </apply>
             <apply>
                 <eq/>
                 <ci>C_wCont</ci>
                 <apply>
-                    <plus/>
+                    <times/>
                     <ci>C</ci>
-                    <ci>Delta_C</ci>
+                    <apply>
+                        <minus/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>Delta_C</ci>
+                    </apply>
                 </apply>
             </apply>
         </math>

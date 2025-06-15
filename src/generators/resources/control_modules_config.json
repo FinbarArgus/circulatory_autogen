@@ -303,8 +303,8 @@
         "general_ports":[],
         "variables_and_units":
         [
-          ["G_theta_us", "m3", "access", "constant"],
-          ["G_theta_compliance", "m6_per_J", "access", "constant"],
+          ["G_theta_us", "dimensionless", "access", "constant"],
+          ["G_theta_compliance", "dimensionless", "access", "constant"],
           ["f_es_min", "per_s", "access", "global_constant"],
           ["tau_theta_us", "second", "access", "constant"],
           ["tau_theta_compliance", "second", "access", "constant"],
