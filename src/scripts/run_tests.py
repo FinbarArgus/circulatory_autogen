@@ -164,9 +164,7 @@ if __name__ == '__main__':
             print('Running Sympathetic neuron test in CA_users directory')
             yaml_file_parser = YamlFileParser()
             # TODO move this to the circulatory autogen directory when this model is published.
-            with open(os.path.join(CA_user_dir, 'SN_simple', 'SN_simple_user_inputs.yaml'), 'r') as file:
-                inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
-                inp_data_dict['resources_dir'] = os.path.join(CA_user_dir, 'SN_simple', inp_data_dict['resources_dir'])
+            inp_data_dict['user_inputs_path_override'] = os.path.join(CA_user_dir, 'SN_simple', 'SN_simple_user_inputs.yaml')
             success = generate_with_new_architecture(False, inp_data_dict)
             gen_success_list.append(('CA_user_SN_simple', success))
         else:

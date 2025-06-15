@@ -1,6 +1,8 @@
 variable_name,units,value,data_reference
 g_Na_soma_SN, microS, 2.3, user_defined
 g_Na_mod_soma_SN, dimensionless, 1.0, user_defined
+g_Na1_6_soma_SN, microS, 0.5, user_defined
+g_Na1_6_mod_soma_SN, dimensionless, 1.0, user_defined
 g_Na_soma_SN_OLD, microS, 9.28, Tau2011
 Cm_soma_SN, picoF, 30, Davis2021Transcriptomic
 Cm_SN_OLD, picoF, 240, Tau2011
@@ -53,15 +55,19 @@ h_BK_min_soma_SN, dimensionless, 0.085, Khaliq2003Contribution
 z_BK_coeff_soma_SN, millimolar, 0.001, Khaliq2003Contribution
 k_thresh_m_soma_SN, milliV, 0, user_defined_removed_dependence_was_15
 k_thresh_h_soma_SN, milliV, 0, user_defined_removed_dependence
-V_mid_m_soma_SN, milliV, 36, Belluzi1991_was_36
-V_mid_h_soma_SN, milliV, 53.2, Belluzi1991_was_53.2
-V_den_m_soma_SN, milliV, 12, Belluzi1991_was_7.2
-V_den_h_soma_SN, milliV, 8.0, Belluzi1991_was_6.5
-V_mid_m_Kv1_5_soma_SN,milliV,6.0,Philipson1991-channelpedia 
+V_mid_m_soma_SN, milliV, 20, Belluzi1991_was_36
+V_mid_h_soma_SN, milliV, 40, Belluzi1991_was_53.2
+V_den_m_soma_SN, milliV, 6, Belluzi1991_was_7.2
+V_den_h_soma_SN, milliV, 4.0, Belluzi1991_was_6.5
+V_mid_m_Na1_6_soma_SN, milliV, 36, Belluzi1991_was_36
+V_mid_h_Na1_6_soma_SN, milliV, 53.2, Belluzi1991_was_53.2
+V_den_m_Na1_6_soma_SN, milliV, 8.0, Belluzi1991_was_7.2
+V_den_h_Na1_6_soma_SN, milliV, 8.0, Belluzi1991_was_6.5
+V_mid_m_Kv1_5_soma_SN, milliV, 6.0, Philipson1991-channelpedia 
 V_den_m_Kv1_5_soma_SN, milliV, 6.4, Philipson1991-channelpedia
 V_mid_h_Kv1_5_soma_SN, milliV, 25.3, Philipson1991-channelpedia
 V_den_h_Kv1_5_soma_SN, milliV, 3.5, Philipson1991-channelpedia
-V_mid_m_Kv4_2_soma_SN, milliV, 18.8,Bekkers2000-channelpedia 
+V_mid_m_Kv4_2_soma_SN, milliV, 18.8, Bekkers2000-channelpedia 
 V_den_m_Kv4_2_soma_SN, milliV, 16.6, Bekkers2000-channelpedia
 V_mid_h_Kv4_2_soma_SN, milliV, 81.6, Bekkers2000-channelpedia
 V_den_h_Kv4_2_soma_SN, milliV, 6.7, Bekkers2000-channelpedia
@@ -80,7 +86,10 @@ tau_c_min_soma_SN, millis, 0.2, changed_from_belluzi1991_curves
 tau_c_max_soma_SN, millis, 3.0, changed_from_belluzi1991_curves
 tau_hc_soma_SN, millis, 20.0, changed_from_belluzi1991_curves
 tau_h_min_soma_SN, millis, 0.15, user_defined
-tau_h_max_soma_SN, millis, 300, user_defined
+tau_h_max_soma_SN, millis, 5, user_defined
+tau_h_Na1_6_min_soma_SN, millis, 0.15, user_defined
+tau_h_Na1_6_max_soma_SN, millis, 300, user_defined
+tau_h_Kv4_2_soma_SN, millis, 7.0, was_approx_7
 tau_z_BK_soma_SN, millis, 5, khaliq2003Contribution
 tau_m_SK_soma_SN, millis, 5, gupta2016Computational
 tau_w_min_soma_SN, millis, 30, gupta2016Computational
