@@ -366,7 +366,7 @@
           ["u_p_resp", "Hz", "access", "boundary_condition"],
           ["u_p_resp", "Hz", "access", "boundary_condition"],
           ["P_CO2_c_thresh", "J_per_m3", "access", "constant"],
-          ["Delta_RR_resp", "second", "access", "variable"],
+          ["Delta_RR_resp", "per_s", "access", "variable"],
           ["Delta_P_mus", "J_per_m3", "access", "variable"],
           ["Delta_RR_c", "Hz", "access", "variable"],
           ["Delta_RR_p", "Hz", "access", "variable"],

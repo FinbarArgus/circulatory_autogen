@@ -46,7 +46,7 @@
         <variable name="R_lt" public_interface="in" units="Js_per_m6"/>
         <variable name="R_tb" public_interface="in" units="Js_per_m6"/>
         <variable name="R_bA" public_interface="in" units="Js_per_m6"/>
-        <variable name="R_scale" public_interface="in" units="Js_per_m6"/>
+        <variable name="R_scale" public_interface="in" units="dimensionless"/>
         <variable name="R_plwall" public_interface="in" units="Js_per_m6"/>
         <!-- ______  Compliances_________-->
         <variable name="C_l" public_interface="in" units="m6_per_J"/>
@@ -57,7 +57,7 @@
         <!-- periods/times-->
         <variable name="t_floor" public_interface="out" units="second"/>
         <variable name="T_resp" public_interface="in" units="second"/>
-        <variable name="Delta_RR_resp" public_interface="in" units="second"/>
+        <variable name="Delta_RR_resp" public_interface="in" units="per_s"/>
         <variable name="T_resp_wCont" public_interface="out" units="second"/>
         <variable name="T_resp_min" public_interface="in" units="second"/>
         <variable name="T_I" public_interface="out" units="second"/>
@@ -497,7 +497,7 @@
                                             <ci>P_mus_min_wCont</ci>
                                             <ci>P_mus_max_wCont</ci>
                                         </apply>
-                                        <ci>T_resp_wCont</ci>
+                                        <ci>T_resp</ci>
                                     </apply>
                                     <apply>
                                         <times/>
