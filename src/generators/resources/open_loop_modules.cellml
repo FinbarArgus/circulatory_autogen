@@ -3384,7 +3384,9 @@
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_T" public_interface="out" units="m3_per_s"/>
         <!-- v_T is the output flow to the venous side-->
-        <variable initial_value="0.0" name="q_T" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="in" units="m3"/>
+        <variable name="q_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_init" name="q" public_interface="out" units="m3"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -3860,7 +3862,7 @@ var R_T_wCont: Js_per_m6 {pub: out};-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>q_T</ci>
+                    <ci>q</ci>
                 </apply>
                 <apply>
                     <minus/>
@@ -3872,13 +3874,13 @@ var R_T_wCont: Js_per_m6 {pub: out};-->
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <plus/>
+                    <divide/>
                     <apply>
-                        <divide/>
-                        <ci>q_T</ci>
-                        <ci>C_T</ci>
+                        <minus/>
+                        <ci>q</ci>
+                        <ci>q_us</ci>
                     </apply>
-                    <ci>u_ext</ci>
+                    <ci>C_T</ci>
                 </apply>
             </apply>
             <apply>
@@ -3887,6 +3889,7 @@ var R_T_wCont: Js_per_m6 {pub: out};-->
                 <apply>
                     <plus/>
                     <ci>u_C</ci>
+                    <ci>u_ext</ci>
                     <apply>
                         <times/>
                         <ci>R_v</ci>
@@ -3971,7 +3974,9 @@ var R_T_wCont: Js_per_m6 {pub: out};-->
         <variable initial_value="0.0" name="v" public_interface="out" units="m3_per_s"/>
         <variable initial_value="0.0" name="v_T" public_interface="out" units="m3_per_s"/>
         <!-- v_T is the output flow to the venous side-->
-        <variable initial_value="0.0" name="q_T" public_interface="out" units="m3"/>
+        <variable name="q_us" public_interface="in" units="m3"/>
+        <variable name="q_init" public_interface="in" units="m3"/>
+        <variable initial_value="q_init" name="q" public_interface="out" units="m3"/>
         <variable name="u" public_interface="out" units="J_per_m3"/>
         <variable name="u_C" public_interface="out" units="J_per_m3"/>
         <variable name="u_in" public_interface="in" units="J_per_m3"/>
@@ -4448,7 +4453,7 @@ r_a = BFF_ASL-v_a/meanflow_4dflow;-->
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>q_T</ci>
+                    <ci>q</ci>
                 </apply>
                 <apply>
                     <minus/>
@@ -4460,13 +4465,13 @@ r_a = BFF_ASL-v_a/meanflow_4dflow;-->
                 <eq/>
                 <ci>u_C</ci>
                 <apply>
-                    <plus/>
+                    <divide/>
                     <apply>
-                        <divide/>
-                        <ci>q_T</ci>
-                        <ci>C_T</ci>
+                        <minus/>
+                        <ci>q</ci>
+                        <ci>q_us</ci>
                     </apply>
-                    <ci>u_ext</ci>
+                    <ci>C_T</ci>
                 </apply>
             </apply>
             <apply>
@@ -4475,6 +4480,7 @@ r_a = BFF_ASL-v_a/meanflow_4dflow;-->
                 <apply>
                     <plus/>
                     <ci>u_C</ci>
+                    <ci>u_ext</ci>
                     <apply>
                         <times/>
                         <ci>R_v</ci>
