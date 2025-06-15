@@ -76,6 +76,8 @@
           ["C_b", "m6_per_J", "access", "constant"],
           ["C_A", "m6_per_J", "access", "constant"],
           ["C_pl", "m6_per_J", "access", "constant"],
+          ["s", "dimensionless", "access", "variable"],
+          ["mt", "dimensionless", "access", "variable"],
           ["t_floor", "second", "access", "variable"],
           ["T_resp", "second", "access", "constant"],
           ["Delta_RR_resp", "second", "access", "boundary_condition"],

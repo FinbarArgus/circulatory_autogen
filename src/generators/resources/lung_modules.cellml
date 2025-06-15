@@ -95,12 +95,14 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- We keep T_E and T_I based on T_resp, not T_resp control, then move through t_floor faster or slower
+ as calculated below.-->
             <apply>
                 <eq/>
                 <ci>T_E</ci>
                 <apply>
                     <divide/>
-                    <ci>T_resp_wCont</ci>
+                    <ci>T_resp</ci>
                     <apply>
                         <plus/>
                         <cn cellml:units="dimensionless">1</cn>
@@ -378,26 +380,47 @@
                     <ci>q_A_us</ci>
                 </apply>
             </apply>
-            <!-- TODO + unstressed volume-->
-            <!-- calculate time through this period-->
+        </math>
+        <!-- TODO + unstressed volume-->
+        <variable initial_value="0.0" name="s" public_interface="out" units="dimensionless"/>
+        <variable name="mt" public_interface="out" units="dimensionless"/>
+        <!-- calculate normalised time through this period-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>s</ci>
+                </apply>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1</cn>
+                    <ci>T_resp_wCont</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>mt</ci>
+                <apply>
+                    <minus/>
+                    <ci>s</ci>
+                    <apply>
+                        <floor/>
+                        <ci>s</ci>
+                    </apply>
+                </apply>
+            </apply>
+            <!-- unnormalise (t_floor goes from 0 to T_resp, not T_resp_wCont) -->
             <apply>
                 <eq/>
                 <ci>t_floor</ci>
                 <apply>
-                    <minus/>
-                    <ci>t</ci>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <floor/>
-                            <apply>
-                                <divide/>
-                                <ci>t</ci>
-                                <ci>T_resp_wCont</ci>
-                            </apply>
-                        </apply>
-                        <ci>T_resp_wCont</ci>
-                    </apply>
+                    <times/>
+                    <ci>mt</ci>
+                    <ci>T_resp</ci>
                 </apply>
             </apply>
             <!-- TODO swap this muscle model for the one used in ben tal and smith 2008-->
