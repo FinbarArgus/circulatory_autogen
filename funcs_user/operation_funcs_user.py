@@ -293,76 +293,35 @@ def peak_times(t, V, series_output=False):
     return peaks
 
 @series_to_constant
-def mean_last_half(x, series_output=False):
+def mean_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
     if series_output:
         return x
     else:
-        half_len = len(x) // 2
-        last_half_values = x[half_len:]
-        return np.mean(last_half_values)
+        start_idx = int(start_frac*(len(t)-1))
+        end_idx = int(end_frac*(len(t)-1))
+        range_values = x[start_frac:end_frac]
+        return np.mean(range_values)
 
 @series_to_constant
-def mean_last_quarter(x, series_output=False):
+def max_in_range(x, series_output=False):
     if series_output:
         return x
     else:
-        quarter_len = len(x) // 4
-        last_quarter_values = x[-quarter_len:]
-        return np.mean(last_quarter_values)
+        start_idx = int(start_frac*(len(t)-1))
+        end_idx = int(end_frac*(len(t)-1))
+        range_values = x[start_frac:end_frac]
+        return np.max(range_values)
+
 
 @series_to_constant
-def max_first_half(x, series_output=False):
+def min_in_range(x, series_output=False):
     if series_output:
         return x
     else:
-        half_len = len(x) // 2
-        first_half_values = x[:half_len]
-        return np.max(first_half_values)
-
-@series_to_constant
-def max_first_quarter(x, series_output=False):
-    if series_output:
-        return x
-    else:
-        quarter_len = len(x) // 4
-        first_quarter_values = x[:quarter_len]
-        return np.max(first_quarter_values)
-
-@series_to_constant
-def max_second_quarter(x, series_output=False):
-    if series_output:
-        return x
-    else:
-        quarter_len = len(x) // 4
-        second_quarter_values = x[quarter_len:2 * quarter_len]
-        return np.max(second_quarter_values)
-
-@series_to_constant
-def max_last_quarter(x, series_output=False):
-    if series_output:
-        return x
-    else:
-        quarter_len = len(x) // 4
-        last_quarter_values = x[-quarter_len:]
-        return np.max(last_quarter_values)
-
-@series_to_constant
-def min_first_half(x, series_output=False):
-    if series_output:
-        return x
-    else:
-        half_len = len(x) // 2
-        first_half_values = x[:half_len]
-        return np.min(first_half_values)
-
-@series_to_constant
-def min_first_quarter(x, series_output=False):
-    if series_output:
-        return x
-    else:
-        quarter_len = len(x) // 4
-        first_quarter_values = x[:quarter_len]
-        return np.min(first_quarter_values)
+        start_idx = int(start_frac*(len(t)-1))
+        end_idx = int(end_frac*(len(t)-1))
+        range_values = x[start_frac:end_frac]
+        return np.min(range_values)
 
 @series_to_constant
 def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance=None, dV_dt_thresh=10e3):
