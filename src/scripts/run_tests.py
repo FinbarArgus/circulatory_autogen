@@ -165,7 +165,8 @@ if __name__ == '__main__':
             yaml_file_parser = YamlFileParser()
             # TODO move this to the circulatory autogen directory when this model is published.
             with open(os.path.join(CA_user_dir, 'SN_simple', 'SN_simple_user_inputs.yaml'), 'r') as file:
-                inp_data_dict = yaml_file_parser.parse_user_inputs_file(file, obs_path_needed=False, do_generation_with_fit_parameters=False)
+                inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+                inp_data_dict['resources_dir'] = os.path.join(CA_user_dir, 'SN_simple', inp_data_dict['resources_dir'])
             success = generate_with_new_architecture(False, inp_data_dict)
             gen_success_list.append(('CA_user_SN_simple', success))
         else:

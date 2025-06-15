@@ -936,8 +936,6 @@ a_vessel,dimensionless,0.2802, Avolio_1980
 b_vessel,per_m,-505.3,Avolio_1980
 c_vessel,dimensionless,0.1324,Avolio_1980
 d_vessel,per_m,-11.14,Avolio_1980
-<<<<<<< HEAD
-=======
 q_us_external_carotid_R_T,m3,0,user_defined_TO_DO
 q_init_external_carotid_R_T,m3,0,user_defined_TO_DO
 q_us_internal_carotid_R_T,m3,0,user_defined_TO_DO
@@ -1000,4 +998,3 @@ q_us_anterior_tibial_L_T,m3,0,user_defined_TO_DO
 q_init_anterior_tibial_L_T,m3,0,user_defined_TO_DO
 q_us_posterior_tibial_L_T,m3,0,user_defined_TO_DO
 q_init_posterior_tibial_L_T,m3,0,user_defined_TO_DO
->>>>>>> b3c5f87d55a67a9cbeada02094fa2bda0a5633fb

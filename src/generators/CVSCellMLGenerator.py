@@ -44,7 +44,10 @@ class CVS0DCellMLGenerator(object):
             self.resources_dir = os.path.join(generators_dir, '../../resources')
         else:
             self.resources_dir = resources_dir 
+
         self.base_script = os.path.join(generators_dir, 'resources/base_script.cellml')
+
+
         self.module_scripts = [os.path.join(generators_dir, 'resources', filename) for filename in
                                os.listdir(os.path.join(generators_dir, 'resources'))
                                if filename.endswith('modules.cellml')]
