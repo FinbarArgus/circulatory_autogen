@@ -1497,7 +1497,7 @@ class CVS0DParamID():
                                                input_params["param_name"][II]for JJ in
                                                range(len(input_params["vessel_name"][II]))])
 
-                if input_params["vessel_name"][II][0] == 'heart':
+                if input_params["vessel_name"][II][0] == 'global':
                     param_names_for_gen.append([input_params["param_name"][II]])
 
                 else:

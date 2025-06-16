@@ -175,11 +175,20 @@ class CVS0DCellMLGenerator(object):
                 print('writing variable access')
                 self.__write_section_break(wf, 'access_variables')
                 self.__write_access_variables(wf, self.model.vessels_df)
+                
+                # define global parameters so they can be accessed
+                print('writing global params variable access')
+                self.__write_section_break(wf, 'global_parameters_access')
+                self.__write_global_parameters_access_variables(wf, self.model.parameters_array)
 
                 # map between computational environment and module so they can be accessed
                 print('writing mappings between computational environment and modules')
                 self.__write_section_break(wf, 'own vessel mappings')
                 self.__write_comp_to_module_mappings(wf, self.model.vessels_df)
+                
+                print('writing mappings between computational environment and modules for global parameters')
+                self.__write_section_break(wf, 'own global parameters mapping')
+                self.__write_global_parameters_comp_to_module_mappings(wf, self.model.parameters_array)
 
                 # map constants to different modules
                 print('writing mappings between constant params')
@@ -884,6 +893,16 @@ class CVS0DCellMLGenerator(object):
                 print('______________________________________')
         wf.writelines(lines_to_write)
         wf.write('</component>\n')
+    
+    def __write_global_parameters_access_variables(self, wf, parameters_array):
+        
+        wf.write(f'<component name="global">\n')
+        lines_to_write = []
+        for parameter, unit, const_type in zip(parameters_array["variable_name"], parameters_array["units"], parameters_array["const_type"]):
+            if const_type == 'global_constant':
+                lines_to_write.append(f'   <variable name="{parameter}" public_interface="in" units="{unit}"/>\n')
+        wf.writelines(lines_to_write)
+        wf.write('</component>\n')
 
     def __write_comp_to_module_mappings(self, wf, vessel_df):
         vessel_df.apply(self.__write_comp_to_module_mappings_for_row, args=(wf,), axis=1)
@@ -899,6 +918,14 @@ class CVS0DCellMLGenerator(object):
         out_vars = inp_vars
 
         self.__write_mapping(wf, vessel_name, vessel_name + '_module', inp_vars, out_vars)
+    
+    def __write_global_parameters_comp_to_module_mappings(self, wf, parameters_array):
+        inp_vars = [parameters_array["variable_name"][i] for i in
+                    range(len(parameters_array["variable_name"])) if
+                    parameters_array["const_type"][i] == 'global_constant']
+        out_vars = inp_vars
+
+        self.__write_mapping(wf, 'global', 'parameters_global' ,inp_vars, out_vars)
 
     def __write_param_mappings(self, wf, vessel_df, params_array=None):
         vessel_df.apply(self.__write_param_mappings_for_row, args=(wf,), params_array=params_array, axis=1)

@@ -1178,8 +1178,8 @@
         <!-- voltage calculation-->
         <!-- neuron capacitance-->
         <variable name="Cm" public_interface="in" units="picoF"/>
-        <variable name="V_rest" public_interface="in" units="milliV"/>
-        <variable initial_value="V_rest" name="V" public_interface="out" units="milliV"/>
+        <variable name="V_rest_approx" public_interface="in" units="milliV"/>
+        <variable initial_value="V_rest_approx" name="V" public_interface="out" units="milliV"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1220,8 +1220,8 @@
             </apply>
         </math>
         <!-- slightly delay the input-->
-        <variable initial_value="0.0" name="I_in_delayed" public_interface="out" units="nanoA"/>
-        <variable name="tau_input_delay" public_interface="in" units="second"/>
+        <variable initial_value="V_rest_approx" name="V_sensed" public_interface="out" units="milliV"/>
+        <variable name="C_sensed" public_interface="in" units="picoF"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1230,16 +1230,43 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>I_in_delayed</ci>
+                    <ci>V_sensed</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <minus/>
-                        <ci>I_in</ci>
-                        <ci>I_in_delayed</ci>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <cn cellml:units="milliV_per_kiloV" type="e-notation">1<sep/>6</cn>
+                        </apply>
+                        <apply>
+                            <minus/>
+                            <ci>I_in</ci>
+                            <ci>I_in_delayed</ci>
+                        </apply>
                     </apply>
-                    <ci>tau_input_delay</ci>
+                    <ci>C_sensed</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="I_in_delayed" public_interface="out" units="nanoA"/>
+        <variable name="R_diffSensed" public_interface="in" units="megaOhm"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>I_in_delayed</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <minus/>
+                        <apply>
+                            <minus/>
+                            <ci>V_sensed</ci>
+                            <ci>V</ci>
+                        </apply>
+                    </apply>
+                    <ci>R_diffSensed</ci>
                 </apply>
             </apply>
         </math>
@@ -1248,7 +1275,6 @@
  made V_denm a parameter (was 7.2 mV) to allow the modification of the depolarising voltage activation amount during hyperpolarisation
  threshold-->
         <variable name="i_Na" public_interface="out" units="nanoA"/>
-        <variable name="i_Na_init" public_interface="out" units="nanoA"/>
         <variable name="g_Na" public_interface="in" units="microS"/>
         <variable name="g_Na_mod" public_interface="in" units="dimensionless"/>
         <variable name="m_init" public_interface="out" units="dimensionless"/>
@@ -1333,7 +1359,7 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_m_max</ci>
                                     </apply>
                                 </apply>
@@ -1358,7 +1384,7 @@
                                 <divide/>
                                 <apply>
                                     <plus/>
-                                    <ci>V_rest</ci>
+                                    <ci>V_rest_approx</ci>
                                     <ci>V_mid_h_max</ci>
                                 </apply>
                                 <ci>V_den_h</ci>
@@ -1468,6 +1494,7 @@
             </apply>
             <!-- This tau_h equation has been modified. Make sure it is consistant with experimental data
  I changed it to increase restitution period of the Na Channel, stays closed for longer after firing, and to simplify it.-->
+            <!-- tau_h     = tau_h_min+(tau_h_max-tau_h_min)/(1{dimensionless}+exp(-(V_mid_h+10{milliV}+V)/14{milliV})+exp((V_mid_h-20{milliV}+V)/1.556{milliV}));-->
             <apply>
                 <eq/>
                 <ci>tau_h</ci>
@@ -1509,11 +1536,11 @@
                                         <apply>
                                             <minus/>
                                             <ci>V_mid_h</ci>
-                                            <cn cellml:units="milliV">20</cn>
+                                            <cn cellml:units="milliV">10</cn>
                                         </apply>
                                         <ci>V</ci>
                                     </apply>
-                                    <cn cellml:units="milliV">1.556</cn>
+                                    <cn cellml:units="milliV">6</cn>
                                 </apply>
                             </apply>
                         </apply>
@@ -1600,26 +1627,6 @@
                     <ci>h</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_Na_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_Na</ci>
-                    <ci>g_Na_mod</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_Na_init</ci>
-                    </apply>
-                    <apply>
-                        <power/>
-                        <ci>m_init</ci>
-                        <cn cellml:units="dimensionless">3</cn>
-                    </apply>
-                    <ci>h_init</ci>
-                </apply>
-            </apply>
         </math>
         <!-- I_Ca_L-->
         <variable name="i_Ca_L" public_interface="out" units="nanoA"/>
@@ -1670,7 +1677,7 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_c</ci>
                                     </apply>
                                 </apply>
@@ -1695,7 +1702,7 @@
                                 <divide/>
                                 <apply>
                                     <plus/>
-                                    <ci>V_rest</ci>
+                                    <ci>V_rest_approx</ci>
                                     <ci>V_mid_hc</ci>
                                 </apply>
                                 <ci>V_den_hc</ci>
@@ -1946,7 +1953,6 @@
         </math>
         <!-- I_Kv-->
         <variable name="i_Kv" public_interface="out" units="nanoA"/>
-        <variable name="i_Kv_init" public_interface="out" units="nanoA"/>
         <variable name="g_Kv" public_interface="in" units="microS"/>
         <variable name="n1_init" public_interface="out" units="dimensionless"/>
         <variable initial_value="n1_init" name="n1" public_interface="out" units="dimensionless"/>
@@ -1973,7 +1979,7 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_n1</ci>
                                     </apply>
                                 </apply>
@@ -2098,20 +2104,6 @@
                     <ci>n1</ci>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_Kv_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_Kv</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_K_init</ci>
-                    </apply>
-                    <ci>n1_init</ci>
-                </apply>
-            </apply>
         </math>
         <!-- iA
  IMPORTANT
@@ -2150,7 +2142,7 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_a</ci>
                                     </apply>
                                 </apply>
@@ -2175,7 +2167,7 @@
                                 <divide/>
                                 <apply>
                                     <plus/>
-                                    <ci>V_rest</ci>
+                                    <ci>V_rest_approx</ci>
                                     <ci>V_mid_ah</ci>
                                 </apply>
                                 <ci>V_den_ah</ci>
@@ -2422,7 +2414,7 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_m_BK</ci>
                                     </apply>
                                 </apply>
@@ -2454,7 +2446,7 @@
                                     <divide/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_h_BK</ci>
                                     </apply>
                                     <ci>V_den_h_BK</ci>
@@ -2767,7 +2759,6 @@
         </math>
         <!-- I_KCa_SK-->
         <variable name="i_KCa_SK" public_interface="out" units="nanoA"/>
-        <variable name="i_KCa_SK_init" public_interface="out" units="nanoA"/>
         <variable name="g_KCa_SK" public_interface="in" units="microS"/>
         <variable name="g_KCa_SK_mod" public_interface="in" units="dimensionless"/>
         <variable initial_value="m_SK_init" name="m_SK" public_interface="out" units="dimensionless"/>
@@ -2865,28 +2856,12 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_KCa_SK_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_KCa_SK</ci>
-                    <ci>g_KCa_SK_mod</ci>
-                    <ci>m_SK_init</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_K_init</ci>
-                    </apply>
-                </apply>
-            </apply>
         </math>
         <!-- I_M 
  TODO does this do some of the same things as ikv and iA, how do we differentiate these?
  TODO calculate cAMP concentration
  TODO figure out what units cAMP is supposed to have. is it between 0 and 1?-->
         <variable name="i_M" public_interface="out" units="nanoA"/>
-        <variable name="i_M_init" public_interface="out" units="nanoA"/>
         <variable name="g_M" public_interface="in" units="microS"/>
         <variable name="g_M_mod" public_interface="in" units="dimensionless"/>
         <variable name="w_init" public_interface="out" units="dimensionless"/>
@@ -2897,6 +2872,7 @@
         <variable name="delta_gM" public_interface="in" units="microS"/>
         <variable name="tau_w_num" public_interface="in" units="millis"/>
         <variable name="V_mid_w" public_interface="in" units="milliV"/>
+        <variable name="Delta_V_mid_w" public_interface="in" units="milliV"/>
         <variable name="V_den_w" public_interface="in" units="milliV"/>
         <!-- var theta_w: milliV {pub: in};
  var sigma_w: milliV {pub: in};-->
@@ -2923,8 +2899,9 @@
                                     <minus/>
                                     <apply>
                                         <plus/>
-                                        <ci>V_rest</ci>
+                                        <ci>V_rest_approx</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <ci>V_den_w</ci>
@@ -2952,6 +2929,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <ci>V_den_w</ci>
@@ -2982,6 +2960,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                     <cn cellml:units="milliV">15</cn>
                                 </apply>
@@ -2997,6 +2976,7 @@
                                         <plus/>
                                         <ci>V</ci>
                                         <ci>V_mid_w</ci>
+                                        <ci>Delta_V_mid_w</ci>
                                     </apply>
                                 </apply>
                                 <cn cellml:units="milliV">25</cn>
@@ -3048,86 +3028,17 @@
                     </apply>
                 </apply>
             </apply>
-            <!-- i_M = (g_M+cAMP*delta_gM)*w*(V-E_K);-->
-            <apply>
-                <eq/>
-                <ci>i_M_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_M</ci>
-                    <ci>w_init</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_K_init</ci>
-                    </apply>
-                </apply>
-            </apply>
         </math>
+        <!-- i_M = (g_M+cAMP*delta_gM)*w*(V-E_K);-->
         <variable name="i_leak_Na" public_interface="out" units="nanoA"/>
-        <variable name="i_leak_K_init" public_interface="out" units="nanoA"/>
-        <variable name="i_leak_Na_init" public_interface="out" units="nanoA"/>
         <variable name="i_leak_K" public_interface="out" units="nanoA"/>
-        <variable name="g_leak_Na" public_interface="out" units="microS"/>
+        <variable name="g_leak_Na" public_interface="in" units="microS"/>
         <variable name="g_leak_K" public_interface="in" units="microS"/>
         <!--Currently this changes as E_k and E_Na change...
  This assumes only currents at hyperpolarisation are leak currents, i_Nak, i_Na, and i_M, i_kCa_SK, and i_kv-->
+        <!-- g_leak_Na = max(-(i_leak_K_init+i_NaK_init+i_NaCa_init+i_M_init+i_KCa_SK_init+i_Kv_init)/(V_rest_approx-E_Na_init), 0{microS});-->
+        <!-- currently leave out i_Na in case rest causes spiking-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>g_leak_Na</ci>
-                <apply>
-                    <max/>
-                    <apply>
-                        <divide/>
-                        <apply>
-                            <minus/>
-                            <apply>
-                                <plus/>
-                                <ci>i_leak_K_init</ci>
-                                <ci>i_NaK_init</ci>
-                                <ci>i_NaCa_init</ci>
-                                <ci>i_M_init</ci>
-                                <ci>i_KCa_SK_init</ci>
-                                <ci>i_Kv_init</ci>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <minus/>
-                            <ci>V_rest</ci>
-                            <ci>E_Na_init</ci>
-                        </apply>
-                    </apply>
-                    <cn cellml:units="microS">0</cn>
-                </apply>
-            </apply>
-            <!-- currently leave out i_Na in case rest causes spiking-->
-            <apply>
-                <eq/>
-                <ci>i_leak_K_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_leak_K</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_K_init</ci>
-                    </apply>
-                </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>i_leak_Na_init</ci>
-                <apply>
-                    <times/>
-                    <ci>g_leak_Na</ci>
-                    <apply>
-                        <minus/>
-                        <ci>V_rest</ci>
-                        <ci>E_Na_init</ci>
-                    </apply>
-                </apply>
-            </apply>
             <apply>
                 <eq/>
                 <ci>i_leak_Na</ci>
@@ -3180,7 +3091,6 @@
         <!-- NaCa pump. This is from Paci2013 model for a cardiomyocyte. Need to check that it behaves realistically for a neuron.
  Why does it not have any time dynamics/delay??. Currently it happens way too quickly.-->
         <variable name="i_NaCa" public_interface="out" units="nanoA"/>
-        <variable name="i_NaCa_init" public_interface="out" units="nanoA"/>
         <variable name="k_NaCa" public_interface="in" units="nanoA"/>
         <variable name="alpha_NaCa" public_interface="in" units="dimensionless"/>
         <variable name="gamma_NaCa" public_interface="in" units="dimensionless"/>
@@ -3312,135 +3222,10 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_NaCa_init</ci>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <times/>
-                        <ci>k_NaCa</ci>
-                        <apply>
-                            <minus/>
-                            <apply>
-                                <times/>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <divide/>
-                                        <apply>
-                                            <times/>
-                                            <ci>gamma_NaCa</ci>
-                                            <ci>V_rest</ci>
-                                            <cn cellml:units="V_per_milliV" type="e-notation">1<sep/>-3</cn>
-                                            <ci>F</ci>
-                                        </apply>
-                                        <apply>
-                                            <times/>
-                                            <ci>R</ci>
-                                            <ci>T</ci>
-                                        </apply>
-                                    </apply>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_init</ci>
-                                    <cn cellml:units="dimensionless">3</cn>
-                                </apply>
-                                <ci>Cao</ci>
-                            </apply>
-                            <apply>
-                                <times/>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <divide/>
-                                        <apply>
-                                            <times/>
-                                            <apply>
-                                                <minus/>
-                                                <ci>gamma_NaCa</ci>
-                                                <cn cellml:units="dimensionless">1</cn>
-                                            </apply>
-                                            <ci>V_rest</ci>
-                                            <cn cellml:units="V_per_milliV" type="e-notation">1<sep/>-3</cn>
-                                            <ci>F</ci>
-                                        </apply>
-                                        <apply>
-                                            <times/>
-                                            <ci>R</ci>
-                                            <ci>T</ci>
-                                        </apply>
-                                    </apply>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nao</ci>
-                                    <cn cellml:units="dimensionless">3</cn>
-                                </apply>
-                                <ci>Cai_init</ci>
-                                <ci>alpha_NaCa</ci>
-                            </apply>
-                        </apply>
-                    </apply>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <plus/>
-                            <apply>
-                                <power/>
-                                <ci>KmNai</ci>
-                                <cn cellml:units="dimensionless">3</cn>
-                            </apply>
-                            <apply>
-                                <power/>
-                                <ci>Nao</ci>
-                                <cn cellml:units="dimensionless">3</cn>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <ci>KmCa</ci>
-                            <ci>Cao</ci>
-                        </apply>
-                        <apply>
-                            <plus/>
-                            <cn cellml:units="dimensionless">1</cn>
-                            <apply>
-                                <times/>
-                                <ci>Ksat</ci>
-                                <apply>
-                                    <exp/>
-                                    <apply>
-                                        <divide/>
-                                        <apply>
-                                            <times/>
-                                            <apply>
-                                                <minus/>
-                                                <ci>gamma_NaCa</ci>
-                                                <cn cellml:units="dimensionless">1</cn>
-                                            </apply>
-                                            <ci>V_rest</ci>
-                                            <cn cellml:units="V_per_milliV" type="e-notation">1<sep/>-3</cn>
-                                            <ci>F</ci>
-                                        </apply>
-                                        <apply>
-                                            <times/>
-                                            <ci>R</ci>
-                                            <ci>T</ci>
-                                        </apply>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                    </apply>
-                </apply>
-            </apply>
         </math>
         <!-- NaK pump from lindblad1996Model. 
  Note: This is for atrial cardiomyocytes.-->
         <variable name="i_NaK" public_interface="out" units="nanoA"/>
-        <variable name="i_NaK_init" public_interface="out" units="nanoA"/>
         <!-- var i_NaK_part_init: nanoA {pub: out};-->
         <variable name="k_NaK" public_interface="in" units="nanoA"/>
         <variable name="Nai_mid_NaK" public_interface="in" units="millimolar"/>
@@ -3504,65 +3289,8 @@
                     </apply>
                 </apply>
             </apply>
-            <apply>
-                <eq/>
-                <ci>i_NaK_init</ci>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <times/>
-                        <apply>
-                            <divide/>
-                            <apply>
-                                <times/>
-                                <apply>
-                                    <divide/>
-                                    <apply>
-                                        <times/>
-                                        <ci>k_NaK</ci>
-                                        <apply>
-                                            <plus/>
-                                            <ci>V_rest</ci>
-                                            <cn cellml:units="milliV">150</cn>
-                                        </apply>
-                                    </apply>
-                                    <apply>
-                                        <plus/>
-                                        <ci>V_rest</ci>
-                                        <cn cellml:units="milliV">200</cn>
-                                    </apply>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_init</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                            </apply>
-                            <apply>
-                                <plus/>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_init</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                                <apply>
-                                    <power/>
-                                    <ci>Nai_mid_NaK</ci>
-                                    <ci>Nai_power_NaK</ci>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <ci>Ko</ci>
-                    </apply>
-                    <apply>
-                        <plus/>
-                        <ci>Ko</ci>
-                        <ci>Ko_mid_NaK</ci>
-                    </apply>
-                </apply>
-            </apply>
         </math>
-        <!-- i_NaK_part_init = (V_rest+150{milliV})/(V_rest+200{milliV})*pow(Nai_init, Nai_power_NaK)/(pow(Nai_init, Nai_power_NaK)+pow(Nai_mid_NaK, Nai_power_NaK))*Ko/(Ko+Ko_mid_NaK);-->
+        <!-- i_NaK_part_init = (V_rest_approx+150{milliV})/(V_rest_approx+200{milliV})*pow(Nai_init, Nai_power_NaK)/(pow(Nai_init, Nai_power_NaK)+pow(Nai_mid_NaK, Nai_power_NaK))*Ko/(Ko+Ko_mid_NaK);-->
         <!-- Calculate Nak to ensure that the steady state Na is equal to Na_init-->
         <!-- k_NaK = -(i_Na_init/3{dimensionless}+i_leak_Na_init/3{dimensionless}+i_NaCa_init)/i_NaK_part_init;-->
         <!-- IP3 channel-->
@@ -5791,6 +5519,9 @@ Vol_ER = Vol*c_ER;-->
  This needs unit change from millis.-->
         <!-- ode(NE, t) = 1e3{dimensionless}*n_cleft*E*a_cleft/N_avo/V_cleft-NE*0.001{per_s};
  TODO improve this equation-->
+        <variable name="Cai_NE_base" public_interface="in" units="millimolar"/>
+        <variable name="k_NE" public_interface="in" units="per_s"/>
+        <variable name="k_NET" public_interface="in" units="per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -5805,12 +5536,16 @@ Vol_ER = Vol*c_ER;-->
                     <minus/>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_s">100</cn>
-                        <ci>Cai</ci>
+                        <ci>k_NE</ci>
+                        <apply>
+                            <minus/>
+                            <ci>Cai</ci>
+                            <ci>Cai_NE_base</ci>
+                        </apply>
                     </apply>
                     <apply>
                         <times/>
-                        <cn cellml:units="per_s">100</cn>
+                        <ci>k_NET</ci>
                         <apply>
                             <minus/>
                             <ci>NE</ci>
@@ -5828,8 +5563,8 @@ Vol_ER = Vol*c_ER;-->
         <variable name="R" public_interface="in" units="megaOhm"/>
         <variable name="V_in" public_interface="in" units="milliV"/>
         <variable name="I" public_interface="out" units="nanoA"/>
-        <variable name="V_rest" public_interface="in" units="milliV"/>
-        <variable initial_value="V_rest" name="V" public_interface="out" units="milliV"/>
+        <variable name="V_rest_approx" public_interface="in" units="milliV"/>
+        <variable initial_value="V_rest_approx" name="V" public_interface="out" units="milliV"/>
         <variable name="channel_ratio" public_interface="in" units="dimensionless"/>
         <variable name="I_channels" public_interface="out" units="nanoA"/>
         <!-- simple approximation of the extra input current that comes from ion channels in the axon membrane.
