@@ -293,7 +293,7 @@ def peak_times(t, V, series_output=False):
     return peaks
 
 @series_to_constant
-def mean_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
+def mean_in_range(x, start_frac=0.0,end_frac=1.0, series_output=False):
     if series_output:
         return x
     else:
@@ -303,7 +303,7 @@ def mean_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
         return np.mean(range_values)
 
 @series_to_constant
-def max_in_range(x, series_output=False):
+def max_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
     if series_output:
         return x
     else:
@@ -314,7 +314,7 @@ def max_in_range(x, series_output=False):
 
 
 @series_to_constant
-def min_in_range(x, series_output=False):
+def min_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
     if series_output:
         return x
     else:
