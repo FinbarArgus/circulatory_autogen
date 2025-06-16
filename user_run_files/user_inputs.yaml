@@ -1,11 +1,45 @@
 #_______ general inputs ________
 DEBUG: false # TODO change back
-user_inputs_path_override: false # /home/farg967/Documents/git_projects/CA_user/lymphatics/lymphatics_user_inputs.yaml
-file_prefix: 3compartment 
+
+# user_inputs_path_override: false
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250318-day01/simple_physiological_nonlinear_visco/simple_physiological_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250320-day03/smc_with_piezo/smc_with_piezo_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250321-day04/coupled_CVS_smc/coupled_CVS_smc_user_inputs.yaml
+user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_user_inputs.yaml
+
+
+# file_prefix: 3compartment
+# file_prefix: aortic_bif_0d
+file_prefix: aortic_bif_0d_super_random_nonlinear
+# file_prefix: generic_junction_test_openloop
+# file_prefix: generic_junction_test_closedloop
+
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
-input_param_file: 3compartment_parameters.csv
+# input_param_file: 3compartment_parameters.csv
+# input_param_file: aortic_bif_0d_parameters.csv
+input_param_file: aortic_bif_0d_super_random_nonlinear_parameters.csv
+# input_param_file: generic_junction_test_openloop_parameters.csv
+# input_param_file: generic_junction_test_closedloop_parameters.csv
+
+# juncsModel: original
+juncsModel: general
+
+heartModel: heart
+inflowType: nn_adan_2
+# inflowType: nn_aorticbif       
+termType: pp
+
+# vessTubeLaw: linear
+# vessTubeLaw: nonlinear_constR
+# vessTubeLaw: nonlinear
+vessTubeLaw: nonlinear_visco
+
+# vessPropModel: material_prop_const
+# vessPropModel: material_prop_fromPWV
+vessPropModel: material_prop_visco_const
+# vessPropModel: material_prop_visco_fromPWV
 
 # input_param_file: vital_stage1adan_merged_wSinks_OL_simStep_C0_parameters.csv
 # input_param_file: vital_stage1adan_merged_wSinks_OL_simStepSS_C0_parameters.csv
