@@ -299,7 +299,7 @@ def mean_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
     else:
         start_idx = int(start_frac*(len(x)-1))
         end_idx = int(end_frac*(len(x)-1))
-        range_values = x[start_frac:end_frac]
+        range_values = x[start_idx:end_idx]
         return np.mean(range_values)
 
 @series_to_constant
@@ -309,7 +309,7 @@ def max_in_range(x, series_output=False):
     else:
         start_idx = int(start_frac*(len(x)-1))
         end_idx = int(end_frac*(len(x)-1))
-        range_values = x[start_frac:end_frac]
+        range_values = x[start_idx:end_idx]
         return np.max(range_values)
 
 
@@ -320,7 +320,7 @@ def min_in_range(x, series_output=False):
     else:
         start_idx = int(start_frac*(len(x)-1))
         end_idx = int(end_frac*(len(x)-1))
-        range_values = x[start_frac:end_frac]
+        range_values = x[start_idx:end_idx]
         return np.min(range_values)
 
 @series_to_constant
