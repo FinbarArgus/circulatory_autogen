@@ -38,7 +38,7 @@ def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_di
             if os.path.exists(inp_data_dict["user_inputs_path_override"]):
                 with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
                     inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
-        else:
+            else:
                 print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
                 print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
                         "you want to use the default user_inputs.yaml location")
