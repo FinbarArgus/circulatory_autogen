@@ -309,10 +309,10 @@
           ["tau_theta_us", "second", "access", "constant"],
           ["tau_theta_compliance", "second", "access", "constant"],
           ["f_s", "per_s", "access", "boundary_condition"],
-          ["Delta_theta_us", "m3", "access", "variable"],
-          ["sigma_theta_us", "m3", "access", "variable"],
-          ["Delta_theta_compliance", "m6_per_J", "access", "variable"],
-          ["sigma_theta_compliance", "m6_per_J", "access", "variable"]
+          ["Delta_theta_us", "dimensionless", "access", "variable"],
+          ["sigma_theta_us", "per_s", "access", "variable"],
+          ["Delta_theta_compliance", "dimensionless", "access", "variable"],
+          ["sigma_theta_compliance", "per_s", "access", "variable"]
         ]
     },
     {

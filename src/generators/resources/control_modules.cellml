@@ -995,10 +995,10 @@
         <variable name="tau_theta_compliance" public_interface="in" units="second"/>
         <!-- Variables-->
         <variable name="f_s" public_interface="in" units="per_s"/>
-        <variable name="Delta_theta_us" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="m3"/>
-        <variable name="Delta_theta_compliance" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="m6_per_J"/>
+        <variable name="Delta_theta_us" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="per_s"/>
+        <variable name="Delta_theta_compliance" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="per_s"/>
         <!-- Equations-->
         <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.
  changed the below from ln to hill function so we can limit the amount it can change compliance and us volume. Now G_theta_us is the maximum amount of change

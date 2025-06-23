@@ -1865,8 +1865,8 @@
         <variable name="u_out" public_interface="in" units="J_per_m3"/>
         <variable name="q_us_0" public_interface="in" units="m3"/>
         <variable name="q_us_wCont" public_interface="out" units="m3"/>
-        <variable name="Delta_q_us" public_interface="in" units="m3"/>
-        <variable name="Delta_C" public_interface="in" units="m6_per_J"/>
+        <variable name="Delta_q_us" public_interface="in" units="dimensionless"/>
+        <variable name="Delta_C" public_interface="in" units="dimensionless"/>
         <variable name="C_wCont" public_interface="out" units="m6_per_J"/>
         <!-- TODO double check that this applies to veins-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
