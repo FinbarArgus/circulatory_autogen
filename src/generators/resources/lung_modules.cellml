@@ -445,12 +445,19 @@
                 <eq/>
                 <ci>P_mus_max_wCont</ci>
                 <apply>
-                    <minus/>
+                    <plus/>
                     <ci>P_plEE</ci>
                     <apply>
-                        <times/>
-                        <ci>flag_P_mus_control</ci>
-                        <ci>Delta_P_mus</ci>
+                        <max/>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <ci>flag_P_mus_control</ci>
+                            </apply>
+                            <ci>Delta_P_mus</ci>
+                        </apply>
+                        <cn cellml:units="dimensionless">0</cn>
                     </apply>
                 </apply>
             </apply>
