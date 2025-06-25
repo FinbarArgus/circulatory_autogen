@@ -2746,7 +2746,7 @@ class OpencorParamID():
                         # simulation set cost to large,
                         print('simulation failed with params...')
                         print(param_vals)
-                        print('failed subexperiment idx = {}'.format(subexp_count))
+                        print('failed on experiment idx = {} subexperiment idx = {}'.format(exp_idx, this_sub_idx))
                         return np.inf, [], []
 
 
