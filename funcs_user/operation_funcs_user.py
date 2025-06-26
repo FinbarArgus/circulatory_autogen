@@ -268,9 +268,9 @@ def E_A_ratio(t, x, T, series_output=False):
     elif len(peak_idxs) < 2:
         # there is only one peak. E and A ontop of eachother. return large cost.
         return 10
-    if np.isscalar(T)
+    if np.isscalar(T):
         pass
-    else
+    else:
         T = np.mean(T) # take mean if this is T changing in time (T_wCont)
 
     if (t[peak_idxs[1]] - t[peak_idxs[0]] > 0.7* T) :
