@@ -278,7 +278,7 @@ def E_A_ratio(t, x, T, series_output=False):
         # return large value
         return 10
 
-    # calculate with the first two peaks. This assumes that the E peak comes first
+    # calculate with the first two peaks. This assumes that the E peak comes first # TODO make sure the E_peak comes first by passing in the
     E_A_ratio = x[peak_idxs[0]]/x[peak_idxs[1]]
 
     return E_A_ratio

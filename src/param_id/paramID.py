@@ -154,7 +154,7 @@ class CVS0DParamID():
                                                self.prediction_info, dt=self.dt,
                                                solver_info=self.solver_info, ga_options=ga_options,
                                                DEBUG=self.DEBUG)
-            self.n_steps = self.param_id.n_steps
+                self.n_steps = self.param_id.n_steps
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
         
