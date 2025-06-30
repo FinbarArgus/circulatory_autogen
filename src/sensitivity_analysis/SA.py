@@ -100,6 +100,15 @@ class Sensitivity_analysis():
         
         return samples
     
+    def run_model_and_get_results(self, param_vals):
+        self.sim_helper.set_param_vals(self.SA_cfg["param_names"], param_vals)
+        self.sim_helper.reset_states()
+        self.sim_helper.run()
+        
+        y = self.sim_helper.get_results(self.model_output_names)
+        t = self.sim_helper.tSim - self.pre_time
+        return y, t
+
     def generate_outputs(self, samples, feature_extractor, *f_args, **f_kwargs):
         
         outputs = []
@@ -189,6 +198,14 @@ class Sensitivity_analysis():
             filename = f"{output_name}_n{self.num_samples}_second_order_idx.png"
             plt.savefig(os.path.join(self.save_path, filename))
             plt.clf()
+
+    def run(self, feature_extractor, *f_args, **f_kwargs):
+        samples = self.generate_samples()
+        outputs = self.generate_outputs(samples, feature_extractor, f_args, **f_kwargs)
+        S1_all, ST_all, S2_all = self.sobol_index(outputs)
+        
+        return S1_all, ST_all, S2_all
+    
 
 
 
