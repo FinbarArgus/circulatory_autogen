@@ -138,7 +138,57 @@ class Sensitivity_analysis():
 
         return S1_all, ST_all, S2_all
 
+    def plot_sobol_first_order_idx(self, S1_all, ST_all):
+        """
+        Plot first-order and total-order Sobol indices for multiple outputs.
 
+        Parameters:
+            S1_all (np.ndarray): First-order Sobol indices, shape (n_outputs, n_params)
+            ST_all (np.ndarray): Total-order Sobol indices, shape (n_outputs, n_params)
+        """
+        n_outputs = S1_all.shape[0]
+        x = np.arange(self.num_params)
+
+        for i in range(n_outputs):
+            S1 = S1_all[i]
+            ST = ST_all[i]
+            output_name = self.output_names[i] if hasattr(self, "output_names") else f"Output_{i}"
+
+            plt.figure(figsize=(8, 5))
+            plt.bar(x - 0.2, S1, width=0.4, label='First-order', color='blue', alpha=0.7)
+            plt.bar(x + 0.2, ST, width=0.4, label='Total-order', color='red', alpha=0.7)
+
+            plt.xticks(x, self.SA_cfg["param_names"], rotation=45)
+            plt.ylabel('Sensitivity Index')
+            plt.title(f'Sobol Sensitivity - {output_name}')
+            plt.legend()
+            plt.tight_layout()
+
+            file_name = f"{output_name}_First_order_idx.png"
+            plt.savefig(os.path.join(self.save_path, file_name))
+            plt.clf()
+
+    def plot_sobol_S2_idx(self, S2_all):
+        """
+        Plot second-order Sobol interaction indices for multiple outputs.
+
+        Parameters:
+            S2_all (np.ndarray): Second-order indices, shape (n_outputs, n_params, n_params)
+        """
+        n_outputs = S2_all.shape[0]
+
+        for i in range(n_outputs):
+            S2 = S2_all[i]
+            output_name = self.output_names[i] if hasattr(self, "output_names") else f"Output_{i}"
+
+            plt.figure(figsize=(6, 5))
+            sns.heatmap(S2, annot=True, fmt=".2f", xticklabels=self.SA_cfg["param_names"], yticklabels=self.SA_cfg["param_names"], cmap="coolwarm")
+            plt.title(f"Second-order Sobol Indices - {output_name}")
+            plt.tight_layout()
+
+            filename = f"{output_name}_n{self.num_samples}_second_order_idx.png"
+            plt.savefig(os.path.join(self.save_path, filename))
+            plt.clf()
 
 
 
