@@ -75,7 +75,70 @@ class Sensitivity_analysis():
                                 solver_info=self.solver_info, pre_time=self.pre_time)
 
     def set_output_dir(self, path):
-
+        
         self.output_dir = path
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
+
+    def generate_samples(self):
+
+        problem = {
+            'num_vars': self.num_params,
+            'names': self.SA_cfg["param_names"],
+            'bounds': list(zip(self.SA_cfg["param_mins"], self.SA_cfg["param_maxs"]))
+        }
+        self.problem = problem
+
+        self.num_samples = self.SA_cfg["num_samples"]
+
+        if self.SA_cfg["sample_type"] == "saltelli":
+            samples = saltelli.sample(problem, self.num_samples, calc_second_order=True)  # Enable second-order interactions
+        elif self.SA_cfg["sample_type"] == "sobol":
+            samples = sobol.sample(problem, self.num_samples, calc_second_order=True)  # Enable second-order interactions
+        else:
+            raise ValueError(f"Unsupported sample type: {self.SA_cfg['sample_type']}")
+        
+        return samples
+    
+    def generate_outputs(self, samples, feature_extractor, *f_args, **f_kwargs):
+        
+        outputs = []
+        for i in range(len(samples)):
+
+            current_param_val = samples[i, :]
+            y, t = self.run_model_and_get_results(current_param_val)
+            
+            # Extract features using the provided feature_extractor function with additional arguments
+            features = feature_extractor(t, np.squeeze(y), *f_args, **f_kwargs)
+            outputs.append(features)
+
+            if self.verbose:
+                print(f"Iteration {i+1}/{len(samples)}: Features extracted.")
+
+        return outputs
+    
+    def sobol_index(self, outputs):
+
+        outputs = np.array(outputs)
+    
+        if outputs.ndim == 1:
+            outputs = outputs[:, np.newaxis]  # convert to (n_samples, 1)
+
+        n_outputs = outputs.shape[1]
+        S1_all = np.zeros((n_outputs, self.num_params))
+        ST_all = np.zeros((n_outputs, self.num_params))
+        S2_all = np.zeros((n_outputs, self.num_params, self.num_params))
+
+        for i in range(n_outputs):
+            print(outputs[:,i])
+            Si = sobol.analyze(self.problem, outputs[:,i], print_to_console=self.verbose)
+            S1_all[i, :] = Si['S1']
+            ST_all[i, :] = Si['ST']
+            S2_all[i, :] = np.array(Si['S2'])
+
+        return S1_all, ST_all, S2_all
+
+
+
+
+
