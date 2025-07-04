@@ -162,6 +162,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -239,7 +243,8 @@
           ["A_eff_trv", "m2", "access", "variable"],
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
-          ["A_eff_aov", "m2", "access", "variable"]
+          ["A_eff_aov", "m2", "access", "variable"],
+          ["q", "m3", "access", "variable"]
         ]
     },
     {

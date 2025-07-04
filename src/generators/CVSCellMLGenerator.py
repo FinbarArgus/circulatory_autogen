@@ -172,17 +172,35 @@ class CVS0DCellMLGenerator(object):
                 self.__write_section_break(wf, 'vessel mappings')
                 self.__write_module_mappings(wf, self.model.vessels_df)
 
+                vol_units = 'm3'
+                flow_units = 'm3_per_s'
+                for param, unit in zip(self.model.parameters_array["variable_name"], self.model.parameters_array["units"]):
+                    if param.startswith('q_'):
+                        if unit=='litre':
+                            vol_units = 'litre'
+                            flow_units = 'L_per_s'
+                            break
+                        #XXX ADD MORE CASES IF NEEDED
+                # print("Volume units: ",vol_units)
+                # print("Flow units: ",flow_units)
+
                 # create computation environment to sum flows from terminals
                 # to have a total flow input into each first venous component.
                 print('writing environment to sum venous input flows')
                 self.__write_section_break(wf, 'terminal venous connection')
-                self.__write_terminal_venous_connection_comp(wf, self.model.vessels_df)
+                self.__write_terminal_venous_connection_comp(wf, self.model.vessels_df, flow_units)
 
                 # create the computation environment to sum flows from junctions 
                 # to have the total flow input into the flow-port of each junction connection.
                 print('writing environment to sum generic junctions input flows')
                 self.__write_section_break(wf, 'generic junction connection')
-                self.__write_generic_junction_connection_comp(wf, self.model.vessels_df)
+                self.__write_generic_junction_connection_comp(wf, self.model.vessels_df, flow_units)
+
+                # create computation environment to compute the total blood volume in the whole system 
+                # or in specific portions of it.
+                print('writing environment to sum total blood volume')
+                self.__write_section_break(wf, 'sum total blood volume')
+                self.__write_blood_volume_sum_comp(wf, self.model.vessels_df, vol_units)
 
                 # define variables so they can be accessed
                 print('writing variable access')
@@ -654,7 +672,8 @@ class CVS0DCellMLGenerator(object):
                     elif (any(
                             any(module_df.loc[module_df["name"] == temp_inp_vess, "vessel_type"].iloc[0].startswith(("Nout_", "MinNout_"))
                                 for temp_inp_vess in module_df.loc[module_df["name"] == temp_out_vess, "inp_vessels"].values[0])
-                                    for temp_out_vess in module_row["out_vessels"])):
+                                    for temp_out_vess in module_row["out_vessels"]
+                                        if not module_df.loc[module_df["name"] == temp_out_vess, "BC_type"].iloc[0].startswith("nn"))):
                         # the generic junction connections are done through the generic_junction_connection
                         pass
 
@@ -763,6 +782,7 @@ class CVS0DCellMLGenerator(object):
                             self.BC_set[main_module][variables_1[II]] = True
                         if variables_2[II] in self.BC_set[out_module].keys():
                             self.BC_set[out_module][variables_2[II]] = True
+                
                 else:
                     for this_type_port_idx in range(port_types[port_type_idx]["port_type_count"]):
                         if not port_types[port_type_idx]["connected"][this_type_port_idx]:
@@ -792,6 +812,11 @@ class CVS0DCellMLGenerator(object):
                                 # TODO after this if loop I set that this connection is done. It is actually done later on
                                 # when doing the venous_terminal_connection. Fine for now.
                                 pass
+
+                            elif out_module_row["vessel_type"].startswith('sum_blood_vol'):
+                                # the blood volume sum connections are done through the blood_volume_sum
+                                pass
+
                             else:
                                 main_module_module = main_module + '_module'
                                 out_module_module = out_module + '_module'
@@ -836,7 +861,7 @@ class CVS0DCellMLGenerator(object):
 
         return entrance_general_ports_connected
 
-    def __write_terminal_venous_connection_comp(self, wf, vessel_df):
+    def __write_terminal_venous_connection_comp(self, wf, vessel_df, flow_units='m3_per_s'):
         first_venous_names = []  # stores name of venous compartments that take flow from terminals
         tissue_GE_names = []  # stores name of venous compartments that take flow from terminals
         for vessel_tup in vessel_df.itertuples():
@@ -937,12 +962,12 @@ class CVS0DCellMLGenerator(object):
 
         for terminal_name in terminal_names:
             variables.append(f'v_{terminal_name}')
-            units.append('m3_per_s')
+            units.append(flow_units) # ('m3_per_s')
             in_outs.append('in')
 
         for idx, venous_name in enumerate(first_venous_names):
             variables.append(f'v_{venous_name}')
-            units.append('m3_per_s')
+            units.append(flow_units) # ('m3_per_s')
             # TODO check this for full CVS case
             # in_outs.append('priv_in_pub_out')
             in_outs.append('out')
@@ -964,7 +989,7 @@ class CVS0DCellMLGenerator(object):
             in_outs.append('out')
 
             variables.append(f'v_venous_total')
-            units.append('m3_per_s')
+            units.append(flow_units) # ('m3_per_s')
             in_outs.append('out')
 
         self.__write_variable_declarations(wf, variables, units, in_outs)
@@ -997,7 +1022,7 @@ class CVS0DCellMLGenerator(object):
         wf.write('</component>\n')
 
 
-    def __write_generic_junction_connection_comp(self, wf, vessel_df):
+    def __write_generic_junction_connection_comp(self, wf, vessel_df, flow_units='m3_per_s'):
         # this function creates the computation environment to sum flows from junctions 
         # to have the total flow input into the flow-port of each junction connection
         # as done for terminal venous connections
@@ -1013,7 +1038,8 @@ class CVS0DCellMLGenerator(object):
                 # if not cellml then don't do anything for this vessel/module
                 continue
 
-            if vessel_tup.vessel_type.endswith('Min_junction'):
+            # if vessel_tup.vessel_type.endswith('Min_junction'):
+            if 'Min_junction' in vessel_tup.vessel_type:
                 # print("Min_junction vessel found")
                 vess_name = vessel_tup.name
                 if vessel_tup.BC_type.startswith('vv'):
@@ -1033,7 +1059,7 @@ class CVS0DCellMLGenerator(object):
                 for in_vess_name in vessel_tup.inp_vessels:
                     # This finds the vessels connected to the same junction
                     in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                    if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                    if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                         in_vessel_names.append(in_vess_name)
                         in_vessel_BCs.append(in_vess_BC)
                         for vessel_tup2 in vessel_df.itertuples():
@@ -1053,7 +1079,7 @@ class CVS0DCellMLGenerator(object):
                         for in_vess_name in vessel_tup2.inp_vessels:
                             if in_vess_name!=vess_name and in_vess_name not in in_vessel_names:
                                 in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                                if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                     in_vessel_names.append(in_vess_name)
                                     in_vessel_BCs.append(in_vess_BC)
                                     in_vess_sign = -1.
@@ -1063,7 +1089,7 @@ class CVS0DCellMLGenerator(object):
                         for in_vess_name in vessel_tup2.out_vessels:
                             if in_vess_name!=vess_name and in_vess_name not in in_vessel_names:
                                 in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                                if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                     in_vessel_names.append(in_vess_name)
                                     in_vessel_BCs.append(in_vess_BC)
                                     in_vess_sign = -1.
@@ -1117,9 +1143,11 @@ class CVS0DCellMLGenerator(object):
                             temp_in_vess_name = in_vessel_names[k]
                             vess_names_per_junc[-1][k] = 'd_'+temp_in_vess_name
                     
-            elif vessel_tup.vessel_type.endswith('Nout_junction'):
+            # elif vessel_tup.vessel_type.endswith('Nout_junction')
+            elif 'Nout_junction' in vessel_tup.vessel_type:
                 
-                if vessel_tup.vessel_type.endswith('MinNout_junction'):
+                # if vessel_tup.vessel_type.endswith('MinNout_junction'):
+                if 'MinNout_junction' in vessel_tup.vessel_type:
                     # print("MinNout_junction vessel found")
                     vess_name = vessel_tup.name
                     if vessel_tup.BC_type.startswith('vv'):
@@ -1141,7 +1169,7 @@ class CVS0DCellMLGenerator(object):
                     for in_vess_name in vessel_tup.inp_vessels:
                         # This finds the vessels connected to the same junction
                         in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                        if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                        if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                             in_vessel_names.append(in_vess_name)
                             in_vessel_BCs.append(in_vess_BC)
                             for vessel_tup2 in vessel_df.itertuples():
@@ -1161,7 +1189,7 @@ class CVS0DCellMLGenerator(object):
                             for in_vess_name in vessel_tup2.inp_vessels:
                                 if in_vess_name!=vess_name and in_vess_name not in in_vessel_names:
                                     in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                                    if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         in_vessel_names.append(in_vess_name)
                                         in_vessel_BCs.append(in_vess_BC)
                                         in_vess_sign = -1.
@@ -1171,7 +1199,7 @@ class CVS0DCellMLGenerator(object):
                             for in_vess_name in vessel_tup2.out_vessels:
                                 if in_vess_name!=vess_name and in_vess_name not in in_vessel_names:
                                     in_vess_BC = vessel_df.loc[vessel_df["name"] == in_vess_name].squeeze()["BC_type"][:2]
-                                    if in_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if in_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         in_vessel_names.append(in_vess_name)
                                         in_vessel_BCs.append(in_vess_BC)
                                         in_vess_sign = -1.
@@ -1228,7 +1256,7 @@ class CVS0DCellMLGenerator(object):
                     for out_vess_name in vessel_tup.out_vessels:
                         # This finds the vessels connected to the same junction
                         out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                        if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                        if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                             out_vessel_names.append(out_vess_name)
                             out_vessel_BCs.append(out_vess_BC)
                             for vessel_tup2 in vessel_df.itertuples():
@@ -1248,7 +1276,7 @@ class CVS0DCellMLGenerator(object):
                             for out_vess_name in vessel_tup2.inp_vessels:
                                 if out_vess_name!=vess_name and out_vess_name not in out_vessel_names:
                                     out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                                    if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         out_vessel_names.append(out_vess_name)
                                         out_vessel_BCs.append(out_vess_BC)
                                         out_vess_sign = 1.
@@ -1258,7 +1286,7 @@ class CVS0DCellMLGenerator(object):
                             for out_vess_name in vessel_tup2.out_vessels:
                                 if out_vess_name!=vess_name and out_vess_name not in out_vessel_names:
                                     out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                                    if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         out_vessel_names.append(out_vess_name)
                                         out_vessel_BCs.append(out_vess_BC)
                                         out_vess_sign = 1.
@@ -1332,7 +1360,7 @@ class CVS0DCellMLGenerator(object):
                     for out_vess_name in vessel_tup.out_vessels:
                         # This finds the vessels connected to the same junction
                         out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                        if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                        if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                             out_vessel_names.append(out_vess_name)
                             out_vessel_BCs.append(out_vess_BC)
                             for vessel_tup2 in vessel_df.itertuples():
@@ -1352,7 +1380,7 @@ class CVS0DCellMLGenerator(object):
                             for out_vess_name in vessel_tup2.inp_vessels:
                                 if out_vess_name!=vess_name and out_vess_name not in out_vessel_names:
                                     out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                                    if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         out_vessel_names.append(out_vess_name)
                                         out_vessel_BCs.append(out_vess_BC)
                                         out_vess_sign = 1.
@@ -1362,7 +1390,7 @@ class CVS0DCellMLGenerator(object):
                             for out_vess_name in vessel_tup2.out_vessels:
                                 if out_vess_name!=vess_name and out_vess_name not in out_vessel_names:
                                     out_vess_BC = vessel_df.loc[vessel_df["name"] == out_vess_name].squeeze()["BC_type"][:2]
-                                    if out_vess_BC!='nn': # otherwise K_tube modules will also be included
+                                    if out_vess_BC!='nn': # otherwise K_tube modules or other non-vessel modules will also be included
                                         out_vessel_names.append(out_vess_name)
                                         out_vessel_BCs.append(out_vess_BC)
                                         out_vess_sign = 1.
@@ -1419,7 +1447,8 @@ class CVS0DCellMLGenerator(object):
                                 temp_out_vess_name = out_vessel_names[k]
                                 vess_names_per_junc[-1][k] = 'd_'+temp_out_vess_name
 
-            if vessel_tup.vessel_type.endswith('Min_junction'):
+            # if vessel_tup.vessel_type.endswith('Min_junction'):
+            if 'Min_junction' in vessel_tup.vessel_type:
                 # print("Min_junction vessel found AGAIN")
                 vess_name = vessel_tup.name
                 flow_vess_names.append(vess_name)
@@ -1429,9 +1458,11 @@ class CVS0DCellMLGenerator(object):
                 v_2 = 'v_in_sum'
                 self.__write_mapping(wf, 'generic_junction_connection', vess_name+'_module', [v_1], [v_2])
             
-            elif vessel_tup.vessel_type.endswith('Nout_junction'):
+            # elif vessel_tup.vessel_type.endswith('Nout_junction'):
+            elif 'Nout_junction' in vessel_tup.vessel_type:
                 
-                if vessel_tup.vessel_type.endswith('MinNout_junction'):
+                # if vessel_tup.vessel_type.endswith('MinNout_junction'):
+                if 'MinNout_junction' in vessel_tup.vessel_type:
                     # print("MinNout_junction vessel found AGAIN")
                     vess_name = vessel_tup.name
                     flow_vess_names.append(vess_name)
@@ -1473,25 +1504,25 @@ class CVS0DCellMLGenerator(object):
         in_outs = []
 
         nJ = len(flow_vess_names)
-        #XXX HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         for idxV, flow_vess_name in enumerate(flow_vess_names):
             if flow_vess_types[idxV]=='Min':
                 for press_vess_name in vess_names_per_junc[idxV]:
                     variables.append(f'v_{press_vess_name}_Min')
-                    units.append('m3_per_s')
+                    units.append(flow_units) # ('m3_per_s')
                     in_outs.append('in')
 
                 variables.append(f'v_{flow_vess_name}_sum_Min')
-                units.append('m3_per_s')
+                units.append(flow_units) # ('m3_per_s')
                 in_outs.append('out')
             elif flow_vess_types[idxV]=='Nout':
                 for press_vess_name in vess_names_per_junc[idxV]:
                     variables.append(f'v_{press_vess_name}_Nout')
-                    units.append('m3_per_s')
+                    units.append(flow_units) # ('m3_per_s')
                     in_outs.append('in')
 
                 variables.append(f'v_{flow_vess_name}_sum_Nout')
-                units.append('m3_per_s')
+                units.append(flow_units) # ('m3_per_s')
                 in_outs.append('out')
             elif flow_vess_types[idxV]=='MinNout':
                 if idxV==0:
@@ -1500,20 +1531,20 @@ class CVS0DCellMLGenerator(object):
                     if flow_vess_name == flow_vess_names[idxV-1]:
                         for press_vess_name in vess_names_per_junc[idxV]:
                             variables.append(f'v_{press_vess_name}_Nout')
-                            units.append('m3_per_s')
+                            units.append(flow_units) # ('m3_per_s')
                             in_outs.append('in')
                         
                         variables.append(f'v_{flow_vess_name}_sum_Nout')
-                        units.append('m3_per_s')
+                        units.append(flow_units) # ('m3_per_s')
                         in_outs.append('out')
 
                         for press_vess_name in vess_names_per_junc[idxV-1]:
                             variables.append(f'v_{press_vess_name}_Min')
-                            units.append('m3_per_s')
+                            units.append(flow_units) # ('m3_per_s')
                             in_outs.append('in')
 
                         variables.append(f'v_{flow_vess_name}_sum_Min')
-                        units.append('m3_per_s')
+                        units.append(flow_units) # ('m3_per_s')
                         in_outs.append('out')
                     else:
                         pass
@@ -1596,6 +1627,71 @@ class CVS0DCellMLGenerator(object):
         wf.write('</component>\n')
 
         print("writing environment to sum generic junctions input flows :: SUCCESSFUL")
+
+
+    def __write_blood_volume_sum_comp(self, wf, vessel_df, vol_units='m3'):
+        
+        sum_vess_names = []
+        vess_to_sum_names = []
+        
+        for vessel_tup in vessel_df.itertuples():
+            if vessel_tup.module_format != 'cellml':
+                # if not cellml then don't do anything for this vessel/module
+                continue
+
+            if vessel_tup.vessel_type.startswith('sum_blood_vol'):
+                sum_vess_name = vessel_tup.name
+                if sum_vess_name not in sum_vess_names:
+                    sum_vess_names.append(sum_vess_name)
+                   
+                    inp_vessel_names = []
+                    for inp_vessel_name in vessel_tup.inp_vessels:
+                        inp_vessel_names.append(inp_vessel_name)
+                    vess_to_sum_names.append(inp_vessel_names)
+
+                    if len(inp_vessel_names) == 0:
+                        pass
+                    else:
+                        # map volume
+                        for inp_vessel_idx in range(len(inp_vessel_names)):
+                            q_1 = 'q'
+                            inp_vessel_name = inp_vessel_names[inp_vessel_idx]
+                            q_2 = f'q_{inp_vessel_name}'
+                            self.__write_mapping(wf, inp_vessel_name+'_module', 'sum_blood_volume', [q_1], [q_2])
+
+                        # then map volume
+                        q_1 = f'q_{sum_vess_name}_sum'
+                        q_2 = 'q_sum'
+                        self.__write_mapping(wf, 'sum_blood_volume', sum_vess_name+'_module', [q_1], [q_2])
+
+        # create computation environment for connection and write the variable definition 
+        # and calculation of total blood volume in the whole system or in specific portions of it
+        wf.write(f'<component name="sum_blood_volume">\n')
+        variables = []
+        units = []
+        in_outs = []
+
+        for idx_sum, sum_vess_name in enumerate(sum_vess_names):
+            variables.append(f'q_{sum_vess_name}_sum')
+            units.append(vol_units)
+            in_outs.append('out') 
+            for inp_vess_name in vess_to_sum_names[idx_sum]:
+                variables.append(f'q_{inp_vess_name}')
+                units.append(vol_units) 
+                in_outs.append('in') 
+
+        self.__write_variable_declarations(wf, variables, units, in_outs)
+
+        for idx_sum, sum_vess_name in enumerate(sum_vess_names):
+            rhs_variables = []
+            lhs_variable = f'q_{sum_vess_name}_sum'
+            for inp_vess_name in vess_to_sum_names[idx_sum]:
+                rhs_variables.append(f'q_{inp_vess_name}')
+
+            self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+
+        wf.write('</component>\n')
+
 
 
     def __write_variable_sum_junc(self, wf, lhs_variable, rhs_variables, rhs_signs):
