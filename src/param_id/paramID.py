@@ -1923,12 +1923,15 @@ class OpencorParamID():
             #     self.ga_options['cost_type'] = 'MSE'
             if 'cost_convergence' not in self.ga_options.keys():
                 self.ga_options['cost_convergence'] = 0.0001
+            if 'max_patience' not in self.ga_options.keys():
+                self.ga_options['max_patience'] = 10
             if 'num_calls_to_function' not in self.ga_options.keys():
                 self.ga_options['num_calls_to_function'] = 10000
         else:
             self.ga_options = {}
             # self.ga_options['cost_type'] = 'MSE'
             self.ga_options['cost_convergence'] = 0.0001
+            self.ga_options['max_patience'] = 10
             self.ga_options['num_calls_to_function'] = 10000
         # self.cost_type = self.ga_options['cost_type']
         self.cost_type = self.obs_info["cost_type"]
@@ -2131,9 +2134,11 @@ class OpencorParamID():
             finished_ga[0] = False
             cost = np.zeros(num_pop)
             cost[0] = np.inf
-                
+            
+            last_loss = None
+            loss_repeat_counter = 0
 
-            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations:
+            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations and loss_repeat_counter<self.ga_options["max_patience"]:
                 mutation_weight = 0.1
                 # TODO make the default just a mutation weight of 0.1
                 # if gen_count > 30:
@@ -2279,10 +2284,22 @@ class OpencorParamID():
                     
                     with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
                         np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
+                    #count the repeat number
+                    if last_loss is not None:
+                        if abs(cost[0]-last_loss) <1e-7:
+                            loss_repeat_counter += 1
+                        else:
+                            loss_repeat_counter = 0
+                            last_loss = cost[0]
+                    else:
+                        last_loss = cost[0]
                     
                     # if cost is small enough then exit
                     if cost[0] < self.ga_options["cost_convergence"]:
                         print('Cost is less than cost aim, success!')
+                        finished_ga[0] = True
+                    elif loss_repeat_counter >= self.ga_options["max_patience"]:
+                        print('loss reached steady state, success!')
                         finished_ga[0] = True
                     else:
 
