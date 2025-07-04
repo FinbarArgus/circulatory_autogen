@@ -117,7 +117,7 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     return spikes_per_s
 
 @series_to_constant
-def first_peak_time(t, V, series_output=False):
+def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     """ 
     returns the time value (time from start of pre_time, NOT the start of 
     experiment or subexperiment) that the first peak occurs
@@ -126,13 +126,13 @@ def first_peak_time(t, V, series_output=False):
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V)
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
     
     if len(peak_idxs) == 0:
-        # there are no peaks, return a big number but not np.inf, because it causes errors in mcmc
-        return 99999999
-    # t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
-    t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
+        # there are no peaks, return the time of the subexperiment
+        return t[-1]
+    t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
+    # t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
     return t_first_peak
 
 @series_to_constant
