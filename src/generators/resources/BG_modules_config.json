@@ -21,6 +21,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -62,6 +66,10 @@
         {
             "port_type":"flow_port",
             "variables":["v"]
+        },
+        {
+          "port_type":"volume_port",
+          "variables":["q"]
         }
         ],
         "general_ports":[],
@@ -106,6 +114,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -156,6 +168,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -207,6 +223,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -256,6 +276,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -302,6 +326,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -353,6 +381,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -427,6 +459,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -477,6 +513,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_T", "u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -514,6 +554,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_T", "u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -557,6 +601,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -601,6 +649,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -653,6 +705,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -707,6 +763,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -751,6 +811,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -802,6 +866,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -855,6 +923,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -909,6 +981,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -962,6 +1038,10 @@
           {
             "port_type":"flow_port",
             "variables":["v_T"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1021,9 +1101,11 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
-          
-          
         ],
         "general_ports":[],
         "variables_and_units":
@@ -1090,9 +1172,11 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
-          }
-          
-          
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }      
         ],
         "general_ports":[],
         "variables_and_units":
@@ -1146,6 +1230,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1201,6 +1289,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v","u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1264,6 +1356,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1316,6 +1412,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v","u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1358,6 +1458,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v","u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1400,6 +1504,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_out","u_d"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1446,6 +1554,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_out","u_d"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1496,6 +1608,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1555,6 +1671,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1613,6 +1733,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1663,6 +1787,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1721,6 +1849,10 @@
           {
             "port_type":"flow_feedback_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1757,6 +1889,51 @@
       },
       {
         "vessel_type":"venous",
+        "BC_type":"vp_woCont",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vp_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in","u"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_out"]
+          },
+          {
+            "port_type":"flow_port",
+            "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["v_in", "m3_per_s", "access", "boundary_condition"],
+          ["u_out", "J_per_m3", "access", "boundary_condition"]
+        ]
+      },
+      {
+        "vessel_type":"venous",
         "BC_type":"vp",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -1783,6 +1960,10 @@
           {
             "port_type":"pressure_port",
             "variables":["u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1830,7 +2011,6 @@
         ],
         "exit_ports":
         [
-        
           {
             "port_type":"vessel_port",
             "variables":["v","u_out"]
@@ -1842,6 +2022,10 @@
           {
             "port_type":"pressure_port",
             "variables":["u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1900,6 +2084,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -1950,6 +2138,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -1991,6 +2183,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -2045,6 +2241,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2096,6 +2296,10 @@
           {
             "port_type":"flow_port",
             "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "general_ports":[],
@@ -2216,6 +2420,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2277,6 +2485,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2347,7 +2559,11 @@
             {
               "port_type":"visco_coeff_port",
               "variables":["K_tube_visco"]
-            }
+            },
+            {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
           ],
           "variables_and_units":
           [
@@ -2410,6 +2626,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2471,6 +2691,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2541,6 +2765,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2604,6 +2832,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2670,6 +2902,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2745,6 +2981,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2809,6 +3049,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2874,6 +3118,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -2948,6 +3196,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3027,6 +3279,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3102,7 +3358,11 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
-          }  
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          } 
         ],
         "variables_and_units":
         [
@@ -3186,6 +3446,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }  
         ],
         "variables_and_units":
@@ -3255,6 +3519,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3325,6 +3593,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3404,6 +3676,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3472,6 +3748,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3534,6 +3814,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3605,6 +3889,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3669,6 +3957,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3735,6 +4027,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3810,6 +4106,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -3887,6 +4187,192 @@
           ["R", "Js_per_m6", "access", "variable"],
           ["C", "m6_per_J", "access", "variable"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],
+          ["v_out", "m3_per_s", "access", "boundary_condition"]
+        ]
+      },
+
+      {
+        "vessel_type":"capillary_simple",
+        "BC_type":"vp",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vp_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in","u"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_out"]
+          },
+          {
+            "port_type":"flow_port",
+            "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_out", "J_per_m3", "access", "boundary_condition"],
+          ["v_in", "m3_per_s", "access", "boundary_condition"]
+        ]
+      },
+      {
+        "vessel_type":"capillary_simple",
+        "BC_type":"pv",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"pv_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_in"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out","u"]
+          },
+          {
+            "port_type":"flow_port",
+            "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_in", "J_per_m3", "access", "boundary_condition"],
+          ["v_out", "m3_per_s", "access", "boundary_condition"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"capillary_simple",
+        "BC_type":"pp",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"pp_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_in"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_d","u_out"]
+          },
+          {
+            "port_type":"flow_port",
+            "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["v_d", "m3_per_s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_in", "J_per_m3", "access", "boundary_condition"],
+          ["u_out", "J_per_m3", "access", "boundary_condition"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"capillary_simple",
+        "BC_type":"vv",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vv_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in","u"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out","u_d"]
+          },
+          {
+            "port_type":"flow_port",
+            "variables":["v"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["u_d", "J_per_m3", "access", "variable"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["u_C_d", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_C_d", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["v_in", "m3_per_s", "access", "boundary_condition"],
           ["v_out", "m3_per_s", "access", "boundary_condition"]
         ]
       },
@@ -4142,6 +4628,52 @@
       
       {
         "vessel_type":"MinNout_junction",
+        "BC_type":"vv_simple",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vv_MinNout_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in_sum","u"],
+            "multi_port":"True"
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out_sum","u_d"],
+            "multi_port":"True"
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["u_d", "J_per_m3", "access", "variable"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["u_C_d", "J_per_m3", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_C_d", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+          ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"MinNout_junction",
         "BC_type":"vv",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -4160,6 +4692,10 @@
             "port_type":"vessel_port",
             "variables":["v_out_sum","u_d"],
             "multi_port":"True"
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4219,6 +4755,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4278,6 +4818,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4346,6 +4890,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4381,6 +4929,48 @@
       },
       {
         "vessel_type":"Min_junction",
+        "BC_type":"vp_simple",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vp_Min_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in_sum","u"],
+            "multi_port":"True"
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+          ["u_out", "J_per_m3", "access", "boundary_condition"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"Min_junction",
         "BC_type":"vp",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -4398,6 +4988,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v","u_out"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4453,6 +5047,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4507,6 +5105,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4570,6 +5172,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4601,6 +5207,51 @@
       },
       {
         "vessel_type":"Min_junction",
+        "BC_type":"vv_simple",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vv_Min_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in_sum","u"],
+            "multi_port":"True"
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out","u_d"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["u_d", "J_per_m3", "access", "variable"],
+          ["v_in_sum", "m3_per_s", "access", "boundary_condition"],
+          ["v_out", "m3_per_s", "access", "boundary_condition"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["u_C_d", "J_per_m3", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_C_d", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"Min_junction",
         "BC_type":"vv",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -4618,6 +5269,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_out","u_d"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4676,6 +5331,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4734,6 +5393,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4801,6 +5464,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4836,6 +5503,53 @@
       },
       {
         "vessel_type":"Nout_junction",
+        "BC_type":"pv_simple",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"pv_Nout_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v","u_in"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out_sum","u"],
+            "multi_port":"True"
+          },
+          {
+            "port_type":"pressure_and_deriv_port",
+            "variables":["u_C","du_C_dt"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["u_in", "J_per_m3", "access", "boundary_condition"],
+          ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["du_C_dt", "J_per_m3s", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"Nout_junction",
         "BC_type":"pv",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -4857,6 +5571,10 @@
           {
             "port_type":"pressure_and_deriv_port",
             "variables":["u_C","du_C_dt"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4925,6 +5643,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -4992,6 +5714,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -5068,6 +5794,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -5100,6 +5830,51 @@
       },
       {
         "vessel_type":"Nout_junction",
+        "BC_type":"vv_simple",
+        "module_format":"cellml",
+        "module_file":"BG_modules.cellml",
+        "module_type":"vv_Nout_simple_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_in","u"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"vessel_port",
+            "variables":["v_out_sum","u_d"],
+            "multi_port":"True"
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
+          }
+        ],
+        "variables_and_units":
+        [
+          ["u", "J_per_m3", "access", "variable"],
+          ["v", "m3_per_s", "access", "variable"],
+          ["u_d", "J_per_m3", "access", "variable"],
+          ["v_in", "m3_per_s", "access", "boundary_condition"],
+          ["v_out_sum", "m3_per_s", "access", "boundary_condition"],
+          ["u_ext", "J_per_m3", "access", "constant"],
+          ["u_0", "J_per_m3", "access", "constant"],
+          ["u_C", "J_per_m3", "access", "variable"],
+          ["u_C_d", "J_per_m3", "access", "variable"],
+          ["q_C", "m3", "access", "variable"],
+          ["q_C_d", "m3", "access", "variable"],
+          ["q_0", "m3", "access", "constant"],
+          ["q", "m3", "access", "variable"],
+          ["R", "Js_per_m6", "access", "constant"],
+          ["C", "m6_per_J", "access", "constant"],
+          ["I", "Js2_per_m6", "access", "constant"]
+        ]
+      },
+      {
+        "vessel_type":"Nout_junction",
         "BC_type":"vv",
         "module_format":"cellml",
         "module_file":"BG_modules.cellml",
@@ -5117,6 +5892,10 @@
             "port_type":"vessel_port",
             "variables":["v_out_sum","u_d"],
             "multi_port":"True"
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -5159,6 +5938,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_in","u"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "exit_ports":
@@ -5241,6 +6024,10 @@
           {
             "port_type":"stiffness_port",
             "variables":["K_tube"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
@@ -5312,6 +6099,10 @@
           {
             "port_type":"visco_coeff_port",
             "variables":["K_tube_visco"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q"]
           }
         ],
         "variables_and_units":
