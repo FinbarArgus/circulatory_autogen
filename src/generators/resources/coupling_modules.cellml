@@ -80,4 +80,8 @@
         <variable name="A_star" private_interface="in" public_interface="out" units="m3"/>
         <variable name="flux" public_interface="in" units="m3_per_s"/>
     </component>
+    <component name="volume_sum">
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="q" public_interface="in" units="m3"/>
+    </component>
 </model>
