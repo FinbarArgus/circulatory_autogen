@@ -53,7 +53,7 @@ R_lt_lung,Js_per_m6,33016,Rideout1991
 R_tb_lung,Js_per_m6,30017,Rideout1991
 R_bA_lung,Js_per_m6,8006,Rideout1991
 R_plwall_lung,Js_per_m6,10000,Rideout1991
-R_scale_lung,Js_per_m6,1.0,user_defined
+R_scale_lung,dimensionless,1.0,user_defined
 C_l_lung,m6_per_J,0.000000012959,YasuhiroFukui1972
 C_t_lung,m6_per_J,0.000000024286,YasuhiroFukui1972
 C_b_lung,m6_per_J,0.0000013367,YasuhiroFukui1972
@@ -63,7 +63,7 @@ T_resp_lung,second,5,WestPulmonaryPhysiology2008
 T_resp_min_lung,second,1,user_defined_TODO_refine
 IE_ratio_lung,dimensionless,0.6,Bizotto2022
 Delta_P_mus_lung,J_per_m3,0,small_chosen
-Delta_RR_resp_lung,second,0,small_chosen
+Delta_RR_resp_lung,per_s,0,small_chosen
 P_m,J_per_m3,0,known
 R_pvn,Js_per_m6,1333000,Blanco_2013_Table_8
 C_pvn,m6_per_J,0.0000000060015,to_be_identified
