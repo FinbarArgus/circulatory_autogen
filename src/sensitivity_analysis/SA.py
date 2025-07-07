@@ -12,6 +12,7 @@ from SALib.analyze import sobol
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from parsers.PrimitiveParsers import scriptFunctionParser
 
 class Sensitivity_analysis():
 
@@ -68,6 +69,14 @@ class Sensitivity_analysis():
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
         self.n_steps = int(self.sim_time/self.dt)
 
+        # set up observables functions
+        sfp = scriptFunctionParser()
+        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
+
+        # ToDo: This should be defined in the scriptFunctionParser or similar
+        # self.obs_info = set_obs_info_dict()
+
+
         self.set_output_dir(save_path)
 
     def initialise_sim_helper(self):
@@ -109,7 +118,7 @@ class Sensitivity_analysis():
         t = self.sim_helper.tSim - self.pre_time
         return y, t
 
-    def generate_outputs(self, samples, feature_extractor, *f_args, **f_kwargs):
+    def generate_outputs(self, samples):
         
         outputs = []
         for i in range(len(samples)):
@@ -118,12 +127,18 @@ class Sensitivity_analysis():
             y, t = self.run_model_and_get_results(current_param_val)
             
             # Extract features using the provided feature_extractor function with additional arguments
-            features = feature_extractor(t, np.squeeze(y), *f_args, **f_kwargs)
+            features = []
+            for j in range(len(self.obs_info["operands"])):
+                 
+                feature = self.operation_funcs_dict[self.obs_info["operations"][j]](t, y, **self.obs_info["operation_kwargs"][j]) 
+                features.append(feature)
+
             outputs.append(features)
 
             if self.verbose:
                 print(f"Iteration {i+1}/{len(samples)}: Features extracted.")
 
+        outputs = np.array(outputs)  # Convert to 2D numpy array: (n_samples, n_features)
         return outputs
     
     def sobol_index(self, outputs):
@@ -199,13 +214,12 @@ class Sensitivity_analysis():
             plt.savefig(os.path.join(self.save_path, filename))
             plt.clf()
 
-    def run(self, feature_extractor, *f_args, **f_kwargs):
+    def run(self):
         samples = self.generate_samples()
-        outputs = self.generate_outputs(samples, feature_extractor, f_args, **f_kwargs)
+        outputs = self.generate_outputs(samples)
         S1_all, ST_all, S2_all = self.sobol_index(outputs)
         
         return S1_all, ST_all, S2_all
     
-
 
 
