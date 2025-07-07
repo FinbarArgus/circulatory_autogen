@@ -117,7 +117,7 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     return spikes_per_s
 
 @series_to_constant
-def first_peak_time(t, V, series_output=False):
+def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     """ 
     returns the time value (time from start of pre_time, NOT the start of 
     experiment or subexperiment) that the first peak occurs
@@ -126,13 +126,13 @@ def first_peak_time(t, V, series_output=False):
     """
     if series_output:
         return V
-    peak_idxs, peak_properties = find_peaks(V)
+    peak_idxs, peak_properties = find_peaks(V, height=spike_min_thresh)
     
     if len(peak_idxs) == 0:
-        # there are no peaks, return a big number but not np.inf, because it causes errors in mcmc
-        return 99999999
-    # t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
-    t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
+        # there are no peaks, return the time of the subexperiment
+        return t[-1]
+    t_first_peak = t[peak_idxs[0]] - t[0] # this would calc from start of subexperiment but there are plotting issues
+    # t_first_peak = t[peak_idxs[0]] # this is from the start of the pre_time, not the start of experiment.
     return t_first_peak
 
 @series_to_constant
@@ -268,12 +268,17 @@ def E_A_ratio(t, x, T, series_output=False):
     elif len(peak_idxs) < 2:
         # there is only one peak. E and A ontop of eachother. return large cost.
         return 10
+    if np.isscalar(T):
+        pass
+    else:
+        T = np.mean(T) # take mean if this is T changing in time (T_wCont)
+
     if (t[peak_idxs[1]] - t[peak_idxs[0]] > 0.7* T) :
         # the peaks are too far apart. Probably because there is only one peak per heart beat.
         # return large value
         return 10
 
-    # calculate with the first two peaks. This assumes that the E peak comes first
+    # calculate with the first two peaks. This assumes that the E peak comes first # TODO make sure the E_peak comes first by passing in the
     E_A_ratio = x[peak_idxs[0]]/x[peak_idxs[1]]
 
     return E_A_ratio
@@ -293,34 +298,34 @@ def peak_times(t, V, series_output=False):
     return peaks
 
 @series_to_constant
-def mean_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
+def mean_in_range(x, start_frac=0.0,end_frac=1.0, series_output=False):
     if series_output:
         return x
     else:
-        start_idx = int(start_frac*(len(t)-1))
-        end_idx = int(end_frac*(len(t)-1))
-        range_values = x[start_frac:end_frac]
+        start_idx = int(start_frac*(len(x)-1))
+        end_idx = int(end_frac*(len(x)-1))
+        range_values = x[start_idx:end_idx]
         return np.mean(range_values)
 
 @series_to_constant
-def max_in_range(x, series_output=False):
+def max_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
     if series_output:
         return x
     else:
-        start_idx = int(start_frac*(len(t)-1))
-        end_idx = int(end_frac*(len(t)-1))
-        range_values = x[start_frac:end_frac]
+        start_idx = int(start_frac*(len(x)-1))
+        end_idx = int(end_frac*(len(x)-1))
+        range_values = x[start_idx:end_idx]
         return np.max(range_values)
 
 
 @series_to_constant
-def min_in_range(x, series_output=False):
+def min_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
     if series_output:
         return x
     else:
-        start_idx = int(start_frac*(len(t)-1))
-        end_idx = int(end_frac*(len(t)-1))
-        range_values = x[start_frac:end_frac]
+        start_idx = int(start_frac*(len(x)-1))
+        end_idx = int(end_frac*(len(x)-1))
+        range_values = x[start_idx:end_idx]
         return np.min(range_values)
 
 @series_to_constant
@@ -400,6 +405,21 @@ def mean_peak_to_trough_time(t, V, series_output=False, spike_min_thresh=None, d
 
     return t_diff
 
+@series_to_constant
+def max_minus_min_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
+    # calculate the max minus min for the first max and min in a range.
+    # for example: tidal volume = max(x) - min(x)
+       
+    start_idx = int(start_frac*(len(x)-1))
+    end_idx = int(end_frac*(len(x)-1))
+    range_values_max = np.max(x[start_idx:end_idx])
+    range_values_min = np.min(x[start_idx:end_idx])
+    max_minus_min = range_values_max - range_values_min 
+
+    if series_output:
+        return np.ones(x.shape)*max_minus_min
+    else:
+        return max_minus_min
 
 
 

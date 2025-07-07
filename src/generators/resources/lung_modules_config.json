@@ -81,7 +81,6 @@
           ["t_floor", "second", "access", "variable"],
           ["T_resp", "second", "access", "constant"],
           ["Delta_RR_resp", "per_s", "access", "boundary_condition"],
-          ["T_resp_min", "second", "access", "constant"],
           ["T_resp_wCont", "second", "access", "variable"],
           ["IE_ratio", "dimensionless", "access", "constant"],
           ["T_I", "second", "access", "variable"],

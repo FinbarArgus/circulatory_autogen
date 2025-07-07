@@ -34,7 +34,7 @@ P_atm,J_per_m3,101300,known
 P_ws,J_per_m3,6266.15,WestPulmonaryPhysiology2008
 flag_RR_control_lung,dimensionless,1.0,Albanese2016
 flag_P_mus_control_lung,dimensionless,1.0,Albanese2016
-P_mus_min_lung,J_per_m3,-490,Albanese2016
+P_mus_min_lung,J_per_m3,-980,Albanese2016_-980_in_this_formulation_is_-490_in_Albanese
 P_plEE_lung,J_per_m3,-490,WestPulmonaryPhysiology2008
 q_l_us_lung,m3,3.44E-05,YasuhiroFukui1972
 q_t_us_lung,m3,6.63E-06,YasuhiroFukui1972

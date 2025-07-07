@@ -123,6 +123,8 @@ To run the parameter identification we need to set a few entries in the `[CA_dir
 - **ga_options**:
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.
 	- **num_calls_to_function**: How many forward simulations of pre_time+sim_time will be run in the optimisation algorithm.
+	- **cost_convergence**: If the cost value is lower than this threshold then the calibration run is complete.
+	- **max_patience**: If the cost doesn't improve for this number of simulations, then calibration is complete (we assume that the cost has converged to the global minima or can't get out of a local minima).
   - Note: In the future entries to ga_options will be kwargs that are used in the underlying user defined optimisation schemes (see [link](https://github.com/FinbarArgus/circulatory_autogen/issues/79))
 
 

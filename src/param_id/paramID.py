@@ -154,7 +154,7 @@ class CVS0DParamID():
                                                self.prediction_info, dt=self.dt,
                                                solver_info=self.solver_info, ga_options=ga_options,
                                                DEBUG=self.DEBUG)
-            self.n_steps = self.param_id.n_steps
+                self.n_steps = self.param_id.n_steps
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
         
@@ -408,15 +408,20 @@ class CVS0DParamID():
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
                         elif self.obs_info['plot_type'][II] == 'vertical':
+                            # calculate the t value, t values should be set as from the start of the subexperiment
+                            t_gt = self.obs_info["ground_truth_const"][const_idx] + \
+                                    tSim_per_sub_count[subexp_count][0] 
+                            t_bf = best_fit_obs_const[const_idx] + \
+                                    tSim_per_sub_count[subexp_count][0]
+                            
                             # plot a vertical line at the t (x) value of the constant
-                            axs.axvline(x=self.obs_info["ground_truth_const"][const_idx] - 
-                                        self.protocol_info['pre_times'][exp_idx], 
+                            axs.axvline(x=t_gt, 
                                         color=self.obs_info['plot_colors'][II],
                                         linestyle='--', label=f'{self.obs_info["operations"][II]} desired')
-                            axs.axvline(x=best_fit_obs_const[const_idx] - 
-                                        self.protocol_info['pre_times'][exp_idx], 
+                            axs.axvline(x=t_bf,
                                         color=self.obs_info['plot_colors'][II],
                                         label=f'{self.obs_info["operations"][II]} output')
+
                         elif self.obs_info['plot_type'][II] == None:
                             pass
                         else:
@@ -1961,12 +1966,15 @@ class OpencorParamID():
             #     self.ga_options['cost_type'] = 'MSE'
             if 'cost_convergence' not in self.ga_options.keys():
                 self.ga_options['cost_convergence'] = 0.0001
+            if 'max_patience' not in self.ga_options.keys():
+                self.ga_options['max_patience'] = 10
             if 'num_calls_to_function' not in self.ga_options.keys():
                 self.ga_options['num_calls_to_function'] = 10000
         else:
             self.ga_options = {}
             # self.ga_options['cost_type'] = 'MSE'
             self.ga_options['cost_convergence'] = 0.0001
+            self.ga_options['max_patience'] = 10
             self.ga_options['num_calls_to_function'] = 10000
         # self.cost_type = self.ga_options['cost_type']
         self.cost_type = self.obs_info["cost_type"]
@@ -2169,9 +2177,11 @@ class OpencorParamID():
             finished_ga[0] = False
             cost = np.zeros(num_pop)
             cost[0] = np.inf
-                
+            
+            last_loss = None
+            loss_repeat_counter = 0
 
-            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations:
+            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations and loss_repeat_counter<self.ga_options["max_patience"]:
                 mutation_weight = 0.1
                 # TODO make the default just a mutation weight of 0.1
                 # if gen_count > 30:
@@ -2317,10 +2327,24 @@ class OpencorParamID():
                     
                     with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
                         np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
+                    #count the repeat number
+                    if last_loss is not None:
+                        if abs(cost[0]-last_loss) <1e-7:
+                            loss_repeat_counter += 1
+                        else:
+                            loss_repeat_counter = 0
+                            last_loss = cost[0]
+                    else:
+                        last_loss = cost[0]
                     
                     # if cost is small enough then exit
                     if cost[0] < self.ga_options["cost_convergence"]:
-                        print('Cost is less than cost aim, success!')
+                        print(f'Cost is less than cost_convergence={self.ga_options["cost_convergence"]}', 
+                                'Exiting calibration with calibration converged to below cost tolerance')
+                        finished_ga[0] = True
+                    elif loss_repeat_counter >= self.ga_options["max_patience"]:
+                        print(f'loss has been unchanged for max_patience={self.ga_options["max_patience"]} generations.',
+                                'Exiting calibration with converged optimisation.')
                         finished_ga[0] = True
                     else:
 
@@ -2746,7 +2770,7 @@ class OpencorParamID():
                         # simulation set cost to large,
                         print('simulation failed with params...')
                         print(param_vals)
-                        print('failed subexperiment idx = {}'.format(subexp_count))
+                        print('failed on experiment idx = {} subexperiment idx = {}'.format(exp_idx, this_sub_idx))
                         return np.inf, [], []
 
 

@@ -41,6 +41,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -129,7 +133,8 @@
           ["A_eff_trv", "m2", "access", "variable"],
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
-          ["A_eff_aov", "m2", "access", "variable"]
+          ["A_eff_aov", "m2", "access", "variable"],
+          ["q_heart", "m3", "access", "variable"]
         ]
     },
     {
@@ -165,7 +170,7 @@
           },
           {
             "port_type":"volume_port",
-            "variables":["q"]
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -244,7 +249,7 @@
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
           ["A_eff_aov", "m2", "access", "variable"],
-          ["q", "m3", "access", "variable"]
+          ["q_heart", "m3", "access", "variable"]
         ]
     },
     {
@@ -277,6 +282,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -354,7 +363,8 @@
           ["A_eff_trv", "m2", "access", "variable"],
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
-          ["A_eff_aov", "m2", "access", "variable"]
+          ["A_eff_aov", "m2", "access", "variable"],
+          ["q_heart", "m3", "access", "variable"]
         ]
     },
     {
@@ -387,6 +397,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -472,7 +486,8 @@
           ["A_eff_trv", "m2", "access", "variable"],
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
-          ["A_eff_aov", "m2", "access", "variable"]
+          ["A_eff_aov", "m2", "access", "variable"],
+          ["q_heart", "m3", "access", "variable"]
         ]
     },
     {
@@ -505,6 +520,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -580,7 +599,8 @@
           ["A_eff_trv", "m2", "access", "variable"],
           ["A_eff_puv", "m2", "access", "variable"],
           ["A_eff_miv", "m2", "access", "variable"],
-          ["A_eff_aov", "m2", "access", "variable"]
+          ["A_eff_aov", "m2", "access", "variable"],
+          ["q_heart", "m3", "access", "variable"]
         ]
     },
     {
@@ -613,6 +633,10 @@
           {
             "port_type":"vessel_port",
             "variables":["v_puv","u_par"]
+          },
+          {
+            "port_type":"volume_port",
+            "variables":["q_heart"]
           }
         ],
         "general_ports":[],
@@ -700,7 +724,8 @@
           ["r_lvot", "metre", "access", "global_constant"],
           ["gamma", "dimensionless", "access", "global_constant"],
           ["beta", "dimensionless", "access", "global_constant"],
-          ["A_aov", "m2", "access", "global_constant"]
+          ["A_aov", "m2", "access", "global_constant"],
+          ["q_heart", "m3", "access", "variable"]
         ]
     }
     

@@ -144,16 +144,13 @@ The entries in the `module_config.json` file are detailed as follows:
 ## Converting an existing CellML model to run in Circulatory Autogen
 
 Circulatory Autogen provides a script to convert an existing cellml model (with parameters hardcoded in the modules) to a format that can be used with Circulatory_Autogen, which is a format that defines parameters in a separate file so that they can be used in model calibration and specifies modules in a config file with ports for easy coupling of modules.). 
+You can find the script **"generate_modules_files.py"** at `[CA_dir]/src/scripts`.
 
-You can run this script by navigating to the `user_run_files` directory and executing the below command, where `<input_model>` is the path to your CellML model and `<output_dir>` is the directory where you need to create the resources files and the new `[file_prefix]_user_inputs.yaml` file.
+Update the script to change the `input_model` variable to the path of your CellML model and `output_dir` variable to the directory where you need to create the resources files and the new `[file_prefix]_user_inputs.yaml` file.
 
-```
-./generate_modules_files.sh <input_model> <output_dir>
-```
+This script generates the `[file_prefix]_modules.cellml` and `module_config.json` files in the `module_config_user` directory. `[file_prefix]_parameters.csv` and `[file_prefix]_vessel_array.csv` files are created in `[output_dir]/resources` and the `[file_prefix]_user_inputs.yaml` is created in `[output_dir]`.
 
-This script generates the `[file_prefix]_modules.cellml` and `module_config.json` files in the `module_config_user` directory. `[file_prefix]_parameters.csv` and `[file_prefix]_vessel_array.csv` files are created in `<output_dir/resources` and the `[file_prefix]_user_inputs.yaml` is created in `<output_dir/resources`.
-
-You only need to update the `user_inputs.yaml` file at the `user_run_files` directory to update **`user_inputs_path_override:`** to `<output_dir/[file_prefix]_user_inputs.yaml` to run model autogeneration.
+You only need to update the `user_inputs.yaml` file at the `user_run_files` directory to update **`user_inputs_path_override:`** to `[output_dir]/[file_prefix]_user_inputs.yaml` to run model autogeneration.
 
 !!! Note
     You can update the **file_prefix**, **vessel_name** and the **data_reference** variables in the `generate_modules_files.py` at the `src/scripts` directory before running the script, so it will generate files with the defined variables.

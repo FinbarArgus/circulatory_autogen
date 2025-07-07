@@ -995,10 +995,10 @@
         <variable name="tau_theta_compliance" public_interface="in" units="second"/>
         <!-- Variables-->
         <variable name="f_s" public_interface="in" units="per_s"/>
-        <variable name="Delta_theta_us" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="m3"/>
-        <variable name="Delta_theta_compliance" public_interface="out" units="m6_per_J"/>
-        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="m6_per_J"/>
+        <variable name="Delta_theta_us" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="per_s"/>
+        <variable name="Delta_theta_compliance" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="per_s"/>
         <!-- Equations-->
         <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.
  changed the below from ln to hill function so we can limit the amount it can change compliance and us volume. Now G_theta_us is the maximum amount of change
@@ -1799,22 +1799,44 @@
                     <ci>tau_pA</ci>
                 </apply>
             </apply>
+        </math>
+        <variable name="Delta_RR_resp_max" public_interface="in" units="per_s"/>
+        <variable name="Delta_P_mus_max" public_interface="in" units="J_per_m3"/>
+        <variable name="Delta_RR_resp_min" public_interface="in" units="per_s"/>
+        <variable name="Delta_P_mus_min" public_interface="in" units="J_per_m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>Delta_RR_resp</ci>
                 <apply>
-                    <plus/>
-                    <ci>Delta_RR_c</ci>
-                    <ci>Delta_RR_p</ci>
+                    <min/>
+                    <apply>
+                        <max/>
+                        <apply>
+                            <plus/>
+                            <ci>Delta_RR_c</ci>
+                            <ci>Delta_RR_p</ci>
+                        </apply>
+                        <ci>Delta_RR_resp_min</ci>
+                    </apply>
+                    <ci>Delta_RR_resp_max</ci>
                 </apply>
             </apply>
             <apply>
                 <eq/>
                 <ci>Delta_P_mus</ci>
                 <apply>
-                    <plus/>
-                    <ci>Delta_P_mus_c</ci>
-                    <ci>Delta_P_mus_p</ci>
+                    <min/>
+                    <apply>
+                        <max/>
+                        <apply>
+                            <plus/>
+                            <ci>Delta_P_mus_c</ci>
+                            <ci>Delta_P_mus_p</ci>
+                        </apply>
+                        <ci>Delta_P_mus_min</ci>
+                    </apply>
+                    <ci>Delta_P_mus_max</ci>
                 </apply>
             </apply>
         </math>
