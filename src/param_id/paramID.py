@@ -2339,10 +2339,12 @@ class OpencorParamID():
                     
                     # if cost is small enough then exit
                     if cost[0] < self.ga_options["cost_convergence"]:
-                        print('Cost is less than cost aim, success!')
+                        print('Cost is less than cost_convergence={self.ga_options["cost_convergence"]}, 
+                                Exiting calibration with calibration converged to below cost tolerance')
                         finished_ga[0] = True
                     elif loss_repeat_counter >= self.ga_options["max_patience"]:
-                        print('loss reached steady state, success!')
+                        print(f'loss has been unchanged for max_patience={self.ga_options["max_patience"]} generations. 
+                                Exiting calibration with converged optimisation.')
                         finished_ga[0] = True
                     else:
 
