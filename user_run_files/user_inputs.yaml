@@ -5,7 +5,9 @@ DEBUG: false # TODO change back
 # user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250318-day01/simple_physiological_nonlinear_visco/simple_physiological_user_inputs.yaml
 # user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250320-day03/smc_with_piezo/smc_with_piezo_user_inputs.yaml
 # user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250321-day04/coupled_CVS_smc/coupled_CVS_smc_user_inputs.yaml
-user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_2_user_inputs.yaml
+user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_new_user_inputs.yaml
 
 
 # file_prefix: 3compartment
