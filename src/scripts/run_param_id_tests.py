@@ -154,7 +154,7 @@ if __name__ == '__main__':
             raise ValueError('fft cost is not zero. Failure!')
 
         print('')
-        print('running SN_to_cAMP parameter id test')
+        print('running SN_simple parameter id test')
         inp_data_dict['file_prefix'] = 'SN_simple'
         inp_data_dict['input_param_file'] = 'SN_simple_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
         inp_data_dict['dt'] = 0.0001
         inp_data_dict['DEBUG'] = True
-        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_to_cAMP_obs_data.json')
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_simple_obs_data.json')
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 30
         inp_data_dict['plot_predictions'] = True

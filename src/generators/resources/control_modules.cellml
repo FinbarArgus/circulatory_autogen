@@ -1220,8 +1220,6 @@
         <variable initial_value="0.0" name="x_O2" public_interface="out" units="dimensionless"/>
         <variable name="phi_P_CO2_a" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="x_CO2" public_interface="out" units="dimensionless"/>
-        <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
-        <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
         <variable name="P_CO2_a" public_interface="in" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>
@@ -1349,8 +1347,6 @@
         <variable initial_value="0.0" name="x_O2" public_interface="out" units="dimensionless"/>
         <variable name="phi_P_CO2_a" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="x_CO2" public_interface="out" units="dimensionless"/>
-        <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
-        <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
         <variable name="P_CO2_a" public_interface="in" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>

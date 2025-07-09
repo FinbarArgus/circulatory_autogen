@@ -498,10 +498,6 @@
             "variables":["C_O2_p"]
           },
           {
-            "port_type":"arterial_only_gas_port",
-            "variables":["C_CO2_a","C_O2_a"]
-          },
-          {
             "port_type":"partial_pressure_port",
             "variables":["P_CO2_a","P_O2_a"]
           }
@@ -528,8 +524,6 @@
           ["P_CO2_a", "J_per_m3", "access", "boundary_condition"],
           ["P_O2_a", "J_per_m3", "access", "boundary_condition"],
           ["phi_P_CO2_a", "dimensionless", "access", "variable"],
-          ["C_O2_a", "dimensionless", "access", "boundary_condition"],
-          ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
           ["C_O2_p", "dimensionless", "access", "variable"],
           ["R_local_multiplier", "dimensionless", "access", "variable"]
         ]
@@ -545,10 +539,6 @@
           {
             "port_type":"O2_port",
             "variables":["C_O2_p"]
-          },
-          {
-            "port_type":"arterial_only_gas_port",
-            "variables":["C_CO2_a","C_O2_a"]
           },
           {
             "port_type":"partial_pressure_port",
@@ -580,8 +570,6 @@
           ["P_CO2_a", "J_per_m3", "access", "boundary_condition"],
           ["P_O2_a", "J_per_m3", "access", "boundary_condition"],
           ["phi_P_CO2_a", "dimensionless", "access", "variable"],
-          ["C_O2_a", "dimensionless", "access", "boundary_condition"],
-          ["C_CO2_a", "dimensionless", "access", "boundary_condition"],
           ["C_O2_p", "dimensionless", "access", "boundary_condition"],
           ["G_p", "dimensionless", "access", "variable"],
           ["R_local_multiplier", "dimensionless", "access", "variable"]
