@@ -18,15 +18,15 @@ user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 from param_id.paramID import CVS0DParamID
 from param_id.sequential_paramID import SequentialParamID
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
-from utilities.utility_funcs import obj_to_string
+from utilities.utility_funcs import obj_to_string, change_parameter_values_and_save
 import traceback
 from distutils import util
 import yaml
 from parsers.PrimitiveParsers import YamlFileParser
+import numpy as np
 
 
-def plot_param_id(inp_data_dict=None):
-
+def plot_param_id(inp_data_dict=None, generate=True):
 
     yaml_parser = YamlFileParser()
     inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=True, do_generation_with_fit_parameters=True)
@@ -46,12 +46,27 @@ def plot_param_id(inp_data_dict=None):
     mcmc_options = inp_data_dict['mcmc_options']
     resources_dir = inp_data_dict['resources_dir']
     param_id_output_dir = inp_data_dict['param_id_output_dir']
+    param_id_output_dir_abs_path = inp_data_dict['param_id_output_dir_abs_path']
     plot_predictions = inp_data_dict['plot_predictions']
     do_sensitivity = inp_data_dict['do_sensitivity']
     do_mcmc = inp_data_dict['do_mcmc']
+    generated_models_subdir = inp_data_dict['generated_models_subdir']
     
     # run the generation script with new param values
-    generate_with_new_architecture(True, inp_data_dict=inp_data_dict)
+    if generate:
+        generate_with_new_architecture(True, inp_data_dict=inp_data_dict)
+    else:
+        # if we arent doing the autogeneration then we need to create a model with the best fit parameters anyway
+        # load the best parameter values from the param_id_output_dir
+       
+        best_param_vals = np.load(os.path.join(param_id_output_dir_abs_path, 'best_param_vals.npy'))
+        param_names = np.loadtxt(os.path.join(param_id_output_dir_abs_path, 'param_names.csv'), dtype=str)
+        
+        # change the parameter values in the model file
+        change_parameter_values_and_save(inp_data_dict["uncalibrated_model_path"], param_names, best_param_vals, 
+                                         model_path)
+        # set the model path to the new model file
+        print('Best fit model saved to: ' + model_path)
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
@@ -68,6 +83,7 @@ def plot_param_id(inp_data_dict=None):
                 name_list = [name.strip() for name in name_list]
                 param_names_to_remove.append(name_list)
         param_id.remove_params_by_name(param_names_to_remove)
+        
 
     # simulate with best values first to check cost
     param_id.simulate_with_best_param_vals()
@@ -99,8 +115,13 @@ def plot_param_id(inp_data_dict=None):
 
 if __name__ == '__main__':
     comm = MPI.COMM_WORLD
+    # get argument of whether to run the autogeneration, defaults to True
+    if len(sys.argv) == 2:
+        generate = util.strtobool(sys.argv[1])
+    else:
+        generate = True
     try:
-        plot_param_id()
+        plot_param_id(generate=generate)
     except:
         print(traceback.format_exc())
         comm.Abort()

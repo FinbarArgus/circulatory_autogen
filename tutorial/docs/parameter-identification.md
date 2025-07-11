@@ -7,6 +7,7 @@ The parameter identification part of Circulatory_Autogen is designed to allow ca
 
 Those files should be added to the `[CA_dir]/resources` directory. Proper names of the files are **[file_prefix]_params_for_id.csv** and **[file_prefix]_obs_data.json**, respectively.
 
+
 ## Creating params_for_id file
 
 This file defines which parameters (constants and initial_states) within your model that you will vary in the parameter id process and their allowed ranges (prior distribution). Following is an example of the `params_for_id.csv` file.
@@ -82,6 +83,18 @@ Not to be confused with the dt for the model simulation outputs.
 
 !!! warning
     **obs_type**: This has been deprecated in favor of the **operation** entry.
+
+## Running external cellml models
+
+Running cellml models that weren't generated with Circulatory_Autogen is also just as straightforward:
+
+Simply set the `file_prefix` in your user_inputs.yaml file to the name of your cellml model `<file_prefix>.cellml`. Then set `generated_models_dir` to the path to the dir where your model subdir is and the subdir where the calibrated model will be generated. Make sure your cellml file/files are in a directory of the same name i.e.:
+
+`path/to/your/generated_models_dir/<file_prefix>/<file_prefix>.cellml`
+
+After calibration, the following directory will be created with your generated model:
+
+`path/to/your/generated_models_dir/<file_prefix>_<obs_file_name>/`
 
 ## Creating your own operations
 
