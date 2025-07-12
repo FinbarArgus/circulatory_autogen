@@ -96,6 +96,9 @@ After calibration, the following directory will be created with your generated m
 
 `path/to/your/generated_models_dir/<file_prefix>_<obs_file_name>/`
 
+!!! note
+    Currently the generated model needs to be run in the new OpenCOR, with LibOpenCOR backend because a cellml2.0 model is generated
+
 ## Creating your own operations
 
 To enable flexibility we allow you to create your own user-defined operation functions in python to extract features from your model outputs and compare to data in the calibration.
