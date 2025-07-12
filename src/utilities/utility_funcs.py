@@ -133,13 +133,13 @@ def change_parameter_values_and_save(cellml_file, parameter_names, parameter_val
         module, name = os.path.split(name)
         found = False
         for comp_index in range(flat_model.componentCount()):
-            comp = model.component(comp_index)
-            # if comp.name() == 'parameters':
-            #     name_mod = name + '_' + module
-            # elif comp.name() == 'parameters_global':
-            #     name_mod = name
-            #     pass
-            if comp.name() == module:
+            comp = flat_model.component(comp_index)
+            if comp.name() == 'parameters':
+                name_mod = name + '_' + module
+            elif comp.name() == 'parameters_global':
+                name_mod = name
+                pass
+            elif comp.name() == module:
                 name_mod = name
                 pass
             else:
@@ -147,8 +147,11 @@ def change_parameter_values_and_save(cellml_file, parameter_names, parameter_val
 
             if comp.hasVariable(name_mod):
                 var = comp.variable(name_mod)
-                var.setInitialValue(str(new_val))
-                found = True
+                if var.initialValue() == '':
+                    print(f"Variable '{name_mod}' does not have an initial value in this module, probably defined in another module, such as parameters.")
+                else:
+                    var.setInitialValue(str(new_val))
+                    found = True
             # print(comp.variableCount())
             # print([comp.variable(i).name() for i in range(comp.variableCount())])
         if not found:
@@ -156,10 +159,10 @@ def change_parameter_values_and_save(cellml_file, parameter_names, parameter_val
 
     # Serialize updated model
     printer = libcellml.Printer()
-    new_content = printer.printModel(model)
+    new_content = printer.printModel(flat_model)
 
     # Save to file
-    target = output_file or cellml_file
+    target = output_file 
     with open(target, 'w', encoding='utf-8') as f:
         f.write(new_content)
 
