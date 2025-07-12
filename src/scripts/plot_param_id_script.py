@@ -33,6 +33,7 @@ def plot_param_id(inp_data_dict=None, generate=True):
 
     DEBUG = inp_data_dict['DEBUG']
     model_path = inp_data_dict['model_path']
+    uncalibrated_model_path = inp_data_dict['uncalibrated_model_path']
     model_type = inp_data_dict['model_type']
     param_id_method = inp_data_dict['param_id_method']
     file_prefix = inp_data_dict['file_prefix']
@@ -63,10 +64,14 @@ def plot_param_id(inp_data_dict=None, generate=True):
         param_names = np.loadtxt(os.path.join(param_id_output_dir_abs_path, 'param_names.csv'), dtype=str)
         
         # change the parameter values in the model file
-        change_parameter_values_and_save(inp_data_dict["uncalibrated_model_path"], param_names, best_param_vals, 
+        change_parameter_values_and_save(uncalibrated_model_path, param_names, best_param_vals, 
                                          model_path)
         # set the model path to the new model file
         print('Best fit model saved to: ' + model_path)
+        
+        # set the model_path to the uncalibrated model path for now so we can run it. 
+        # this will be changed when we can run the new cellml2.0 model from python.
+        model_path = uncalibrated_model_path
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
