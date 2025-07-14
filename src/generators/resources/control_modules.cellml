@@ -1393,6 +1393,7 @@
                     <ci>tau_O2</ci>
                 </apply>
             </apply>
+            <!-- Unit consistancy in ln() - may need to add the unit-->
             <apply>
                 <eq/>
                 <ci>phi_P_CO2_a</ci>
@@ -1419,7 +1420,11 @@
                                                 <ci>D_b_lc</ci>
                                                 <apply>
                                                     <ln/>
-                                                    <ci>P_CO2_a</ci>
+                                                    <apply>
+                                                        <times/>
+                                                        <cn cellml:units="m3_per_J">1</cn>
+                                                        <ci>P_CO2_a</ci>
+                                                    </apply>
                                                 </apply>
                                             </apply>
                                         </apply>
@@ -1446,7 +1451,11 @@
                                                 <ci>D_b_lc</ci>
                                                 <apply>
                                                     <ln/>
-                                                    <ci>P_CO2_a_nom</ci>
+                                                    <apply>
+                                                        <times/>
+                                                        <cn cellml:units="m3_per_J">1</cn>
+                                                        <ci>P_CO2_a_nom</ci>
+                                                    </apply>
                                                 </apply>
                                             </apply>
                                         </apply>
@@ -1565,6 +1574,7 @@
         <variable name="tau_pf_min" public_interface="in" units="second"/>
         <variable name="tau_pf_max" public_interface="in" units="second"/>
         <variable name="tau_pf" public_interface="out" units="second"/>
+        <!-- unit inconsistancy for 0 resolved-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1575,7 +1585,7 @@
                         <apply>
                             <geq/>
                             <ci>u_p_resp</ci>
-                            <cn cellml:units="dimensionless">0</cn>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1592,7 +1602,7 @@
                         <apply>
                             <geq/>
                             <ci>u_p_resp</ci>
-                            <cn cellml:units="dimensionless">0</cn>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1858,6 +1868,7 @@
                 <eq/>
                 <ci>sigma_Es</ci>
                 <piecewise>
+                    <!-- unit consistancy for ln-->
                     <piece>
                         <apply>
                             <times/>
@@ -1865,13 +1876,17 @@
                             <apply>
                                 <ln/>
                                 <apply>
-                                    <plus/>
+                                    <times/>
+                                    <cn cellml:units="second">1</cn>
                                     <apply>
-                                        <minus/>
-                                        <ci>f_esh</ci>
-                                        <ci>f_es_min</ci>
+                                        <plus/>
+                                        <apply>
+                                            <minus/>
+                                            <ci>f_esh</ci>
+                                            <ci>f_es_min</ci>
+                                        </apply>
+                                        <cn cellml:units="Hz">1</cn>
                                     </apply>
-                                    <cn cellml:units="Hz">1</cn>
                                 </apply>
                             </apply>
                         </apply>

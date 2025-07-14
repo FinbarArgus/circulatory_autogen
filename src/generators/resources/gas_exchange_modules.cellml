@@ -263,6 +263,7 @@
                 </apply>
             </apply>
             <!-- calculate arterial gas concentration due to pulmonary shunt-->
+            <!-- the 0 should be dimensionless (m3_per_s -> dim)-->
             <apply>
                 <eq/>
                 <ci>C_O2_a</ci>
@@ -285,7 +286,7 @@
                         </apply>
                         <ci>v</ci>
                     </apply>
-                    <cn cellml:units="m3_per_s">0</cn>
+                    <cn cellml:units="dimensionless">0</cn>
                 </apply>
             </apply>
             <apply>
@@ -310,7 +311,7 @@
                         </apply>
                         <ci>v</ci>
                     </apply>
-                    <cn cellml:units="m3_per_s">0</cn>
+                    <cn cellml:units="dimensionless">0</cn>
                 </apply>
             </apply>
         </math>
