@@ -439,6 +439,7 @@
         </math>
         <!-- This is the controlled end expiratiory pressure-->
         <variable name="P_mus_max_wCont" public_interface="out" units="J_per_m3"/>
+        <!-- the unit of the 0 should be J_per_m3 instead of dimensionless-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -456,7 +457,7 @@
                             </apply>
                             <ci>Delta_P_mus</ci>
                         </apply>
-                        <cn cellml:units="dimensionless">0</cn>
+                        <cn cellml:units="J_per_m3">0</cn>
                     </apply>
                 </apply>
             </apply>

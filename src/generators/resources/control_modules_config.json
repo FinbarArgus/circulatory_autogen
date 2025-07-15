@@ -91,7 +91,8 @@
           ["beta_1", "m3_per_J", "access", "global_constant"],
           ["beta_2", "m3_per_J", "access", "global_constant"],
           ["C_O2_sat", "dimensionless", "access", "global_constant"],
-          ["C_CO2_sat", "dimensionless", "access", "global_constant"]
+          ["C_CO2_sat", "dimensionless", "access", "global_constant"],
+          ["alpha_O2", "m3_per_J", "access", "constant"]
         ]
     },
     {
@@ -209,7 +210,7 @@
           ["f_es_0", "per_s", "access", "global_constant"],
           ["f_es_inf", "per_s", "access", "global_constant"],
           ["f_es_max", "per_s", "access", "global_constant"],
-          ["k_es", "per_s", "access", "global_constant"],
+          ["k_es", "second", "access", "global_constant"],
           ["f_apc", "per_s", "access", "boundary_condition"],
           ["f_ab", "per_s", "access", "boundary_condition"],
           ["f_s", "per_s", "access", "variable"]
@@ -365,7 +366,7 @@
           ["u_c_resp", "Hz", "access", "boundary_condition"],
           ["u_p_resp", "Hz", "access", "boundary_condition"],
           ["u_p_resp", "Hz", "access", "boundary_condition"],
-          ["P_CO2_c_thresh", "J_per_m3", "access", "constant"],
+          ["u_CO2_c_thresh", "per_s", "access", "constant"],
           ["Delta_RR_resp", "per_s", "access", "variable"],
           ["Delta_P_mus", "J_per_m3", "access", "variable"],
           ["Delta_RR_resp_max", "per_s", "access", "constant"],
@@ -472,7 +473,7 @@
         "variables_and_units":
         [
           ["G_Ts", "second", "access", "constant"],
-          ["G_Tv", "second", "access", "constant"],
+          ["G_Tv", "s2", "access", "constant"],
           ["f_es_min", "per_s", "access", "global_constant"],
           ["tau_Ts", "second", "access", "constant"],
           ["tau_Tv", "second", "access", "constant"],
