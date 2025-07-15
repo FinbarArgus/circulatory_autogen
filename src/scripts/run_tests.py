@@ -55,6 +55,13 @@ if __name__ == '__main__':
         gen_success_list.append(('simple_physiological', success))
         
         print('')
+        print('running parasympathetic test')
+        inp_data_dict['file_prefix'] = 'parasympathetic_model'
+        inp_data_dict['input_param_file'] = 'parasympathetic_model_parameters.csv'
+        success = generate_with_new_architecture(False, inp_data_dict)
+        gen_success_list.append(('parasympathetic_model', success))
+        
+        print('')
         print('running test_fft autogeneration test')
         inp_data_dict['file_prefix'] = 'test_fft'
         inp_data_dict['input_param_file'] = 'test_fft_parameters.csv'
