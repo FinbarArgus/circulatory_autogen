@@ -980,7 +980,7 @@ var G_mid_NActr: dimensionless {init: 0.62};-->
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="dimensionless">0</cn>
+                        <cn cellml:units="Hz">0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
