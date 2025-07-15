@@ -132,6 +132,10 @@
         <unit exponent="-1" prefix="milli" units="litre"/>
         <unit exponent="-1" units="second"/>
     </units>
+    <units name="per_m3_s">
+        <unit exponent="-3" units="metre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <!--//////////////////////
  rate-->
     <!--////////////////////////

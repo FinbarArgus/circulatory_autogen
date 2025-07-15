@@ -1,6 +1,9 @@
 import numpy as np
 import math
-import sys
+import os,sys
+import libcellml
+import utilities.libcellml_helper_funcs as cellml
+import utilities.libcellml_utilities as libcellml_utils
 
 class Normalise_class:
     def __init__(self, param_mins, param_maxs, mod_first_variables=0, modVal = 1.0):
@@ -101,6 +104,67 @@ def get_size(obj, seen=None):
 
 
 
+def change_parameter_values_and_save(cellml_file, parameter_names, parameter_values, output_file):
+    """
+    Load a CellML model, change initial values of specified variables,
+    then serialize and save the updated model.
+
+    Args:
+      cellml_file: Path to the .cellml file to modify.
+      parameter_names: List of variable names to change.
+      parameter_values: Corresponding list of new initial values.
+      output_file: Optional; where to write the new model. Overwrites original if None.
+    """
+
+    if len(parameter_names) != len(parameter_values):
+        raise ValueError("Names and values lists must have equal length.")
+
+    # Parse the model
+    # parse the model in non-strict mode to allow non CellML 2.0 models
+    model = cellml.parse_model(os.path.join(cellml_file), False)
+    # resolve imports, in non-strict mode
+    importer = cellml.resolve_imports(model, os.path.dirname(cellml_file), False)
+    # need a flattened model for analysing
+    flat_model = cellml.flatten_model(model, importer)
+    model_string = cellml.print_model(flat_model)
+
+    # Update variables
+    for name, new_val in zip(parameter_names, parameter_values):
+        module, name = os.path.split(name)
+        found = False
+        for comp_index in range(flat_model.componentCount()):
+            comp = flat_model.component(comp_index)
+            if comp.name() == 'parameters':
+                name_mod = name + '_' + module
+            elif comp.name() == 'parameters_global':
+                name_mod = name
+                pass
+            elif comp.name() == module:
+                name_mod = name
+                pass
+            else:
+                continue
+
+            if comp.hasVariable(name_mod):
+                var = comp.variable(name_mod)
+                if var.initialValue() == '':
+                    print(f"Variable '{name_mod}' does not have an initial value in this module, probably defined in another module, such as parameters.")
+                else:
+                    var.setInitialValue(str(new_val))
+                    found = True
+            # print(comp.variableCount())
+            # print([comp.variable(i).name() for i in range(comp.variableCount())])
+        if not found:
+            print(f"Parameter '{name}' not found in any component.")
+
+    # Serialize updated model
+    printer = libcellml.Printer()
+    new_content = printer.printModel(flat_model)
+
+    # Save to file
+    target = output_file 
+    with open(target, 'w', encoding='utf-8') as f:
+        f.write(new_content)
 
 
 

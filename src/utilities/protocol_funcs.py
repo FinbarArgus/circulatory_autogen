@@ -12,6 +12,7 @@ from opencor_helper import SimulationHelper
 import paperPlotSetup
 paperPlotSetup.Setup_Plot(3)
 
+# TODO update this with the ProtocolRunner class in CA_user_FA_MG
 def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_dict=None):
     """ runs the protocols defigned by protocol infor or if not defined, gets 
     protocol info from the obs_data.json file.
@@ -74,6 +75,7 @@ def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_di
         current_time = 0
         for idx, sim_time  in enumerate(sim_times[exp_idx]):
             if idx == 0:
+                # TODO update this with the class in CA_user_FA_MG
                 sim_helper = SimulationHelper(model_path, dt, sim_time, solver_info={'MaximumNumberOfSteps':1000, 'MaximumStep':0.0001}, 
                                               pre_time=pre_times[exp_idx])
                 current_time += pre_times[exp_idx]

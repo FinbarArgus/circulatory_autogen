@@ -417,10 +417,43 @@ def max_minus_min_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False)
     max_minus_min = range_values_max - range_values_min 
 
     if series_output:
-        return np.ones(x.shape)*max_minus_min
+        return x
     else:
         return max_minus_min
 
+@series_to_constant
+def mean_in_range_minus_initial(x, start_frac=0.8, end_frac=1.0, series_output=False):
+    # calculate the mean in a range (normally at the end converged stated) minus the initial value in 
+    # the subexperiment.
+    # for example:
+       
+    start_idx = int(start_frac*(len(x)-1))
+    end_idx = int(end_frac*(len(x)-1))
+    range_values_mean = np.mean(x[start_idx:end_idx])
+    mean_minus_init = range_values_mean - x[0]
+
+    if series_output:
+        return x
+    else:
+        return mean_minus_init
+
+@series_to_constant
+def mean_in_range_fraction_change_from_initial(x, start_frac=0.8, end_frac=1.0, series_output=False):
+    # calculate the mean in a range (normally at the end converged stated) minus the initial value in 
+    # the subexperiment and get the percentage change.
+    # for example:
+       
+    start_idx = int(start_frac*(len(x)-1))
+    end_idx = int(end_frac*(len(x)-1))
+    range_values_mean = np.mean(x[start_idx:end_idx])
+    mean_minus_init = range_values_mean - x[0]
+    percentage_change = mean_minus_init / x[0]  # percentage change from initial value
+
+    if series_output:
+        # TODO for plotting should I output the percentage change or the mean minus initial?
+        return x
+    else:
+        return percentage_change
 
 
 

@@ -25,7 +25,7 @@
         [
           ["f_ls", "Hz", "access", "variable"],
           ["tau_lung", "second", "access", "constant"],
-          ["G_al", "per_ml_s", "access", "constant"],
+          ["G_al", "per_m3_s", "access", "constant"],
           ["q_A", "m3", "access", "boundary_condition"],
           ["q_b", "m3", "access", "boundary_condition"],
           ["V_lung", "m3", "access", "variable"]
@@ -57,7 +57,7 @@
         [
           ["f_ls", "Hz", "access", "variable"],
           ["tau_lung", "second", "access", "constant"],
-          ["G_al", "per_ml_s", "access", "constant"],
+          ["G_al", "per_m3_s", "access", "constant"],
           ["q_A", "m3", "access", "boundary_condition"],
           ["q_b", "m3", "access", "boundary_condition"],
           ["V_lung_stretch_thresh", "m3", "access", "constant"],
@@ -242,7 +242,7 @@
         [
           ["Delta_Rsp", "Js_per_m6", "access", "variable"],
           ["tau_Rsp", "second", "access", "constant"],
-          ["sigma_Rsp", "Hz", "access", "variable"],
+          ["sigma_Rsp", "Js_per_m6", "access", "variable"],
           ["f_esp", "Hz", "access", "boundary_condition"],
           ["f_es_min", "per_s", "access", "global_constant"],
           ["G_Rsp", "Js_per_m6", "access", "constant"]
@@ -274,7 +274,7 @@
         [
           ["Delta_Vusv", "m3", "access", "variable"],
           ["tau_Vusv", "second", "access", "constant"],
-          ["sigma_Vusv", "Hz", "access", "variable"],
+          ["sigma_Vusv", "m3", "access", "variable"],
           ["f_esv", "Hz", "access", "boundary_condition"],
           ["f_es_min", "per_s", "access", "global_constant"],
           ["G_Vusv", "m3", "access", "constant"]

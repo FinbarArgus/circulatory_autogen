@@ -145,6 +145,12 @@ class YamlFileParser(object):
             
         inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}.cellml')
 
+        if do_generation_with_fit_parameters:
+            inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix, 
+                                               file_prefix + '.cellml')
+        else:
+            inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
+
 
         if 'pre_time' in inp_data_dict.keys():
             inp_data_dict['pre_time'] = inp_data_dict['pre_time']

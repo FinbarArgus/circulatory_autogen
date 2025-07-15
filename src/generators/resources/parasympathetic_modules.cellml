@@ -31,7 +31,7 @@ endsel;-->
         <variable initial_value="0" name="f_ls" public_interface="out" units="Hz"/>
         <!-- change to 2 from 0.5 as I changed tau to correct unit of second-->
         <variable name="tau_lung" public_interface="in" units="second"/>
-        <variable name="G_al" public_interface="in" units="per_ml_s"/>
+        <variable name="G_al" public_interface="in" units="per_m3_s"/>
         <!-- ode(f_ls, t) = tau_lung*(-f_ls+G_al*V_lung);
  changed so that tau has correct units of seconds. tau should be a time constant-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -90,7 +90,7 @@ endsel;-->
         <variable initial_value="0" name="f_ls" public_interface="out" units="Hz"/>
         <!-- change to 2 from 0.5 as I changed tau to correct unit of second-->
         <variable name="tau_lung" public_interface="in" units="second"/>
-        <variable name="G_al" public_interface="in" units="per_ml_s"/>
+        <variable name="G_al" public_interface="in" units="per_m3_s"/>
         <!-- ode(f_ls, t) = tau_lung*(-f_ls+G_al*V_lung);
  changed so that tau has correct units of seconds. tau should be a time constant-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">

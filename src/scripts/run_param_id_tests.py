@@ -25,6 +25,19 @@ if __name__ == '__main__':
         # inp_data_dict['file_prefix'] = '3compartment'
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
 
+
+        # generate_with_new_architecture(False, inp_data_dict)
+        if 'user_inputs_path_override' in inp_data_dict.keys():
+            del inp_data_dict['user_inputs_path_override']
+        if 'resources_dir' in inp_data_dict.keys():
+            # remove that entry so it doesnt get passed to the param_id script
+            # so the default dirs are used
+            del inp_data_dict['resources_dir']
+        if 'generated_models_dir' in inp_data_dict.keys():
+            del inp_data_dict['generated_models_dir']
+        if 'param_id_output_dir' in inp_data_dict.keys():
+            del inp_data_dict['param_id_output_dir']
+        
         print('running test for obs_data file creation with NKE pump model')
         inp_data_dict['file_prefix'] = 'NKE_pump'
         inp_data_dict['input_param_file'] = 'NKE_pump_parameters.csv'
@@ -54,18 +67,6 @@ if __name__ == '__main__':
         # now test the param id for the NKE pump model and the generated
         # obs_data file
         run_param_id(inp_data_dict)
-
-        # generate_with_new_architecture(False, inp_data_dict)
-        if 'user_inputs_path_override' in inp_data_dict.keys():
-            del inp_data_dict['user_inputs_path_override']
-        if 'resources_dir' in inp_data_dict.keys():
-            # remove that entry so it doesnt get passed to the param_id script
-            # so the default dirs are used
-            del inp_data_dict['resources_dir']
-        if 'generated_models_dir' in inp_data_dict.keys():
-            del inp_data_dict['generated_models_dir']
-        if 'param_id_output_dir' in inp_data_dict.keys():
-            del inp_data_dict['param_id_output_dir']
         
         print('')
         print('running 3compartment parameter id test')
@@ -154,7 +155,7 @@ if __name__ == '__main__':
             raise ValueError('fft cost is not zero. Failure!')
 
         print('')
-        print('running SN_to_cAMP parameter id test')
+        print('running SN_simple parameter id test')
         inp_data_dict['file_prefix'] = 'SN_simple'
         inp_data_dict['input_param_file'] = 'SN_simple_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
@@ -166,7 +167,7 @@ if __name__ == '__main__':
         inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
         inp_data_dict['dt'] = 0.0001
         inp_data_dict['DEBUG'] = True
-        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_to_cAMP_obs_data.json')
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_simple_obs_data.json')
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 30
         inp_data_dict['plot_predictions'] = True
