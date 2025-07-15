@@ -80,7 +80,7 @@ f_mid_PNDMV_PNDMV,Hz,14.1838,Gee2023
 k_PNDMV_PNDMV,dimensionless,13.3561,Gee2023
 tau_PNDMV_PNDMV,second,3.333,Gee2023
 G_Ts_heart_effector_T,second,-0.13,Gee2023
-G_Tv_heart_effector_T,second,0.09,Gee2023
+G_Tv_heart_effector_T,s2,0.09,Gee2023
 tau_Ts_heart_effector_T,second,2,Gee2023
 tau_Tv_heart_effector_T,second,1.5,Gee2023
 f_es_min,per_s,2.66,Gee2023
