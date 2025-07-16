@@ -24,7 +24,7 @@
         [
           {
             "port_type":"volume_stretch_port",
-            "variables":["q_A","q_b"]
+            "variables":["q_b"]
           },
           {
             "port_type":"thoracic_pressure_port",

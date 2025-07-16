@@ -260,15 +260,14 @@
                 <eq/>
                 <ci>P_b</ci>
                 <apply>
-                    <plus/>
-                    <apply>
-                        <divide/>
-                        <ci>q_b</ci>
-                        <ci>C_b</ci>
-                    </apply>
-                    <ci>P_pl</ci>
+                    <divide/>
+                    <ci>q_b</ci>
+                    <ci>C_b</ci>
                 </apply>
             </apply>
+            <!--+P_pl; removing pleural pressure from bronchioles
+ so we can use q_b for a volume for stretch. Now it varies about zero, meaning we don't need a threshold, or the threshold can be zero.
+ TODO change lung diagram.-->
             <apply>
                 <eq/>
                 <ci>v_bA</ci>
