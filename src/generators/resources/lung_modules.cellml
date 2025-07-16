@@ -355,18 +355,27 @@
                     <ci>R_plwall</ci>
                 </apply>
             </apply>
-            <!-- Dead space volume-->
+        </math>
+        <!-- Dead space volume
+ it shouldn't reach q_D_min but we have this here so the model doesn't crash if it does
+ should include more realistic tube laws that allow collapse instead.-->
+        <variable name="q_D_min" public_interface="in" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>q_D</ci>
                 <apply>
-                    <plus/>
-                    <ci>q_l</ci>
-                    <ci>q_t</ci>
-                    <ci>q_b</ci>
-                    <ci>q_l_us</ci>
-                    <ci>q_t_us</ci>
-                    <ci>q_b_us</ci>
+                    <max/>
+                    <apply>
+                        <plus/>
+                        <ci>q_l</ci>
+                        <ci>q_t</ci>
+                        <ci>q_b</ci>
+                        <ci>q_l_us</ci>
+                        <ci>q_t_us</ci>
+                        <ci>q_b_us</ci>
+                    </apply>
+                    <ci>q_D_min</ci>
                 </apply>
             </apply>
             <apply>

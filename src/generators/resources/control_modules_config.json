@@ -90,6 +90,10 @@
           ["alpha_2", "m3_per_J", "access", "global_constant"],
           ["beta_1", "m3_per_J", "access", "global_constant"],
           ["beta_2", "m3_per_J", "access", "global_constant"],
+          ["C_CO2_a_capped", "dimensionless", "access", "variable"],
+          ["C_O2_a_capped", "dimensionless", "access", "variable"],
+          ["overcap_solubility", "J_per_m3", "access", "global_constant"],
+          ["saturation_cap", "dimensionless", "access", "global_constant"],
           ["C_O2_sat", "dimensionless", "access", "global_constant"],
           ["C_CO2_sat", "dimensionless", "access", "global_constant"],
           ["alpha_O2", "m3_per_J", "access", "constant"]

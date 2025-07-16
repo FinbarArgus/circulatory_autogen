@@ -303,9 +303,15 @@
                             <ci>s_1</ci>
                         </apply>
                     </apply>
+                    <apply>
+                        <times/>
+                        <ci>overcap_solubility</ci>
+                        <ci>C_O2_a_extra_ub</ci>
+                    </apply>
                 </apply>
             </apply>
-            <!-- P_CO2_a = d_2*(1{dimensionless}+alpha_2*P_O2_p)/(1{dimensionless}+beta_2*P_O2_p);-->
+            <!-- P_CO2_a = d_2*(1{dimensionless}+alpha_2*P_O2_p)/(1{dimensionless}+beta_2*P_O2_p);
+ TODO I need to check this, it is different to the Ursino papers and to the gas exchange modules.-->
             <apply>
                 <eq/>
                 <ci>C_O2_a_diss</ci>
@@ -386,7 +392,57 @@
         <variable name="beta_2" public_interface="in" units="m3_per_J"/>
         <variable name="C_O2_sat" public_interface="in" units="dimensionless"/>
         <variable name="C_CO2_sat" public_interface="in" units="dimensionless"/>
+        <!-- including the below to avoid divide by zero problems. This probably isn't needed.-->
+        <variable name="C_O2_a_capped" public_interface="out" units="dimensionless"/>
+        <variable name="C_CO2_a_capped" public_interface="out" units="dimensionless"/>
+        <variable name="C_O2_a_extra_ub" public_interface="out" units="dimensionless"/>
+        <variable name="overcap_solubility" public_interface="in" units="J_per_m3"/>
+        <variable name="saturation_cap" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>C_O2_a_capped</ci>
+                <apply>
+                    <min/>
+                    <apply>
+                        <times/>
+                        <ci>C_O2_sat</ci>
+                        <ci>saturation_cap</ci>
+                    </apply>
+                    <ci>C_O2_a</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>C_CO2_a_capped</ci>
+                <apply>
+                    <min/>
+                    <apply>
+                        <times/>
+                        <ci>C_CO2_sat</ci>
+                        <ci>saturation_cap</ci>
+                    </apply>
+                    <ci>C_CO2_a</ci>
+                </apply>
+            </apply>
+            <!-- This is the amount that is extra in the plasma due to capping the amount that can be saturated.-->
+            <apply>
+                <eq/>
+                <ci>C_O2_a_extra_ub</ci>
+                <apply>
+                    <max/>
+                    <apply>
+                        <minus/>
+                        <ci>C_O2_a</ci>
+                        <apply>
+                            <times/>
+                            <ci>C_O2_sat</ci>
+                            <ci>saturation_cap</ci>
+                        </apply>
+                    </apply>
+                    <cn cellml:units="dimensionless">0</cn>
+                </apply>
+            </apply>
             <apply>
                 <eq/>
                 <ci>d_1</ci>
@@ -399,11 +455,11 @@
                             <power/>
                             <apply>
                                 <divide/>
-                                <ci>C_O2_a</ci>
+                                <ci>C_O2_a_capped</ci>
                                 <apply>
                                     <minus/>
                                     <ci>C_O2_sat</ci>
-                                    <ci>C_O2_a</ci>
+                                    <ci>C_O2_a_capped</ci>
                                 </apply>
                             </apply>
                             <ci>h_1</ci>
@@ -424,11 +480,11 @@
                             <power/>
                             <apply>
                                 <divide/>
-                                <ci>C_CO2_a</ci>
+                                <ci>C_CO2_a_capped</ci>
                                 <apply>
                                     <minus/>
                                     <ci>C_CO2_sat</ci>
-                                    <ci>C_CO2_a</ci>
+                                    <ci>C_CO2_a_capped</ci>
                                 </apply>
                             </apply>
                             <ci>h_2</ci>
@@ -1924,6 +1980,10 @@
                 </apply>
             </apply>
         </math>
+        <!-- TODO I think it would be better if we changed the control so that it uses a sigmoid rather than a ln, so
+ that the maximum control can be set. G_Es is now the maximum fraction of increase in E_lv that can occur.-->
+        <!-- ode(sigma_Es, t)         = (max(f_esh-f_esh_min, 0{per_s})-sigma_Es)/tau_Es;
+Delta_Es                 = G_Es*sigma_Es/(f_esh_min+sigma_Es);-->
         <!-- Emaxlv_vag&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
         <!-- s.57-->
         <variable name="sigma_Ev" public_interface="out" units="J_per_m6"/>
