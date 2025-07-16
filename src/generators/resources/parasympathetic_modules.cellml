@@ -797,7 +797,7 @@ endsel;-->
         <variable name="f_NTS_output" public_interface="out" units="Hz"/>
         <variable name="f_NA_input" public_interface="out" units="Hz"/>
         <variable name="k_RSA" public_interface="in" units="dimensionless"/>
-        <variable name="s" public_interface="in" units="dimensionless"/>
+        <variable name="s_floor" public_interface="in" units="dimensionless"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -818,7 +818,7 @@ endsel;-->
                         <ci>f_NTS_output</ci>
                         <apply>
                             <gt/>
-                            <ci>s</ci>
+                            <ci>s_floor</ci>
                             <cn cellml:units="dimensionless">0.4</cn>
                         </apply>
                     </piece>

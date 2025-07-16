@@ -418,7 +418,7 @@
           },
           {
             "port_type":"s_gating",
-            "variables":["s"]
+            "variables":["s_floor"]
           }
         ],
         "exit_ports":
@@ -432,7 +432,7 @@
         "general_ports":[],
         "variables_and_units":
         [
-          ["s", "dimensionless", "access", "boundary_condition"],
+          ["s_floor", "dimensionless", "access", "boundary_condition"],
           ["f_NA", "Hz", "access", "variable"],
           ["f_NTS_output", "Hz", "access", "variable"],
           ["f_NA_input", "Hz", "access", "variable"],
