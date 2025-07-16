@@ -260,15 +260,14 @@
                 <eq/>
                 <ci>P_b</ci>
                 <apply>
-                    <plus/>
-                    <apply>
-                        <divide/>
-                        <ci>q_b</ci>
-                        <ci>C_b</ci>
-                    </apply>
-                    <ci>P_pl</ci>
+                    <divide/>
+                    <ci>q_b</ci>
+                    <ci>C_b</ci>
                 </apply>
             </apply>
+            <!--+P_pl; removing pleural pressure from bronchioles
+ so we can use q_b for a volume for stretch. Now it varies about zero, meaning we don't need a threshold, or the threshold can be zero.
+ TODO change lung diagram.-->
             <apply>
                 <eq/>
                 <ci>v_bA</ci>
@@ -382,7 +381,7 @@
         </math>
         <!-- TODO + unstressed volume-->
         <variable initial_value="0.0" name="s" public_interface="out" units="dimensionless"/>
-        <variable name="mt" public_interface="out" units="dimensionless"/>
+        <variable name="s_floor" public_interface="out" units="dimensionless"/>
         <!-- calculate normalised time through this period-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -402,7 +401,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>mt</ci>
+                <ci>s_floor</ci>
                 <apply>
                     <minus/>
                     <ci>s</ci>
@@ -418,7 +417,7 @@
                 <ci>t_floor</ci>
                 <apply>
                     <times/>
-                    <ci>mt</ci>
+                    <ci>s_floor</ci>
                     <ci>T_resp</ci>
                 </apply>
             </apply>

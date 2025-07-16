@@ -24,11 +24,15 @@
         [
           {
             "port_type":"volume_stretch_port",
-            "variables":["q_A","q_b"]
+            "variables":["q_b"]
           },
           {
             "port_type":"thoracic_pressure_port",
             "variables":["P_mus"]
+          },
+          {
+            "port_type":"s_gating",
+            "variables":["s_floor"]
           }
         ],
         "general_ports":[],
@@ -77,7 +81,7 @@
           ["C_A", "m6_per_J", "access", "constant"],
           ["C_pl", "m6_per_J", "access", "constant"],
           ["s", "dimensionless", "access", "variable"],
-          ["mt", "dimensionless", "access", "variable"],
+          ["s_floor", "dimensionless", "access", "variable"],
           ["t_floor", "second", "access", "variable"],
           ["T_resp", "second", "access", "constant"],
           ["Delta_RR_resp", "per_s", "access", "boundary_condition"],
