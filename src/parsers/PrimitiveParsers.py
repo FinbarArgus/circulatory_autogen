@@ -175,6 +175,9 @@ class YamlFileParser(object):
         else:
             inp_data_dict['DEBUG'] = False
 
+        if not 'external_modules_dir' in inp_data_dict.keys():
+            inp_data_dict['external_modules_dir'] = None
+
         # for generation only
     
         inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix + '_vessel_array.csv')
@@ -322,11 +325,17 @@ class JSONFileParser(object):
         df = pd.DataFrame(json_obj)
         return df
 
-    def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir):
+    def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir, external_modules_dir):
         dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
                 for file in os.listdir(json_dir) if file.endswith('.json')]
         user_module_dfs = [self.json_to_dataframe(os.path.join(json_user_dir, file)) \
                 for file in os.listdir(json_user_dir) if file.endswith('.json')]
+        if external_modules_dir is not None:
+            external_module_dfs = [self.json_to_dataframe(os.path.join(external_modules_dir, file)) \
+                    for file in os.listdir(external_modules_dir) if file.endswith('.json')]
+        else:
+            external_module_dfs = []
+            
         df = None
         for json_df in dfs:
             if df is None:
@@ -338,6 +347,8 @@ class JSONFileParser(object):
 
         for user_module_df in user_module_dfs:
             df = pd.concat([df, user_module_df], ignore_index=True)
+        for external_module_df in external_module_dfs:
+            df = pd.concat([df, external_module_df], ignore_index=True)
         return df
 
     def append_module_config_info_to_vessel_df(self, vessel_df, module_df):

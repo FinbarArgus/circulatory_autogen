@@ -41,7 +41,7 @@ class CVS0DCppGenerator(object):
     '''
 
 
-    def __init__(self, model, generated_model_subdir, filename_prefix, resources_dir=None, 
+    def __init__(self, model, generated_model_subdir, file_prefix, resources_dir=None, 
                  solver='CVODE', couple_to_1d=False, cpp_generated_models_dir=None,
                  cpp_1d_model_config_path=None):
         '''
@@ -55,18 +55,18 @@ class CVS0DCppGenerator(object):
         self.generated_model_subdir = generated_model_subdir
         if not os.path.exists(self.generated_model_subdir):
             os.mkdir(self.generated_model_subdir)
-        self.filename_prefix = filename_prefix
-        self.filename_prefix_with_ids = f'{self.filename_prefix}-with-ids'
+        self.file_prefix = file_prefix
+        self.file_prefix_with_ids = f'{self.file_prefix}-with-ids'
         if resources_dir is None:
             self.resources_dir = os.path.join(generators_dir_path, '../../resources')
         else:
             self.resources_dir = resources_dir 
         self.generated_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix + '.cellml')
+                                                      self.file_prefix + '.cellml')
         self.generated_wID_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix_with_ids + '.cellml')
+                                                      self.file_prefix_with_ids + '.cellml')
         self.annotated_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix_with_ids + '--annotations.ttl')
+                                                      self.file_prefix_with_ids + '--annotations.ttl')
         
         self.cellml_model = None 
         self.couple_to_1d = couple_to_1d
@@ -74,7 +74,7 @@ class CVS0DCppGenerator(object):
             self.output_cpp_file_name = "model0d" # always the same, independent of model name, to allow
                                                        # for coupling to cpp 1d model.
         else:
-            self.output_cpp_file_name = self.filename_prefix
+            self.output_cpp_file_name = self.file_prefix
         self.external_headers = []
         if self.couple_to_1d:
             self.cpp_1d_model_config_path = cpp_1d_model_config_path
@@ -322,7 +322,7 @@ class CVS0DCppGenerator(object):
 
     def generate_cellml(self):
         print("generating CellML files, before Cpp generation")
-        cellml_generator = CVS0DCellMLGenerator(self.model, self.generated_model_subdir, self.filename_prefix)
+        cellml_generator = CVS0DCellMLGenerator(self.model, self.generated_model_subdir, self.file_prefix)
         cellml_generator.generate_files()
 
     def set_annotated_model_file_path(self, annotated_model_file_path):
@@ -559,7 +559,7 @@ class CVS0DCppGenerator(object):
         
         model_string = cellml.print_model(flat_model)
         
-        with open(os.path.join(self.generated_model_subdir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+        with open(os.path.join(self.generated_model_subdir, self.file_prefix + '_flat.cellml'), 'w') as f:
             f.write(model_string)
 
         # analyse the model
@@ -1760,7 +1760,7 @@ class CVS1DCppGenerator(object):
     '''
 
 
-    def __init__(self, model, output_path, filename_prefix):
+    def __init__(self, model, output_path, file_prefix):
         '''
         Constructor
         '''
@@ -1768,7 +1768,7 @@ class CVS1DCppGenerator(object):
         self.output_path = output_path
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
-        self.filename_prefix = filename_prefix
+        self.file_prefix = file_prefix
         self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
 
     
@@ -1780,7 +1780,7 @@ class CVSCoupledCppGenerator(object):
     Generates Cpp files for coupled 0D and 1D models.
     '''
     
-    def __init__(self, model, output_path, filename_prefix):
+    def __init__(self, model, output_path, file_prefix):
         '''
         Constructor
         '''
@@ -1788,15 +1788,15 @@ class CVSCoupledCppGenerator(object):
         self.output_path = output_path
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
-        self.filename_prefix = filename_prefix
+        self.file_prefix = file_prefix
         self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
     
     def generate_files(self):
-        zeroD_generator = CVS0DCppGenerator(self.model, self.output_path, self.filename_prefix)
+        zeroD_generator = CVS0DCppGenerator(self.model, self.output_path, self.file_prefix)
         zeroD_generator.generate_files()
 
         # currently we don't generate the 1D model, we assume it is already generated.
-        # oneD_generator = CVS1DCppGenerator(self.model, self.output_path, self.filename_prefix)
+        # oneD_generator = CVS1DCppGenerator(self.model, self.output_path, self.file_prefix)
         # oneD_generator.generate_files()
         print("now do the coupling")
 

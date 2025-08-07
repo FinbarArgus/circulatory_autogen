@@ -39,17 +39,15 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
 
     if do_generation_with_fit_parameters:
         param_id_output_dir_abs_path = inp_data_dict['param_id_output_dir_abs_path']
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
-                                  param_id_output_dir_abs_path)
+        parser = CSV0DModelParser(inp_data_dict, parameter_id_dir=param_id_output_dir_abs_path)
     else:
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path)
+        parser = CSV0DModelParser(inp_data_dict)
 
     model = parser.load_model()
 
 
     if inp_data_dict['model_type'] == 'cellml_only':
-        code_generator = CVS0DCellMLGenerator(model, generated_models_subdir, file_prefix,
-                                          resources_dir=resources_dir)
+        code_generator = CVS0DCellMLGenerator(model, inp_data_dict)
         success = code_generator.generate_files()
     elif inp_data_dict['model_type'] == 'cpp':
         if inp_data_dict['couple_to_1d']:
