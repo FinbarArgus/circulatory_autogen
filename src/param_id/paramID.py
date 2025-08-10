@@ -2329,7 +2329,7 @@ class OpencorParamID():
                         np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
                     #count the repeat number
                     if last_loss is not None:
-                        if abs(cost[0]-last_loss) <1e-7:
+                        if abs(cost[0]-last_loss) < self.ga_options["cost_convergence"]:
                             loss_repeat_counter += 1
                         else:
                             loss_repeat_counter = 0
