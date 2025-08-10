@@ -1090,7 +1090,7 @@
           },
           {
             "port_type":"pressure_and_deriv_port",
-            "variables":["u_C","du_C_dt"]
+            "variables":["u","du_C_dt"]
           },
           
           {
@@ -1161,7 +1161,7 @@
           },
           {
             "port_type":"pressure_and_deriv_port",
-            "variables":["u_C","du_C_dt"]
+            "variables":["u","du_C_dt"]
           },
           
           {
@@ -5523,7 +5523,7 @@
           },
           {
             "port_type":"pressure_and_deriv_port",
-            "variables":["u_C","du_C_dt"]
+            "variables":["u","du_C_dt"]
           },
           {
             "port_type":"volume_port",
@@ -5570,7 +5570,7 @@
           },
           {
             "port_type":"pressure_and_deriv_port",
-            "variables":["u_C","du_C_dt"]
+            "variables":["u","du_C_dt"]
           },
           {
             "port_type":"volume_port",
