@@ -46,7 +46,7 @@
         <variable name="R_lt" public_interface="in" units="Js_per_m6"/>
         <variable name="R_tb" public_interface="in" units="Js_per_m6"/>
         <variable name="R_bA" public_interface="in" units="Js_per_m6"/>
-        <variable name="R_scale" public_interface="in" units="dimensionless"/>
+        <variable name="alpha_LR" public_interface="in" units="dimensionless"/>
         <variable name="R_plwall" public_interface="in" units="Js_per_m6"/>
         <!-- ______  Compliances_________-->
         <variable name="C_l" public_interface="in" units="m6_per_J"/>
@@ -141,7 +141,7 @@
                     <apply>
                         <times/>
                         <ci>R_ml</ci>
-                        <ci>R_scale</ci>
+                        <ci>alpha_LR</ci>
                     </apply>
                 </apply>
             </apply>
@@ -182,7 +182,7 @@
                     <apply>
                         <times/>
                         <ci>R_lt</ci>
-                        <ci>R_scale</ci>
+                        <ci>alpha_LR</ci>
                     </apply>
                 </apply>
             </apply>
@@ -232,7 +232,7 @@
                     <apply>
                         <times/>
                         <ci>R_tb</ci>
-                        <ci>R_scale</ci>
+                        <ci>alpha_LR</ci>
                     </apply>
                 </apply>
             </apply>
@@ -281,7 +281,7 @@
                     <apply>
                         <times/>
                         <ci>R_bA</ci>
-                        <ci>R_scale</ci>
+                        <ci>alpha_LR</ci>
                     </apply>
                 </apply>
             </apply>

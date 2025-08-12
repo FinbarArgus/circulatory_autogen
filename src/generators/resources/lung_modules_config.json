@@ -75,7 +75,7 @@
           ["R_tb", "Js_per_m6", "access", "constant"],
           ["R_bA", "Js_per_m6", "access", "constant"],
           ["R_plwall", "Js_per_m6", "access", "constant"],
-          ["R_scale", "dimensionless", "access", "constant"],
+          ["alpha_LR", "dimensionless", "access", "constant"],
           ["C_l", "m6_per_J", "access", "constant"],
           ["C_t", "m6_per_J", "access", "constant"],
           ["C_b", "m6_per_J", "access", "constant"],
