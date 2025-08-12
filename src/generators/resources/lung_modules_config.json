@@ -24,7 +24,7 @@
         [
           {
             "port_type":"volume_stretch_port",
-            "variables":["q_b"]
+            "variables":["q_str"]
           },
           {
             "port_type":"thoracic_pressure_port",
@@ -63,6 +63,7 @@
           ["q_t_us", "m3", "access", "constant"],
           ["q_b_us", "m3", "access", "constant"],
           ["q_A_us", "m3", "access", "constant"],
+          ["q_str", "m3", "access", "variable"],
           ["v_ml", "m3_per_s", "access", "variable"],
           ["v_lt", "m3_per_s", "access", "variable"],
           ["v_tb", "m3_per_s", "access", "variable"],

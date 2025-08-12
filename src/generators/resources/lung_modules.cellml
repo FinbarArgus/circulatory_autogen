@@ -33,6 +33,7 @@
         <variable name="q_A" public_interface="out" units="m3"/>
         <variable initial_value="0.0" name="q_pl" public_interface="out" units="m3"/>
         <variable name="q_D" public_interface="out" units="m3"/>
+        <variable name="q_str" public_interface="out" units="m3"/>
         <!-- ______  flows _________-->
         <variable name="v_ml" public_interface="out" units="m3_per_s"/>
         <variable name="v_lt" public_interface="out" units="m3_per_s"/>
@@ -260,14 +261,47 @@
                 <eq/>
                 <ci>P_b</ci>
                 <apply>
-                    <divide/>
-                    <ci>q_b</ci>
-                    <ci>C_b</ci>
+                    <plus/>
+                    <apply>
+                        <divide/>
+                        <ci>q_b</ci>
+                        <ci>C_b</ci>
+                    </apply>
+                    <ci>P_pl</ci>
                 </apply>
             </apply>
-            <!--+P_pl; removing pleural pressure from bronchioles
- so we can use q_b for a volume for stretch. Now it varies about zero, meaning we don't need a threshold, or the threshold can be zero.
- TODO change lung diagram.-->
+            <!-- removing pleural pressure from bronchioles
+ allows us to use q_b for a volume for stretch. This makes it varies about zero, 
+ meaning we don't need a threshold, or the threshold can be zero.
+ However, it's not physiological, so I am trying to fix it here.
+ calculate the amount of stretched volume above baseline level.
+ assuming a quater of the way from end expiratory pressure to min is baseline.-->
+            <apply>
+                <eq/>
+                <ci>q_str</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_b</ci>
+                    <apply>
+                        <times/>
+                        <ci>C_b</ci>
+                        <apply>
+                            <plus/>
+                            <ci>P_plEE</ci>
+                            <apply>
+                                <divide/>
+                                <apply>
+                                    <minus/>
+                                    <ci>P_mus_min</ci>
+                                    <ci>P_plEE</ci>
+                                </apply>
+                                <cn cellml:units="dimensionless">4</cn>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!-- TODO change lung diagram.-->
             <apply>
                 <eq/>
                 <ci>v_bA</ci>
