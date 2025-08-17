@@ -1570,6 +1570,10 @@ class CVS0DParamID():
                                                             for JJ in range(input_params.shape[0])])
                 else:
                     self.param_id_info["param_names_for_plotting"] = np.array([param_name[0] for param_name in self.param_id_info["param_names"]])
+                # check that max is greater than min
+                for JJ in range(len(self.param_id_info["param_mins"])):
+                    if self.param_id_info["param_maxs"][JJ] <= self.param_id_info["param_mins"][JJ]:
+                        raise ValueError(f"Parameter {self.param_id_info['param_names'][JJ]} has max <= min")
 
             # set param_priors
             if "prior" in input_params.columns:
