@@ -35,7 +35,7 @@ class ProtocolRunner():
         self.MaximumStep = inp_data_dict['solver_info']['MaximumStep']
         self.MaximumNumberOfSteps = inp_data_dict['solver_info']['MaximumNumberOfSteps']
         
-        sim_time = inp_data_dict['sim_time'] # this will be overridden by the protocol_info later
+        sim_time = 1.0 # this will be overridden by the protocol_info later
         self.sim_helper = SimulationHelper(model_path, self.dt, sim_time, solver_info={'MaximumNumberOfSteps':self.MaximumNumberOfSteps, 
                                                                                        'MaximumStep':self.MaximumStep})
         self.variable_names = self.sim_helper.get_all_variable_names()
