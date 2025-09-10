@@ -1,0 +1,65 @@
+import sys
+import os
+from mpi4py import MPI
+root_dir = os.path.join(os.path.dirname(__file__), '../..')
+sys.path.append(os.path.join(root_dir, 'src'))
+from sensitivity_analysis.SA import CVS0D_SA
+import traceback
+import yaml
+from parsers.PrimitiveParsers import YamlFileParser
+
+def run_SA(inp_data_dict=None):
+
+    yaml_parser = YamlFileParser()
+    inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=True, do_generation_with_fit_parameters=False)
+
+    DEBUG = inp_data_dict['DEBUG']
+    model_path = inp_data_dict['model_path']
+    model_type = inp_data_dict['model_type']
+    # SA_method = inp_data_dict['SA_method']
+    file_prefix = inp_data_dict['file_prefix']
+    params_for_id_path = inp_data_dict['params_for_id_path']
+    param_id_obs_path = inp_data_dict['param_id_obs_path']
+    sim_time = inp_data_dict['sim_time']
+    pre_time = inp_data_dict['pre_time']
+    solver_info = inp_data_dict['solver_info']
+    dt = inp_data_dict['dt']
+    # resources_dir = inp_data_dict['resources_dir']
+    SA_output_dir = inp_data_dict['param_id_output_dir']
+    print(f'SA output dir: {SA_output_dir}')
+    # param_orig_vals = inp_data_dict['param_orig_vals']
+    # num_samples = inp_data_dict['num_samples']
+    # lower_bound_factor = inp_data_dict['lower_bound_factor']
+    # upper_bound_factor = inp_data_dict['upper_bound_factor']
+    model_out_names = inp_data_dict['model_out_names']
+
+    protocol_info = {
+        'pre_times': [pre_time],
+        'sim_times': [[sim_time]],
+        'dt': dt,
+    }
+    print(protocol_info)
+    param_orig_vals = [1e3]
+    SA_cfg = {
+        "sample_type" : 'saltelli',
+        "param_names": ["pvn/R", "par/R"],
+        "num_samples": 2,
+        "param_mins": [0.5 * val for val in param_orig_vals],
+        "param_maxs": [2.0 * val for val in param_orig_vals]
+    }
+
+    if DEBUG:
+        print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
+
+    SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
+                          SA_output_dir, param_id_path=param_id_obs_path,verbose=DEBUG)
+    S1_all, ST_all, S2_all = SA_manager.run()
+    SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
+    SA_manager.plot_sobol_S2_idx(S2_all)
+
+if __name__ == '__main__':
+    try:
+        run_SA()
+    except:
+        print(traceback.format_exc())
+        exit(1)
