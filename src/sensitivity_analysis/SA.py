@@ -19,6 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from parsers.PrimitiveParsers import scriptFunctionParser
+from mpi4py import MPI
 
 class CVS0D_SA():
 
@@ -32,7 +33,7 @@ class CVS0D_SA():
     """
         
     def __init__(self, model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
-                 save_path, param_id_path = None, verbose=False):
+                 save_path, param_id_path = None, use_MPI = False, verbose=False):
 
         """
         Initializes the Sensitivity_analysis class.
@@ -83,9 +84,16 @@ class CVS0D_SA():
 
         self.set_output_dir(save_path)
 
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.num_procs = self.comm.Get_size()
+        self.use_mpi = use_MPI
+
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 solver_info=self.solver_info, pre_time=self.pre_time)
+
+
 
     def __set_obs_names_and_df(self, param_id_obs_path, pre_time=None, sim_time=None):
         # TODO this function should be in the parsing section. as it parses the 
@@ -495,12 +503,60 @@ class CVS0D_SA():
                 features.append(feature)
 
             outputs.append(features)
+            self.sim_helper.reset_and_clear()
 
             if self.verbose:
                 print(f"Iteration {i+1}/{len(samples)}: Features extracted.")
 
         outputs = np.array(outputs)  # Convert to 2D numpy array: (n_samples, n_features)
         return outputs
+    
+    def generate_outputs_mpi(self, samples):
+        # Split the samples across ranks
+        n_samples = len(samples)
+        samples_per_rank = n_samples // self.num_procs
+        remainder = n_samples % self.num_procs
+
+        # Determine the start and end indices for this rank
+        if self.rank < remainder:
+            start = self.rank * (samples_per_rank + 1)
+            end = start + samples_per_rank + 1
+        else:
+            start = self.rank * samples_per_rank + remainder
+            end = start + samples_per_rank
+
+        local_samples = samples[start:end]
+
+        print(f"[MPI Rank {self.rank}] Processing samples {start}:{end} (total {len(local_samples)})")
+
+        # Each rank computes its chunk
+        local_outputs = []
+        for i, param_vals in enumerate(local_samples):
+            # if self.verbose:
+            #     print(f"[MPI Rank {self.rank}] Processing local sample {i+1}/{len(local_samples)}")
+            operands_outputs = self.run_model_and_get_results(param_vals)
+            features = []
+            for j in range(len(self.obs_info["operands"])):
+                feature = self.operation_funcs_dict[self.obs_info["operations"][j]](
+                    *operands_outputs[j], **self.obs_info["operation_kwargs"][j]
+                )
+                features.append(feature)
+            local_outputs.append(features)
+
+        print(f"[MPI Rank {self.rank}] Processing samples {start}:{end} (total {len(local_samples)})")
+        print(f"[MPI Rank {self.rank}] Finished processing local samples.")
+
+        # Gather results at rank 0
+        all_outputs = self.comm.gather(local_outputs, root=0)
+
+        if self.rank == 0:
+            # Flatten the list of lists
+            outputs = [item for sublist in all_outputs for item in sublist]
+            outputs = np.array(outputs)
+            print(f"[MPI Rank 0] Gathered and flattened all outputs. Total outputs: {outputs.shape}")
+            return outputs
+        else:
+            return None
     
     def sobol_index(self, outputs):
 
@@ -577,10 +633,15 @@ class CVS0D_SA():
 
     def run(self):
         samples = self.generate_samples()
-        outputs = self.generate_outputs(samples)
-        S1_all, ST_all, S2_all = self.sobol_index(outputs)
-        
-        return S1_all, ST_all, S2_all
-    
-
+        if self.use_mpi:
+            outputs = self.generate_outputs_mpi(samples)
+            if self.rank == 0:
+                S1_all, ST_all, S2_all = self.sobol_index(outputs)
+                return S1_all, ST_all, S2_all
+            else:
+                return None, None, None
+        else:
+            outputs = self.generate_outputs(samples)
+            S1_all, ST_all, S2_all = self.sobol_index(outputs)
+            return S1_all, ST_all, S2_all
 
