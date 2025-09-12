@@ -20,6 +20,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
+from parsers.PrimitiveParsers import CSVFileParser
+import csv
 
 class CVS0D_SA():
 
@@ -33,7 +35,7 @@ class CVS0D_SA():
     """
         
     def __init__(self, model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
-                 save_path, param_id_path = None, use_MPI = False, verbose=False):
+                 save_path, param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False):
 
         """
         Initializes the Sensitivity_analysis class.
@@ -55,9 +57,8 @@ class CVS0D_SA():
         self.save_path = save_path
 
         self.solver_info = solver_info
-        self.SA_cfg = SA_cfg
-        self.sample_type = self.SA_cfg["sample_type"]
-        self.num_params = len(self.SA_cfg["param_names"])
+        self.sample_type = SA_cfg["sample_type"]
+        self.num_params = None
         self.model_output_names = model_out_names
 
         # set up opencor simulation
@@ -89,11 +90,104 @@ class CVS0D_SA():
         self.num_procs = self.comm.Get_size()
         self.use_mpi = use_MPI
 
+        self.params_for_id_path = params_for_id_path
+        if self.params_for_id_path:
+            self.__set_and_save_param_names()
+        self.SA_cfg = self.create_SA_cfg(self.sample_type, SA_cfg["num_samples"])
+
+    def create_SA_cfg(self, sample_type, num_samples):
+        
+        # Use param_id_info to build SA_cfg dynamically
+        if not hasattr(self, "param_id_info") or not self.param_id_info:
+            raise ValueError("param_id_info is not set. Please run __set_and_save_param_names() first.")
+
+        SA_cfg = {
+            "sample_type": sample_type,
+            "param_names": [name[0] if isinstance(name, list) else name for name in self.param_id_info["param_names"]],
+            "num_samples": num_samples,
+            "param_mins": list(self.param_id_info["param_mins"]),
+            "param_maxs": list(self.param_id_info["param_maxs"])
+        }
+
+        if self.verbose:
+            print("Sensitivity Analysis Configuration:")
+            print(json.dumps(SA_cfg, indent=4))
+
+        self.num_params = len(SA_cfg["param_names"])
+
+        return SA_cfg
+
+    def __set_and_save_param_names(self, idxs_to_ignore=None):
+        # This should also be a function under parsers.
+
+        # Each entry in param_names is a name or list of names that gets modified by one parameter
+        self.param_id_info = {}
+        if self.params_for_id_path:
+            csv_parser = CSVFileParser()
+            input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
+            self.param_id_info["param_names"] = []
+            param_names_for_gen = []
+            for II in range(input_params.shape[0]):
+                if idxs_to_ignore is not None:
+                    if II in idxs_to_ignore:
+                        continue
+                self.param_id_info["param_names"].append([input_params["vessel_name"][II][JJ] + '/' +
+                                               input_params["param_name"][II]for JJ in
+                                               range(len(input_params["vessel_name"][II]))])
+
+                if input_params["vessel_name"][II][0] == 'global':
+                    param_names_for_gen.append([input_params["param_name"][II]])
+
+                else:
+                    param_names_for_gen.append([input_params["param_name"][II] + '_' +
+                                                input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
+                                                for JJ in range(len(input_params["vessel_name"][II]))])
+
+            # set param ranges from file and strings for plotting parameter names
+            if idxs_to_ignore is not None:
+                self.param_id_info["param_mins"] = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])
+                                            if JJ not in idxs_to_ignore])
+                self.param_id_info["param_maxs"] = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])
+                                            if JJ not in idxs_to_ignore])
+                if "name_for_plotting" in input_params.columns:
+                    self.param_id_info["param_names_for_plotting"] = np.array([input_params["name_for_plotting"][JJ]
+                                                            for JJ in range(input_params.shape[0])
+                                                            if JJ not in idxs_to_ignore])
+                else:
+                    self.param_id_info["param_names_for_plotting"] = np.array([self.param_id_info["param_names"][JJ][0]
+                                                            for JJ in range(len(self.param_id_info["param_names"]))
+                                                            if JJ not in idxs_to_ignore])
+            else:
+                self.param_id_info["param_mins"] = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
+                self.param_id_info["param_maxs"] = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
+                if "name_for_plotting" in input_params.columns:
+                    self.param_id_info["param_names_for_plotting"] = np.array([input_params["name_for_plotting"][JJ]
+                                                            for JJ in range(input_params.shape[0])])
+                else:
+                    self.param_id_info["param_names_for_plotting"] = np.array([param_name[0] for param_name in self.param_id_info["param_names"]])
+
+            # set param_priors
+            if "prior" in input_params.columns:
+                self.param_id_info["param_prior_types"] = np.array([input_params["prior"][JJ] for JJ in range(input_params.shape[0])])
+            else:
+                self.param_id_info["param_prior_types"] = np.array(["uniform" for JJ in range(input_params.shape[0])])
+
+
+        else:
+            print(f'params_for_id_path cannot be None, exiting')
+
+        if self.rank == 0:
+            with open(os.path.join(self.output_dir, 'param_names.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(self.param_id_info["param_names"])
+            with open(os.path.join(self.output_dir, 'param_names_for_gen.csv'), 'w') as f:
+                wr = csv.writer(f)
+                wr.writerows(param_names_for_gen)
+        return
+
     def initialise_sim_helper(self):
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 solver_info=self.solver_info, pre_time=self.pre_time)
-
-
 
     def __set_obs_names_and_df(self, param_id_obs_path, pre_time=None, sim_time=None):
         # TODO this function should be in the parsing section. as it parses the 

@@ -39,20 +39,17 @@ def run_SA(inp_data_dict=None):
         'dt': dt,
     }
     print(protocol_info)
-    param_orig_vals = [1e3]
     SA_cfg = {
         "sample_type" : 'saltelli',
-        "param_names": ["pvn/R", "par/R"],
         "num_samples": 2,
-        "param_mins": [0.5 * val for val in param_orig_vals],
-        "param_maxs": [2.0 * val for val in param_orig_vals]
     }
 
     if DEBUG:
         print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
 
     SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
-                          SA_output_dir, param_id_path=param_id_obs_path,verbose=DEBUG)
+                          SA_output_dir, param_id_path=param_id_obs_path, params_for_id_path=params_for_id_path,
+                          verbose=DEBUG, use_MPI=True)
     S1_all, ST_all, S2_all = SA_manager.run()
     SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
     SA_manager.plot_sobol_S2_idx(S2_all)
