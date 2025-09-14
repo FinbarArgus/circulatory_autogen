@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
 import math as math
 import opencor as oc
 from opencor_helper import SimulationHelper
-from SALib.sample import saltelli, sobol
+from SALib.sample import saltelli
 import pandas as pd
 from SALib.analyze import sobol
 import numpy as np
@@ -22,6 +22,7 @@ from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
 from parsers.PrimitiveParsers import CSVFileParser
 import csv
+from tqdm import tqdm  # make sure tqdm is installed
 
 class CVS0D_SA():
 
@@ -109,9 +110,9 @@ class CVS0D_SA():
             "param_maxs": list(self.param_id_info["param_maxs"])
         }
 
-        if self.verbose:
-            print("Sensitivity Analysis Configuration:")
-            print(json.dumps(SA_cfg, indent=4))
+        # if self.verbose:
+        #     print("Sensitivity Analysis Configuration:")
+        #     print(json.dumps(SA_cfg, indent=4))
 
         self.num_params = len(SA_cfg["param_names"])
 
@@ -606,12 +607,11 @@ class CVS0D_SA():
         return outputs
     
     def generate_outputs_mpi(self, samples):
-        # Split the samples across ranks
+        # Split samples across ranks
         n_samples = len(samples)
         samples_per_rank = n_samples // self.num_procs
         remainder = n_samples % self.num_procs
 
-        # Determine the start and end indices for this rank
         if self.rank < remainder:
             start = self.rank * (samples_per_rank + 1)
             end = start + samples_per_rank + 1
@@ -621,39 +621,41 @@ class CVS0D_SA():
 
         local_samples = samples[start:end]
 
-        print(f"[MPI Rank {self.rank}] Processing samples {start}:{end} (total {len(local_samples)})")
+        print(f"[MPI Rank {self.rank}] Starting samples {start}:{end} (total {len(local_samples)})")
 
-        # Each rank computes its chunk
         local_outputs = []
-        for i, param_vals in enumerate(local_samples):
-            # if self.verbose:
-            #     print(f"[MPI Rank {self.rank}] Processing local sample {i+1}/{len(local_samples)}")
-            operands_outputs = self.run_model_and_get_results(param_vals)
-            features = []
-            for j in range(len(self.obs_info["operands"])):
-                feature = self.operation_funcs_dict[self.obs_info["operations"][j]](
-                    *operands_outputs[j], **self.obs_info["operation_kwargs"][j]
-                )
-                features.append(feature)
-            local_outputs.append(features)
 
-        print(f"[MPI Rank {self.rank}] Processing samples {start}:{end} (total {len(local_samples)})")
-        print(f"[MPI Rank {self.rank}] Finished processing local samples.")
+        # Create a single progress bar for this rank
+        with tqdm(total=len(local_samples), desc=f"Rank {self.rank}", position=self.rank, leave=True) as pbar:
+            for param_vals in local_samples:
+                operands_outputs = self.run_model_and_get_results(param_vals)
+                features = [
+                    self.operation_funcs_dict[self.obs_info["operations"][j]](
+                        *operands_outputs[j], **self.obs_info["operation_kwargs"][j]
+                    )
+                    for j in range(len(self.obs_info["operands"]))
+                ]
+                local_outputs.append(features)
+                pbar.update(1)  # update the progress bar by 1
+
+        print(f"[MPI Rank {self.rank}] Finished processing samples {start}:{end}")
 
         # Gather results at rank 0
         all_outputs = self.comm.gather(local_outputs, root=0)
 
         if self.rank == 0:
-            # Flatten the list of lists
             outputs = [item for sublist in all_outputs for item in sublist]
             outputs = np.array(outputs)
             print(f"[MPI Rank 0] Gathered and flattened all outputs. Total outputs: {outputs.shape}")
             return outputs
         else:
             return None
-    
+
     def sobol_index(self, outputs):
 
+        if self.rank !=0:
+            return None, None, None
+        
         outputs = np.array(outputs)
     
         if outputs.ndim == 1:
@@ -665,7 +667,6 @@ class CVS0D_SA():
         S2_all = np.zeros((n_outputs, self.num_params, self.num_params))
 
         for i in range(n_outputs):
-            print(f">>>>>>>>>>>>>>>>    outputs: {len(outputs[:,i])}")
             Si = sobol.analyze(self.problem, outputs[:,i], print_to_console=self.verbose)
             S1_all[i, :] = Si['S1']
             ST_all[i, :] = Si['ST']
@@ -674,6 +675,10 @@ class CVS0D_SA():
         return S1_all, ST_all, S2_all
 
     def plot_sobol_first_order_idx(self, S1_all, ST_all):
+
+        if self.rank !=0:
+            return
+        
         """
         Plot first-order and total-order Sobol indices for multiple outputs.
 
@@ -710,6 +715,10 @@ class CVS0D_SA():
         Parameters:
             S2_all (np.ndarray): Second-order indices, shape (n_outputs, n_params, n_params)
         """
+
+        if self.rank !=0:
+            return
+        
         n_outputs = S2_all.shape[0]
 
         for i in range(n_outputs):
@@ -731,6 +740,7 @@ class CVS0D_SA():
             outputs = self.generate_outputs_mpi(samples)
             if self.rank == 0:
                 S1_all, ST_all, S2_all = self.sobol_index(outputs)
+                # print(f">>>>>>>>>>  {S1_all}, {ST_all}, {S2_all}")
                 return S1_all, ST_all, S2_all
             else:
                 return None, None, None

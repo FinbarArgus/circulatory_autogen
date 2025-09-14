@@ -7,8 +7,12 @@ from sensitivity_analysis.SA import CVS0D_SA
 import traceback
 import yaml
 from parsers.PrimitiveParsers import YamlFileParser
+from mpi4py import MPI
 
 def run_SA(inp_data_dict=None):
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
 
     yaml_parser = YamlFileParser()
     inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=True, do_generation_with_fit_parameters=False)
@@ -26,7 +30,10 @@ def run_SA(inp_data_dict=None):
     dt = inp_data_dict['dt']
     # resources_dir = inp_data_dict['resources_dir']
     SA_output_dir = inp_data_dict['param_id_output_dir']
-    print(f'SA output dir: {SA_output_dir}')
+    
+    if rank == 0:
+        print(f"SA output dir: {SA_output_dir}")
+
     # param_orig_vals = inp_data_dict['param_orig_vals']
     # num_samples = inp_data_dict['num_samples']
     # lower_bound_factor = inp_data_dict['lower_bound_factor']
@@ -38,25 +45,33 @@ def run_SA(inp_data_dict=None):
         'sim_times': [[sim_time]],
         'dt': dt,
     }
-    print(protocol_info)
+    if rank == 0:
+        print(protocol_info)
+
     SA_cfg = {
         "sample_type" : 'saltelli',
-        "num_samples": 2,
+        "num_samples": 512,
     }
 
-    if DEBUG:
+    if DEBUG and rank == 0:
         print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
 
     SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
                           SA_output_dir, param_id_path=param_id_obs_path, params_for_id_path=params_for_id_path,
-                          verbose=DEBUG, use_MPI=True)
+                          verbose=False, use_MPI=True)
     S1_all, ST_all, S2_all = SA_manager.run()
-    SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
-    SA_manager.plot_sobol_S2_idx(S2_all)
+
+    if rank == 0:
+        # print(f">>>>>>{S1_all}")
+        SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
+        SA_manager.plot_sobol_S2_idx(S2_all)
+
+    MPI.Finalize()
 
 if __name__ == '__main__':
+    comm = MPI.COMM_WORLD
     try:
         run_SA()
     except:
         print(traceback.format_exc())
-        exit(1)
+        comm.Abort()
