@@ -576,35 +576,40 @@ class CVS0D_SA():
         self.sim_helper.set_param_vals(self.SA_cfg["param_names"], param_vals)
         self.sim_helper.reset_states()
         self.sim_helper.run()
-        
+
         # y = self.sim_helper.get_results(self.model_output_names)
         # t = self.sim_helper.tSim - self.pre_time
         # return y, t
         return self.sim_helper.get_results(self.obs_info["operands"])
 
-    def generate_outputs(self, samples):
+    # def generate_outputs(self, samples):
         
-        outputs = []
-        for i in range(len(samples)):
+    #     outputs = []
+    #     for i in range(len(samples)):
 
-            current_param_val = samples[i, :]
-            operands_outputs = self.run_model_and_get_results(current_param_val)
+    #         current_param_val = samples[i, :]
+    #         operands_outputs = self.run_model_and_get_results(current_param_val)
             
-            # Extract features using the provided feature_extractor function with additional arguments
-            features = []
-            for j in range(len(self.obs_info["operands"])):
+    #         # Extract features using the provided feature_extractor function with additional arguments
+    #         features = []
+    #         for j in range(len(self.obs_info["operands"])):
                  
-                feature = self.operation_funcs_dict[self.obs_info["operations"][j]](*operands_outputs[j], **self.obs_info["operation_kwargs"][j]) 
-                features.append(feature)
+    #             func = self.operation_funcs_dict[self.obs_info["operations"][j]]
+    #             # Check if the function has 'sensitivity_only' attribute and it's True
+    #             if hasattr(func, 'sensitivity_only') and func.sensitivity_only:
+    #                 feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
+    #             else:
+    #                 feature = None
+    #             features.append(feature)
 
-            outputs.append(features)
-            self.sim_helper.reset_and_clear()
+    #         outputs.append(features)
+    #         self.sim_helper.reset_and_clear()
 
-            if self.verbose:
-                print(f"Iteration {i+1}/{len(samples)}: Features extracted.")
+    #         if self.verbose:
+    #             print(f"Iteration {i+1}/{len(samples)}: Features extracted.")
 
-        outputs = np.array(outputs)  # Convert to 2D numpy array: (n_samples, n_features)
-        return outputs
+    #     outputs = np.array(outputs)  # Convert to 2D numpy array: (n_samples, n_features)
+    #     return outputs
     
     def generate_outputs_mpi(self, samples):
         # Split samples across ranks
@@ -629,12 +634,13 @@ class CVS0D_SA():
         with tqdm(total=len(local_samples), desc=f"Rank {self.rank}", position=self.rank, leave=True) as pbar:
             for param_vals in local_samples:
                 operands_outputs = self.run_model_and_get_results(param_vals)
-                features = [
-                    self.operation_funcs_dict[self.obs_info["operations"][j]](
-                        *operands_outputs[j], **self.obs_info["operation_kwargs"][j]
-                    )
-                    for j in range(len(self.obs_info["operands"]))
-                ]
+                features = []
+                print(self.obs_info["operations"])
+                for j in range(len(self.obs_info["operations"])):
+                    func = self.operation_funcs_dict[self.obs_info["operations"][j]]
+                    if hasattr(func, 'sensitivity') and func.sensitivity:
+                        feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
+                        features.append(feature)
                 local_outputs.append(features)
                 pbar.update(1)  # update the progress bar by 1
 

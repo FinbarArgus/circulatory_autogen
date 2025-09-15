@@ -87,3 +87,6 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 plot_predictions: true
+
+SA_sample_type: 'saltelli'
+num_SA_samples: 32

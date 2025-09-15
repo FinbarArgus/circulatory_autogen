@@ -10,6 +10,10 @@ def series_to_constant(func):
     func.series_to_constant = True
     return func
 
+def sensitivity(func):
+    func.sensitivity = True
+    return func
+
 # example function
 def ml_to_m3(x):
     return x*1e-6
@@ -250,11 +254,11 @@ def second_period(t, V, series_output=False, spike_min_thresh=None, distance=Non
     return second_period
 
 @series_to_constant
+@sensitivity
 def E_A_ratio(t, x, T, series_output=False):
     if series_output:
         return x
     peak_idxs, peak_properties = find_peaks(x)
-
     if len(peak_idxs) < 1:
         # no peeak idxs found, return big value to make it a big cost
         return 100
@@ -280,6 +284,7 @@ def peak_times(t, V, series_output=False):
     if series_output:
         return V
     peak_idxs, peak_properties = find_peaks(V)
+    print(peak_idxs)
     if len(peak_idxs) == 0:
         return 99999999
     peaks = t[peak_idxs]
@@ -304,7 +309,9 @@ def mean_last_quarter(x, series_output=False):
         return np.mean(last_quarter_values)
 
 @series_to_constant
+@sensitivity
 def max_first_half(x, series_output=False):
+    print('max_first_half called')
     if series_output:
         return x
     else:

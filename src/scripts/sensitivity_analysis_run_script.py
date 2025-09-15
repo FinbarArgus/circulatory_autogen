@@ -28,6 +28,8 @@ def run_SA(inp_data_dict=None):
     pre_time = inp_data_dict['pre_time']
     solver_info = inp_data_dict['solver_info']
     dt = inp_data_dict['dt']
+    SA_sample_type = inp_data_dict['SA_sample_type']
+    num_SA_samples = inp_data_dict['num_SA_samples']
     # resources_dir = inp_data_dict['resources_dir']
     SA_output_dir = inp_data_dict['param_id_output_dir']
     
@@ -49,8 +51,8 @@ def run_SA(inp_data_dict=None):
         print(protocol_info)
 
     SA_cfg = {
-        "sample_type" : 'saltelli',
-        "num_samples": 512,
+        "sample_type" : SA_sample_type,
+        "num_samples": num_SA_samples,
     }
 
     if DEBUG and rank == 0:
