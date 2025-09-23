@@ -118,6 +118,7 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     return spikes_per_s
 
 @series_to_constant
+@sensitivity
 def first_peak_time(t, V, series_output=False):
     """ 
     returns the time value (time from start of pre_time, NOT the start of 

@@ -36,7 +36,7 @@ class CVS0D_SA():
     """
         
     def __init__(self, model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
-                 save_path, param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False):
+                 save_path, param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, ga_options=None):
 
         """
         Initializes the Sensitivity_analysis class.
@@ -61,6 +61,7 @@ class CVS0D_SA():
         self.sample_type = SA_cfg["sample_type"]
         self.num_params = None
         self.model_output_names = model_out_names
+        self.ga_options = ga_options
 
         # set up opencor simulation
         self.dt = dt
@@ -635,7 +636,6 @@ class CVS0D_SA():
             for param_vals in local_samples:
                 operands_outputs = self.run_model_and_get_results(param_vals)
                 features = []
-                print(self.obs_info["operations"])
                 for j in range(len(self.obs_info["operations"])):
                     func = self.operation_funcs_dict[self.obs_info["operations"][j]]
                     if hasattr(func, 'sensitivity') and func.sensitivity:

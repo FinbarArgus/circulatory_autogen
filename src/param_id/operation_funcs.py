@@ -9,6 +9,7 @@ def sensitivity(func):
     return func
 
 @series_to_constant
+@sensitivity
 def max(x, series_output=False):
     if series_output:
         return x
@@ -16,6 +17,7 @@ def max(x, series_output=False):
         return np.max(x)
 
 @series_to_constant
+@sensitivity
 def min(x, series_output=False):
     if series_output:
         return x

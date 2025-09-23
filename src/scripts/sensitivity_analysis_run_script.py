@@ -29,9 +29,11 @@ def run_SA(inp_data_dict=None):
     solver_info = inp_data_dict['solver_info']
     dt = inp_data_dict['dt']
     SA_sample_type = inp_data_dict['SA_sample_type']
+    ga_options = inp_data_dict['ga_options']
     num_SA_samples = inp_data_dict['num_SA_samples']
     # resources_dir = inp_data_dict['resources_dir']
     SA_output_dir = inp_data_dict['param_id_output_dir']
+
     
     if rank == 0:
         print(f"SA output dir: {SA_output_dir}")
@@ -60,11 +62,12 @@ def run_SA(inp_data_dict=None):
 
     SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
                           SA_output_dir, param_id_path=param_id_obs_path, params_for_id_path=params_for_id_path,
-                          verbose=False, use_MPI=True)
+                          verbose=False, use_MPI=True, ga_options=ga_options)
     S1_all, ST_all, S2_all = SA_manager.run()
 
     if rank == 0:
-        # print(f">>>>>>{S1_all}")
+        print('Plotting results')
+        print(f">>>>>>{S1_all}")
         SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
         SA_manager.plot_sobol_S2_idx(S2_all)
 

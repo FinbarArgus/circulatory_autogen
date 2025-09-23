@@ -1,5 +1,35 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <model name="Units" xmlns="http://www.cellml.org/cellml/1.1#" xmlns:cellml="http://www.cellml.org/cellml/1.1#">
+    <units name="mmol_per_l">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+    </units>
+    <units name="l_per_mmol">
+        <unit units="litre"/>
+        <unit exponent="-1" prefix="milli" units="mole"/>
+    </units>
+    <units name="l_per_mmol_per_s">
+        <unit units="litre"/>
+        <unit exponent="-1" prefix="milli" units="mole"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="l2_per_mmol_per_s">
+        <unit exponent="2" units="litre"/>
+        <unit exponent="-1" prefix="milli" units="mole"/>
+        <unit exponent="-1" units="second"/>
+    </units>
+    <units name="mmol_per_s2">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-2" units="second"/>
+    </units>
+    <units name="mmol">
+        <unit prefix="milli" units="mole"/>
+    </units>
+    <units name="mmol_per_l_per_s">
+        <unit prefix="milli" units="mole"/>
+        <unit exponent="-1" units="litre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <units name="Hz2">
         <unit exponent="-2" units="second"/>
     </units>
