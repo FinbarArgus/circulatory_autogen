@@ -44,14 +44,6 @@ def run_SA(inp_data_dict=None):
     # upper_bound_factor = inp_data_dict['upper_bound_factor']
     model_out_names = inp_data_dict['model_out_names']
 
-    protocol_info = {
-        'pre_times': [pre_time],
-        'sim_times': [[sim_time]],
-        'dt': dt,
-    }
-    if rank == 0:
-        print(protocol_info)
-
     SA_cfg = {
         "sample_type" : SA_sample_type,
         "num_samples": num_SA_samples,
@@ -60,14 +52,13 @@ def run_SA(inp_data_dict=None):
     if DEBUG and rank == 0:
         print('WARNING: DEBUG IS ON, TURN THIS OFF IF YOU WANT TO DO ANYTHING QUICKLY')
 
-    SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
+    SA_manager = CVS0D_SA(model_path, model_out_names, solver_info, SA_cfg, dt, 
                           SA_output_dir, param_id_path=param_id_obs_path, params_for_id_path=params_for_id_path,
                           verbose=False, use_MPI=True, ga_options=ga_options)
     S1_all, ST_all, S2_all = SA_manager.run()
 
     if rank == 0:
         print('Plotting results')
-        print(f">>>>>>{S1_all}")
         SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
         SA_manager.plot_sobol_S2_idx(S2_all)
 

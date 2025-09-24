@@ -35,8 +35,9 @@ class CVS0D_SA():
         4. You can plot the results using the `plot_sobol_first_order_idx` and `plot_sobol_S2_idx` methods.
     """
         
-    def __init__(self, model_path, model_out_names, solver_info, SA_cfg, protocol_info, dt, 
-                 save_path, param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, ga_options=None):
+    def __init__(self, model_path, model_out_names, solver_info, SA_cfg, dt, save_path, 
+                 param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, ga_options=None,
+                 sim_time=2.0, pre_time=20.0):
 
         """
         Initializes the Sensitivity_analysis class.
@@ -62,16 +63,22 @@ class CVS0D_SA():
         self.num_params = None
         self.model_output_names = model_out_names
         self.ga_options = ga_options
+        self.protocol_info = None
+        self.dt = dt
+        
+        # set up observables functions
+        sfp = scriptFunctionParser()
+        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
+        self.__set_obs_names_and_df(param_id_path, sim_time=sim_time, pre_time=pre_time)
 
         # set up opencor simulation
-        self.dt = dt
-        if protocol_info['sim_times'][0][0] is not None:
-            self.sim_time = protocol_info['sim_times'][0][0]
+        if self.protocol_info['sim_times'][0][0] is not None:
+            self.sim_time = self.protocol_info['sim_times'][0][0]
         else:
             # set temporary sim time, just to initialise the sim_helper
             self.sim_time = 0.001
-        if protocol_info['pre_times'][0] is not None:
-            self.pre_time = protocol_info['pre_times'][0]
+        if self.protocol_info['pre_times'][0] is not None:
+            self.pre_time = self.protocol_info['pre_times'][0]
         else:
             # set temporary pre time, just to initialise the sim_helper
             self.pre_time = 0.001
@@ -79,11 +86,6 @@ class CVS0D_SA():
         self.sim_helper = self.initialise_sim_helper()
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
         self.n_steps = int(self.sim_time/self.dt)
-
-        # set up observables functions
-        sfp = scriptFunctionParser()
-        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
-        self.__set_obs_names_and_df(param_id_path, self.pre_time, self.sim_time)
 
         self.set_output_dir(save_path)
 
@@ -578,10 +580,13 @@ class CVS0D_SA():
         self.sim_helper.reset_states()
         self.sim_helper.run()
 
+        operands = self.sim_helper.get_results(self.obs_info["operands"])
+
+        self.sim_helper.reset_and_clear()
         # y = self.sim_helper.get_results(self.model_output_names)
         # t = self.sim_helper.tSim - self.pre_time
         # return y, t
-        return self.sim_helper.get_results(self.obs_info["operands"])
+        return operands
 
     # def generate_outputs(self, samples):
         
@@ -612,7 +617,7 @@ class CVS0D_SA():
     #     outputs = np.array(outputs)  # Convert to 2D numpy array: (n_samples, n_features)
     #     return outputs
     
-    def generate_outputs_mpi(self, samples):
+    def generate_outputs_mpi_old(self, samples):
         # Split samples across ranks
         n_samples = len(samples)
         samples_per_rank = n_samples // self.num_procs
@@ -657,6 +662,122 @@ class CVS0D_SA():
         else:
             return None
 
+    def generate_outputs_mpi(self, samples):
+        # Split samples across ranks
+        n_samples = len(samples)
+        samples_per_rank = n_samples // self.num_procs
+        remainder = n_samples % self.num_procs
+
+        if self.rank < remainder:
+            start = self.rank * (samples_per_rank + 1)
+            end = start + samples_per_rank + 1
+        else:
+            start = self.rank * samples_per_rank + remainder
+            end = start + samples_per_rank
+
+        local_samples = samples[start:end]
+
+        print(f"[MPI Rank {self.rank}] Starting samples {start}:{end} (total {len(local_samples)})")
+
+        local_outputs = []
+
+        # Create a single progress bar for this rank
+        with tqdm(total=len(local_samples), desc=f"Rank {self.rank}", position=self.rank, leave=True) as pbar:
+            for param_vals in local_samples:
+                operands_outputs_list = []
+
+                # --- handle single vs multi subexperiment ---
+                if self.protocol_info["num_sub_total"] == 1:
+                    # simple case (one experiment only)
+                    self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+                    self.sim_helper.reset_states()
+                    success = self.sim_helper.run()
+
+                    if success:
+                        operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
+                        operands_outputs_list = [operands_outputs]
+                    else:
+                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}")
+                        local_outputs.append([np.inf])  # fail marker
+                        pbar.update(1)
+                        continue
+
+                else:
+                    # multiple subexperiments
+                    current_time = 0
+                    for exp_idx in range(self.protocol_info["num_experiments"]):
+                        self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+                        self.sim_helper.reset_states()
+
+                        for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
+                            subexp_count = int(np.sum(
+                                [num_sub for num_sub in self.protocol_info["num_sub_per_exp"][:exp_idx]]
+                            ) + this_sub_idx)
+
+                            self.sim_time = self.protocol_info["sim_times"][exp_idx][this_sub_idx]
+                            self.pre_time = self.protocol_info["pre_times"][exp_idx]
+
+                            if self.protocol_info["num_sub_total"] > 1:
+                                if this_sub_idx == 0:
+                                    self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+                                    current_time += self.pre_time
+                                else:
+                                    self.sim_helper.update_times(self.dt, current_time, self.sim_time, 0.0)
+
+                            # set subexperiment-specific parameters
+                            self.sim_helper.set_param_vals(
+                                list(self.protocol_info["params_to_change"].keys()),
+                                [
+                                    self.protocol_info["params_to_change"][param_name][exp_idx][this_sub_idx]
+                                    for param_name in self.protocol_info["params_to_change"].keys()
+                                ]
+                            )
+
+                            success = self.sim_helper.run()
+                            current_time += self.sim_time
+
+                            if success:
+                                operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
+                                if this_sub_idx == self.obs_info["subexperiment_idxs"][exp_idx]:
+                                    operands_outputs_list.append(operands_outputs)
+
+                                # reset at the end of each experiment
+                                if this_sub_idx == self.protocol_info["num_sub_per_exp"][exp_idx] - 1:
+                                    self.sim_helper.reset_and_clear()
+                            else:
+                                print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, subexp={subexp_count}")
+                                local_outputs.append([np.inf])
+                                pbar.update(1)
+                                operands_outputs_list = []
+                                break  # stop this sample entirely
+
+                features = []
+                for j in range(len(self.obs_info["operations"])):
+                    func = self.operation_funcs_dict[self.obs_info["operations"][j]]
+                    if hasattr(func, 'sensitivity') and func.sensitivity:
+                        # apply func across ALL subexperiment outputs
+                        for operands_outputs in operands_outputs_list:
+                            if operands_outputs is not None:
+                                feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
+                                features.append(feature)
+
+                local_outputs.append(features)
+                pbar.update(1)
+
+        print(f"[MPI Rank {self.rank}] Finished processing samples {start}:{end}")
+
+        # Gather results at rank 0
+        all_outputs = self.comm.gather(local_outputs, root=0)
+
+        if self.rank == 0:
+            outputs = [item for sublist in all_outputs for item in sublist]
+            outputs = np.array(outputs)
+            print(f"[MPI Rank 0] Gathered and flattened all outputs. Total outputs: {outputs.shape}")
+            return outputs
+        else:
+            return None
+
+
     def sobol_index(self, outputs):
 
         if self.rank !=0:
@@ -698,7 +819,8 @@ class CVS0D_SA():
         for i in range(n_outputs):
             S1 = S1_all[i]
             ST = ST_all[i]
-            output_name = self.output_names[i] if hasattr(self, "output_names") else f"Output_{i}"
+            output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info["experiment_idxs"][i]}, subexperiment{self.obs_info["subexperiment_idxs"][i]}"
+            # output_name = self.obs_info["names_for_plotting"][i] if hasattr(self, "obs_info") else f"Output_{i}"
 
             plt.figure(figsize=(8, 5))
             plt.bar(x - 0.2, S1, width=0.4, label='First-order', color='blue', alpha=0.7)
@@ -706,13 +828,14 @@ class CVS0D_SA():
 
             plt.xticks(x, self.SA_cfg["param_names"], rotation=45)
             plt.ylabel('Sensitivity Index')
-            plt.title(f'Sobol Sensitivity - {output_name}')
+            plt.title(rf'Sobol Sensitivity - {output_name}')
             plt.legend()
             plt.tight_layout()
 
-            file_name = f"{output_name}_First_order_idx.png"
+            file_name = f"{output_name}_n{self.num_samples}_First_order_idx.png"
             plt.savefig(os.path.join(self.save_path, file_name))
             plt.clf()
+            plt.close()
 
     def plot_sobol_S2_idx(self, S2_all):
         """
@@ -726,19 +849,20 @@ class CVS0D_SA():
             return
         
         n_outputs = S2_all.shape[0]
-
         for i in range(n_outputs):
             S2 = S2_all[i]
-            output_name = self.output_names[i] if hasattr(self, "output_names") else f"Output_{i}"
+            output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info["experiment_idxs"][i]}, subexperiment{self.obs_info["subexperiment_idxs"][i]}"
 
-            plt.figure(figsize=(6, 5))
+            # plt.figure(figsize=(6, 5))
+            plt.figure()
             sns.heatmap(S2, annot=True, fmt=".2f", xticklabels=self.SA_cfg["param_names"], yticklabels=self.SA_cfg["param_names"], cmap="coolwarm")
-            plt.title(f"Second-order Sobol Indices - {output_name}")
+            plt.title(rf"2nd order Sobol Indices - {output_name}")
             plt.tight_layout()
 
-            filename = f"{output_name}_n{self.num_samples}_second_order_idx.png"
+            filename = f"{output_name}_n{self.num_samples}_2nd_order_idx.png"
             plt.savefig(os.path.join(self.save_path, filename))
             plt.clf()
+            plt.close()
 
     def run(self):
         samples = self.generate_samples()
