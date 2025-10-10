@@ -12,6 +12,7 @@ from opencor_helper import SimulationHelper
 import paperPlotSetup
 paperPlotSetup.Setup_Plot(3)
 
+# TODO update this with the ProtocolRunner class in CA_user_FA_MG
 def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_dict=None):
     """ runs the protocols defigned by protocol infor or if not defined, gets 
     protocol info from the obs_data.json file.
@@ -34,6 +35,15 @@ def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_di
         import yaml
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+        if "user_inputs_path_override" in inp_data_dict.keys() and inp_data_dict["user_inputs_path_override"]:
+            if os.path.exists(inp_data_dict["user_inputs_path_override"]):
+                with open(inp_data_dict["user_inputs_path_override"], 'r') as file:
+                    inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+            else:
+                print(f"User inputs file not found at {inp_data_dict['user_inputs_path_override']}")
+                print("Check the user_inputs_path_override key in user_inputs.yaml and set it to False if "
+                        "you want to use the default user_inputs.yaml location")
+                exit()
     
     dt = inp_data_dict['dt']
 
@@ -65,6 +75,7 @@ def run_protocols(model_path, variables_to_plot, protocol_info=None, inp_data_di
         current_time = 0
         for idx, sim_time  in enumerate(sim_times[exp_idx]):
             if idx == 0:
+                # TODO update this with the class in CA_user_FA_MG
                 sim_helper = SimulationHelper(model_path, dt, sim_time, solver_info={'MaximumNumberOfSteps':1000, 'MaximumStep':0.0001}, 
                                               pre_time=pre_times[exp_idx])
                 current_time += pre_times[exp_idx]

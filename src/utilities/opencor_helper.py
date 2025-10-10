@@ -78,6 +78,28 @@ class SimulationHelper():
     def reset_states(self):
         self.simulation.reset(False) # True resets everything, False resets only the states
 
+    def get_all_variable_names(self):
+        # get all states, algebraics and constants
+        variable_names = list(self.simulation.results().states().keys()) + \
+                                list(self.simulation.results().algebraic().keys()) + \
+                                     list(self.data.constants().keys())
+        return variable_names
+
+    def get_all_results(self, flatten=False):
+        """
+        gets all results after a simulation
+        inputs:
+        flatten: bool, if True then returns a flat list of results, otherwise returns a list of lists
+        outputs:
+        results: list of lists where the first index is the observable index
+        and the second is the operand index for that observable. The same shape as 
+        the input (except list inputs get turned into list of lists). 
+        Each entry can be float or numpy array 
+        """
+        variable_names = self.get_all_variable_names()
+        results = self.get_results(variable_names, flatten=flatten)
+        return results
+
     def get_results(self, variables_list_of_lists, flatten=False):
         """
         gets results after a simulation
@@ -89,6 +111,7 @@ class SimulationHelper():
         the input (except list inputs get turned into list of lists). 
         Each entry can be float or numpy array 
         """
+
         # if the input is a list of variables, turn it into a list of lists
         if type(variables_list_of_lists[0]) is not list:
             variables_list_of_lists = [[entry] for entry in variables_list_of_lists]

@@ -281,6 +281,8 @@
         <variable name="C_O2_a_diss" public_interface="out" units="dimensionless"/>
         <variable name="S_O2_a" public_interface="out" units="dimensionless"/>
         <variable name="Hgb" public_interface="in" units="kg_per_m3"/>
+        <variable name="alpha_O2" public_interface="in" units="m3_per_J"/>
+        <!-- should be handled in parameter.csv  = 2.33e-7 (per_pascal)-->
         <!-- from inverted dissociation-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
@@ -310,13 +312,9 @@
                 <piecewise>
                     <piece>
                         <apply>
-                            <divide/>
-                            <apply>
-                                <times/>
-                                <ci>P_O2_a</ci>
-                                <cn cellml:units="dimensionless">0.003</cn>
-                            </apply>
-                            <cn cellml:units="dimensionless">100</cn>
+                            <times/>
+                            <ci>P_O2_a</ci>
+                            <ci>alpha_O2</ci>
                         </apply>
                         <apply>
                             <geq/>
@@ -332,13 +330,9 @@
                                     </apply>
                                 </apply>
                                 <apply>
-                                    <divide/>
-                                    <apply>
-                                        <times/>
-                                        <ci>P_O2_a</ci>
-                                        <cn cellml:units="dimensionless">0.003</cn>
-                                    </apply>
-                                    <cn cellml:units="dimensionless">100</cn>
+                                    <times/>
+                                    <ci>P_O2_a</ci>
+                                    <ci>alpha_O2</ci>
                                 </apply>
                             </apply>
                             <cn cellml:units="dimensionless">0</cn>
@@ -695,7 +689,8 @@
         <variable name="f_es_0" public_interface="in" units="per_s"/>
         <variable name="f_es_inf" public_interface="in" units="per_s"/>
         <variable name="f_es_max" public_interface="in" units="per_s"/>
-        <variable name="k_es" public_interface="in" units="per_s"/>
+        <variable name="k_es" public_interface="in" units="second"/>
+        <!-- should be changed to second-->
         <!-- var theta_s: per_s {pub: in}; //currently ignoring CNS-->
         <variable name="W_bs" public_interface="in" units="dimensionless"/>
         <variable name="W_cs" public_interface="in" units="dimensionless"/>
@@ -988,56 +983,23 @@
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- IMPORTANT: THIS MODULE HAS BEEN MODIFIED TO CONTROL COMPLIANCE INSTEAD OF UNSTRESSED VOLUME. PARAMS ARE UNVALIDATED-->
         <!-- Constants-->
-        <variable name="G_theta_us" public_interface="in" units="m3"/>
-        <variable name="G_theta_compliance" public_interface="in" units="m6_per_J"/>
+        <variable name="G_theta_us" public_interface="in" units="dimensionless"/>
+        <variable name="G_theta_compliance" public_interface="in" units="dimensionless"/>
         <variable name="f_es_min" public_interface="in" units="per_s"/>
         <variable name="tau_theta_us" public_interface="in" units="second"/>
         <variable name="tau_theta_compliance" public_interface="in" units="second"/>
         <!-- Variables-->
         <variable name="f_s" public_interface="in" units="per_s"/>
-        <variable initial_value="0.0" name="Delta_theta_us" public_interface="out" units="m3"/>
-        <variable name="sigma_theta_us" public_interface="out" units="m3"/>
-        <variable initial_value="0.0" name="Delta_theta_compliance" public_interface="out" units="m6_per_J"/>
-        <variable name="sigma_theta_compliance" public_interface="out" units="m6_per_J"/>
+        <variable name="Delta_theta_us" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_us" public_interface="out" units="per_s"/>
+        <variable name="Delta_theta_compliance" public_interface="out" units="dimensionless"/>
+        <variable initial_value="0.0" name="sigma_theta_compliance" public_interface="out" units="per_s"/>
         <!-- Equations-->
-        <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.-->
+        <!-- TODO for both of the below, it probably shouln't be additive. It should be impossible to get to negative.
+ changed the below from ln to hill function so we can limit the amount it can change compliance and us volume. Now G_theta_us is the maximum amount of change
+ that can occur to the us volume
+ G_theta is now a max proportion of us volume or compliance that can be decreased.-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>sigma_theta_us</ci>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <ci>G_theta_us</ci>
-                            <apply>
-                                <ln/>
-                                <apply>
-                                    <times/>
-                                    <cn cellml:units="second">1</cn>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>f_s</ci>
-                                            <ci>f_es_min</ci>
-                                        </apply>
-                                        <cn cellml:units="per_s">1</cn>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>f_s</ci>
-                            <ci>f_es_min</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="m3">0</cn>
-                    </otherwise>
-                </piecewise>
-            </apply>
             <apply>
                 <eq/>
                 <apply>
@@ -1045,15 +1007,20 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Delta_theta_us</ci>
+                    <ci>sigma_theta_us</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <plus/>
+                        <minus/>
                         <apply>
-                            <minus/>
-                            <ci>Delta_theta_us</ci>
+                            <max/>
+                            <apply>
+                                <minus/>
+                                <ci>f_s</ci>
+                                <ci>f_es_min</ci>
+                            </apply>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                         <ci>sigma_theta_us</ci>
                     </apply>
@@ -1062,39 +1029,20 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>sigma_theta_compliance</ci>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <ci>G_theta_compliance</ci>
-                            <apply>
-                                <ln/>
-                                <apply>
-                                    <times/>
-                                    <cn cellml:units="second">1</cn>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>f_s</ci>
-                                            <ci>f_es_min</ci>
-                                        </apply>
-                                        <cn cellml:units="per_s">1</cn>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>f_s</ci>
-                            <ci>f_es_min</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="m3">0</cn>
-                    </otherwise>
-                </piecewise>
+                <ci>Delta_theta_us</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>G_theta_compliance</ci>
+                        <ci>sigma_theta_us</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>f_es_min</ci>
+                        <ci>sigma_theta_us</ci>
+                    </apply>
+                </apply>
             </apply>
             <apply>
                 <eq/>
@@ -1103,19 +1051,41 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>Delta_theta_compliance</ci>
+                    <ci>sigma_theta_compliance</ci>
                 </apply>
                 <apply>
                     <divide/>
                     <apply>
-                        <plus/>
+                        <minus/>
                         <apply>
-                            <minus/>
-                            <ci>Delta_theta_compliance</ci>
+                            <max/>
+                            <apply>
+                                <minus/>
+                                <ci>f_s</ci>
+                                <ci>f_es_min</ci>
+                            </apply>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                         <ci>sigma_theta_compliance</ci>
                     </apply>
                     <ci>tau_theta_compliance</ci>
+                </apply>
+            </apply>
+            <apply>
+                <eq/>
+                <ci>Delta_theta_compliance</ci>
+                <apply>
+                    <divide/>
+                    <apply>
+                        <times/>
+                        <ci>G_theta_compliance</ci>
+                        <ci>sigma_theta_compliance</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <ci>f_es_min</ci>
+                        <ci>sigma_theta_compliance</ci>
+                    </apply>
                 </apply>
             </apply>
         </math>
@@ -1125,7 +1095,7 @@
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- Constants-->
         <variable name="G_Ts" public_interface="in" units="second"/>
-        <variable name="G_Tv" public_interface="in" units="second"/>
+        <variable name="G_Tv" public_interface="in" units="s2"/>
         <variable name="f_es_min" public_interface="in" units="per_s"/>
         <variable name="tau_Ts" public_interface="in" units="second"/>
         <variable name="tau_Tv" public_interface="in" units="second"/>
@@ -1245,8 +1215,6 @@
         <variable initial_value="0.0" name="x_O2" public_interface="out" units="dimensionless"/>
         <variable name="phi_P_CO2_a" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="x_CO2" public_interface="out" units="dimensionless"/>
-        <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
-        <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
         <variable name="P_CO2_a" public_interface="in" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>
@@ -1374,8 +1342,6 @@
         <variable initial_value="0.0" name="x_O2" public_interface="out" units="dimensionless"/>
         <variable name="phi_P_CO2_a" public_interface="out" units="dimensionless"/>
         <variable initial_value="0.0" name="x_CO2" public_interface="out" units="dimensionless"/>
-        <variable name="C_O2_a" public_interface="in" units="dimensionless"/>
-        <variable name="C_CO2_a" public_interface="in" units="dimensionless"/>
         <variable name="C_O2_p" public_interface="in" units="dimensionless"/>
         <variable name="P_CO2_a" public_interface="in" units="J_per_m3"/>
         <variable name="R_local_multiplier" public_interface="out" units="dimensionless"/>
@@ -1418,6 +1384,7 @@
                     <ci>tau_O2</ci>
                 </apply>
             </apply>
+            <!-- Unit consistancy in ln() - may need to add the unit-->
             <apply>
                 <eq/>
                 <ci>phi_P_CO2_a</ci>
@@ -1444,7 +1411,11 @@
                                                 <ci>D_b_lc</ci>
                                                 <apply>
                                                     <ln/>
-                                                    <ci>P_CO2_a</ci>
+                                                    <apply>
+                                                        <times/>
+                                                        <cn cellml:units="m3_per_J">1</cn>
+                                                        <ci>P_CO2_a</ci>
+                                                    </apply>
                                                 </apply>
                                             </apply>
                                         </apply>
@@ -1471,7 +1442,11 @@
                                                 <ci>D_b_lc</ci>
                                                 <apply>
                                                     <ln/>
-                                                    <ci>P_CO2_a_nom</ci>
+                                                    <apply>
+                                                        <times/>
+                                                        <cn cellml:units="m3_per_J">1</cn>
+                                                        <ci>P_CO2_a_nom</ci>
+                                                    </apply>
                                                 </apply>
                                             </apply>
                                         </apply>
@@ -1590,6 +1565,7 @@
         <variable name="tau_pf_min" public_interface="in" units="second"/>
         <variable name="tau_pf_max" public_interface="in" units="second"/>
         <variable name="tau_pf" public_interface="out" units="second"/>
+        <!-- unit inconsistancy for 0 resolved-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1600,7 +1576,7 @@
                         <apply>
                             <geq/>
                             <ci>u_p_resp</ci>
-                            <cn cellml:units="dimensionless">0</cn>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1617,7 +1593,7 @@
                         <apply>
                             <geq/>
                             <ci>u_p_resp</ci>
-                            <cn cellml:units="dimensionless">0</cn>
+                            <cn cellml:units="per_s">0</cn>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1638,7 +1614,7 @@
         <variable name="tau_cf_max" public_interface="in" units="second"/>
         <variable name="tau_cf_min" public_interface="in" units="second"/>
         <variable name="tau_cf" public_interface="out" units="second"/>
-        <variable name="P_CO2_c_thresh" public_interface="in" units="J_per_m3"/>
+        <variable name="u_CO2_c_thresh" public_interface="in" units="per_s"/>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
@@ -1649,11 +1625,11 @@
                         <apply>
                             <gt/>
                             <ci>u_c_resp</ci>
-                            <ci>P_CO2_c_thresh</ci>
+                            <ci>u_CO2_c_thresh</ci>
                         </apply>
                     </piece>
                     <otherwise>
-                        <cn cellml:units="dimensionless">0</cn>
+                        <cn cellml:units="Js_per_m3">0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
@@ -1666,7 +1642,7 @@
                         <apply>
                             <gt/>
                             <ci>u_c_resp</ci>
-                            <ci>P_CO2_c_thresh</ci>
+                            <ci>u_CO2_c_thresh</ci>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1683,7 +1659,7 @@
                         <apply>
                             <gt/>
                             <ci>u_c_resp</ci>
-                            <ci>P_CO2_c_thresh</ci>
+                            <ci>u_CO2_c_thresh</ci>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1700,7 +1676,7 @@
                         <apply>
                             <gt/>
                             <ci>u_c_resp</ci>
-                            <ci>P_CO2_c_thresh</ci>
+                            <ci>u_CO2_c_thresh</ci>
                         </apply>
                     </piece>
                     <otherwise>
@@ -1715,7 +1691,7 @@
         <!-- variables-->
         <variable initial_value="0.0" name="Delta_RR_c" public_interface="out" units="Hz"/>
         <variable initial_value="0.0" name="Delta_RR_p" public_interface="out" units="Hz"/>
-        <variable name="Delta_RR_resp" public_interface="out" units="second"/>
+        <variable name="Delta_RR_resp" public_interface="out" units="per_s"/>
         <variable initial_value="0.0" name="Delta_P_mus_c" public_interface="out" units="J_per_m3"/>
         <variable initial_value="0.0" name="Delta_P_mus_p" public_interface="out" units="J_per_m3"/>
         <variable name="Delta_P_mus" public_interface="out" units="J_per_m3"/>
@@ -1824,24 +1800,341 @@
                     <ci>tau_pA</ci>
                 </apply>
             </apply>
+        </math>
+        <variable name="Delta_RR_resp_max" public_interface="in" units="per_s"/>
+        <variable name="Delta_P_mus_max" public_interface="in" units="J_per_m3"/>
+        <variable name="Delta_RR_resp_min" public_interface="in" units="per_s"/>
+        <variable name="Delta_P_mus_min" public_interface="in" units="J_per_m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
                 <eq/>
                 <ci>Delta_RR_resp</ci>
                 <apply>
-                    <plus/>
-                    <ci>Delta_RR_c</ci>
-                    <ci>Delta_RR_p</ci>
+                    <min/>
+                    <apply>
+                        <max/>
+                        <apply>
+                            <plus/>
+                            <ci>Delta_RR_c</ci>
+                            <ci>Delta_RR_p</ci>
+                        </apply>
+                        <ci>Delta_RR_resp_min</ci>
+                    </apply>
+                    <ci>Delta_RR_resp_max</ci>
                 </apply>
             </apply>
             <apply>
                 <eq/>
                 <ci>Delta_P_mus</ci>
                 <apply>
-                    <plus/>
-                    <ci>Delta_P_mus_c</ci>
-                    <ci>Delta_P_mus_p</ci>
+                    <min/>
+                    <apply>
+                        <max/>
+                        <apply>
+                            <plus/>
+                            <ci>Delta_P_mus_c</ci>
+                            <ci>Delta_P_mus_p</ci>
+                        </apply>
+                        <ci>Delta_P_mus_min</ci>
+                    </apply>
+                    <ci>Delta_P_mus_max</ci>
                 </apply>
             </apply>
         </math>
     </component>
+    <!-- heart period ///////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <!--Ts &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-
+ s.2 -->
+    <!-- ventricular contractility //////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <!-- Emaxlv_symp &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+    <!--s.55-->
+    <component name="heart_effector_Gee2023">
+        <variable name="sigma_Es" public_interface="out" units="J_per_m6"/>
+        <variable name="G_Es" public_interface="in" units="J_per_m6"/>
+        <variable name="f_esh" public_interface="in" units="Hz"/>
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="f_es_min" public_interface="in" units="Hz"/>
+        <!-- unit consistancy for ln-->
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>sigma_Es</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>G_Es</ci>
+                            <apply>
+                                <ln/>
+                                <apply>
+                                    <times/>
+                                    <cn cellml:units="second">1</cn>
+                                    <apply>
+                                        <plus/>
+                                        <apply>
+                                            <minus/>
+                                            <ci>f_esh</ci>
+                                            <ci>f_es_min</ci>
+                                        </apply>
+                                        <cn cellml:units="Hz">1</cn>
+                                    </apply>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>f_esh</ci>
+                            <ci>f_es_min</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="J_per_m6">0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+        </math>
+        <!--s.56-->
+        <variable initial_value="0.0" name="Delta_Es" public_interface="out" units="J_per_m6"/>
+        <variable name="tau_Es" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Delta_Es</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Es</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>Delta_Es</ci>
+                        </apply>
+                        <ci>sigma_Es</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- Emaxlv_vag&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+        <!-- s.57-->
+        <variable name="sigma_Ev" public_interface="out" units="J_per_m6"/>
+        <variable name="G_Ev" public_interface="in" units="Js_per_m6"/>
+        <variable name="f_PNDMV_filt" public_interface="in" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>sigma_Ev</ci>
+                <apply>
+                    <times/>
+                    <ci>G_Ev</ci>
+                    <ci>f_PNDMV_filt</ci>
+                </apply>
+            </apply>
+        </math>
+        <!-- s. 58-->
+        <variable initial_value="0.0" name="Delta_Ev" public_interface="out" units="J_per_m6"/>
+        <variable name="tau_Ev" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>Delta_Ev</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Ev</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>Delta_Ev</ci>
+                        </apply>
+                        <ci>sigma_Ev</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <variable name="Delta_Emax" public_interface="out" units="J_per_m6"/>
+        <variable name="scale" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>Delta_Emax</ci>
+                <apply>
+                    <times/>
+                    <ci>scale</ci>
+                    <apply>
+                        <plus/>
+                        <ci>Delta_Es</ci>
+                        <ci>Delta_Ev</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <component name="heart_effector_Gee2023_INV">
+        <variable name="inv_sigma_Es" public_interface="out" units="J_per_m6"/>
+        <variable name="inv_G_Es" public_interface="in" units="m6_per_J"/>
+        <variable name="f_esh" public_interface="in" units="Hz"/>
+        <variable name="t" public_interface="in" units="second"/>
+        <variable name="f_es_min" public_interface="in" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>inv_sigma_Es</ci>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <ci>inv_G_Es</ci>
+                            </apply>
+                            <apply>
+                                <ln/>
+                                <apply>
+                                    <plus/>
+                                    <apply>
+                                        <minus/>
+                                        <ci>f_esh</ci>
+                                        <ci>f_es_min</ci>
+                                    </apply>
+                                    <cn cellml:units="Hz">1</cn>
+                                </apply>
+                            </apply>
+                        </apply>
+                        <apply>
+                            <geq/>
+                            <ci>f_esh</ci>
+                            <ci>f_es_min</ci>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <cn cellml:units="dimensionless">0</cn>
+                    </otherwise>
+                </piecewise>
+            </apply>
+        </math>
+        <!--s.56-->
+        <variable initial_value="1e-7" name="inv_Delta_Es" public_interface="out" units="m6_per_J"/>
+        <variable name="tau_Es" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>inv_Delta_Es</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Es</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>inv_Delta_Es</ci>
+                        </apply>
+                        <ci>inv_sigma_Es</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- Emaxlv_vag&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+        <!-- s.57-->
+        <variable name="inv_sigma_Ev" public_interface="out" units="m6_per_J"/>
+        <variable name="inv_G_Ev" public_interface="in" units="m6s_per_J"/>
+        <variable name="f_PNDMV_filt" public_interface="in" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>inv_sigma_Ev</ci>
+                <apply>
+                    <times/>
+                    <ci>inv_G_Ev</ci>
+                    <ci>f_PNDMV_filt</ci>
+                </apply>
+            </apply>
+        </math>
+        <!-- s. 58-->
+        <variable initial_value="-1e-7" name="inv_Delta_Ev" public_interface="out" units="m6_per_J"/>
+        <variable name="tau_Ev" public_interface="in" units="second"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>inv_Delta_Ev</ci>
+                </apply>
+                <apply>
+                    <times/>
+                    <apply>
+                        <divide/>
+                        <cn cellml:units="dimensionless">1</cn>
+                        <ci>tau_Ev</ci>
+                    </apply>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <minus/>
+                            <ci>inv_Delta_Ev</ci>
+                        </apply>
+                        <ci>inv_sigma_Ev</ci>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <variable name="Delta_Emax" public_interface="out" units="J_per_m6"/>
+        <variable name="scale" public_interface="in" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>Delta_Emax</ci>
+                <apply>
+                    <times/>
+                    <ci>scale</ci>
+                    <apply>
+                        <plus/>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>inv_Delta_Es</ci>
+                        </apply>
+                        <apply>
+                            <divide/>
+                            <cn cellml:units="dimensionless">1</cn>
+                            <ci>inv_Delta_Ev</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+    </component>
+    <!-- Emaxrv_symp &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
 </model>

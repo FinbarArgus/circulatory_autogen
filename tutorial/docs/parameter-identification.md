@@ -7,6 +7,7 @@ The parameter identification part of Circulatory_Autogen is designed to allow ca
 
 Those files should be added to the `[CA_dir]/resources` directory. Proper names of the files are **[file_prefix]_params_for_id.csv** and **[file_prefix]_obs_data.json**, respectively.
 
+
 ## Creating params_for_id file
 
 This file defines which parameters (constants and initial_states) within your model that you will vary in the parameter id process and their allowed ranges (prior distribution). Following is an example of the `params_for_id.csv` file.
@@ -33,6 +34,11 @@ The entries in the file are detailed as follows:
 This file defines the simulation protocol (protocol_info), and ground truth observables that will be used in the cost function for the parameter id optimisation algorithm. It also defines the measurement standard deviation, and weighting for each observable.
 
 File path of the obs_data.json file should be defined as **param_id_obs_path** in `[CA_dir]/user_run_files/user_inputs.yaml`.
+
+!!! Note
+    IMPORTANT: For creating obs_data.json files in python (strongly recommended over modifying the json by hand
+    you can use the helper class in `src/utilities/obs_data_helpers.py`. See `src/scripts/example_format_obs_data_json_file.py` for an example 
+    that you can copy and change for your parameter identification task.
 
 # protocol info
 
@@ -69,13 +75,29 @@ The entries in the data_item list in the `obs_data.json` file are:
 - **weight**: The weighting to put on this observables entry in the cost function. Default should be 1.0
 - **std**: The standard deviation which is used in the cost function. The cost function is the relative absolute error (AE) or mean squared error (MRE), each normalised by the std.
 - **value**: The value of the ground truth, either a scalar for constant data_type, or a list of values for series or frequency data_types.
-- **sample_rate**: not needed or set to "null" for constant and frequency data_types. It defines the sample rate of the observable series values.
+- **obs_dt**: not needed or set to "null" for constant and frequency data_types. It defines the dt for the observable series values.
+Not to be confused with the dt for the model simulation outputs.
 - **operation**: This defines the operation that will be done on the operands/variable. The possible operations to be done on model outputs are defined in `[CA_dir]/src/param_id/operation_funcs.py` and in `[CA_dir]/operation_funcs_user/operation_funcs_user.py` for user defined operations.
 - **operation_kwargs**: This is a dictionary of key word arguments (kwargs) and their values that links to the kwargs in the chosen python operation function.
 - **operands**: The above defined "operation" can take in multiple variables. If operands is defined, then the "variable" entry will be a placeholder name for the calculated variable and the operands will define the model variables that are used to calculate the final feature that will be compared to the observable value entry/s.
 
 !!! warning
     **obs_type**: This has been deprecated in favor of the **operation** entry.
+
+## Running external cellml models
+
+Running cellml models that weren't generated with Circulatory_Autogen is also just as straightforward:
+
+Simply set the `file_prefix` in your user_inputs.yaml file to the name of your cellml model `<file_prefix>.cellml`. Then set `generated_models_dir` to the path to the dir where your model subdir is and the subdir where the calibrated model will be generated. Make sure your cellml file/files are in a directory of the same name i.e.:
+
+`path/to/your/generated_models_dir/<file_prefix>/<file_prefix>.cellml`
+
+After calibration, the following directory will be created with your generated model:
+
+`path/to/your/generated_models_dir/<file_prefix>_<obs_file_name>/`
+
+!!! note
+    Currently the generated model needs to be run in the new OpenCOR, with LibOpenCOR backend because a cellml2.0 model is generated
 
 ## Creating your own operations
 
@@ -117,6 +139,8 @@ To run the parameter identification we need to set a few entries in the `[CA_dir
 - **ga_options**:
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.
 	- **num_calls_to_function**: How many forward simulations of pre_time+sim_time will be run in the optimisation algorithm.
+	- **cost_convergence**: If the cost value is lower than this threshold then the calibration run is complete.
+	- **max_patience**: If the cost doesn't improve for this number of simulations, then calibration is complete (we assume that the cost has converged to the global minima or can't get out of a local minima).
   - Note: In the future entries to ga_options will be kwargs that are used in the underlying user defined optimisation schemes (see [link](https://github.com/FinbarArgus/circulatory_autogen/issues/79))
 
 

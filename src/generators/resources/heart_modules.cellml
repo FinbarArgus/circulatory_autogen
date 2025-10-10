@@ -1427,6 +1427,20 @@
                 </apply>
             </apply>
         </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
+                </apply>
+            </apply>
+        </math>
     </component>
     <component name="heart_simple">
         <variable name="t" public_interface="in" units="second"/>
@@ -1530,6 +1544,20 @@
         <variable initial_value="q_rv_init" name="q_rv" public_interface="out" units="m3"/>
         <variable initial_value="q_la_init" name="q_la" public_interface="out" units="m3"/>
         <variable initial_value="q_ra_init" name="q_ra" public_interface="out" units="m3"/>
+        <variable name="q" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_lv</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_ra</ci>
+                </apply>
+            </apply>
+        </math>
         <!-- calculate modified time due to changes in heart period. This can now be modified throughout a simulation.-->
         <variable initial_value="0.0" name="chi_a" public_interface="out" units="dimensionless"/>
         <variable name="chi_afloor" public_interface="out" units="dimensionless"/>
@@ -2751,6 +2779,20 @@
                     <minus/>
                     <ci>v_miv</ci>
                     <ci>v_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
                 </apply>
             </apply>
         </math>
@@ -4086,6 +4128,20 @@
                     <minus/>
                     <ci>v_miv</ci>
                     <ci>v_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
                 </apply>
             </apply>
         </math>
@@ -5447,6 +5503,20 @@
                     <minus/>
                     <ci>v_miv</ci>
                     <ci>v_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
                 </apply>
             </apply>
         </math>
@@ -6874,6 +6944,20 @@
                     <minus/>
                     <ci>v_miv</ci>
                     <ci>v_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
                 </apply>
             </apply>
         </math>
@@ -8424,6 +8508,20 @@
                     <minus/>
                     <ci>v_miv</ci>
                     <ci>v_aov</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="q_heart" public_interface="out" units="m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>q_heart</ci>
+                <apply>
+                    <plus/>
+                    <ci>q_ra</ci>
+                    <ci>q_rv</ci>
+                    <ci>q_la</ci>
+                    <ci>q_lv</ci>
                 </apply>
             </apply>
         </math>

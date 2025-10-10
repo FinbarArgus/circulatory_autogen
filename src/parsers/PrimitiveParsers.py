@@ -145,6 +145,12 @@ class YamlFileParser(object):
             
         inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}.cellml')
 
+        if do_generation_with_fit_parameters:
+            inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix, 
+                                               file_prefix + '.cellml')
+        else:
+            inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
+
 
         if 'pre_time' in inp_data_dict.keys():
             inp_data_dict['pre_time'] = inp_data_dict['pre_time']
@@ -316,10 +322,20 @@ class JSONFileParser(object):
         df = pd.DataFrame(json_obj)
         return df
 
-    def json_to_dataframe_with_user_dir(self, json_path, json_dir):
-        df = self.json_to_dataframe(json_path)
-        user_module_dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
+    def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir):
+        dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
                 for file in os.listdir(json_dir) if file.endswith('.json')]
+        user_module_dfs = [self.json_to_dataframe(os.path.join(json_user_dir, file)) \
+                for file in os.listdir(json_user_dir) if file.endswith('.json')]
+        df = None
+        for json_df in dfs:
+            if df is None:
+                df = json_df
+            else:
+                # concatenate dataframes, ignore index to reset the index
+                # so that it is not duplicated
+                df = pd.concat([df, json_df], ignore_index=True)
+
         for user_module_df in user_module_dfs:
             df = pd.concat([df, user_module_df], ignore_index=True)
         return df

@@ -132,6 +132,10 @@
         <unit exponent="-1" prefix="milli" units="litre"/>
         <unit exponent="-1" units="second"/>
     </units>
+    <units name="per_m3_s">
+        <unit exponent="-3" units="metre"/>
+        <unit exponent="-1" units="second"/>
+    </units>
     <!--//////////////////////
  rate-->
     <!--////////////////////////
@@ -170,6 +174,16 @@
     </units>
     <units name="mmHg">
         <unit multiplier="133.32" units="pascal"/>
+    </units>
+    <units name="per_mmHg">
+        <unit exponent="-1" units="mmHg"/>
+    </units>
+    <units name="mmHg2">
+        <unit exponent="2" units="mmHg"/>
+    </units>
+    <units name="Pa_per_mmHg">
+        <unit units="pascal"/>
+        <unit exponent="-1" units="mmHg"/>
     </units>
     <units name="m3_per_J">
         <unit exponent="-1" units="joule"/>

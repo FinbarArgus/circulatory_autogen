@@ -11,6 +11,7 @@ user_inputs_dir = os.path.join(root_dir_path, 'user_run_files')
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from scripts.param_id_run_script import run_param_id
 from scripts.plot_param_id_script import plot_param_id
+from scripts.example_format_obs_data_json_file import example_format_obs_data_json_file
 
 if __name__ == '__main__':
     try:
@@ -24,6 +25,7 @@ if __name__ == '__main__':
         # inp_data_dict['file_prefix'] = '3compartment'
         # inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
 
+
         # generate_with_new_architecture(False, inp_data_dict)
         if 'user_inputs_path_override' in inp_data_dict.keys():
             del inp_data_dict['user_inputs_path_override']
@@ -35,6 +37,36 @@ if __name__ == '__main__':
             del inp_data_dict['generated_models_dir']
         if 'param_id_output_dir' in inp_data_dict.keys():
             del inp_data_dict['param_id_output_dir']
+        
+        print('running test for obs_data file creation with NKE pump model')
+        inp_data_dict['file_prefix'] = 'NKE_pump'
+        inp_data_dict['input_param_file'] = 'NKE_pump_parameters.csv'
+        inp_data_dict['model_type'] = 'cellml_only'
+        inp_data_dict['solver'] = 'CVODE'
+        inp_data_dict['DEBUG'] = True
+        inp_data_dict['pre_time'] = 1
+        inp_data_dict['sim_time'] = 100
+        inp_data_dict['solver_info'] = {}
+        inp_data_dict['solver_info']['MaximumStep'] = 0.001
+        inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['dt'] = 0.01
+        inp_data_dict['param_id_method'] = 'genetic_algorithm'
+        inp_data_dict['plot_predictions'] = True
+        
+        # delete the obs_data file if it exists
+        obs_data_path = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
+        if os.path.exists(obs_data_path):
+            os.remove(obs_data_path)
+            print('removed existing obs_data file at', obs_data_path)
+
+        # generate the obs_data file
+        example_format_obs_data_json_file()
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
+        # generate the model
+        generate_with_new_architecture(False, inp_data_dict)
+        # now test the param id for the NKE pump model and the generated
+        # obs_data file
+        run_param_id(inp_data_dict)
         
         print('')
         print('running 3compartment parameter id test')
@@ -123,9 +155,9 @@ if __name__ == '__main__':
             raise ValueError('fft cost is not zero. Failure!')
 
         print('')
-        print('running SN_to_cAMP parameter id test')
-        inp_data_dict['file_prefix'] = 'SN_to_cAMP'
-        inp_data_dict['input_param_file'] = 'SN_to_cAMP_parameters.csv'
+        print('running SN_simple parameter id test')
+        inp_data_dict['file_prefix'] = 'SN_simple'
+        inp_data_dict['input_param_file'] = 'SN_simple_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
         inp_data_dict['solver'] = 'CVODE'
         inp_data_dict['pre_time'] = 999 # this gets overwritten by the obs_data.json file
@@ -135,7 +167,7 @@ if __name__ == '__main__':
         inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
         inp_data_dict['dt'] = 0.0001
         inp_data_dict['DEBUG'] = True
-        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_to_cAMP_obs_data.json')
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path,'resources/SN_simple_obs_data.json')
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 30
         inp_data_dict['plot_predictions'] = True
