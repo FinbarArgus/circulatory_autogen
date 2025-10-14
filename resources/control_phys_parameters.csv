@@ -18,6 +18,8 @@ l_pcap,metre,0.043,Mynard&Smolich_2015_mainPA_NOT_USED
 q_0_pulmonary_GE,m3,0.002,user_defined
 k_O2_pulmonary_GE,m6_per_Js,2.850285E-10,Bizzotto2022
 k_CO2_pulmonary_GE,m6_per_Js,0.0000000082,Bizzotto2022
+overcap_solubility,J_per_m3,10000000000.0,user_defined_for_numerical_stability
+saturation_cap,dimensionless,0.9999,user_defined_for_numerical_stability
 C_CO2_p_init_pulmonary_GE,dimensionless,0.48,user_defined
 C_O2_p_init_pulmonary_GE,dimensionless,0.2,user_defined
 shunt_fraction_pulmonary_GE,dimensionless,0.017,GuytonAndHall2006
@@ -48,6 +50,7 @@ q_l_us_lung,m3,0.0000344,YasuhiroFukui1972
 q_t_us_lung,m3,0.00000663,YasuhiroFukui1972
 q_b_us_lung,m3,0.0000187,YasuhiroFukui1972
 q_A_us_lung,m3,0.000001263,Bizotto2022
+q_D_min_lung,m3,1e-05,user_defined
 R_ml_lung,Js_per_m6,100058,Rideout1991
 R_lt_lung,Js_per_m6,33016,Rideout1991
 R_tb_lung,Js_per_m6,30017,Rideout1991
@@ -665,6 +668,7 @@ K_stat_arterial_chemoreceptor,per_s,20,Magosso2001AndUrsino2000
 K_dyn_arterial_chemoreceptor,per_s,45,Magosso2001AndUrsino2000
 tau_cap_arterial_chemoreceptor,second,3.5,Magosso2001AndUrsino2000
 tau_CO2_cc_dyn_arterial_chemoreceptor,dimensionless,600,Magosso2001AndUrsino2000
+alpha_O2_arterial_chemoreceptor,m3_per_J,2.33e-07,Magosso2001AndUrsino2000_converted_from_0.003_per_100ml_per_mmHg
 Hgb,kg_per_m3,150,West2008
 W_cv,dimensionless,0.208,Magosso2001AndUrsino2000
 f_ev_0,per_s,3.2,Magosso2001AndUrsino2000
@@ -691,8 +695,10 @@ G_Ts_heart_period_effector,second,-0.13,Magosso2001AndUrsino2000
 G_Tv_heart_period_effector,s2,0.09,Magosso2001AndUrsino2000
 tau_Ts_heart_period_effector,second,2,Magosso2001AndUrsino2000
 tau_Tv_heart_period_effector,second,1.5,Magosso2001AndUrsino2000
-G_theta_venous_us_volume_effector,m3,-0.0002,Magosso2001AndUrsino2000_APPROX_TODO
-tau_theta_venous_us_volume_effector,second,20,Magosso2001AndUrsino2000
+G_theta_us_venous_constriction_effector,dimensionless,0.3,assumed_to_be_improved
+G_theta_compliance_venous_constriction_effector,dimensionless,0.3,assumed_to_be_improved
+tau_theta_us_venous_constriction_effector,second,20,Magosso2001AndUrsino2000
+tau_theta_compliance_venous_constriction_effector,second,20,Magosso2001AndUrsino2000_AssumedFrom_tau_theta_us
 P_CO2_a_nom,J_per_m3,5332.8,Magosso2001AndUrsino2000
 k_CO2_m,J_per_m3,19038,Magosso2001AndUrsino2000
 C_O2_vm_nom,dimensionless,0.155,Magosso2001AndUrsino2000

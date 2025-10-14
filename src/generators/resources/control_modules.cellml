@@ -750,7 +750,8 @@
         <!-- var theta_s: per_s {pub: in}; //currently ignoring CNS-->
         <variable name="W_bs" public_interface="in" units="dimensionless"/>
         <variable name="W_cs" public_interface="in" units="dimensionless"/>
-        <!-- var W_ps: dimensionless {pub: in}; not yet including lung stretch receptor effects-->
+        <!-- var W_cp: dimensionless {pub: in}; TODO cardiopulmonary and lungstretch signals need to be included.
+ var W_ls: dimensionless {pub: in};-->
         <!-- Variables-->
         <variable name="f_apc" public_interface="in" units="per_s"/>
         <variable name="f_ab" public_interface="in" units="per_s"/>
@@ -794,6 +795,7 @@
                     </apply>
                 </apply>
             </apply>
+            <!-- + w_cp*f_cp + w_ls*f_ls));-->
             <!--IGNORING CNS and LUNG STRETCH-->
             <apply>
                 <eq/>
@@ -933,80 +935,6 @@
                     </piece>
                     <otherwise>
                         <cn cellml:units="J_per_m6">0</cn>
-                    </otherwise>
-                </piecewise>
-            </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>Delta_theta</ci>
-                </apply>
-                <apply>
-                    <divide/>
-                    <apply>
-                        <plus/>
-                        <apply>
-                            <minus/>
-                            <ci>Delta_theta</ci>
-                        </apply>
-                        <ci>sigma_theta</ci>
-                    </apply>
-                    <ci>tau_theta</ci>
-                </apply>
-            </apply>
-        </math>
-    </component>
-    <component name="efferent_venous_us_volume_effector_type">
-        <variable name="t" public_interface="in" units="second"/>
-        <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
-        <!-- IMPORTANT: THIS MODULE HAS BEEN MODIFIED TO CONTROL COMPLIANCE INSTEAD OF UNSTRESSED VOLUME. PARAMS ARE UNVALIDATED-->
-        <!-- Constants-->
-        <variable name="G_theta" public_interface="in" units="m3"/>
-        <variable name="f_es_min" public_interface="in" units="per_s"/>
-        <variable name="tau_theta" public_interface="in" units="second"/>
-        <!-- Variables-->
-        <variable name="f_s" public_interface="in" units="per_s"/>
-        <variable initial_value="0.0" name="Delta_theta" public_interface="out" units="m3"/>
-        <variable name="sigma_theta" public_interface="out" units="m3"/>
-        <!-- Equations-->
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-            <apply>
-                <eq/>
-                <ci>sigma_theta</ci>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <ci>G_theta</ci>
-                            <apply>
-                                <ln/>
-                                <apply>
-                                    <times/>
-                                    <cn cellml:units="second">1</cn>
-                                    <apply>
-                                        <plus/>
-                                        <apply>
-                                            <minus/>
-                                            <ci>f_s</ci>
-                                            <ci>f_es_min</ci>
-                                        </apply>
-                                        <cn cellml:units="per_s">1</cn>
-                                    </apply>
-                                </apply>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>f_s</ci>
-                            <ci>f_es_min</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <cn cellml:units="m3">0</cn>
                     </otherwise>
                 </piecewise>
             </apply>
