@@ -252,8 +252,9 @@
         "general_ports":[],
         "variables_and_units":
         [
-          ["G_theta", "Js_per_m6", "access", "constant"],
+          ["G_theta", "dimensionless", "access", "constant"],
           ["f_es_min", "per_s", "access", "global_constant"],
+          ["f_es_mid", "per_s", "access", "global_constant"],
           ["tau_theta", "second", "access", "constant"],
           ["f_s", "per_s", "access", "boundary_condition"],
           ["Delta_theta", "dimensionless", "access", "variable"],
@@ -319,6 +320,7 @@
           ["G_theta_us", "dimensionless", "access", "constant"],
           ["G_theta_compliance", "dimensionless", "access", "constant"],
           ["f_es_min", "per_s", "access", "global_constant"],
+          ["f_es_mid", "per_s", "access", "global_constant"],
           ["tau_theta_us", "second", "access", "constant"],
           ["tau_theta_compliance", "second", "access", "constant"],
           ["f_s", "per_s", "access", "boundary_condition"],

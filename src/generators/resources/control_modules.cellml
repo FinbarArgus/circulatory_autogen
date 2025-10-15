@@ -820,8 +820,9 @@
         <variable name="t" public_interface="in" units="second"/>
         <!-- IMPORTANT: THIS MODULE ASSUMES NO DELAY CONSTANTS, WHICH IS DIFFERENT TO THE ORIGINAL PAPER, ALBANESE2016-->
         <!-- Constants-->
-        <variable name="G_theta" public_interface="in" units="Js_per_m6"/>
+        <variable name="G_theta" public_interface="in" units="dimensionless"/>
         <variable name="f_es_min" public_interface="in" units="per_s"/>
+        <variable name="f_es_mid" public_interface="in" units="per_s"/>
         <variable name="tau_theta" public_interface="in" units="second"/>
         <!-- Variables-->
         <variable name="f_s" public_interface="in" units="per_s"/>
@@ -837,7 +838,7 @@
                     <bvar>
                         <ci>t</ci>
                     </bvar>
-                    <ci>sigma_theta_us</ci>
+                    <ci>sigma_theta</ci>
                 </apply>
                 <apply>
                     <divide/>
@@ -859,7 +860,7 @@
             </apply>
             <apply>
                 <eq/>
-                <ci>Delta_theta_us</ci>
+                <ci>Delta_theta</ci>
                 <apply>
                     <divide/>
                     <apply>
@@ -869,7 +870,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <ci>f_s_min</ci>
+                        <ci>f_es_mid</ci>
                         <ci>sigma_theta</ci>
                     </apply>
                 </apply>
@@ -1030,6 +1031,7 @@
         <variable name="G_theta_us" public_interface="in" units="dimensionless"/>
         <variable name="G_theta_compliance" public_interface="in" units="dimensionless"/>
         <variable name="f_es_min" public_interface="in" units="per_s"/>
+        <variable name="f_es_mid" public_interface="in" units="per_s"/>
         <variable name="tau_theta_us" public_interface="in" units="second"/>
         <variable name="tau_theta_compliance" public_interface="in" units="second"/>
         <!-- Variables-->
@@ -1083,7 +1085,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <ci>f_es_min</ci>
+                        <ci>f_es_mid</ci>
                         <ci>sigma_theta_us</ci>
                     </apply>
                 </apply>
@@ -1127,7 +1129,7 @@
                     </apply>
                     <apply>
                         <plus/>
-                        <ci>f_es_min</ci>
+                        <ci>f_es_mid</ci>
                         <ci>sigma_theta_compliance</ci>
                     </apply>
                 </apply>
