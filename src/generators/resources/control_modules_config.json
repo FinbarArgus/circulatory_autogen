@@ -233,6 +233,38 @@
         "BC_type":"nn",
         "module_format":"cellml",
         "module_file":"control_modules.cellml",
+        "module_type":"efferent_resistance_effector_Argus_type",
+        "entrance_ports":
+        [
+          {
+            "port_type":"sympathetic_efferent_firing_rate_port",
+            "variables":["f_s"]
+          }
+        ],
+        "exit_ports":
+        [
+          {
+            "port_type":"resistance_delta_port",
+            "variables":["Delta_theta"],
+            "multi_port":"True"
+          }
+        ],
+        "general_ports":[],
+        "variables_and_units":
+        [
+          ["G_theta", "Js_per_m6", "access", "constant"],
+          ["f_es_min", "per_s", "access", "global_constant"],
+          ["tau_theta", "second", "access", "constant"],
+          ["f_s", "per_s", "access", "boundary_condition"],
+          ["Delta_theta", "dimensionless", "access", "variable"],
+          ["sigma_theta", "per_s", "access", "variable"]
+        ]
+    },
+    {
+        "vessel_type":"efferent_resistance_effector_Ursino",
+        "BC_type":"nn",
+        "module_format":"cellml",
+        "module_file":"control_modules.cellml",
         "module_type":"efferent_resistance_effector_type",
         "entrance_ports":
         [
@@ -256,8 +288,8 @@
           ["f_es_min", "per_s", "access", "global_constant"],
           ["tau_theta", "second", "access", "constant"],
           ["f_s", "per_s", "access", "boundary_condition"],
-          ["Delta_theta", "Js_per_m6", "access", "variable"],
-          ["sigma_theta", "Js_per_m6", "access", "variable"]
+          ["Delta_theta", "Js_per_m3", "access", "variable"],
+          ["sigma_theta", "Js_per_m3", "access", "variable"]
         ]
     },
     {
@@ -265,7 +297,7 @@
         "BC_type":"nn",
         "module_format":"cellml",
         "module_file":"control_modules.cellml",
-        "module_type":"efferent_venous_us_volume_and_compliance_effector_type",
+        "module_type":"efferent_venous_us_volume_and_compliance_effector_Argus_type",
         "entrance_ports":
         [
           {

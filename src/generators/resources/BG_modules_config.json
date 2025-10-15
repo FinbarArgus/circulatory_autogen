@@ -575,7 +575,7 @@
           ["q_init", "m3", "access", "constant"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["R_local_multiplier", "dimensionless", "access", "boundary_condition"]
         ]
       },
@@ -725,7 +725,7 @@
           ["q", "m3", "access", "variable"],
           ["v_in", "m3_per_s", "access", "boundary_condition"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["R_local_multiplier", "dimensionless", "access", "boundary_condition"]
         ]
       },
@@ -785,7 +785,7 @@
           ["q", "m3", "access", "variable"],
           ["v_in", "m3_per_s", "access", "boundary_condition"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "Js_per_m3", "access", "boundary_condition"],
           ["R_local_multiplier", "dimensionless", "access", "boundary_condition"]
         ]
       },
@@ -886,7 +886,7 @@
           ["q", "m3", "access", "variable"],
           ["q_us", "m3", "access", "constant"],
           ["q_init", "m3", "access", "constant"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["u_ext", "J_per_m3", "access", "constant"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],
@@ -944,7 +944,7 @@
           ["q", "m3", "access", "variable"],
           ["q_us", "m3", "access", "constant"],
           ["q_init", "m3", "access", "constant"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["u_ext", "J_per_m3", "access", "constant"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],
@@ -1001,7 +1001,7 @@
           ["q", "m3", "access", "variable"],
           ["q_us", "m3", "access", "constant"],
           ["q_init", "m3", "access", "constant"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["u_ext", "J_per_m3", "access", "constant"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],
@@ -1058,7 +1058,7 @@
           ["q", "m3", "access", "variable"],
           ["q_us", "m3", "access", "constant"],
           ["q_init", "m3", "access", "constant"],
-          ["Delta_R", "Js_per_m6", "access", "boundary_condition"],
+          ["Delta_R", "dimensionless", "access", "boundary_condition"],
           ["u_ext", "J_per_m3", "access", "constant"],
           ["u_out", "J_per_m3", "access", "boundary_condition"],
           ["u_in", "J_per_m3", "access", "boundary_condition"],

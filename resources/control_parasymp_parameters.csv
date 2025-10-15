@@ -759,10 +759,10 @@ f_es_0,per_s,16.11,Magosso2001AndUrsino2000
 f_es_inf,per_s,2.1,Magosso2001AndUrsino2000
 f_es_max,per_s,60,Magosso2001AndUrsino2000
 k_es,per_s,0.0675,Magosso2001AndUrsino2000
-G_theta_trunk_resistance_effector,Js_per_m6,6.56E+07,Magosso2001AndUrsino2000
+G_theta_trunk_resistance_effector,Js_per_m6,1.0,assumed_that_R_can_double_to_be_improved
 tau_theta_trunk_resistance_effector,second,6,Magosso2001AndUrsino2000
 f_es_min,per_s,2.66,Magosso2001AndUrsino2000
-G_theta_arm_leg_resistance_effector,Js_per_m6,2.27E+08,Magosso2001AndUrsino2000
+G_theta_arm_leg_resistance_effector,Js_per_m6,1.0,assumed_that_R_can_double_to_be_improved
 tau_theta_arm_leg_resistance_effector,second,6,Magosso2001AndUrsino2000
 G_Es_lv_elastance_effector,J_per_m6,1.0e7,user_defined_was_1.29e9_Gee2023_inv
 tau_Es_lv_elastance_effector,second,2,Gee2023

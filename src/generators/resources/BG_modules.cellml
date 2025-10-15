@@ -2310,7 +2310,7 @@
         <variable name="q_init" public_interface="in" units="m3"/>
         <variable initial_value="q_init" name="q" public_interface="out" units="m3"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="Delta_R" public_interface="in" units="Js_per_m6"/>
+        <variable name="Delta_R" public_interface="in" units="dimensionless"/>
         <variable name="R_local_multiplier" public_interface="in" units="dimensionless"/>
         <!-- Improve this R_v estimate?-->
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -2441,9 +2441,10 @@
                 <ci>R_T_wCont</ci>
                 <apply>
                     <times/>
+                    <ci>R_T</ci>
                     <apply>
                         <plus/>
-                        <ci>R_T</ci>
+                        <cn cellml:units="dimensionless">1</cn>
                         <ci>Delta_R</ci>
                     </apply>
                     <ci>R_local_multiplier</ci>
@@ -2609,7 +2610,7 @@
         <variable name="q_init" public_interface="in" units="m3"/>
         <variable initial_value="q_init" name="q" public_interface="out" units="m3"/>
         <variable name="R_T_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="Delta_R" public_interface="in" units="Js_per_m6"/>
+        <variable name="Delta_R" public_interface="in" units="dimensionless"/>
         <variable name="R_local_multiplier" public_interface="in" units="dimensionless"/>
         <!-- Conservation Laws-->
         <!-- For now terminals don't have a gravity effect, change this for leg terminals-->
@@ -2693,9 +2694,10 @@
                 <ci>R_T_wCont</ci>
                 <apply>
                     <times/>
+                    <ci>R_T</ci>
                     <apply>
                         <plus/>
-                        <ci>R_T</ci>
+                        <cn cellml:units="dimensionless">1</cn>
                         <ci>Delta_R</ci>
                     </apply>
                     <ci>R_local_multiplier</ci>
@@ -3022,7 +3024,7 @@
         <variable name="q_us" public_interface="in" units="m3"/>
         <variable initial_value="q_init" name="q" public_interface="out" units="m3"/>
         <variable name="R_T2_wCont" public_interface="out" units="Js_per_m6"/>
-        <variable name="Delta_R" public_interface="in" units="Js_per_m6"/>
+        <variable name="Delta_R" public_interface="in" units="dimensionless"/>
         <variable name="R_local_multiplier" public_interface="in" units="dimensionless"/>
         <!-- Conservation Laws-->
         <!-- For now terminals don't have a gravity effect, change this for leg terminals-->
@@ -3082,9 +3084,10 @@
                 <ci>R_T2_wCont</ci>
                 <apply>
                     <times/>
+                    <ci>R_T2</ci>
                     <apply>
                         <plus/>
-                        <ci>R_T2</ci>
+                        <cn cellml:units="dimensionless">1</cn>
                         <ci>Delta_R</ci>
                     </apply>
                     <ci>R_local_multiplier</ci>
@@ -3112,6 +3115,7 @@
         <!-- R_T1_wCont is only used to transfer to the FV coupling with Lucas' models.-->
         <variable name="R_T1_wCont" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T2_wCont" public_interface="out" units="Js_per_m6"/>
+        <!-- TODO this hasn't been modified for new control laws.-->
         <variable name="Delta_R" public_interface="in" units="Js_per_m6"/>
         <variable name="R_local_multiplier" public_interface="in" units="dimensionless"/>
         <!-- Conservation Laws-->
