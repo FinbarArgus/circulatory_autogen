@@ -13,6 +13,7 @@ from param_id.paramID import CVS0DParamID
 import traceback
 import yaml
 from parsers.PrimitiveParsers import YamlFileParser
+from identifiabilty_analysis.identifiabilityAnalysis import IdentifiabilityAnalysis
 
 def run_param_id(inp_data_dict=None):
 
@@ -93,6 +94,18 @@ def run_param_id(inp_data_dict=None):
         mcmc.set_best_param_vals(best_param_vals)
         # mcmc.set_mcmc_parameters() TODO
         mcmc.run_mcmc()
+
+    if inp_data_dict['do_id_analysis']:
+        id_analysis = IdentifiabilityAnalysis(model_path, model_type, param_id_method, False, file_prefix,
+                                             params_for_id_path=params_for_id_path,
+                                             param_id_obs_path=param_id_obs_path,
+                                             sim_time=sim_time, pre_time=pre_time,
+                                             solver_info=solver_info, dt=dt, DEBUG=DEBUG,
+                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
+                                             param_id=param_id.param_id) # pass in param_id object so we can use its cost functions
+
+        id_analysis.set_best_param_vals(best_param_vals)    
+        id_analysis.run_identifiability_analysis(inp_data_dict['identifiability_analysis_options'])
     
     if rank == 0:
         print('param id complete')

@@ -166,6 +166,59 @@ def change_parameter_values_and_save(cellml_file, parameter_names, parameter_val
     with open(target, 'w', encoding='utf-8') as f:
         f.write(new_content)
 
+def calculate_hessian(param_id, AD=False):    
+    """
+    Calculate the Hessian matrix of the cost function at the best parameter values.
+
+    Args:
+      param_id: An instance of the parameter identification class with a get_cost_from_params method and best_param_vals attribute.
+
+    Returns:
+      Hessian matrix as a 2D numpy array.
+    """
+    if param_id.best_param_vals is None:
+        raise ValueError("Best parameter values must be set in param_id before calculating Hessian.")
+    
+    # TODO The below is not correct yet. Finbar to fix.
+
+    best_params = param_id.best_param_vals
+    n_params = len(best_params)
+    hessian = np.zeros((n_params, n_params))
+    epsilon = 1e-7  # Small perturbation for finite difference
+
+    if AD:
+        # If using automatic differentiation, implement accordingly
+        raise NotImplementedError("Automatic differentiation not implemented yet.")
+
+    else:
+        # calculate hessian with finite differences
+        hessian = hessian_fd(param_id.get_cost_from_params, best_params, eps=epsilon)
+
+        
+def hessian_fd(f, theta, eps=1e-6):
+    theta = np.asarray(theta, dtype=float)
+    n = len(theta)
+    H = np.zeros((n, n))
+    
+    # Relative step sizes
+    h = eps * np.maximum(np.abs(theta), 1.0)
+    
+    for i in range(n):
+        for j in range(i, n):
+            ei = np.zeros(n); ej = np.zeros(n)
+            ei[i] = h[i]; ej[j] = h[j]
+            
+            fpp = f(theta + ei + ej)
+            fpm = f(theta + ei - ej)
+            fmp = f(theta - ei + ej)
+            fmm = f(theta - ei - ej)
+            
+            H[i, j] = (fpp - fpm - fmp + fmm) / (4 * h[i] * h[j])
+            H[j, i] = H[i, j]
+    return H
+
+    return hessian
+
 
 
 

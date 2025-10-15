@@ -90,4 +90,12 @@ debug_mcmc_options:
   cost_type: MSE
   cost_convergence: 0.001
 
+sa_options:
+  method: sobol # TODO implement this (Mohammad)
+
+# identifiability analysis
+do_id_analysis: true
+ia_options:
+  method: Laplace # profile_likelihood
+
 plot_predictions: true
