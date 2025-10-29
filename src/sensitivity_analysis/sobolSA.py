@@ -723,6 +723,8 @@ class sobol_SA():
                         else:
                             # print(":(", exp_idx, subexp_idx)
                             features.append(None)
+                    else:
+                        print(f"WARNING: Operation function not found or not marked for {self.obs_info["operations"][j]}.")
                 # print(len(features))
                 local_outputs.append(features)
                 pbar.update(1)

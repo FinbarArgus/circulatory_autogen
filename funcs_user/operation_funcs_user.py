@@ -352,6 +352,7 @@ def max_first_half(x, series_output=False):
         return np.min(range_values)
 
 @series_to_constant
+@sensitivity
 def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance=None, dV_dt_thresh=10e3):
     """
     This function calculates the mean action potential threshold
@@ -401,6 +402,7 @@ def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance
     return threshold
 
 @series_to_constant
+@sensitivity
 def mean_peak_to_trough_time(t, V, series_output=False, spike_min_thresh=None, distance=None):
     """
     This function calculates the time between the peak and trough of each action potential
