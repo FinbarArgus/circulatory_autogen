@@ -32,7 +32,7 @@ def run_SA(inp_data_dict=None):
     ga_options = inp_data_dict['ga_options']
     num_SA_samples = inp_data_dict['num_SA_samples']
     # resources_dir = inp_data_dict['resources_dir']
-    SA_output_dir = inp_data_dict['param_id_output_dir']
+    SA_output_dir = inp_data_dict['SA_output_dir']
 
     
     if rank == 0:
