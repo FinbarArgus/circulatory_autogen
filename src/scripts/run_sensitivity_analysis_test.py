@@ -2,15 +2,12 @@ import os
 import sys
 import yaml
 import traceback
-import numpy as np
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
 
 user_inputs_dir = os.path.join(root_dir_path, 'user_run_files')
-from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from scripts.sensitivity_analysis_run_script import run_SA
-from scripts.plot_param_id_script import plot_param_id
 
 if __name__ == '__main__':
     try:
@@ -49,6 +46,11 @@ if __name__ == '__main__':
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
         inp_data_dict['plot_predictions'] = True
         inp_data_dict['model_out_names'] = ['heart/u_lv']
+        inp_data_dict['sa_options'] = {
+            'num_SA_samples': 256,
+            'SA_sample_type': 'saltelli',
+            'SA_output_dir': os.path.join(root_dir_path, 'outputs/3compartment_SA_results')
+        }
 
         run_SA(inp_data_dict)
 

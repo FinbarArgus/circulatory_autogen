@@ -24,7 +24,7 @@ from parsers.PrimitiveParsers import CSVFileParser
 import csv
 from tqdm import tqdm  # make sure tqdm is installed
 
-class CVS0D_SA():
+class sobol_SA():
 
     """
         A class for performing sensitivity analysis
@@ -553,7 +553,7 @@ class CVS0D_SA():
         
         self.output_dir = path
         if not os.path.exists(self.output_dir):
-            os.mkdir(self.output_dir)
+            os.makedirs(self.output_dir)
 
     def generate_samples(self):
 
@@ -818,7 +818,8 @@ class CVS0D_SA():
             output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info["experiment_idxs"][i]}, subexperiment{self.obs_info["subexperiment_idxs"][i]}"
 
             # plt.figure(figsize=(6, 5))
-            plt.figure()
+            fig_width = max(6, 1.0 * len(self.SA_cfg["param_names"]))
+            plt.figure(figsize=(fig_width, fig_width))
             sns.heatmap(S2, annot=True, fmt=".2f", xticklabels=self.SA_cfg["param_names"], yticklabels=self.SA_cfg["param_names"], cmap="coolwarm")
             plt.title(rf"2nd order Sobol Indices - {output_name}")
             plt.tight_layout()
