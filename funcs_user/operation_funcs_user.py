@@ -10,6 +10,10 @@ def series_to_constant(func):
     func.series_to_constant = True
     return func
 
+def sensitivity(func):
+    func.sensitivity = True
+    return func
+
 # example function
 def ml_to_m3(x):
     return x*1e-6
@@ -97,6 +101,7 @@ def calc_spike_period(t, V, series_output=False):
     return period
 
 @series_to_constant
+@sensitivity
 def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10, start_frac=0.0, end_frac=1.0):
     """
     this calculates the number of spikes per 
@@ -117,6 +122,7 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     return spikes_per_s
 
 @series_to_constant
+@sensitivity
 def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     """ 
     returns the time value (time from start of pre_time, NOT the start of 
@@ -136,6 +142,7 @@ def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     return t_first_peak
 
 @series_to_constant
+@sensitivity
 def steady_state_min(x, series_output=False):
     """
     finds the min of the second half of this subexperiment. 
@@ -146,6 +153,19 @@ def steady_state_min(x, series_output=False):
         return x
     else:
         return np.min(x[len(x)//2:])
+    
+@series_to_constant
+@sensitivity
+def steady_state_avg(x, series_output=False):
+    """
+    finds the average of the second half of this subexperiment. 
+    The aim of this is to allow the dynamics to reach steady state
+    or periodic steady state before getting the average
+    """
+    if series_output:
+        return x
+    else:
+        return np.mean(x[len(x)//2:])
 
 @series_to_constant
 def calc_min_to_max_period_diff(t, V, series_output=False, spike_min_thresh=None):
@@ -257,11 +277,11 @@ def second_period(t, V, series_output=False, spike_min_thresh=None, distance=Non
     return second_period
 
 @series_to_constant
+@sensitivity
 def E_A_ratio(t, x, T, series_output=False):
     if series_output:
         return x
     peak_idxs, peak_properties = find_peaks(x)
-
     if len(peak_idxs) < 1:
         # no peeak idxs found, return big value to make it a big cost
         return 100
@@ -292,6 +312,7 @@ def peak_times(t, V, series_output=False):
     if series_output:
         return V
     peak_idxs, peak_properties = find_peaks(V)
+    print(peak_idxs)
     if len(peak_idxs) == 0:
         return 99999999
     peaks = t[peak_idxs]
@@ -319,7 +340,9 @@ def max_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
 
 
 @series_to_constant
-def min_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
+@sensitivity
+def max_first_half(x, series_output=False):
+    print('max_first_half called')
     if series_output:
         return x
     else:
@@ -456,5 +479,67 @@ def mean_in_range_fraction_change_from_initial(x, start_frac=0.8, end_frac=1.0, 
         return percentage_change
 
 
+@series_to_constant
+@sensitivity
+def min_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
+    """
+    Calculates the minimum value of the signal x in the window defined by start_frac and end_frac.
+    start_frac and end_frac should be floats between 0 and 1, representing the fraction of the signal.
+    """
+    if series_output:
+        return x
+    
+    start_idx = int(start_frac * (len(x) - 1))
+    end_idx = int(end_frac * (len(x) - 1))
+    range_values = x[start_idx:end_idx]
+    
+    return np.min(range_values)
 
+@series_to_constant
+@sensitivity
+def calc_AHP_duration(t, V, baseline_voltage=None, series_output=False):
+    """
+    Calculates the duration of the afterhyperpolarization (AHP) as the time to 50% recovery.
+    If there is more than one AP, returns the average AHP duration.
+    baseline_voltage: If None, uses the mean of the first 5% of V as baseline.
+    Returns np.nan if recovery is not reached.
+    """
+    if series_output:
+        return V
 
+    # Estimate baseline if not provided
+    if baseline_voltage is None:
+        baseline_voltage = np.mean(V[:max(1, int(0.05 * len(V)))])
+
+    # Find AP peaks (assume APs are positive peaks)
+    peak_idxs, _ = find_peaks(V, height=baseline_voltage + 10)  # threshold can be adjusted
+
+    if len(peak_idxs) < 1:
+        return np.nan
+
+    ahp_durations = []
+    for peak_idx in peak_idxs:
+        # Find minimum (hyperpolarization) after AP peak
+        if peak_idx >= len(V) - 1:
+            continue
+        i_hyper = peak_idx + np.argmin(V[peak_idx:])
+        V_hyper = V[i_hyper]
+
+        # Calculate recovery level (50% recovery)
+        recovery_level = baseline_voltage + 0.5 * (V_hyper - baseline_voltage)
+
+        # Find time to recovery after hyperpolarization
+        post_hyper = V[i_hyper:]
+        try:
+            i_recover = np.where(post_hyper >= recovery_level)[0][0] + i_hyper
+            ahp_duration = t[i_recover] - t[i_hyper]
+        except IndexError:
+            ahp_duration = np.nan
+
+        ahp_durations.append(ahp_duration)
+
+    # Return average if multiple APs
+    if len(ahp_durations) == 0:
+        return np.nan
+    else:
+        return np.nanmean(ahp_durations)
