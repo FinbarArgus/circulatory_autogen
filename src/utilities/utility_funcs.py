@@ -215,9 +215,40 @@ def hessian_fd(f, theta, eps=1e-6):
             
             H[i, j] = (fpp - fpm - fmp + fmm) / (4 * h[i] * h[j])
             H[j, i] = H[i, j]
+    
+
     return H
 
-    return hessian
+def hessian_gauss_newton(residual, theta, eps=1e-6):
+    """
+    Calculate the Gauss-Newton approximation of the Hessian matrix.
+
+    Args:
+      residuals: Function that returns residuals given parameters.
+      theta: Parameter values at which to compute the Hessian.
+      eps: Small perturbation for finite difference.
+    Returns:
+      Hessian matrix as a 2D numpy array.
+    """
+    theta = np.asarray(theta, dtype=float)
+    n = len(theta)
+    m = len(residual(theta))
+    J = np.zeros((m, n))
+    
+    # Relative step sizes
+    h = eps * np.maximum(np.abs(theta), 1.0)
+    
+    for j in range(n):
+        ej = np.zeros(n)
+        ej[j] = h[j]
+        
+        r_plus = residual(theta + ej)
+        r_minus = residual(theta - ej)
+        
+        J[:, j] = (r_plus - r_minus) / (2 * h[j])
+    
+    H_gn = J.T @ J
+    return H_gn
 
 
 
