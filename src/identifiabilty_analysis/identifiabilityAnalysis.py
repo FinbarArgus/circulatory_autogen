@@ -79,5 +79,9 @@ class IdentifiabilityAnalysis():
     def run_laplace_approximation(self, ia_options):
 
         Hessian = calculate_hessian(self.param_id)
-
-        # TODO implement the rest of the Laplace approximation method
+        covariance_matrix = np.linalg.inv(Hessian)
+        mean = self.best_param_vals
+        print("Laplace Approximation Results:")
+        print("Mean (Best Parameter Values):", mean)
+        print("Covariance Matrix:\n", covariance_matrix)
+        return mean, covariance_matrix
