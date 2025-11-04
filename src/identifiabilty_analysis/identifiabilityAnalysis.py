@@ -18,6 +18,7 @@ import matplotlib.ticker as tick
 import paperPlotSetup
 import diagnostics
 import utility_funcs
+from utility_funcs import calculate_hessian
 import traceback
 from utility_funcs import Normalise_class
 paperPlotSetup.Setup_Plot(3)
@@ -69,7 +70,7 @@ class IdentifiabilityAnalysis():
         """
         if ia_options['method'] == 'profile_likelihood':
             self.run_profile_likelihood(ia_options)
-        elif ia_options['method'] == 'Laplace_approximation':
+        elif ia_options['method'] == 'Laplace':
             self.run_laplace_approximation(ia_options)
 
     def run_profile_likelihood(self, ia_options):
@@ -79,6 +80,7 @@ class IdentifiabilityAnalysis():
     def run_laplace_approximation(self, ia_options):
 
         Hessian = calculate_hessian(self.param_id)
+        print("Hessian Matrix:\n", Hessian)
         covariance_matrix = np.linalg.inv(Hessian)
         mean = self.best_param_vals
         print("Laplace Approximation Results:")

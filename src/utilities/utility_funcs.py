@@ -193,6 +193,7 @@ def calculate_hessian(param_id, AD=False):
     else:
         # calculate hessian with finite differences
         hessian = hessian_fd(param_id.get_cost_from_params, best_params, eps=epsilon)
+    return hessian
 
         
 def hessian_fd(f, theta, eps=1e-6):
@@ -201,7 +202,7 @@ def hessian_fd(f, theta, eps=1e-6):
     H = np.zeros((n, n))
     
     # Relative step sizes
-    h = eps * np.maximum(np.abs(theta), 1.0)
+    h = eps * np.minimum(np.abs(theta), 1.0)
     
     for i in range(n):
         for j in range(i, n):
@@ -215,8 +216,7 @@ def hessian_fd(f, theta, eps=1e-6):
             
             H[i, j] = (fpp - fpm - fmp + fmm) / (4 * h[i] * h[j])
             H[j, i] = H[i, j]
-    
-
+    print(h)
     return H
 
 def hessian_gauss_newton(residual, theta, eps=1e-6):

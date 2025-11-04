@@ -12,6 +12,7 @@ sys.path.append(os.path.join(root_dir, 'src'))
 from param_id.paramID import CVS0DParamID
 import traceback
 import yaml
+import numpy as np
 from parsers.PrimitiveParsers import YamlFileParser
 from identifiabilty_analysis.identifiabilityAnalysis import IdentifiabilityAnalysis
 
@@ -74,9 +75,10 @@ def run_param_id(inp_data_dict=None):
         param_id.set_bayesian_parameters(num_calls_to_function, n_initial_points, acq_func,  random_seed,
                                             acq_func_kwargs=acq_func_kwargs)
     param_id.run()
-
+    # param_id.param_id.set_best_param_vals(np.asarray([0.59779409, 0.32321317, 0.05664833, 0.35665839]))
     best_param_vals = param_id.get_best_param_vals()
-    param_id.close_simulation()
+    
+    # param_id.close_simulation() comment for identifiability analysis run otherwise the model will be closed before analysis
     do_mcmc = inp_data_dict['do_mcmc']
 
     if DEBUG:
@@ -96,16 +98,19 @@ def run_param_id(inp_data_dict=None):
         mcmc.run_mcmc()
 
     if inp_data_dict['do_id_analysis']:
-        id_analysis = IdentifiabilityAnalysis(model_path, model_type, param_id_method, False, file_prefix,
-                                             params_for_id_path=params_for_id_path,
-                                             param_id_obs_path=param_id_obs_path,
-                                             sim_time=sim_time, pre_time=pre_time,
-                                             solver_info=solver_info, dt=dt, DEBUG=DEBUG,
-                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
-                                             param_id=param_id.param_id) # pass in param_id object so we can use its cost functions
+        # id_analysis = IdentifiabilityAnalysis(model_path, model_type, param_id_method, False, file_prefix,
+        #                                      params_for_id_path=params_for_id_path,
+        #                                      param_id_obs_path=param_id_obs_path,
+        #                                      sim_time=sim_time, pre_time=pre_time,
+        #                                      solver_info=solver_info, dt=dt, DEBUG=DEBUG,
+        #                                      param_id_output_dir=param_id_output_dir, resources_dir=resources_dir,
+        #                                      param_id=param_id.param_id) # pass in param_id object so we can use its cost functions
+        id_analysis = IdentifiabilityAnalysis(model_path, model_type, file_prefix, param_id_output_dir=param_id_output_dir,
+                                              resources_dir=resources_dir, param_id=param_id.param_id)  # pass in param_id object so we can use its cost functions
 
         id_analysis.set_best_param_vals(best_param_vals)    
-        id_analysis.run_identifiability_analysis(inp_data_dict['identifiability_analysis_options'])
+        #id_analysis.run_identifiability_analysis(inp_data_dict['identifiability_analysis_options'])
+        id_analysis.run_identifiability_analysis(inp_data_dict['ia_options'])
     
     if rank == 0:
         print('param id complete')
