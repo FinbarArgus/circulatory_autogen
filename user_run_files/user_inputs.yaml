@@ -1,10 +1,7 @@
 #_______ general inputs ________
 DEBUG: false # TODO change back
-# user_inputs_path_override: false
-user_inputs_path_override: /home/hsma807/Animus/PhD Research Proj/Code/CA_user_LCN_soma/LCN_soma_user_inputs.yaml
-# user_inputs_path_override: /home/hsma807/Animus/Temp/Rashmini_GLC_SA/Rashmini_GLC_test_user_inputs.yaml
-
-file_prefix: 3compartment 
+user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/lung_dev/user_inputs_lung_dev.yaml
+file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
@@ -94,7 +91,9 @@ debug_mcmc_options:
   cost_convergence: 0.001
 
 sa_options:
-  method: sobol # TODO implement this (Mohammad)
+  method: sobol 
+  SA_sample_type: 'saltelli'
+  num_SA_samples: 32
 
 # identifiability analysis
 do_id_analysis: true
@@ -103,5 +102,3 @@ ia_options:
 
 plot_predictions: true
 
-SA_sample_type: 'saltelli'
-num_SA_samples: 32
