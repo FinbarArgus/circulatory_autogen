@@ -96,7 +96,7 @@ sa_options:
   num_SA_samples: 32
 
 # identifiability analysis
-do_id_analysis: true
+do_id_analysis: false
 ia_options:
   method: Laplace # profile_likelihood
 
