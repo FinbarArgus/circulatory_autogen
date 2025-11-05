@@ -1,18 +1,18 @@
 # Sensitivity Analysis
 
-Sensitivity Analysis (SA) is the non-negotiable first step in the calibration pipeline because it performs crucial **parameter screening**. Calibration is the process of tuning numerous model parameters (inputs) until the model's output matches experimental data. Without SA, a modeler might waste weeks tuning parameters that have virtually no impact on the final result, or unknowingly tune parameters that are highly correlated, leading to non-unique solutions. SA efficiently identifies:
+Sensitivity Analysis (SA) is a recommended first step in the calibration pipeline because it performs crucial **parameter screening**. Calibration is the process of tuning numerous model parameters (inputs) until the model's output matches experimental data. Without SA, a modeler might waste weeks tuning parameters that have virtually no impact on the final result, or unknowingly tune parameters that are highly correlated, leading to non-unique solutions. SA efficiently identifies:
 
-* **Key Drivers:** Which parameters contribute most significantly to the model's output variance.
+* **Influential parameters:** Which parameters contribute most significantly to the model's output variance.
 
-* **Irrelevant Inputs:** Which parameters can be fixed or ignored, drastically simplifying the calibration space.
+* **Non-influential parameters:** Which parameters can be fixed or ignored, drastically simplifying the calibration space.
 
-SA ensures that the subsequent calibration effort is focused, efficient, and physically meaningful.
+SA ensures that the calibration effort is focused, efficient, and physically meaningful.
 
 ## The Sobol Method
 
 The Sobol method is a powerful, **global, variance-based** sensitivity analysis technique. Unlike local methods that only test parameter changes one at a time, the Sobol method explores the entire input space simultaneously.
 
-* **Key Feature:** It quantifies the contribution of each individual input parameter (First-Order Index, $S_i$) and the contribution of parameter interactions (Second-Order, Total-Order Index, $S_{Ti}$) to the overall output variance.
+* **Key Feature:** It quantifies the contribution of each individual input parameter (First-Order Index, S_i) and the contribution of parameter interactions (Second-Order, Total-Order Index, S_{Ti}) to the overall output variance.
 
 This comprehensive approach allows modelers to understand not only which parameters are important on their own, but also how complex, synergistic interactions between two or more parameters drive the final simulation results.
 
@@ -23,7 +23,7 @@ Crucially, each data item defined in your `obs_data.json` file is treated as a f
 
 ### Configuration for `user_inputs.yaml`
 
-To run the Sobol analysis, you need to add a specific `sa_options` block to your `input.yaml` configuration file:
+To run the Sobol analysis, you need to add a specific `sa_options` block to your `user_inputs.yaml` configuration file:
 ```
 sa_options: 
     method: 'sobol' 
@@ -34,17 +34,6 @@ sa_options:
 Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_SA_samples` value be a power of $2$ (e.g., $1024$). Available sample type are [**'saltelli'**].
 
 An indicator that the **sample size may be too low** is the observation of **relatively large negative values for the Sobol indices** in the results; if this occurs, you should increase the sample size and re-run the analysis.
-
-### Creating your own operation
-If you define your own observation function within `operation_function_user.py` to calculate a new feature for analysis, you **must** decorate that function with `@sensitivity` to ensure it is correctly included in the SA pipeline. See the example below:
-```python
-@series_to_constant
-@sensitivity
-def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance=None, dV_dt_thresh=10e3):
-
-# function body
-pass
-```
 
 ## How to run SA script
 

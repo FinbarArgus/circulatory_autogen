@@ -50,7 +50,7 @@ if __name__ == '__main__':
             'method': 'sobol',
             'num_SA_samples': 256,
             'SA_sample_type': 'saltelli',
-            'SA_output_dir': os.path.join(root_dir_path, 'outputs/3compartment_SA_results')
+            'SA_output_dir': os.path.join(root_dir_path, 'sensitivity_outputs/3compartment_SA_results')
         }
 
         run_SA(inp_data_dict)
