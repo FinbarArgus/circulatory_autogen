@@ -75,6 +75,8 @@ class IdentifiabilityAnalysis():
 
     def run_profile_likelihood(self, ia_options):
         # TODO
+        print("Profile Likelihood method not yet implemented")
+        exit()
         pass
 
     def run_laplace_approximation(self, ia_options):
@@ -86,4 +88,5 @@ class IdentifiabilityAnalysis():
         print("Laplace Approximation Results:")
         print("Mean (Best Parameter Values):", mean)
         print("Covariance Matrix:\n", covariance_matrix)
+        # TODO plots for the covariance matrix
         return mean, covariance_matrix

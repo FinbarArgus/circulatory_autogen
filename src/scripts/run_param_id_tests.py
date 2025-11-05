@@ -85,6 +85,10 @@ if __name__ == '__main__':
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
         inp_data_dict['plot_predictions'] = True
+        inp_data_dict['do_id_analysis'] = True
+        inp_data_dict['ia_options'] = {
+            'method': 'Laplace'
+            }
         run_param_id(inp_data_dict)
 
 
@@ -112,6 +116,10 @@ if __name__ == '__main__':
         inp_data_dict['do_mcmc'] = True
         inp_data_dict['debug_ga_options']['num_calls_to_function'] = 60
         inp_data_dict['plot_predictions'] = True
+        inp_data_dict['do_id_analysis'] = True
+        inp_data_dict['ia_options'] = {
+            'method': 'Laplace'
+            }
         run_param_id(inp_data_dict)
 
         # also test running autogeneration with the fit parameters
