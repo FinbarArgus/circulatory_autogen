@@ -66,12 +66,9 @@ class SensitivityAnalysis():
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path
 
-        # TODO
-        pass
-
     def run_sensitivity_analysis(self, sa_options):
         if sa_options['method'] == 'naive':
-            self.run_naive_sensitivity(sa_options['param_id_output_paths'])
+            self.run_naive_sensitivity()
         elif sa_options['method'] == 'sobol':
             self.run_sobol_sensitivity(sa_options)
         else:
@@ -86,10 +83,11 @@ class SensitivityAnalysis():
         rank = comm.Get_rank()
 
         num_SA_samples = sa_options['num_SA_samples']
+        SA_sample_type = sa_options['SA_sample_type']
         SA_output_dir = sa_options['SA_output_dir']
 
         SA_cfg = {
-            "sample_type" : 'saltelli',
+            "sample_type" : SA_sample_type,
             "num_samples": num_SA_samples,
         }
 

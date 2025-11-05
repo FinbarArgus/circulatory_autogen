@@ -21,20 +21,21 @@ Since Sensitivity Analysis (SA) is intertwined with parameter identification, yo
 
 Crucially, each data item defined in your `obs_data.json` file is treated as a feature for SA, meaning you will receive a separate set of plots (one for first and total order indices, and one for second order indices) for **each** data item.
 
-### Configuration for `input.yaml`
+### Configuration for `user_inputs.yaml`
 
 To run the Sobol analysis, you need to add a specific `sa_options` block to your `input.yaml` configuration file:
 ```
 sa_options: 
     method: 'sobol' 
     num_SA_samples: 1024 
+    SA_sample_type: saltelli
     SA_output_dir: <SA_outputs_path>
 ```
-Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_SA_samples` value be a power of $2$ (e.g., $1024$).
+Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_SA_samples` value be a power of $2$ (e.g., $1024$). Available sample type are [**'saltelli'**].
 
 An indicator that the **sample size may be too low** is the observation of **relatively large negative values for the Sobol indices** in the results; if this occurs, you should increase the sample size and re-run the analysis.
 
-### Creatubg your own operation
+### Creating your own operation
 If you define your own observation function within `operation_function_user.py` to calculate a new feature for analysis, you **must** decorate that function with `@sensitivity` to ensure it is correctly included in the SA pipeline. See the example below:
 ```python
 @series_to_constant
@@ -47,9 +48,7 @@ pass
 
 ## How to run SA script
 
-First, ensure you have the **SALib** package installed. 
-
-**NOTE:** It is recommended to use **SALib version 1.5.1**.
+First, ensure you have the required sensitivity analysis packages specified in see [getting started](getting-started.md) 
 
 To run the script, use the following command (which utilizes **MPI for parallelized computation** on CPU):
 

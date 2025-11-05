@@ -710,21 +710,18 @@ class sobol_SA():
                 features = []
                 for j in range(len(self.obs_info["operations"])):
                     func = self.operation_funcs_dict[self.obs_info["operations"][j]]
-                    if hasattr(func, 'sensitivity') and func.sensitivity:
-                        exp_idx = self.obs_info["experiment_idxs"][j]
-                        subexp_idx = self.obs_info["subexperiment_idxs"][j]
-                        # print(exp_idx, subexp_idx)
-                        # Use the dictionary version to access operands_outputs
-                        operands_outputs = operands_outputs_dict.get((exp_idx, subexp_idx), None)
-                        if operands_outputs is not None:
-                            # print(":)", exp_idx, subexp_idx)
-                            feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
-                            features.append(feature)
-                        else:
-                            # print(":(", exp_idx, subexp_idx)
-                            features.append(None)
+                    exp_idx = self.obs_info["experiment_idxs"][j]
+                    subexp_idx = self.obs_info["subexperiment_idxs"][j]
+                    # print(exp_idx, subexp_idx)
+                    # Use the dictionary version to access operands_outputs
+                    operands_outputs = operands_outputs_dict.get((exp_idx, subexp_idx), None)
+                    if operands_outputs is not None:
+                        # print(":)", exp_idx, subexp_idx)
+                        feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
+                        features.append(feature)
                     else:
-                        print(f"WARNING: Operation function not found or not marked for {self.obs_info["operations"][j]}.")
+                        # print(":(", exp_idx, subexp_idx)
+                        features.append(None)
                 # print(len(features))
                 local_outputs.append(features)
                 pbar.update(1)

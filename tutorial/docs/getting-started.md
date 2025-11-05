@@ -78,6 +78,9 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
 
     **Required packages for mcmc bayesian identification**:
     emcee corner schwimmbad tqdm statsmodels
+    
+    **Required packages for sensitivity analysis **:
+    SALib==1.5.1 seaborn
 
     **Required for some utilities**:
     ruamel.yaml

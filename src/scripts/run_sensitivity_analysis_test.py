@@ -47,6 +47,7 @@ if __name__ == '__main__':
         inp_data_dict['plot_predictions'] = True
         inp_data_dict['model_out_names'] = ['heart/u_lv']
         inp_data_dict['sa_options'] = {
+            'method': 'sobol',
             'num_SA_samples': 256,
             'SA_sample_type': 'saltelli',
             'SA_output_dir': os.path.join(root_dir_path, 'outputs/3compartment_SA_results')

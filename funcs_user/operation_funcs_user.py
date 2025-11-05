@@ -10,10 +10,6 @@ def series_to_constant(func):
     func.series_to_constant = True
     return func
 
-def sensitivity(func):
-    func.sensitivity = True
-    return func
-
 # example function
 def ml_to_m3(x):
     return x*1e-6
@@ -101,7 +97,6 @@ def calc_spike_period(t, V, series_output=False):
     return period
 
 @series_to_constant
-@sensitivity
 def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-10, start_frac=0.0, end_frac=1.0):
     """
     this calculates the number of spikes per 
@@ -122,7 +117,6 @@ def calc_spike_frequency_windowed(t, V, series_output=False, spike_min_thresh=-1
     return spikes_per_s
 
 @series_to_constant
-@sensitivity
 def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     """ 
     returns the time value (time from start of pre_time, NOT the start of 
@@ -142,7 +136,6 @@ def first_peak_time(t, V, series_output=False, spike_min_thresh=None):
     return t_first_peak
 
 @series_to_constant
-@sensitivity
 def steady_state_min(x, series_output=False):
     """
     finds the min of the second half of this subexperiment. 
@@ -155,7 +148,6 @@ def steady_state_min(x, series_output=False):
         return np.min(x[len(x)//2:])
     
 @series_to_constant
-@sensitivity
 def steady_state_avg(x, series_output=False):
     """
     finds the average of the second half of this subexperiment. 
@@ -277,7 +269,6 @@ def second_period(t, V, series_output=False, spike_min_thresh=None, distance=Non
     return second_period
 
 @series_to_constant
-@sensitivity
 def E_A_ratio(t, x, T, series_output=False):
     if series_output:
         return x
@@ -340,7 +331,6 @@ def max_in_range(x, start_frac=0.0,end_frac=1.0,series_output=False):
 
 
 @series_to_constant
-@sensitivity
 def max_first_half(x, series_output=False):
     print('max_first_half called')
     if series_output:
@@ -352,7 +342,6 @@ def max_first_half(x, series_output=False):
         return np.min(range_values)
 
 @series_to_constant
-@sensitivity
 def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance=None, dV_dt_thresh=10e3):
     """
     This function calculates the mean action potential threshold
@@ -402,7 +391,6 @@ def mean_AP_threshold(t, V, series_output=False, spike_min_thresh=None, distance
     return threshold
 
 @series_to_constant
-@sensitivity
 def mean_peak_to_trough_time(t, V, series_output=False, spike_min_thresh=None, distance=None):
     """
     This function calculates the time between the peak and trough of each action potential
@@ -482,7 +470,6 @@ def mean_in_range_fraction_change_from_initial(x, start_frac=0.8, end_frac=1.0, 
 
 
 @series_to_constant
-@sensitivity
 def min_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
     """
     Calculates the minimum value of the signal x in the window defined by start_frac and end_frac.
@@ -498,7 +485,6 @@ def min_in_range(x, start_frac=0.0, end_frac=1.0, series_output=False):
     return np.min(range_values)
 
 @series_to_constant
-@sensitivity
 def calc_AHP_duration(t, V, baseline_voltage=None, series_output=False):
     """
     Calculates the duration of the afterhyperpolarization (AHP) as the time to 50% recovery.
