@@ -1695,7 +1695,9 @@ class CVS0DCellMLGenerator(object):
                                 self.__write_mapping(wf, inp_vessel_name+'_module', 'sum_blood_volume', [q_1], [q_2])
 
                             # then map volume
-                            q_1 = f'q_{sum_vess_name}'
+                            # q_1 = f'q_{sum_vess_name}'
+                            # q_2 = sum_vess_variable add _sum to change the name
+                            q_1 = f'q_{sum_vess_name}_sum'
                             q_2 = sum_vess_variable
                             self.__write_mapping(wf, 'sum_blood_volume', sum_vess_name+'_module', [q_1], [q_2])
 
@@ -1707,7 +1709,7 @@ class CVS0DCellMLGenerator(object):
         in_outs = []
 
         for idx_sum, sum_vess_name in enumerate(sum_vess_names):
-            variables.append(f'q_{sum_vess_name}')
+            variables.append(f'q_{sum_vess_name}_sum')
             units.append(vol_units)
             in_outs.append('out') 
             for inp_vess_name in vess_to_sum_names[idx_sum]:
@@ -1719,7 +1721,7 @@ class CVS0DCellMLGenerator(object):
 
         for idx_sum, sum_vess_name in enumerate(sum_vess_names):
             rhs_variables = []
-            lhs_variable = f'q_{sum_vess_name}'
+            lhs_variable = f'q_{sum_vess_name}_sum'
             for inp_vess_name in vess_to_sum_names[idx_sum]:
                 rhs_variables.append(f'q_{inp_vess_name}')
 

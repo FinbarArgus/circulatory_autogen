@@ -37,13 +37,21 @@ import math
 # from scipy.optimize import curve_fit
 import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
+from sensitivity_analysis.sobolSA import sobol_SA
+
+GREEN = '\033[92m'
+CYAN = '\033[36m'
+RED = '\033[31m'
+# ANSI escape code to reset the color back to the terminal's default
+RESET = '\033[0m'
 
 class SensitivityAnalysis():
     """
     Class for doing sensitivity analysis on a 0D model
     """
     def __init__(self, model_path, model_type, file_name_prefix, DEBUG=False,
-                 param_id_output_dir=None, resources_dir=None):
+                 param_id_output_dir=None, resources_dir=None, model_out_names=[], 
+                 solver_info={}, dt=0.01, ga_options={}, param_id_obs_path=None, params_for_id_path=None):
 
         self.model_path = model_path
         self.model_type = model_type
@@ -51,13 +59,16 @@ class SensitivityAnalysis():
         self.DEBUG = DEBUG
         self.param_id_output_dir = param_id_output_dir
         self.resources_dir = resources_dir
-        
-        # TODO
-        pass
+        self.model_out_names = model_out_names
+        self.solver_info = solver_info
+        self.dt = dt
+        self.ga_options = ga_options
+        self.param_id_obs_path = param_id_obs_path
+        self.params_for_id_path = params_for_id_path
 
     def run_sensitivity_analysis(self, sa_options):
         if sa_options['method'] == 'naive':
-            self.run_naive_sensitivity(sa_options['param_id_output_paths'])
+            self.run_naive_sensitivity()
         elif sa_options['method'] == 'sobol':
             self.run_sobol_sensitivity(sa_options)
         else:
@@ -67,7 +78,34 @@ class SensitivityAnalysis():
     def run_sobol_sensitivity(self, sa_options):
         # TODO create param_id object so we can use the cost functions?
         # TODO
-        pass
+
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+
+        num_SA_samples = sa_options['num_SA_samples']
+        SA_sample_type = sa_options['SA_sample_type']
+        SA_output_dir = sa_options['SA_output_dir']
+
+        SA_cfg = {
+            "sample_type" : SA_sample_type,
+            "num_samples": num_SA_samples,
+        }
+
+        if self.param_id_obs_path is None or self.params_for_id_path is None:
+            print(f'{RED}ERROR: need to provide param_id_obs_path and params_for_id_path for sobol sensitivity analysis{RESET}')
+            exit()
+
+        SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, SA_cfg, self.dt, 
+                            SA_output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
+                            verbose=False, use_MPI=True, ga_options=self.ga_options)
+        S1_all, ST_all, S2_all = SA_manager.run()
+
+        if rank == 0:
+            print(f"{GREEN}Sensitivity analysis completed successfully :){RESET}")
+            print(f'{CYAN}saving results in {SA_output_dir}{RESET}')
+            SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
+            SA_manager.plot_sobol_S2_idx(S2_all)
+
     
     def run_naive_sensitivity(self, param_id_output_paths):
         # TODO this was the original method, which should be made obsolete.
