@@ -3029,7 +3029,7 @@ def calculate_lnlikelihood(param_vals):
     It allows the emcee algorithm to only pickle the param_vals
     and not all the attributes of the class instance.
     """
-    return mcmc_object.get_lnlikelihood_from_params(param_vals)
+    return mcmc_object.get_lnlikelihood_lnprior_from_params(param_vals)
 
 class OpencorMCMC(OpencorParamID): 
     """
@@ -3213,7 +3213,7 @@ class OpencorMCMC(OpencorParamID):
 
         return lnprior
 
-    def get_lnlikelihood_from_params(self, param_vals, reset=True):
+    def get_lnlikelihood_lnprior_from_params(self, param_vals, reset=True):
         lnprior = self.get_lnprior_from_params(param_vals)
 
         if not np.isfinite(lnprior):
