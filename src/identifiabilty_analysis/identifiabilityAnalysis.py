@@ -6,6 +6,7 @@ import numpy as np
 import os
 import sys
 from sys import exit
+from matplotlib.ticker import FuncFormatter
 import corner
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
@@ -135,7 +136,7 @@ class IdentifiabilityAnalysis():
         #     if idx % num_params == 0:
         #         ax.yaxis.set_major_formatter(sci_formatter)
 
-        from matplotlib.ticker import FuncFormatter
+        
 
 
         def make_sci_label_formatter(exponent):
@@ -181,7 +182,9 @@ class IdentifiabilityAnalysis():
                         rotation=0,
                         fontsize=10,
                         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
-
+        parent_dir = os.path.dirname(output_dir)
+        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_mean.npy'), self.mean_Lapalace)
+        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_covariance.npy'), self.covariance_matrix_Laplace)
 
 
 
