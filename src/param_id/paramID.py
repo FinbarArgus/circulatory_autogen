@@ -2575,6 +2575,59 @@ class OpencorParamID():
         cost = self.get_cost_and_obs_from_params(param_vals, reset=reset)[0]
         return cost
     
+    def get_lnprior_from_params(self, param_vals):
+        lnprior = 0
+        for idx, param_val in enumerate(param_vals):
+            if self.param_id_info["param_prior_types"] is not None:
+                prior_dist = self.param_id_info["param_prior_types"][idx]
+            else:
+                prior_dist = None
+
+            if not prior_dist or prior_dist == 'uniform':
+                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
+                    return -np.inf
+                else:
+                    #prior += 0
+                    pass
+            
+            elif prior_dist == 'exponential':
+                lamb = 1.0 # TODO make this user modifiable
+                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
+                    return -np.inf
+                else:
+                    # the normalisation isnt needed here but might be nice to
+                    # make sure prior for each param is between 0 and 1
+                    lnprior += -lamb*param_val/self.param_id_info["param_maxs"][idx]
+
+            elif prior_dist == 'normal':
+                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
+                    return -np.inf
+                else:
+                    # temporarily make the std 1/6 of the user defined range and the mean the centre of the range
+                    std = 1/6*(self.param_id_info["param_maxs"][idx] - self.param_id_info["param_mins"][idx])
+                    mean = 0.5*(self.param_id_info["param_maxs"][idx] + self.param_id_info["param_mins"][idx])
+                    lnprior += -0.5*((param_val - mean)/std)**2
+
+
+        return lnprior
+
+    def get_lnlikelihood_lnprior_from_params(self, param_vals, reset=True):
+        lnprior = self.get_lnprior_from_params(param_vals)
+
+        if not np.isfinite(lnprior):
+            return -np.inf
+
+        lnlikelihood = self.get_lnlikelihood_from_params(param_vals)
+
+        return lnprior + lnlikelihood
+
+
+    def get_lnlikelihood_from_params(self, param_vals):
+        cost = self.get_cost_from_params(param_vals)
+        lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
+
+        return lnlikelihood
+    
     def get_pred_from_params(self, param_vals, reset=True, 
                                           only_one_exp=-1, pred_names=None):
         _, _, pred = self.get_cost_obs_and_pred_from_params(param_vals, reset=reset,
@@ -3177,58 +3230,6 @@ class OpencorMCMC(OpencorParamID):
                     print('cost from mcmc median param vals is {}'.format(mcmc_best_cost))
                     print('Keeping the genetic algorithm best fit as it is lower, ({})'.format(self.best_cost))
 
-    def get_lnprior_from_params(self, param_vals):
-        lnprior = 0
-        for idx, param_val in enumerate(param_vals):
-            if self.param_id_info["param_prior_types"] is not None:
-                prior_dist = self.param_id_info["param_prior_types"][idx]
-            else:
-                prior_dist = None
-
-            if not prior_dist or prior_dist == 'uniform':
-                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
-                    return -np.inf
-                else:
-                    #prior += 0
-                    pass
-            
-            elif prior_dist == 'exponential':
-                lamb = 1.0 # TODO make this user modifiable
-                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
-                    return -np.inf
-                else:
-                    # the normalisation isnt needed here but might be nice to
-                    # make sure prior for each param is between 0 and 1
-                    lnprior += -lamb*param_val/self.param_id_info["param_maxs"][idx]
-
-            elif prior_dist == 'normal':
-                if param_val < self.param_id_info["param_mins"][idx] or param_val > self.param_id_info["param_maxs"][idx]:
-                    return -np.inf
-                else:
-                    # temporarily make the std 1/6 of the user defined range and the mean the centre of the range
-                    std = 1/6*(self.param_id_info["param_maxs"][idx] - self.param_id_info["param_mins"][idx])
-                    mean = 0.5*(self.param_id_info["param_maxs"][idx] + self.param_id_info["param_mins"][idx])
-                    lnprior += -0.5*((param_val - mean)/std)**2
-
-
-        return lnprior
-
-    def get_lnlikelihood_lnprior_from_params(self, param_vals, reset=True):
-        lnprior = self.get_lnprior_from_params(param_vals)
-
-        if not np.isfinite(lnprior):
-            return -np.inf
-
-        lnlikelihood = self.get_lnlikelihood_from_params(param_vals)
-
-        return lnprior + lnlikelihood
-
-
-    def get_lnlikelihood_from_params(self, param_vals):
-        cost = self.get_cost_from_params(param_vals)
-        lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
-
-        return lnlikelihood
 
     def calculate_pred_from_posterior_samples(self, flat_samples, n_sims=100):
         # idxs of output are [exp_idx][sim_idx, pred_idx, time_idx]
