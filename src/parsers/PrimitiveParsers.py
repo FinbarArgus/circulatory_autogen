@@ -177,6 +177,41 @@ class YamlFileParser(object):
 
         if not 'external_modules_dir' in inp_data_dict.keys():
             inp_data_dict['external_modules_dir'] = None
+        
+        # for sensitivity analysis and parameter identification
+        if inp_data_dict['sa_options'] is None:
+            inp_data_dict['sa_options'] = {
+                'method': 'sobol',
+                'num_SA_samples': 32,
+                'SA_sample_type': 'saltelli',
+                'SA_output_dir': os.path.join(root_dir, 'sensitivity_outputs', file_prefix + '_SA_results')
+            }
+        else:
+            if 'SA_output_dir' not in inp_data_dict['sa_options'].keys():
+                inp_data_dict['sa_options']['SA_output_dir'] = os.path.join(root_dir, 'sensitivity_outputs', file_prefix + '_SA_results')  
+            else:
+                if not os.path.isabs(inp_data_dict['sa_options']['SA_output_dir']):
+                    inp_data_dict['sa_options']['SA_output_dir'] = os.path.join(root_dir, 'sensitivity_outputs', inp_data_dict['sa_options']['SA_output_dir']) 
+            
+            if not os.path.exists(inp_data_dict['sa_options']['SA_output_dir']):
+                os.makedirs(inp_data_dict['sa_options']['SA_output_dir'])
+            
+            if 'method' not in inp_data_dict['sa_options'].keys():
+                inp_data_dict['sa_options']['method'] = 'sobol'
+            if 'num_SA_samples' not in inp_data_dict['sa_options'].keys():
+                inp_data_dict['sa_options']['num_SA_samples'] = 32
+            if 'SA_sample_type' not in inp_data_dict['sa_options'].keys():
+                inp_data_dict['sa_options']['SA_sample_type'] = 'saltelli'
+            
+        if 'do_id_analysis' not in inp_data_dict.keys():
+            inp_data_dict['do_id_analysis'] = False
+        
+        if 'ia_options' not in inp_data_dict.keys():
+            inp_data_dict['ia_options'] = {
+                'method': 'Laplace'
+            }
+        if 'method' not in inp_data_dict['ia_options'].keys():
+            inp_data_dict['ia_options']['method'] = 'Laplace'
 
         # for generation only
     

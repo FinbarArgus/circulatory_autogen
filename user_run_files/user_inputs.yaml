@@ -94,6 +94,7 @@ sa_options:
   method: sobol 
   SA_sample_type: 'saltelli'
   num_SA_samples: 32
+    # SA_output_dir: /non/default/path
 
 # identifiability analysis
 do_id_analysis: false
