@@ -27,11 +27,11 @@ To run the Sobol analysis, you need to add a specific `sa_options` block to your
 ```
 sa_options: 
     method: 'sobol' 
-    num_SA_samples: 1024 
-    SA_sample_type: saltelli
-    SA_output_dir: <SA_outputs_path>
+    num_samples: 1024 
+    sample_type: saltelli
+    output_dir: <SA_outputs_path>
 ```
-Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_SA_samples` value be a power of $2$ (e.g., $1024$). Available sample type are [**'saltelli'**].
+Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_samples` value be a power of $2$ (e.g., $1024$). Available sample type are [**'saltelli'**].
 
 An indicator that the **sample size may be too low** is the observation of **relatively large negative values for the Sobol indices** in the results; if this occurs, you should increase the sample size and re-run the analysis.
 
@@ -45,4 +45,4 @@ To run the script, use the following command (which utilizes **MPI for paralleli
 ./run_sensitivity_analysis <NUM_CORES>
 ```
 
-After successful execution, you will find the SA plots—including the first, second, and total order indices—in the directory specified by `SA_output_dir`.
+After successful execution, you will find the SA plots—including the first, second, and total order indices—in the directory specified by `output_dir`.

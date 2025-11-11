@@ -97,7 +97,7 @@ def run_param_id(inp_data_dict=None):
         # mcmc.set_mcmc_parameters() TODO
         mcmc.run_mcmc()
 
-    if inp_data_dict['do_id_analysis']:
+    if inp_data_dict['do_ia']:
         # id_analysis = IdentifiabilityAnalysis(model_path, model_type, param_id_method, False, file_prefix,
         #                                      params_for_id_path=params_for_id_path,
         #                                      param_id_obs_path=param_id_obs_path,
