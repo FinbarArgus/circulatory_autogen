@@ -1,9 +1,13 @@
 #!/bin/bash
+if [[ $# -eq 0 ]] ; then
+    echo 'usage is ./run_sensitivity_analysis.sh num_processors'
+    exit 1
+fi
 
 # Source the path
 source opencor_pythonshell_path.sh
 
-echo "Running sensitivity analysis test with $1 processors"
+echo "Running sensitivity analysis with $1 processors"
 
 # Run the autogeneration script
 ./run_autogeneration.sh

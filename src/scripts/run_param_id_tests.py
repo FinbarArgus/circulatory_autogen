@@ -3,6 +3,7 @@ import sys
 import yaml
 import traceback
 import numpy as np
+from mpi4py import MPI
 
 root_dir_path = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir_path, 'src'))
@@ -18,8 +19,12 @@ if __name__ == '__main__':
         with open(os.path.join(user_inputs_dir, 'user_inputs.yaml'), 'r') as file:
             inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-        print('_________Running all param_id tests_____________')
-        print('')
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        num_procs = comm.Get_size()
+        if rank == 0:
+            print('_________Running all param_id tests_____________')
+            print('')
 
         # print('running 3compartment autogeneration test')
         # inp_data_dict['file_prefix'] = '3compartment'
@@ -63,7 +68,9 @@ if __name__ == '__main__':
         example_format_obs_data_json_file()
         inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
         # generate the model
-        generate_with_new_architecture(False, inp_data_dict)
+        if rank == 0:
+            generate_with_new_architecture(False, inp_data_dict)
+        comm.Barrier()
         # now test the param id for the NKE pump model and the generated
         # obs_data file
         run_param_id(inp_data_dict)

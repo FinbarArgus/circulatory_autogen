@@ -53,7 +53,7 @@ def plot_param_id(inp_data_dict=None, generate=True):
     do_sensitivity = inp_data_dict['do_sensitivity']
     do_mcmc = inp_data_dict['do_mcmc']
     generated_models_subdir = inp_data_dict['generated_models_subdir']
-    do_identify = inp_data_dict['do_id_analysis']
+    do_identify = inp_data_dict['do_ia']
     ia_option = inp_data_dict['ia_options']
     
     # run the generation script with new param values
