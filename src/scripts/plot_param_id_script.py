@@ -17,6 +17,7 @@ user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 
 from param_id.paramID import CVS0DParamID
 from param_id.sequential_paramID import SequentialParamID
+from identifiabilty_analysis.identifiabilityAnalysis import IdentifiabilityAnalysis
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from utilities.utility_funcs import obj_to_string, change_parameter_values_and_save
 import traceback
@@ -52,6 +53,8 @@ def plot_param_id(inp_data_dict=None, generate=True):
     do_sensitivity = inp_data_dict['do_sensitivity']
     do_mcmc = inp_data_dict['do_mcmc']
     generated_models_subdir = inp_data_dict['generated_models_subdir']
+    do_identify = inp_data_dict['do_id_analysis']
+    ia_option = inp_data_dict['ia_options']
     
     # run the generation script with new param values
     if generate:
@@ -103,6 +106,16 @@ def plot_param_id(inp_data_dict=None, generate=True):
     param_id.save_prediction_data()
     if do_sensitivity:
         param_id.run_sensitivity(None)
+    # param_id.close_simulation() # remove this for identifiability analysis
+    if do_identify:
+        id_analysis = IdentifiabilityAnalysis(model_path, model_type, file_prefix, param_id_output_dir=param_id_output_dir,
+                                              resources_dir=resources_dir, param_id=param_id.param_id)  # pass in param_id object so we can use its cost functions
+        id_analysis.set_best_param_vals(param_id.get_best_param_vals())       
+        id_analysis.run_identifiability_analysis(ia_option)
+        label_list =[f'${param_id.param_id_info["param_names_for_plotting"][II]}$' for II in range(len(param_id.param_id_info["param_names_for_plotting"]))]
+        print(label_list)
+        id_analysis.plot_laplace_results(label_list, param_id.plot_dir)
+    
     param_id.close_simulation()
 
     if plot_predictions:
@@ -114,7 +127,7 @@ def plot_param_id(inp_data_dict=None, generate=True):
                                             solver_info=solver_info, dt=dt, ga_options=ga_options, 
                                             mcmc_options=mcmc_options, DEBUG=DEBUG,
                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
-
+    
         if do_mcmc:
             seq_param_id.plot_mcmc_and_predictions()
 
