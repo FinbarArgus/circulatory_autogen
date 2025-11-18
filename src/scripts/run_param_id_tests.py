@@ -98,16 +98,17 @@ if __name__ == '__main__':
             }
         run_param_id(inp_data_dict)
 
-
+        if rank == 0:
+            # also test running autogeneration with the fit parameters
+            generate_with_new_architecture(True, inp_data_dict)
+            # also test plotting
+            plot_param_id(inp_data_dict)
         
-        # also test running autogeneration with the fit parameters
-        generate_with_new_architecture(True, inp_data_dict)
+            print('')
+            print('running simple_physiological parameter id test')
+        
+        comm.Barrier()
 
-        # also test plotting
-        plot_param_id(inp_data_dict)
-
-        print('')
-        print('running simple_physiological parameter id test')
         inp_data_dict['file_prefix'] = 'simple_physiological'
         inp_data_dict['input_param_file'] = 'simple_physiological_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
@@ -129,14 +130,18 @@ if __name__ == '__main__':
             }
         run_param_id(inp_data_dict)
 
-        # also test running autogeneration with the fit parameters
-        generate_with_new_architecture(True, inp_data_dict)
+        if rank == 0:
+            # also test running autogeneration with the fit parameters
+            generate_with_new_architecture(True, inp_data_dict)
 
-        # also test plotting
-        plot_param_id(inp_data_dict)
+            # also test plotting
+            plot_param_id(inp_data_dict)
+            
+            print('')
+            print('running test_fft parameter id test')
         
-        print('')
-        print('running test_fft parameter id test')
+        comm.Barrier()
+        
         inp_data_dict['file_prefix'] = 'test_fft'
         inp_data_dict['input_param_file'] = 'test_fft_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
@@ -155,22 +160,26 @@ if __name__ == '__main__':
         inp_data_dict['plot_predictions'] = False
         run_param_id(inp_data_dict)
 
-        # also test running autogeneration with the fit parameters
-        generate_with_new_architecture(True, inp_data_dict)
+        if rank == 0:
+            # also test running autogeneration with the fit parameters
+            generate_with_new_architecture(True, inp_data_dict)
 
-        # also test plotting
-        plot_param_id(inp_data_dict)
+            # also test plotting
+            plot_param_id(inp_data_dict)
 
-        # check that the cost is zero for the test_fft
-        fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
-        if fft_cost < 1e-10:
-            print('fft cost is zero as expected. Success!')
-        else:
-            print('fft cost is not zero. Failure in the Frequency parameter identitication!')
-            raise ValueError('fft cost is not zero. Failure!')
+            # check that the cost is zero for the test_fft
+            fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
+            if fft_cost < 1e-10:
+                print('fft cost is zero as expected. Success!')
+            else:
+                print('fft cost is not zero. Failure in the Frequency parameter identitication!')
+                raise ValueError('fft cost is not zero. Failure!')
 
-        print('')
-        print('running SN_simple parameter id test')
+            print('')
+            print('running SN_simple parameter id test')
+        
+        comm.Barrier()
+        
         inp_data_dict['file_prefix'] = 'SN_simple'
         inp_data_dict['input_param_file'] = 'SN_simple_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
