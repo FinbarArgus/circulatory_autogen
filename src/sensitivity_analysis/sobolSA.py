@@ -610,7 +610,6 @@ class sobol_SA():
         # Create a single progress bar for this rank
         with tqdm(total=len(local_samples), desc=f"Rank {self.rank}", position=self.rank, leave=True) as pbar:
             for param_vals in local_samples:
-                operands_outputs_list = []
 
                 # --- handle single vs multi subexperiment ---
                 if self.protocol_info["num_sub_total"] == 1:
@@ -663,66 +662,61 @@ class sobol_SA():
                             )
 
                             success = self.sim_helper.run()
-                            current_time += self.sim_time
 
-                            if success:
-                                operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
-                                # if this_sub_idx == self.obs_info["subexperiment_idxs"][exp_idx]:
-                                #     print("------")
-                                #     # print(this_sub_idx)
-                                #     # print(self.obs_info["subexperiment_idxs"][exp_idx])
-                                #     operands_outputs_list.append(operands_outputs)
+                            retry_count = 0
+                            max_retries = 0
+                            original_MaximumStep = self.solver_info.get("MaximumStep", None)
+                            original_MaximumNumberOfSteps = self.solver_info.get("MaximumNumberOfSteps", None)
 
-                                # if this_sub_idx == self.obs_info["subexperiment_idxs"][exp_idx]:
-                                #     print("------")
-                                     # print(this_sub_idx)
-                                    # print(self.obs_info["subexperiment_idxs"][exp_idx])
-                                # Store outputs in a dictionary keyed by (exp_idx, this_sub_idx)
+                            while not success and retry_count < max_retries:
+
+                                original_MaximumStep = self.solver_info.get("MaximumStep", None)
+                                reduced_MaximumStep = original_MaximumStep / 2 if original_MaximumStep else 0.001
+                                increased_MaximumNumberOfSteps = original_MaximumNumberOfSteps * 2 if original_MaximumNumberOfSteps else 1000000
+                                retry_count += 1
+                                # Reduce max_dt for retry
+                                self.solver_info["MaximumStep"] = reduced_MaximumStep
+                                self.solver_info["MaximumNumberOfSteps"] = increased_MaximumNumberOfSteps
                                 
-                                operands_outputs_dict[(exp_idx, this_sub_idx)] = operands_outputs
+                                self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+                                self.sim_helper.reset_states()
+                                success = self.sim_helper.run()
 
-                                # At the end of all subexperiments, convert dict to list for compatibility if needed
-                                # if this_sub_idx == self.protocol_info["num_sub_per_exp"][exp_idx] - 1:
-                                #     operands_outputs_list = [operands_outputs_dict.get((exp_idx, sub_idx), None)
-                                #                              for sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx])]
-                                #     self.sim_helper.reset_and_clear()
+                            # Restore original max_dt after retries
+                            self.solver_info["MaximumStep"] = original_MaximumStep
+                            self.solver_info["MaximumNumberOfSteps"] = original_MaximumNumberOfSteps
+                            if success:
+                                current_time += self.sim_time
+                                operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
+                                operands_outputs_dict[(exp_idx, this_sub_idx)] = operands_outputs
 
                                 # reset at the end of each experiment
                                 if this_sub_idx == self.protocol_info["num_sub_per_exp"][exp_idx] - 1:
                                     self.sim_helper.reset_and_clear()
                             else:
-                                print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, subexp={subexp_count}")
-                                local_outputs.append([np.inf])
-                                pbar.update(1)
-                                operands_outputs_list = []
-                                break  # stop this sample entirely
+                                print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, subexp={subexp_count} after {retry_count} retries")
+                                # Set a flag in operands_outputs_dict to indicate failure
+                                operands_outputs_dict[(exp_idx, this_sub_idx)] = {"failed": True}
 
-                # print(len(operands_outputs_list))
-                # features = []
-                # for j in range(len(self.obs_info["operations"])):
-                #     func = self.operation_funcs_dict[self.obs_info["operations"][j]]
-                #     if hasattr(func, 'sensitivity') and func.sensitivity:
-                #         # apply func across ALL subexperiment outputs
-                #         for operands_outputs in operands_outputs_list:
-                #             if operands_outputs is not None:
-                #                 feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
-                #                 features.append(feature)
+                                # reset at the end of each experiment
+                                if this_sub_idx == self.protocol_info["num_sub_per_exp"][exp_idx] - 1:
+                                    self.sim_helper.reset_and_clear()
+
                 features = []
                 for j in range(len(self.obs_info["operations"])):
                     func = self.operation_funcs_dict[self.obs_info["operations"][j]]
                     exp_idx = self.obs_info["experiment_idxs"][j]
                     subexp_idx = self.obs_info["subexperiment_idxs"][j]
-                    # print(exp_idx, subexp_idx)
-                    # Use the dictionary version to access operands_outputs
                     operands_outputs = operands_outputs_dict.get((exp_idx, subexp_idx), None)
-                    if operands_outputs is not None:
-                        # print(":)", exp_idx, subexp_idx)
+                    if operands_outputs is not None and not (isinstance(operands_outputs, dict) and operands_outputs == {"failed": True}):
                         feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
                         features.append(feature)
                     else:
-                        # print(":(", exp_idx, subexp_idx)
-                        features.append(None)
-                # print(len(features))
+                        # WARNING: using mean biases variance estimates (shrinks variance), underestimates sensitivity
+                        # TODO: come up with a better way to impute missing features
+                        # Append the mean of the current features (ignoring None) -> reduces variance and bias induces toward zero
+                        features.append(np.mean(features))
+
                 local_outputs.append(features)
                 pbar.update(1)
 
