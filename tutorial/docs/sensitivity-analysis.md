@@ -31,11 +31,11 @@ sa_options:
     sample_type: saltelli
     output_dir: <SA_outputs_path>
 ```
-Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. Available sample type are [**'saltelli'**]. What we call `num_samples` here is actually the N in
+Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. Available sample type are [**'saltelli'**]. What we call `num_samples` here is actually the `num_samples` in
 
 `actual_num_samples = num_samples (2M+2)`
 
-where M is the number of parameters. This means the num_samples that you set doesn't need to be dependent on M.
+where M is the number of parameters. This means the `num_samples` that you set doesn't need to be dependent on M.
 
 
 An indicator that the **sample size may be too low** is the observation of **relatively large negative values for the Sobol indices** in the results; if this occurs, you should increase the sample size and re-run the analysis.
