@@ -31,7 +31,7 @@ sa_options:
     sample_type: saltelli
     output_dir: <SA_outputs_path>
 ```
-Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. When using the Sobol method, it is highly recommended that the `num_samples` value be a power of $2$ (e.g., $1024$). Available sample type are [**'saltelli'**]. What we call `num_samples` here is actually the N in
+Currently, the available options for the `method` are **`'naive'`** and **`'sobol'`**. Available sample type are [**'saltelli'**]. What we call `num_samples` here is actually the N in
 
 `actual_num_samples = num_samples (2M+2)`
 
