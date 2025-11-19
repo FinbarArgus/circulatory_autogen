@@ -408,6 +408,16 @@ class CVS0DParamID():
                                                     color=self.obs_info['plot_colors'][II], linestyle='-', 
                                                     label=f'{self.obs_info["operations"][II]} output')
                         elif self.obs_info['plot_type'][II] == 'vertical':
+                            # plot a vertical line at the t (x) value of the constant
+                            axs.axvline(x=self.obs_info["ground_truth_const"][const_idx] - 
+                                        self.protocol_info['pre_times'][exp_idx],
+                                        color=self.obs_info['plot_colors'][II],
+                                        linestyle='--', label=f'{self.obs_info["operations"][II]} desired')
+                            axs.axvline(x=best_fit_obs_const[const_idx] - 
+                                        self.protocol_info['pre_times'][exp_idx],
+                                        color=self.obs_info['plot_colors'][II],
+                                        label=f'{self.obs_info["operations"][II]} output')
+                        elif self.obs_info['plot_type'][II] == 'vertical_from_subexp_start':
                             # calculate the t value, t values should be set as from the start of the subexperiment
                             t_gt = self.obs_info["ground_truth_const"][const_idx] + \
                                     tSim_per_sub_count[subexp_count][0] 
@@ -421,7 +431,6 @@ class CVS0DParamID():
                             axs.axvline(x=t_bf,
                                         color=self.obs_info['plot_colors'][II],
                                         label=f'{self.obs_info["operations"][II]} output')
-
                         elif self.obs_info['plot_type'][II] == None:
                             pass
                         else:
