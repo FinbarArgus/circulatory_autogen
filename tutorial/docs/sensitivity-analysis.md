@@ -37,7 +37,6 @@ Currently, the available options for the `method` are **`'naive'`** and **`'sobo
 
 where M is the number of parameters. This means the `num_samples` that you set doesn't need to be dependent on M.
 
-
 An indicator that the **sample size may be too low** is the observation of **relatively large negative values for the Sobol indices** in the results; if this occurs, you should increase the sample size and re-run the analysis.
 
 ## How to run SA script
