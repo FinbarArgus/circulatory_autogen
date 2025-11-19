@@ -1346,6 +1346,7 @@ class CVS0DParamID():
                 for JJ in range(len(self.param_id_info["param_mins"])):
                     if self.param_id_info["param_maxs"][JJ] <= self.param_id_info["param_mins"][JJ]:
                         raise ValueError(f"Parameter {self.param_id_info['param_names'][JJ]} has max <= min")
+            
 
             # set param_priors
             if "prior" in input_params.columns:
@@ -1364,6 +1365,10 @@ class CVS0DParamID():
             with open(os.path.join(self.output_dir, 'param_names_for_gen.csv'), 'w') as f:
                 wr = csv.writer(f)
                 wr.writerows(param_names_for_gen)
+            # save param_names_for_plotting to csv
+            with open(os.path.join(self.output_dir, 'param_names_for_plotting.csv'), 'w') as f:
+                for name in self.param_id_info["param_names_for_plotting"]:
+                    f.write(name + '\n')
         return
 
     def __get_ground_truth_values(self):
