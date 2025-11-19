@@ -66,6 +66,7 @@ class IdentifiabilityAnalysis():
         pass
     
     def set_best_param_vals(self, best_param_vals):
+        self.param_id.set_best_param_vals(best_param_vals)
         self.best_param_vals = best_param_vals
 
     def run(self, ia_options):
