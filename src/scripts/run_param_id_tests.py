@@ -54,6 +54,7 @@ if __name__ == '__main__':
         inp_data_dict['solver_info'] = {}
         inp_data_dict['solver_info']['MaximumStep'] = 0.001
         inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+        inp_data_dict['do_mcmc'] = False
         inp_data_dict['dt'] = 0.01
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
         inp_data_dict['plot_predictions'] = True
@@ -75,8 +76,9 @@ if __name__ == '__main__':
         # obs_data file
         run_param_id(inp_data_dict)
         
-        print('')
-        print('running 3compartment parameter id test')
+        if rank == 0:
+            print('')
+            print('running 3compartment parameter id test')
         inp_data_dict['file_prefix'] = '3compartment'
         inp_data_dict['input_param_file'] = '3compartment_parameters.csv'
         inp_data_dict['param_id_method'] = 'genetic_algorithm'
@@ -134,8 +136,9 @@ if __name__ == '__main__':
             # also test running autogeneration with the fit parameters
             generate_with_new_architecture(True, inp_data_dict)
 
-            # also test plotting
-            plot_param_id(inp_data_dict)
+            print('TODO. ERROR: parallel run is hanging here. I think there must be a barrier within plot_param_id')
+            # also test plotting. generate=False because running autogeneration above to test it.
+            plot_param_id(inp_data_dict, generate=False)
             
             print('')
             print('running test_fft parameter id test')
@@ -161,11 +164,8 @@ if __name__ == '__main__':
         run_param_id(inp_data_dict)
 
         if rank == 0:
-            # also test running autogeneration with the fit parameters
-            generate_with_new_architecture(True, inp_data_dict)
-
             # also test plotting
-            plot_param_id(inp_data_dict)
+            plot_param_id(inp_data_dict, generate=True)
 
             # check that the cost is zero for the test_fft
             fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
@@ -197,11 +197,8 @@ if __name__ == '__main__':
         inp_data_dict['plot_predictions'] = True
         run_param_id(inp_data_dict)
 
-        # also test running autogeneration with the fit parameters
-        generate_with_new_architecture(True, inp_data_dict)
-
         # also test plotting
-        plot_param_id(inp_data_dict)
+        plot_param_id(inp_data_dict, generate=True)
         # TODO More tests here. 
         # Add the lung_ROM to test the frequency domain fitting
 

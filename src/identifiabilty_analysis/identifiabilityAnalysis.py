@@ -68,7 +68,7 @@ class IdentifiabilityAnalysis():
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
 
-    def run_identifiability_analysis(self, ia_options):
+    def run(self, ia_options):
         """
         Run the identifiability analysis based on the chosen method
         """
