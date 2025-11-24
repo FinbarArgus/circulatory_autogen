@@ -1,7 +1,7 @@
 #_______ general inputs ________
 DEBUG: false # TODO change back
 # user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/lung_dev/user_inputs_lung_dev.yaml
-user_inputs_path_override: /hpc/farg967/git_projects/CA_user_FA_MG/control_parasymp/user_inputs_control_parasymp.yaml
+# user_inputs_path_override: /hpc/farg967/git_projects/CA_user_FA_MG/control_parasymp/user_inputs_control_parasymp.yaml
 file_prefix: 3compartment
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
@@ -51,9 +51,10 @@ dt: 0.01 # This should be smaller than all of the dt in your obs_data.json file.
 # These are inputs to solver_properties of the solver
 solver_info:
   # Maximum time step for solver
-  MaximumStep: 0.0001
+  MaximumStep: 0.001
   MaximumNumberOfSteps: 5000
 
+# param_id_obs_path needs to be an absolute path.
 # This for 3compartment
 param_id_obs_path: /home/farg967/Documents/git_projects/circulatory_autogen/resources/3compartment_obs_data.json
 # param_id_obs_path: /home/farg967/Documents/test/resources/3compartment_obs_data.json
@@ -77,7 +78,7 @@ debug_ga_options:
   cost_convergence: 0.001
 
 #______ mcmc inputs ___________
-do_mcmc: false
+do_mcmc: False
 mcmc_options:
   num_steps: 1000
   num_walkers: 64
@@ -98,7 +99,7 @@ sa_options:
     # output_dir: /non/default/path
 
 # identifiability analysis
-do_ia: false
+do_ia: True
 ia_options:
   method: Laplace # profile_likelihood
 

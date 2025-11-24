@@ -43,7 +43,8 @@ if __name__ == '__main__':
         if 'param_id_output_dir' in inp_data_dict.keys():
             del inp_data_dict['param_id_output_dir']
         
-        print('running test for obs_data file creation with NKE pump model')
+        if rank == 0:
+            print('running test for obs_data file creation with NKE pump model')
         inp_data_dict['file_prefix'] = 'NKE_pump'
         inp_data_dict['input_param_file'] = 'NKE_pump_parameters.csv'
         inp_data_dict['model_type'] = 'cellml_only'
@@ -61,15 +62,16 @@ if __name__ == '__main__':
         
         # delete the obs_data file if it exists
         obs_data_path = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
-        if os.path.exists(obs_data_path):
-            os.remove(obs_data_path)
-            print('removed existing obs_data file at', obs_data_path)
+        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
 
         # generate the obs_data file
-        example_format_obs_data_json_file()
-        inp_data_dict['param_id_obs_path'] = os.path.join(root_dir_path, 'resources/NKE_pump_obs_data.json')
-        # generate the model
         if rank == 0:
+            if os.path.exists(obs_data_path):
+                os.remove(obs_data_path)
+                print('removed existing obs_data file at', obs_data_path)
+            # generate obs file
+            example_format_obs_data_json_file()
+            # generate the model
             generate_with_new_architecture(False, inp_data_dict)
         comm.Barrier()
         # now test the param id for the NKE pump model and the generated
@@ -98,18 +100,27 @@ if __name__ == '__main__':
         inp_data_dict['ia_options'] = {
             'method': 'Laplace'
             }
+        if rank == 0:
+            print('running 3compartment param id')
         run_param_id(inp_data_dict)
 
         if rank == 0:
             # also test running autogeneration with the fit parameters
+            print('running autogeneration with fit parameters for 3compartment model')
             generate_with_new_architecture(True, inp_data_dict)
             # also test plotting
-            plot_param_id(inp_data_dict)
+            print('running plotting for 3compartment model')
+
+
+        plot_param_id(inp_data_dict, generate=False)
+        comm.Barrier()
         
+        if rank == 0:
             print('')
             print('running simple_physiological parameter id test')
+        else:
+            print(f'rank {rank} going into simple_phys run')
         
-        comm.Barrier()
 
         inp_data_dict['file_prefix'] = 'simple_physiological'
         inp_data_dict['input_param_file'] = 'simple_physiological_parameters.csv'
@@ -136,10 +147,10 @@ if __name__ == '__main__':
             # also test running autogeneration with the fit parameters
             generate_with_new_architecture(True, inp_data_dict)
 
-            print('TODO. ERROR: parallel run is hanging here. I think there must be a barrier within plot_param_id')
-            # also test plotting. generate=False because running autogeneration above to test it.
-            plot_param_id(inp_data_dict, generate=False)
+        # also test plotting. generate=False because running autogeneration above to test it.
+        plot_param_id(inp_data_dict, generate=False)
             
+        if rank == 0:
             print('')
             print('running test_fft parameter id test')
         
@@ -163,9 +174,10 @@ if __name__ == '__main__':
         inp_data_dict['plot_predictions'] = False
         run_param_id(inp_data_dict)
 
+        # also test plotting
+        plot_param_id(inp_data_dict, generate=True)
+
         if rank == 0:
-            # also test plotting
-            plot_param_id(inp_data_dict, generate=True)
 
             # check that the cost is zero for the test_fft
             fft_cost = np.load(os.path.join(inp_data_dict['param_id_output_dir'], 'genetic_algorithm_test_fft_test_fft_obs_data', 'best_cost.npy'))
@@ -204,6 +216,7 @@ if __name__ == '__main__':
 
         print('param ID tests complete. TODO add more param id tests to test',
               'all functionality')
+        MPI.Finalize()
 
     except:
         print(traceback.format_exc())

@@ -71,7 +71,7 @@ class CVS0DParamID():
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, dt=0.01,
                  solver_info=None, mcmc_options=None, ga_options=None, DEBUG=False,
-                 param_id_output_dir=None, resources_dir=None):
+                 param_id_output_dir=None, resources_dir=None, one_rank=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.mcmc_instead = mcmc_instead
@@ -109,7 +109,8 @@ class CVS0DParamID():
         else:
             self.resources_dir = resources_dir
 
-        self.comm.Barrier()
+        if one_rank is False:
+            self.comm.Barrier()
 
         self.DEBUG = DEBUG
         # if self.DEBUG:
@@ -3158,22 +3159,24 @@ class OpencorMCMC(OpencorParamID):
 
             try:
                 pool = MPIPool() # workers dont get past this line in this try, they wait for work to do
-                if mcmc_lib == 'emcee':
-                    self.sampler = emcee.EnsembleSampler(self.mcmc_options['num_walkers'], self.num_params, calculate_lnlikelihood,
-                                                pool=pool)
-                elif mcmc_lib == 'zeus':
-                    self.sampler = zeus.EnsembleSampler(self.mcmc_options['num_walkers'], self.num_params, calculate_lnlikelihood,
-                                                         pool=pool)
-
-                start_time = time.time()
-                self.sampler.run_mcmc(init_param_vals.T, self.mcmc_options['num_steps'], progress=True, tune=True)
-                print(f'mcmc time = {time.time() - start_time}')
             except:
-                if rank == 0:
-                    sys.exit()
-                else:
-                    # workers pass to here
-                    pass
+                return
+
+            if not pool.is_master():
+                pool.wait()
+                return
+
+            if mcmc_lib == 'emcee':
+                self.sampler = emcee.EnsembleSampler(self.mcmc_options['num_walkers'], self.num_params, calculate_lnlikelihood,
+                                            pool=pool)
+            elif mcmc_lib == 'zeus':
+                self.sampler = zeus.EnsembleSampler(self.mcmc_options['num_walkers'], self.num_params, calculate_lnlikelihood,
+                                                        pool=pool)
+
+            start_time = time.time()
+            self.sampler.run_mcmc(init_param_vals.T, self.mcmc_options['num_steps'], progress=True, tune=True)
+            print(f'mcmc time = {time.time() - start_time}')
+            pool.close()
 
         else:
             if self.best_param_vals is not None:
@@ -3268,6 +3271,107 @@ class OpencorMCMC(OpencorParamID):
         # idxs of output are [exp_idx][sim_idx, pred_idx, time_idx]
         return pred_arrays_per_exp_list
 
+class MCMC_plotter:
+    """
+    This class contains plotting wrapper for mcmc
+    """
+
+    def __init__(self, model_path, model_type, param_id_method, file_name_prefix,
+                 params_for_id_path=None, num_calls_to_function=1000,
+                 param_id_obs_path=None, sim_time=2.0, pre_time=20.0, 
+                 solver_info=None, 
+                 dt=0.01, mcmc_options=None, ga_options=None,
+                 param_id_output_dir=None, resources_dir=None,
+                 DEBUG=False):
+
+        self.model_path = model_path
+        self.model_type = model_type
+        self.param_id_method = param_id_method
+        self.file_name_prefix = file_name_prefix
+        self.params_for_id_path = params_for_id_path
+        self.num_calls_to_function = num_calls_to_function
+        self.param_id_obs_path = param_id_obs_path
+        self.sim_time = sim_time
+        self.pre_time = pre_time
+        self.solver_info = solver_info
+        self.dt = dt
+        self.DEBUG =DEBUG
+        
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        
+        self.param_id_obs_file_prefix = re.sub('\.json', '', os.path.split(param_id_obs_path)[1])
+        case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
+        if self.rank == 0:
+            if param_id_output_dir is None:
+                self.param_id_output_dir = os.path.join(os.path.dirname(__file__), '../../param_id_output')
+            else:
+                self.param_id_output_dir = param_id_output_dir
+            
+            if not os.path.exists(self.param_id_output_dir):
+                os.mkdir(self.param_id_output_dir)
+            self.output_dir = os.path.join(self.param_id_output_dir, f'{case_type}')
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
+            if not os.path.exists(self.plot_dir):
+                os.mkdir(self.plot_dir)
+        
+        if resources_dir is None:
+            self.resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
+        else:
+            self.resources_dir = resources_dir
+
+
+        self.best_param_vals = None
+        self.best_param_names = None
+
+        self.mcmc_options = mcmc_options
+
+        # thresholds for identifiability TODO optimise these
+        self.threshold_param_importance = 0.1
+        self.keep_threshold_param_importance = 0.8
+        self.threshold_collinearity = 20
+        self.threshold_collinearity_pairs = 10
+        self.second_deriv_threshold = -1000
+
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.num_procs = self.comm.Get_size()
+
+    def plot_mcmc_and_predictions(self, mcmc=None):
+        if self.rank != 0:
+            return
+        if mcmc == None:
+            print('creating mcmc object')
+            if self.rank == 0:
+                mcmc = CVS0DParamID(self.model_path, self.model_type, self.param_id_method, True,
+                                    self.file_name_prefix,
+                                    params_for_id_path=self.params_for_id_path,
+                                    param_id_obs_path=self.param_id_obs_path,
+                                    sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
+                                    param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
+                                    solver_info=self.solver_info, mcmc_options=self.mcmc_options,
+                                    DEBUG=self.DEBUG, one_rank=True)
+                if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):
+                    with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
+                        param_names_to_remove = []
+                        for row in r:
+                            name_list = row.split(',')
+                            name_list = [name.strip() for name in name_list]
+                            param_names_to_remove.append(name_list)
+                    mcmc.remove_params_by_name(param_names_to_remove)
+
+        if self.best_param_vals is not None:
+            self.best_param_vals = np.load(os.path.join(mcmc.output_dir, 'best_param_vals.npy'))
+
+        mcmc.set_best_param_vals(self.best_param_vals)
+
+        print('Plotting mcmc parameter distributions')
+        mcmc.plot_mcmc()
+        print('Plotting core predictions distribution to check uncertainty on predictions')
+        mcmc.postprocess_predictions()
+        print('Plotting complete')
 
 class ProgressBar(object):
     """

@@ -62,9 +62,10 @@ class IdentifiabilityAnalysis():
             # TODO intialise the param_id_object here
             raise ValueError("param_id object must be provided to IdentifiabilityAnalysis")
         
-        # TODO
-        pass
-    
+
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+
     def set_best_param_vals(self, best_param_vals):
         self.param_id.set_best_param_vals(best_param_vals)
         self.best_param_vals = best_param_vals
@@ -76,7 +77,12 @@ class IdentifiabilityAnalysis():
         if ia_options['method'] == 'profile_likelihood':
             self.run_profile_likelihood(ia_options)
         elif ia_options['method'] == 'Laplace':
-            self.run_laplace_approximation(ia_options)
+            print(f'rank {self.rank} starting Laplace approximation')
+            if self.rank == 0:
+                # currently Laplace is not parallelised, so only run on rank 0
+                self.run_laplace_approximation(ia_options)
+            print(f'rank {self.rank} completed Laplace approximation')
+        return
 
     def run_profile_likelihood(self, ia_options):
         # TODO
@@ -86,6 +92,7 @@ class IdentifiabilityAnalysis():
 
     def run_laplace_approximation(self, ia_options):
 
+        # TODO fix hessian calculation now that it uses lnlikelihood + lnprior
         Hessian = calculate_hessian(self.param_id)
         covariance_matrix = np.linalg.inv(Hessian)
         mean = self.best_param_vals
@@ -94,6 +101,9 @@ class IdentifiabilityAnalysis():
         print("Covariance Matrix:\n", covariance_matrix)
         self.covariance_matrix_Laplace = covariance_matrix
         self.mean_Lapalace = mean
+        parent_dir = os.path.dirname(self.param_id_output_dir)
+        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_mean.npy'), self.mean_Lapalace)
+        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_covariance.npy'), self.covariance_matrix_Laplace)
 
     def plot_laplace_results(self, parameter_names, output_dir):
         """
@@ -106,7 +116,15 @@ class IdentifiabilityAnalysis():
           
 
         if self.covariance_matrix_Laplace is None or self.mean_Lapalace is None:
-            raise ValueError("Laplace results not available. Run run_laplace_approximation first.")
+            try:
+                parent_dir = os.path.dirname(self.param_id_output_dir)
+                self.mean_Lapalace = np.load(os.path.join(parent_dir, self.file_name_prefix + '_laplace_mean.npy'))
+                self.covariance_matrix_Laplace = np.load(os.path.join(parent_dir, self.file_name_prefix + '_laplace_covariance.npy'))
+                print("Loaded Laplace approximation results from files.")
+            except Exception as e:
+                print("Error loading Laplace approximation results:", e)
+                print("Please run the Laplace approximation before plotting.")
+                return
 
         samples = np.random.multivariate_normal(self.mean_Lapalace, self.covariance_matrix_Laplace, size=100000)
         print(f'samples shape: {samples.shape}')
@@ -185,16 +203,8 @@ class IdentifiabilityAnalysis():
                         rotation=0,
                         fontsize=10,
                         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
-        parent_dir = os.path.dirname(output_dir)
-        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_mean.npy'), self.mean_Lapalace)
-        np.save(os.path.join(parent_dir, self.file_name_prefix + '_laplace_covariance.npy'), self.covariance_matrix_Laplace)
 
 
-
-        
-
-
-        
         plt.subplots_adjust(hspace=0.12, wspace=0.1)
         figure.savefig(plot_path)
         print(f"Laplace approximation corner plot saved to {plot_path}")
