@@ -77,11 +77,9 @@ class IdentifiabilityAnalysis():
         if ia_options['method'] == 'profile_likelihood':
             self.run_profile_likelihood(ia_options)
         elif ia_options['method'] == 'Laplace':
-            print(f'rank {self.rank} starting Laplace approximation')
             if self.rank == 0:
                 # currently Laplace is not parallelised, so only run on rank 0
                 self.run_laplace_approximation(ia_options)
-            print(f'rank {self.rank} completed Laplace approximation')
         return
 
     def run_profile_likelihood(self, ia_options):
