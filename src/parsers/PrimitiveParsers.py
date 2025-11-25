@@ -179,6 +179,9 @@ class YamlFileParser(object):
             inp_data_dict['external_modules_dir'] = None
         
         # for sensitivity analysis and parameter identification
+        if not 'sa_options' in inp_data_dict.keys():
+            inp_data_dict['sa_options'] = None
+
         if inp_data_dict['sa_options'] is None:
             inp_data_dict['sa_options'] = {
                 'method': 'sobol',
