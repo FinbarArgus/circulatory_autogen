@@ -197,7 +197,7 @@ class YamlFileParser(object):
                     inp_data_dict['sa_options']['output_dir'] = os.path.join(root_dir, 'sensitivity_outputs', inp_data_dict['sa_options']['output_dir']) 
             
             if not os.path.exists(inp_data_dict['sa_options']['output_dir']):
-                os.makedirs(inp_data_dict['sa_options']['output_dir'])
+                os.makedirs(inp_data_dict['sa_options']['output_dir'], exist_ok=True)
             
             if 'method' not in inp_data_dict['sa_options'].keys():
                 print('No method specified for sensitivity analysis, setting to sobol by default')
@@ -544,15 +544,14 @@ class JSONFileParser(object):
             # Load Data Items (gt_df)
             if 'data_items' in json_obj.keys():
                 gt_df = pd.DataFrame(json_obj['data_items'])
-            elif 'data_item' in json_obj:
+            elif 'data_item' in json_obj.keys():
                 gt_df = pd.DataFrame(json_obj['data_item']) 
             else:
                 print("data_items not found in json object. ",
                       "Please check that data_items is the key for the list of data items")
-                return None
 
             # Load Protocol Info
-            if 'protocol_info' in json_obj:
+            if 'protocol_info' in json_obj.keys():
                 protocol_info = json_obj['protocol_info']
                 if "sim_times" not in protocol_info: protocol_info["sim_times"] = [[sim_time]]
                 if "pre_times" not in protocol_info: protocol_info["pre_times"] = [pre_time]
@@ -651,13 +650,14 @@ class JSONFileParser(object):
             obs_type = gt_df.iloc[II].get("obs_type")
             operands = gt_df.iloc[II].get("operands")
 
-            if op in ["Null", "None", "null", "none", "", "nan", np.nan]:
+            if op in ["Null", "None", "null", "none", "", "nan", np.nan, None]:
                 if obs_type in ["series", "frequency"]:
+                    print(">>>>>>>>", obs_type, operands)
                     obs_info["operations"].append(None)
                     obs_info["operands"].append(operands)
                 elif obs_type in ["min", "max", "mean"]: 
                     obs_info["operations"].append(obs_type)
-                    obs_info["operands"].append([df.iloc[II]["variable"]])
+                    obs_info["operands"].append([gt_df.iloc[II]["variable"]])
                 else:
                     obs_info["operations"].append(None)
                     obs_info["operands"].append(operands)

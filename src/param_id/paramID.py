@@ -943,7 +943,8 @@ class CVS0DParamID():
     def __set_and_save_param_names(self, idxs_to_ignore=None):
         self.csv_parser = CSVFileParser()
         self.param_id_info = self.csv_parser.get_param_id_info(self.params_for_id_path, idxs_to_ignore=idxs_to_ignore)
-        self.csv_parser.save_param_names(self.param_id_info, self.output_dir, self.rank)
+        if self.rank == 0:
+            self.csv_parser.save_param_names(self.param_id_info, self.output_dir, self.rank)
 
     def __get_ground_truth_values(self):
 
