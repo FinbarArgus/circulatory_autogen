@@ -652,7 +652,6 @@ class JSONFileParser(object):
 
             if op in ["Null", "None", "null", "none", "", "nan", np.nan, None]:
                 if obs_type in ["series", "frequency"]:
-                    print(">>>>>>>>", obs_type, operands)
                     obs_info["operations"].append(None)
                     obs_info["operands"].append(operands)
                 elif obs_type in ["min", "max", "mean"]: 
