@@ -1773,6 +1773,8 @@ class OpencorParamID():
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
+        # TODO check what model_type and open corresponding sim helper
+        # rename to CellMLSimHelper
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
                                 solver_info=self.solver_info, pre_time=self.pre_time)
     
