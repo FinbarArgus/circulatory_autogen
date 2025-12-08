@@ -98,6 +98,9 @@ def test_generate_model_with_invalid_parameters_fails(base_user_inputs, resource
     """
     Test that model generation fails gracefully with invalid parameters.
     
+    When given invalid file paths, the function should raise a FileNotFoundError
+    rather than silently failing or crashing.
+    
     Args:
         base_user_inputs: Base user inputs configuration fixture
         resources_dir: Resources directory fixture
@@ -111,9 +114,8 @@ def test_generate_model_with_invalid_parameters_fails(base_user_inputs, resource
         'solver': 'CVODE',
     })
     
-    # Attempt to generate model - should fail or return False
-    success = generate_with_new_architecture(False, config)
-    
-    # Assert generation failed as expected
-    assert not success, "Model generation should fail with invalid parameters"
+    # Attempt to generate model - should raise FileNotFoundError
+    # The function doesn't catch exceptions, so missing files will raise an error
+    with pytest.raises(FileNotFoundError, match="No such file or directory"):
+        generate_with_new_architecture(False, config)
 

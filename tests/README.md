@@ -37,7 +37,12 @@ You can pass any pytest arguments to the script:
 
 # Run in parallel
 ./run_pytest.sh -n auto
+
+# Run in parallel and verbose (this is the standard way to test everything)
+
+./run_pytest.sh -vv -n auto
 ```
+
 
 ## Manual Setup
 
