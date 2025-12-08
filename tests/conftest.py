@@ -1,0 +1,173 @@
+"""
+Pytest configuration file for circulatory_autogen tests.
+
+This file sets up the test environment to work with OpenCOR's Python shell.
+It provides fixtures for test data, configuration, and deterministic randomness.
+"""
+import os
+import sys
+import yaml
+import tempfile
+import shutil
+import pytest
+import numpy as np
+import random
+
+
+def pytest_configure(config):
+    """
+    Configure pytest to work with OpenCOR Python environment.
+    This ensures the src directory is in the Python path for imports.
+    """
+    # Add src directory to path if not already there
+    root_dir = os.path.join(os.path.dirname(__file__), '..')
+    src_dir = os.path.join(root_dir, 'src')
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+
+
+@pytest.fixture(scope="session")
+def project_root():
+    """Fixture that returns the project root directory."""
+    return os.path.join(os.path.dirname(__file__), '..')
+
+
+@pytest.fixture(scope="session")
+def opencor_python_path():
+    """
+    Fixture that attempts to read the OpenCOR Python shell path.
+    Returns None if the path cannot be determined.
+    """
+    root_dir = os.path.join(os.path.dirname(__file__), '..')
+    opencor_path_file = os.path.join(root_dir, 'user_run_files', 'opencor_pythonshell_path.sh')
+    
+    if os.path.exists(opencor_path_file):
+        try:
+            # Read the shell script and extract the path
+            with open(opencor_path_file, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if line and not line.startswith('#') and 'opencor_pythonshell_path=' in line:
+                        # Extract the path value
+                        path = line.split('opencor_pythonshell_path=', 1)[1].strip()
+                        # Remove quotes if present
+                        path = path.strip('"\'')
+                        if os.path.exists(path):
+                            return path
+        except Exception as e:
+            pytest.skip(f"Could not read OpenCOR Python path: {e}")
+    
+    return None
+
+
+@pytest.fixture(scope="session")
+def user_inputs_dir(project_root):
+    """Fixture that returns the user inputs directory."""
+    return os.path.join(project_root, 'user_run_files')
+
+
+@pytest.fixture(scope="session")
+def resources_dir(project_root):
+    """Fixture that returns the resources directory."""
+    return os.path.join(project_root, 'resources')
+
+
+@pytest.fixture(scope="function")
+def base_user_inputs(user_inputs_dir):
+    """
+    Fixture that loads and returns base user inputs configuration.
+    Removes path overrides to use default directories.
+    """
+    user_inputs_path = os.path.join(user_inputs_dir, 'user_inputs.yaml')
+    
+    if not os.path.exists(user_inputs_path):
+        pytest.skip(f"User inputs file not found: {user_inputs_path}")
+    
+    with open(user_inputs_path, 'r') as file:
+        inp_data_dict = yaml.load(file, Loader=yaml.FullLoader)
+    
+    # Remove user_input entries so they aren't passed to the generation script,
+    # this ensures the default dirs are used
+    for key in ['user_inputs_path_override', 'resources_dir', 'generated_models_dir', 'param_id_output_dir']:
+        if key in inp_data_dict:
+            del inp_data_dict[key]
+    
+    return inp_data_dict
+
+
+@pytest.fixture(scope="function")
+def temp_output_dir():
+    """
+    Fixture that creates a temporary directory for test outputs.
+    Automatically cleans up after the test.
+    """
+    temp_dir = tempfile.mkdtemp(prefix='circulatory_autogen_test_')
+    yield temp_dir
+    # Cleanup
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def set_random_seed():
+    """
+    Fixture that sets random seeds for deterministic tests.
+    Applied automatically to all tests.
+    """
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    yield
+    # Reset seeds after test (though not strictly necessary)
+
+
+@pytest.fixture(scope="function")
+def test_model_configs():
+    """
+    Fixture that returns test model configurations for parametrized tests.
+    Returns a list of tuples: (file_prefix, input_param_file, model_type, solver)
+    """
+    return [
+        # CellML models
+        ('ports_test', 'ports_test_parameters.csv', 'cellml_only', 'CVODE'),
+        ('3compartment', '3compartment_parameters.csv', 'cellml_only', 'CVODE'),
+        ('simple_physiological', 'simple_physiological_parameters.csv', 'cellml_only', 'CVODE'),
+        ('parasympathetic_model', 'parasympathetic_model_parameters.csv', 'cellml_only', 'CVODE'),
+        ('test_fft', 'test_fft_parameters.csv', 'cellml_only', 'CVODE'),
+        ('neonatal', 'neonatal_parameters.csv', 'cellml_only', 'CVODE'),
+        ('generic_junction_test_closed_loop', 'generic_junction_test_closed_loop_parameters.csv', 'cellml_only', 'CVODE'),
+        ('generic_junction_test2_closed_loop', 'generic_junction_test_closed_loop_parameters.csv', 'cellml_only', 'CVODE'),
+        ('generic_junction_test_open_loop', 'generic_junction_test_open_loop_parameters.csv', 'cellml_only', 'CVODE'),
+        ('generic_junction_test2_open_loop', 'generic_junction_test_open_loop_parameters.csv', 'cellml_only', 'CVODE'),
+        ('SN_simple', 'SN_simple_parameters.csv', 'cellml_only', 'CVODE'),
+        ('physiological', 'physiological_parameters.csv', 'cellml_only', 'CVODE'),
+        ('control_phys', 'control_phys_parameters.csv', 'cellml_only', 'CVODE'),
+        # CPP models
+        ('aortic_bif_1d', 'aortic_bif_1d_parameters.csv', 'cpp', 'RK4'),
+    ]
+
+
+@pytest.fixture(scope="function")
+def minimal_param_id_config(base_user_inputs, resources_dir, temp_output_dir):
+    """
+    Fixture that returns a minimal parameter identification configuration.
+    """
+    config = base_user_inputs.copy()
+    config.update({
+        'model_type': 'cellml_only',
+        'solver': 'CVODE',
+        'param_id_method': 'genetic_algorithm',
+        'pre_time': 1,
+        'sim_time': 1,
+        'dt': 0.01,
+        'DEBUG': True,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'solver_info': {
+            'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 5000,
+        },
+        'param_id_output_dir': temp_output_dir,
+    })
+    return config
