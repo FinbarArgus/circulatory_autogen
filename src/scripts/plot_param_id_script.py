@@ -137,7 +137,7 @@ def plot_param_id(inp_data_dict=None, generate=True):
                                             param_id_obs_path=param_id_obs_path,
                                             num_calls_to_function=1,
                                             sim_time=sim_time, pre_time=pre_time,
-                                            solver_info=solver_info, dt=dt, ga_options=ga_options, 
+                                            solver_info=solver_info, dt=dt, ga_options=optimiser_options, 
                                             mcmc_options=mcmc_options, DEBUG=DEBUG,
                                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
     
