@@ -62,6 +62,8 @@ class SensitivityAnalysis():
         self.model_out_names = model_out_names
         self.solver_info = solver_info
         self.dt = dt
+        # For backwards compatibility, accept both ga_options and optimiser_options
+        # The parser will merge ga_options into optimiser_options, but we keep ga_options for now
         self.ga_options = ga_options
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path

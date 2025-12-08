@@ -41,6 +41,9 @@ You can pass any pytest arguments to the script:
 # Run in parallel and verbose (this is the standard way to test everything)
 
 ./run_pytest.sh -vv -n auto
+
+# Run only the optimiser method comparisons
+./run_pytest.sh -n 8 tests/test_param_id.py::test_compare_optimisers -v -s
 ```
 
 

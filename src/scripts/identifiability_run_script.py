@@ -33,7 +33,7 @@ def run_identifiability_analysis(inp_data_dict=None):
     pre_time = inp_data_dict['pre_time']
     solver_info = inp_data_dict['solver_info']
     dt = inp_data_dict['dt']
-    ga_options = inp_data_dict['ga_options']
+    optimiser_options = inp_data_dict['optimiser_options']
     resources_dir = inp_data_dict['resources_dir']
     param_id_output_dir = inp_data_dict['param_id_output_dir']
     
@@ -50,7 +50,7 @@ def run_identifiability_analysis(inp_data_dict=None):
                             params_for_id_path=params_for_id_path,
                             param_id_obs_path=param_id_obs_path,
                             sim_time=sim_time, pre_time=pre_time,
-                            solver_info=solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
+                            solver_info=solver_info, dt=dt, optimiser_options=optimiser_options, DEBUG=DEBUG,
                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
 

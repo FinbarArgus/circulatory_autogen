@@ -41,6 +41,7 @@ import csv
 from datetime import date
 # from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser
+from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser
 import pandas as pd
 import json
 import math
@@ -70,7 +71,7 @@ class CVS0DParamID():
     def __init__(self, model_path, model_type, param_id_method, mcmc_instead, file_name_prefix,
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, dt=0.01,
-                 solver_info=None, mcmc_options=None, ga_options=None, DEBUG=False,
+                 solver_info=None, mcmc_options=None, ga_options=None, optimiser_options=None, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, one_rank=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -82,7 +83,12 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
-        self.ga_options = ga_options
+        # For backwards compatibility, merge ga_options into optimiser_options
+        self.optimiser_options = optimiser_options or {}
+        if ga_options is not None:
+            for key, value in ga_options.items():
+                if key not in self.optimiser_options:
+                    self.optimiser_options[key] = value
         self.mcmc_options = mcmc_options
         self.solver_info = solver_info
         self.dt = dt
@@ -150,11 +156,12 @@ class CVS0DParamID():
             self.n_steps = mcmc_object.n_steps
         else:
             if model_type == 'cellml_only':
+                optimiser_options = getattr(self, 'optimiser_options', None)
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocol_info,
                                                self.prediction_info, dt=self.dt,
                                                solver_info=self.solver_info, ga_options=ga_options,
-                                               DEBUG=self.DEBUG)
+                                               optimiser_options=optimiser_options, DEBUG=self.DEBUG)
                 self.n_steps = self.param_id.n_steps
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
@@ -1170,9 +1177,9 @@ class CVS0DParamID():
             if "cost_type" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["cost_type"] not in [np.nan, None, "None", ""]:
                 self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
             else:
-                if self.ga_options is not None:
-                    if "cost_type" in self.ga_options.keys():
-                        self.obs_info["cost_type"].append(self.ga_options["cost_type"]) # default to cost type in ga_options
+                if self.optimiser_options is not None and len(self.optimiser_options) > 0:
+                    if "cost_type" in self.optimiser_options.keys():
+                        self.obs_info["cost_type"].append(self.optimiser_options["cost_type"]) # default to cost type in optimiser_options
                     else:
                         self.obs_info["cost_type"].append("MSE") # default to mean squared error
                 elif self.mcmc_options is not None:
@@ -1694,7 +1701,7 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_info, param_id_info, protocol_info, prediction_info,
                  dt=0.01, solver_info=None, 
-                 ga_options=None, DEBUG=False):
+                 ga_options=None, optimiser_options=None, DEBUG=False):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1751,25 +1758,22 @@ class OpencorParamID():
         self.pred_param_importance = None
         self.pred_collinearity_idx_pairs = None
 
+        # Merge ga_options into optimiser_options for backwards compatibility
+        self.optimiser_options = optimiser_options or {}
         if ga_options is not None:
-            self.ga_options = ga_options
-            # if 'cost_type' not in self.ga_options.keys():
-            #     self.ga_options['cost_type'] = 'MSE'
-            if 'cost_convergence' not in self.ga_options.keys():
-                self.ga_options['cost_convergence'] = 0.0001
-            if 'max_patience' not in self.ga_options.keys():
-                self.ga_options['max_patience'] = 10
-            if 'num_calls_to_function' not in self.ga_options.keys():
-                self.ga_options['num_calls_to_function'] = 10000
-        else:
-            self.ga_options = {}
-            # self.ga_options['cost_type'] = 'MSE'
-            self.ga_options['cost_convergence'] = 0.0001
-            self.ga_options['max_patience'] = 10
-            self.ga_options['num_calls_to_function'] = 10000
-        # self.cost_type = self.ga_options['cost_type']
+            for key, value in ga_options.items():
+                if key not in self.optimiser_options:
+                    self.optimiser_options[key] = value
+        
+        # Set default options if not provided
+        if 'cost_convergence' not in self.optimiser_options:
+            self.optimiser_options['cost_convergence'] = 0.0001
+        if 'max_patience' not in self.optimiser_options:
+            self.optimiser_options['max_patience'] = 10
+        if 'num_calls_to_function' not in self.optimiser_options:
+            self.optimiser_options['num_calls_to_function'] = 10000
+        
         self.cost_type = self.obs_info["cost_type"]
-
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
@@ -1832,395 +1836,49 @@ class OpencorParamID():
 
         # C_T min and max was 1e-9 and 1e-5 before
 
+        # Use optimiser classes for all methods
         if self.param_id_method == 'bayesian':
-            print('WARNING bayesian will be deprecated and is untested')
-            if rank == 0:
-                print('Running bayesian optimisation')
-            param_ranges = [a for a in zip(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])]
-            updated_version = True # TODO remove this and remove the gp_minimize version
-            if not updated_version:
-                res = gp_minimize(self.get_cost_from_params,  # the function to minimize
-                                  param_ranges,  # the bounds on each dimension of x
-                                  acq_func=self.acq_func,  # the acquisition function
-                                  n_calls=self.ga_options['num_calls_to_function'],  # the number of evaluations of f
-                                  n_initial_points=self.n_initial_points,  # the number of random initialization points
-                                  random_state=self.random_state, # random seed
-                                  **self.acq_func_kwargs,
-                                  callback=[ProgressBar(self.ga_options['num_calls_to_function'])])
-                              # noise=0.1**2,  # the noise level (optional)
-            else:
-                # using Optimizer is more flexible and may be needed to implement a parallel usage
-                # gp_minimizer is a higher level call that uses Optimizer
-                if rank == 0:
-                    opt = Optimizer(param_ranges,  # the bounds on each dimension of x
-                                    base_estimator='GP', # gaussian process
-                                    acq_func=self.acq_func,  # the acquisition function
-                                    n_initial_points=self.n_initial_points,  # the number of random initialization points
-                                    random_state=self.random_state, # random seed
-                                    acq_func_kwargs=self.acq_func_kwargs,
-                                    n_jobs=num_procs)
-
-
-                progress_bar = ProgressBar(self.ga_options['num_calls_to_function'], n_jobs=num_procs)
-                call_num = 0
-                iter_num = 0
-                cost = np.zeros(num_procs)
-                while call_num < self.ga_options['num_calls_to_function']:
-                    if rank == 0:
-                        if self.DEBUG:
-                            zero_time = time.time()
-                        if num_procs > 1:
-                            # points = [opt.ask() for II in range(num_procs)]
-                            # TODO figure out why the below call slows down so much as the number of calls increases
-                            #  and whether it can give improvements
-                            points = opt.ask(n_points=num_procs)
-                            print(points)
-                            points_np = np.array(points)
-                        else:
-                            points = opt.ask()
-                        if self.DEBUG:
-                            ask_time = time.time() - zero_time
-                            print(f'Time to calculate new param values = {ask_time}')
-                    else:
-                        points_np = np.zeros((num_procs, self.num_params))
-
-                    if num_procs > 1:
-                        # broadcast points so every processor has all of the points. TODO This could be optimized for memory
-                        comm.Bcast(points_np, root=0)
-                        cost_proc = self.get_cost_from_params(points_np[rank, :])
-                        # print(f'cost for rank = {rank} is {cost_proc}')
-
-                        recv_buf_cost = np.zeros(num_procs)
-                        send_buf_cost = cost_proc
-                        # gather results from simulation
-                        comm.Gatherv(send_buf_cost, [recv_buf_cost, 1,
-                                                      None, MPI.DOUBLE], root=0)
-                        cost_np = recv_buf_cost
-                        cost = cost_np.tolist()
-                    else:
-                        cost = self.get_cost_from_params(points)
-
-
-                    if rank == 0:
-                        if self.DEBUG:
-                            zero_time = time.time()
-                        opt.tell(points, cost)
-                        if self.DEBUG:
-                            tell_time = time.time() - zero_time
-                            print(f'Time to set the calculated cost and param values '
-                                  f'and fit the gaussian = {tell_time}')
-                        res = opt.get_result()
-                        progress_bar.call(res)
-
-                        if res.fun < self.best_cost:
-                            # save if cost improves
-                            self.best_cost = res.fun
-                            self.best_param_vals = res.x
-                            print('parameters improved! SAVING COST AND PARAM VALUES')
-                            np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-                            np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
-
-                    call_num += num_procs
-                    iter_num += 1
-
-                    # TODO save results here every few iterations
-
-
-            if rank == 0:
-                print(res)
-                self.best_cost = res.fun
-                self.best_param_vals = res.x
-                np.save(os.path.join(self.output_dir, 'best_cost'), self.best_cost)
-                np.save(os.path.join(self.output_dir, 'best_param_vals'), self.best_param_vals)
+            # Use BayesianOptimiser class
+            optimiser = BayesianOptimiser(
+                self, self.param_id_info, self.param_norm_obj,
+                self.num_params, self.output_dir,
+                ga_options=None,  # Legacy parameter, kept for backwards compatibility
+                optimiser_options=self.optimiser_options,
+                DEBUG=self.DEBUG,
+                acq_func=self.acq_func,
+                n_initial_points=self.n_initial_points,
+                random_state=self.random_state,
+                acq_func_kwargs=self.acq_func_kwargs
+            )
+            optimiser.run()
+            self.best_param_vals = optimiser.best_param_vals
+            self.best_cost = optimiser.best_cost
 
         elif self.param_id_method == 'genetic_algorithm':
-            if self.DEBUG:
-                num_elite = 1 # 1
-                num_survivors = 2 # 2
-                num_mutations_per_survivor = 2 # 2
-                num_cross_breed = 0
-            else:
-                num_elite = 12
-                num_survivors = 48
-                num_mutations_per_survivor = 12
-                num_cross_breed = 120
-            num_pop = num_survivors + num_survivors*num_mutations_per_survivor + \
-                   num_cross_breed
-            if self.ga_options['num_calls_to_function'] < num_pop:
-                print(f'Number of calls (n_calls={self.ga_options["num_calls_to_function"]}) must be greater than the '
-                      f'gen alg population (num_pop={num_pop}), exiting')
-                exit()
-            if num_procs > num_pop:
-                print(f'Number of processors must be less than number of population, exiting')
-                exit()
-            self.max_generations = math.floor(self.ga_options['num_calls_to_function']/num_pop)
-            if rank == 0:
-                print(f'Running genetic algorithm with a population size of {num_pop},\n'
-                      f'and a maximum number of generations of {self.max_generations}')
-            simulated_bools = [False]*num_pop
-            gen_count = 0
+            # Use GeneticAlgorithmOptimiser class
+            optimiser = GeneticAlgorithmOptimiser(
+                self, self.param_id_info, self.param_norm_obj,
+                self.num_params, self.output_dir,
+                ga_options=None,  # Legacy parameter, kept for backwards compatibility
+                optimiser_options=self.optimiser_options,
+                DEBUG=self.DEBUG
+            )
+            optimiser.run()
+            self.best_param_vals = optimiser.best_param_vals
+            self.best_cost = optimiser.best_cost
 
-            if rank == 0:
-                param_vals_norm = np.random.rand(self.num_params, num_pop)
-                param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
-            else:
-                param_vals = None
-
-            finished_ga = np.empty(1, dtype=bool)
-            finished_ga[0] = False
-            cost = np.zeros(num_pop)
-            cost[0] = np.inf
-            
-            last_loss = None
-            loss_repeat_counter = 0
-
-            while cost[0] > self.ga_options["cost_convergence"] and gen_count < self.max_generations and loss_repeat_counter<self.ga_options["max_patience"]:
-                mutation_weight = 0.1
-                # TODO make the default just a mutation weight of 0.1
-                # if gen_count > 30:
-                #    mutation_weight = 0.04
-                # elif gen_count > 60 :
-                #    mutation_weight = 0.02
-                # else:
-                #    mutation_weight = 0.08
-                # TODO make these modifiable to the user
-                # TODO make this more general for the automated approach
-                # if gen_count > 100:
-                #    mutation_weight = 0.01
-                # elif gen_count > 160:
-                #    mutation_weight = 0.005
-                # elif gen_count > 220:
-                #    mutation_weight = 0.002
-                # elif gen_count > 300:
-                #    mutation_weight = 0.001
-                # else:
-                #    mutation_weight = 0.02
-                #
-                # elif gen_count > 280:
-                #     mutation_weight = 0.0003
-
-                gen_count += 1
-                if rank == 0:
-                    print('generation num: {}'.format(gen_count))
-                    # check param_vals are within bounds and if not set them to the bound
-                    # TODO this is not a good way to set values close to bounds
-                    # TODO do a squeezing approach like gonzalo recommended.
-                    for II in range(self.num_params):
-                        for JJ in range(num_pop):
-                            if param_vals[II, JJ] < self.param_id_info["param_mins"][II]:
-                                param_vals[II, JJ] = self.param_id_info["param_mins"][II]
-                            elif param_vals[II, JJ] > self.param_id_info["param_maxs"][II]:
-                                param_vals[II, JJ] = self.param_id_info["param_maxs"][II]
-
-                    send_buf = param_vals.T.copy()
-                    send_buf_cost = cost
-                    send_buf_bools = np.array(simulated_bools)
-                    # count number of columns for each proc
-                    # count: the size of each sub-task
-                    ave, res = divmod(param_vals.shape[1], num_procs)
-                    # pop_per_proc = np.array([ave + 1 if p < res else ave for p in range(num_procs)])
-                    # IMPORTANT: the above type of list comprehension breaks opencor if the opencor object
-                    # has already been called in another function
-                    pop_per_proc = np.zeros(num_procs, dtype=int)
-                    for II in range(num_procs):
-                        if II < res:
-                            pop_per_proc[II] = ave + 1
-                        else:
-                            pop_per_proc[II] = ave
-                    
-                else:
-                    pop_per_proc = np.empty(num_procs, dtype=int)
-                    send_buf = None
-                    send_buf_bools = None
-                    send_buf_cost = None
-
-                comm.Bcast(pop_per_proc, root=0)
-                # initialise receive buffer for each proc
-                recv_buf = np.zeros((pop_per_proc[rank], self.num_params))
-                recv_buf_bools = np.empty(pop_per_proc[rank], dtype=bool)
-                recv_buf_cost = np.zeros(pop_per_proc[rank])
-                # scatter arrays to each proc
-                comm.Scatterv([send_buf, pop_per_proc*self.num_params, None, MPI.DOUBLE],
-                              recv_buf, root=0)
-                param_vals_proc = recv_buf.T.copy()
-                comm.Scatterv([send_buf_bools, pop_per_proc, None, MPI.BOOL],
-                              recv_buf_bools, root=0)
-                bools_proc = recv_buf_bools
-                comm.Scatterv([send_buf_cost, pop_per_proc, None, MPI.DOUBLE],
-                              recv_buf_cost, root=0)
-                cost_proc = recv_buf_cost
-
-                if rank == 0 and gen_count == 1:
-                    print('population per processor is')
-                    print(pop_per_proc)
-
-                # each processor runs until all param_val_proc sets have been simulated succesfully
-                for II in range(pop_per_proc[rank]):
-                    success = False
-                    while not success:
-                        if bools_proc[II]:
-                            # TODO CURRENTLY THE FIRST COUPLE OF RANKS ONLY HAVE 
-                            # TODO INDIVIDUALS THAT DONT NEED TO BE SIMULATED
-                            # TODO BECAUSE THEY ARE THE ELITE POPULATION, FIX THIS!!
-                            # TODO ATM A COULPLE OF RANKS ARE BEING WASTED!!
-                            # this individual has already been simulated
-                            success = True
-                            break
-
-                        cost_proc[II] = self.get_cost_from_params(param_vals_proc[:, II])
-
-                        if cost_proc[II] == np.inf:
-                            print('... choosing a new random point')
-                            param_vals_proc[:, II:II + 1] = self.param_norm_obj.unnormalise(np.random.rand(self.num_params, 1))
-                            cost_proc[II] = np.inf
-                            success = False
-                            break
-                        else:
-                            bools_proc[II] = True # this point has now been simulated
-
-                        simulated_bools[II] = True # simulated bools gets sent, bools_proc
-                                                   # gets received. They are effectively the same
-                                                   # TODO check if I can simplify this
-                        success = True
-                        if num_procs == 1:
-                            if II%5 == 0 and II > num_survivors:
-                                print(' this generation is {:.0f}% done'.format(100.0*(II + 1)/pop_per_proc[0]))
-                        else:
-                            if rank == num_procs - 1:
-                                # if II%4 == 0 and II != 0:
-                                print(' this generation is {:.0f}% done'.format(100.0*(II + 1)/pop_per_proc[0]))
-
-                recv_buf = np.zeros((num_pop, self.num_params))
-                recv_buf_cost = np.zeros(num_pop)
-                send_buf = param_vals_proc.T.copy()
-                send_buf_cost = cost_proc
-                # gather results from simulation
-                comm.Gatherv(send_buf, [recv_buf, pop_per_proc*self.num_params,
-                                         None, MPI.DOUBLE], root=0)
-                comm.Gatherv(send_buf_cost, [recv_buf_cost, pop_per_proc,
-                                              None, MPI.DOUBLE], root=0)
-
-                if rank == 0:
-                    param_vals = recv_buf.T.copy()
-                    cost = recv_buf_cost
-
-                    # order the vertices in order of cost
-                    order_indices = np.argsort(cost)
-                    cost = cost[order_indices]
-                    param_vals = param_vals[:, order_indices]
-                    print('Cost of first 10 of population : {}'.format(cost[:10]))
-                    param_vals_norm = self.param_norm_obj.normalise(param_vals)
-                    print('worst survivor params normed : {}'.format(param_vals_norm[:, num_survivors - 1]))
-                    print('best params normed : {}'.format(param_vals_norm[:, 0]))
-                    np.save(os.path.join(self.output_dir, 'best_cost'), cost[0])
-                    np.save(os.path.join(self.output_dir, 'best_param_vals'), param_vals[:, 0])
-                    # Use np.savetxt to append the array to the text file
-                    with open(os.path.join(self.output_dir, 'best_cost_history.csv'), 'a') as file:
-                        np.savetxt(file, cost[:10].reshape(1,-1), fmt='%1.9f', delimiter=', ')
-                    
-                    with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
-                        np.savetxt(file, param_vals_norm[:, 0].reshape(1,-1), fmt='%.5e', delimiter=', ')
-                    #count the repeat number
-                    if last_loss is not None:
-                        if abs(cost[0]-last_loss) < self.ga_options["cost_convergence"]:
-                            loss_repeat_counter += 1
-                        else:
-                            loss_repeat_counter = 0
-                            last_loss = cost[0]
-                    else:
-                        last_loss = cost[0]
-                    
-                    # if cost is small enough then exit
-                    if cost[0] < self.ga_options["cost_convergence"]:
-                        print(f'Cost is less than cost_convergence={self.ga_options["cost_convergence"]}', 
-                                'Exiting calibration with calibration converged to below cost tolerance')
-                        finished_ga[0] = True
-                    elif loss_repeat_counter >= self.ga_options["max_patience"]:
-                        print(f'loss has been unchanged for max_patience={self.ga_options["max_patience"]} generations.',
-                                'Exiting calibration with converged optimisation.')
-                        finished_ga[0] = True
-                    else:
-
-                        # At this stage all of the population has been simulated
-                        simulated_bools = [True]*num_pop
-                        # keep the num_survivors best param_vals, replace these with mutations
-                        param_idx = num_elite
-
-                        # for idx in range(num_elite, num_survivors):
-                        #     survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
-                        #     rand_survivor_idx = np.random.choice(np.arange(num_elite, num_pop), p=survive_prob)
-                        #     param_vals_norm[:, param_idx] = param_vals_norm[:, rand_survivor_idx]
-                        #
-
-                        # set the cases with nan cost to have a very large but not nan cost
-                        for idx in range(num_pop):
-                            if np.isnan(cost[idx]):
-                                cost[idx] = 1e25
-                            if cost[idx] > 1e25:
-                                cost[idx] = 1e25
-                        survive_prob = cost[num_elite:num_pop]**-1/sum(cost[num_elite:num_pop]**-1)
-                        rand_survivor_idxs = np.random.choice(np.arange(num_elite, num_pop),
-                                                            size=num_survivors-num_elite, p=survive_prob)
-                        param_vals_norm[:, num_elite:num_survivors] = param_vals_norm[:, rand_survivor_idxs]
-
-                        param_idx = num_survivors
-
-                        for survivor_idx in range(num_survivors):
-                            for JJ in range(num_mutations_per_survivor):
-                                simulated_bools[param_idx] = False
-                                fifty_fifty = np.random.rand()
-                                if fifty_fifty < 0.5:
-                                    ## This accounts for smaller changes when the value is smaller
-                                    param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx]* \
-                                                                (1.0 + mutation_weight*np.random.randn(self.num_params))
-                                else:
-                                    ## This doesn't account for smaller changes when the value is smaller
-                                    param_vals_norm[:, param_idx] = param_vals_norm[:, survivor_idx] + \
-                                                                mutation_weight*np.random.randn(self.num_params)
-                                param_idx += 1
-
-                        # now do cross breeding
-                        cross_breed_indices = np.random.randint(0, num_survivors, (num_cross_breed, 2))
-                        for couple in cross_breed_indices:
-                            if couple[0] == couple[1]:
-                                couple[1] += 1  # this allows crossbreeding out of the survivors but that's ok
-                            simulated_bools[param_idx] = False
-
-                            fifty_fifty = np.random.rand()
-                            if fifty_fifty < 0.5:
-                                ## This accounts for smaller changes when the value is smaller
-                                param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                            param_vals_norm[:, couple[1]])/2* \
-                                                            (1 + mutation_weight*np.random.randn(self.num_params))
-                            else:
-                                ## This doesn't account for smaller changes when the value is smaller,
-                                ## which is needed to make sure values dont get stuck when they are small
-                                param_vals_norm[:, param_idx] = (param_vals_norm[:, couple[0]] +
-                                                                param_vals_norm[:, couple[1]])/2 + \
-                                                                mutation_weight*np.random.randn(self.num_params)
-                            param_idx += 1
-
-                        param_vals = self.param_norm_obj.unnormalise(param_vals_norm)
-
-                else:
-                    # non zero ranks don't do any of the ordering or mutations
-                    pass
-                
-                comm.Bcast(finished_ga, root=0)
-                if finished_ga[0]:
-                    break
-
-            if rank == 0:
-                self.best_cost = cost[0]
-                best_cost_in_array = np.array([self.best_cost])
-                self.best_param_vals = param_vals[:, 0]
-            else:
-                best_cost_in_array = np.empty(1, dtype=float)
-                self.best_param_vals = np.empty(self.num_params, dtype=float)
-
-            comm.Bcast(best_cost_in_array, root=0)
-            self.best_cost = best_cost_in_array[0]
-            comm.Bcast(self.best_param_vals, root=0)
+        elif self.param_id_method in ['CMA-ES', 'CMAES', 'cmaes']:
+            # Use CMAESOptimiser for CMA-ES optimization
+            optimiser = CMAESOptimiser(
+                self, self.param_id_info, self.param_norm_obj,
+                self.num_params, self.output_dir,
+                ga_options=None,  # Legacy parameter, kept for backwards compatibility
+                optimiser_options=self.optimiser_options,
+                DEBUG=self.DEBUG
+            )
+            optimiser.run()
+            self.best_param_vals = optimiser.best_param_vals
+            self.best_cost = optimiser.best_cost
 
 
 
@@ -3072,14 +2730,14 @@ class OpencorParamID():
         if not self.param_id_method == 'genetic_algorithm':
             print('param_id is not set up as a genetic algorithm')
             exit()
-        self.ga_options['num_calls_to_function']= n_calls
+        self.optimiser_options['num_calls_to_function'] = n_calls
         # TODO add more of the gen alg constants here so they can be changed by user.
 
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         if not self.param_id_method == 'bayesian':
             print('param_id is not set up as a bayesian optimization process')
             exit()
-        self.ga_options['num_calls_to_function'] = n_calls
+        self.optimiser_options['num_calls_to_function'] = n_calls
         self.n_initial_points = n_initial_points
         self.acq_func = acq_func  # the acquisition function
         self.random_state = random_state  # random seed

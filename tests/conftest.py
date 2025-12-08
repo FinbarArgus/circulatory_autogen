@@ -13,18 +13,67 @@ import pytest
 import numpy as np
 import random
 
+# Store pytest config for hooks that need plugin access (xdist reports lack config)
+_PYTEST_CONFIG = None
+
 
 def pytest_configure(config):
     """
     Configure pytest to work with OpenCOR Python environment.
     This ensures the src directory is in the Python path for imports.
     """
+    global _PYTEST_CONFIG
+    _PYTEST_CONFIG = config
+
     # Add src directory to path if not already there
     root_dir = os.path.join(os.path.dirname(__file__), '..')
     src_dir = os.path.join(root_dir, 'src')
     if src_dir not in sys.path:
         sys.path.insert(0, src_dir)
 
+
+def pytest_runtest_logreport(report):
+    """
+    Ensure captured stdout from test_compare_optimisers is shown even when tests pass.
+    Some runners/plugins keep capture enabled; this surfaces the comparison output.
+    """
+    if report.when != "call":
+        return
+    if report.passed and "test_compare_optimisers" in report.nodeid:
+        # report in xdist may not carry config; use stored config instead
+        global _PYTEST_CONFIG
+        if _PYTEST_CONFIG is None:
+            return
+        tr = _PYTEST_CONFIG.pluginmanager.get_plugin("terminalreporter")
+        if not tr:
+            return
+
+        # Debug marker to confirm hook execution
+        tr.write_line("\n=== Comparison hook executed ===", yellow=True)
+
+        # Prefer captured stdout if available
+        cap = getattr(report, "capstdout", "")
+        if cap:
+            tr.write_line("\n=== Comparison output (captured) ===", yellow=True)
+            tr.write(cap)
+
+        # Always attempt to read the persisted comparison output file if present
+        try:
+            # temp_output_dir is unique per test instance; collect from report.user_properties if set
+            out_file = None
+            for name, value in getattr(report, "user_properties", []):
+                if name == "comparison_output_file":
+                    out_file = value
+                    break
+            if out_file and os.path.exists(out_file):
+                with open(out_file, "r") as f:
+                    contents = f.read()
+                if contents:
+                    tr.write_line("\n=== Comparison output (file) ===", yellow=True)
+                    tr.write(contents)
+        except Exception:
+            # Do not fail the test if reading the file fails
+            pass
 
 @pytest.fixture(scope="session")
 def project_root():

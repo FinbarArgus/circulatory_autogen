@@ -168,8 +168,11 @@ class YamlFileParser(object):
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
-                inp_data_dict['ga_options'] = inp_data_dict['debug_ga_options']
-                inp_data_dict['mcmc_options'] = inp_data_dict['debug_mcmc_options']
+                # For backwards compatibility, still set ga_options if debug_ga_options exists
+                if 'debug_ga_options' in inp_data_dict.keys():
+                    inp_data_dict['ga_options'] = inp_data_dict['debug_ga_options']
+                if 'debug_mcmc_options' in inp_data_dict.keys():
+                    inp_data_dict['mcmc_options'] = inp_data_dict['debug_mcmc_options']
             else:
                 pass
         else:
@@ -220,6 +223,62 @@ class YamlFileParser(object):
             if 'method' not in inp_data_dict['ia_options'].keys():
                 print('No method specified for identifiability analysis, setting to Laplace by default')
                 inp_data_dict['ia_options']['method'] = 'Laplace'
+        
+        # Parse optimiser_options - this is the new unified way to specify options
+        # Handle backwards compatibility: if ga_options or debug_ga_options is specified, merge into optimiser_options
+        if 'optimiser_options' not in inp_data_dict.keys():
+            inp_data_dict['optimiser_options'] = {}
+        else:
+            # Ensure optimiser_options is a dictionary
+            if inp_data_dict['optimiser_options'] is None:
+                inp_data_dict['optimiser_options'] = {}
+        
+        # Backwards compatibility: convert ga_options to optimiser_options
+        # Only copy entries that don't already exist in optimiser_options to avoid duplicates
+        # Note: If DEBUG is True, ga_options may have been set to debug_ga_options above,
+        # but we still want to merge the original ga_options first (if it exists and DEBUG is False)
+        # or merge debug_ga_options with higher precedence when DEBUG is True
+        if not inp_data_dict['DEBUG']:
+            # When DEBUG is False, merge ga_options normally
+            if 'ga_options' in inp_data_dict.keys() and inp_data_dict['ga_options'] is not None:
+                ga_opts = inp_data_dict['ga_options']
+                if isinstance(ga_opts, dict):
+                    for key, value in ga_opts.items():
+                        # Only add if not already in optimiser_options
+                        if key not in inp_data_dict['optimiser_options']:
+                            inp_data_dict['optimiser_options'][key] = value
+                        # Warn if there's a conflict (same key, different value)
+                        elif inp_data_dict['optimiser_options'][key] != value:
+                            print(f'Warning: ga_options["{key}"] conflicts with optimiser_options["{key}"]. '
+                                  f'Using optimiser_options value: {inp_data_dict["optimiser_options"][key]}')
+        
+        # Handle debug_ga_options for backwards compatibility
+        # When DEBUG is True, debug_ga_options should override optimiser_options
+        if inp_data_dict['DEBUG']:
+            if 'debug_ga_options' in inp_data_dict.keys() and inp_data_dict['debug_ga_options'] is not None:
+                debug_ga_opts = inp_data_dict['debug_ga_options']
+                if isinstance(debug_ga_opts, dict):
+                    for key, value in debug_ga_opts.items():
+                        # Debug options override optimiser_options (they take precedence)
+                        if key in inp_data_dict['optimiser_options']:
+                            if inp_data_dict['optimiser_options'][key] != value:
+                                print(f'Note: debug_ga_options["{key}"] overriding optimiser_options["{key}"] '
+                                      f'({inp_data_dict["optimiser_options"][key]} -> {value})')
+                        inp_data_dict['optimiser_options'][key] = value
+        
+        # Handle debug_optimiser_options (new preferred way)
+        # When DEBUG is True, debug_optimiser_options should override everything
+        if inp_data_dict['DEBUG']:
+            if 'debug_optimiser_options' in inp_data_dict.keys() and inp_data_dict['debug_optimiser_options'] is not None:
+                debug_opts = inp_data_dict['debug_optimiser_options']
+                if isinstance(debug_opts, dict):
+                    for key, value in debug_opts.items():
+                        # Debug optimiser options override everything (highest precedence)
+                        if key in inp_data_dict['optimiser_options']:
+                            if inp_data_dict['optimiser_options'][key] != value:
+                                print(f'Note: debug_optimiser_options["{key}"] overriding optimiser_options["{key}"] '
+                                      f'({inp_data_dict["optimiser_options"][key]} -> {value})')
+                        inp_data_dict['optimiser_options'][key] = value
 
         # for generation only
     

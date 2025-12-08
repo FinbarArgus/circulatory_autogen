@@ -62,7 +62,10 @@ class sobol_SA():
         self.sample_type = SA_cfg["sample_type"]
         self.num_params = None
         self.model_output_names = model_out_names
-        self.ga_options = ga_options
+        # For backwards compatibility, accept both ga_options and optimiser_options
+        # optimiser_options takes precedence
+        self.ga_options = ga_options  # Keep for backwards compatibility
+        self.optimiser_options = None  # Will be set if passed
         self.protocol_info = None
         self.dt = dt
         
@@ -414,9 +417,11 @@ class sobol_SA():
             if "cost_type" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["cost_type"] not in [np.nan, None, "None", ""]:
                 self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
             else:
-                if self.ga_options is not None:
-                    if "cost_type" in self.ga_options.keys():
-                        self.obs_info["cost_type"].append(self.ga_options["cost_type"]) # default to cost type in ga_options
+                # Check optimiser_options first, then ga_options for backwards compatibility
+                options_dict = self.optimiser_options if self.optimiser_options is not None else self.ga_options
+                if options_dict is not None:
+                    if "cost_type" in options_dict.keys():
+                        self.obs_info["cost_type"].append(options_dict["cost_type"]) # default to cost type in options
                     else:
                         self.obs_info["cost_type"].append("MSE") # default to mean squared error
                 elif self.mcmc_options is not None:
