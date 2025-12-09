@@ -181,12 +181,19 @@ class OptimiserComparison:
         config = self.base_config.copy()
         config.update(method_config)
         
-        # Ensure optimiser_options exists and propagate num_calls_to_function (preferred path)
-        if 'optimiser_options' not in config or config['optimiser_options'] is None:
-            config['optimiser_options'] = {}
-        if not isinstance(config['optimiser_options'], dict):
+        # Ensure optimiser_options exists and preserve any provided options (e.g., max_patience)
+        base_opts = config.get('optimiser_options') or {}
+        if not isinstance(base_opts, dict):
             raise ValueError("optimiser_options must be a dictionary")
-        config['optimiser_options']['num_calls_to_function'] = self.num_calls
+        method_opts = method_config.get('optimiser_options') if isinstance(method_config, dict) else None
+        if method_opts is None:
+            method_opts = {}
+        elif not isinstance(method_opts, dict):
+            raise ValueError("method-specific optimiser_options must be a dictionary")
+        merged_opts = base_opts.copy()
+        merged_opts.update(method_opts)
+        merged_opts['num_calls_to_function'] = self.num_calls
+        config['optimiser_options'] = merged_opts
         
         # Apply debug overrides if DEBUG is True
         if config.get('DEBUG', False):

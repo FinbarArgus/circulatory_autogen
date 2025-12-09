@@ -143,11 +143,16 @@ class YamlFileParser(object):
         if not os.path.exists(inp_data_dict['generated_models_subdir']):
             os.mkdir(inp_data_dict['generated_models_subdir'])
             
-        inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}.cellml')
+        if inp_data_dict.get('model_type') == 'python':
+            model_ext = '.py'
+        else:
+            model_ext = '.cellml'
+
+        inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}{model_ext}')
 
         if do_generation_with_fit_parameters:
-            inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix, 
-                                               file_prefix + '.cellml')
+            inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix,
+                                               file_prefix + model_ext)
         else:
             inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
 
@@ -471,13 +476,22 @@ class JSONFileParser(object):
                 exit()
             for column in add_on_lists:
                 # deepcopy to make sure that the lists for different vessel same module are not linked
+                val = this_vessel_module_df[column]
+                is_na = False
                 try:
-                    if np.isnan(this_vessel_module_df[column]):
-                        add_on_lists[column].append("None")
+                    mask = pd.isna(val)
+                    if isinstance(mask, (np.bool_, bool)):
+                        is_na = bool(mask)
                     else:
-                        add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
-                except:
-                    add_on_lists[column].append(copy.deepcopy(this_vessel_module_df[column]))
+                        # array-like: consider NaN only if all entries are NaN
+                        is_na = bool(np.all(mask))
+                except Exception:
+                    is_na = False
+
+                if is_na:
+                    add_on_lists[column].append("None")
+                else:
+                    add_on_lists[column].append(copy.deepcopy(val))
 
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]

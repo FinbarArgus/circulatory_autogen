@@ -155,7 +155,7 @@ class CVS0DParamID():
                                            DEBUG=self.DEBUG)
             self.n_steps = mcmc_object.n_steps
         else:
-            if model_type == 'cellml_only':
+            if model_type in ['cellml_only', 'python']:
                 optimiser_options = getattr(self, 'optimiser_options', None)
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocol_info,
@@ -1739,6 +1739,7 @@ class OpencorParamID():
             # set temporary pre time, just to initialise the sim_helper
             self.pre_time = 0.001
 
+        self.model_type = getattr(self, "model_type", "cellml_only")
         self.sim_helper = self.initialise_sim_helper()
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
@@ -1786,7 +1787,8 @@ class OpencorParamID():
         # TODO check what model_type and open corresponding sim helper
         # rename to CellMLSimHelper
         return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                solver_info=self.solver_info, pre_time=self.pre_time)
+                                solver_info=self.solver_info, pre_time=self.pre_time,
+                                model_type=self.model_type)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals

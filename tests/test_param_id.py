@@ -115,7 +115,7 @@ def test_param_id_3compartment_succeeds(base_user_inputs, resources_dir, temp_ou
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 60},
+        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 500},
     })
     
     # Run parameter identification
@@ -168,7 +168,7 @@ def test_param_id_3compartment_cmaes_succeeds(base_user_inputs, resources_dir, t
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 100},
+        'debug_optimiser_options': {'num_calls_to_function': 100, 'max_patience': 500},
         'optimiser_options': {
             'num_calls_to_function': 100,
         },
@@ -200,6 +200,57 @@ def test_param_id_3compartment_cmaes_succeeds(base_user_inputs, resources_dir, t
         params = np.load(params_file)
         assert params.shape[0] > 0, "Should have at least one parameter"
     
+    mpi_comm.Barrier()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_param_id_3compartment_python_succeeds(base_user_inputs, resources_dir, temp_output_dir, mpi_comm):
+    """
+    Test parameter identification for 3compartment using the Python solver path.
+    """
+    rank = mpi_comm.Get_rank()
+
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': '3compartment',
+        'input_param_file': '3compartment_parameters.csv',
+        'model_type': 'python',
+        'solver': 'CVODE',
+        'param_id_method': 'genetic_algorithm',
+        'pre_time': 5,
+        'sim_time': 1,
+        'dt': 0.01,
+        'DEBUG': True,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'do_ia': False,
+        'solver_info': {
+            'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 1000,
+        },
+        'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
+        'param_id_output_dir': temp_output_dir,
+        'debug_optimiser_options': {'num_calls_to_function': 20, 'max_patience': 50},
+        'optimiser_options': {'num_calls_to_function': 20},
+    })
+
+    # Ensure Python model exists
+    if rank == 0:
+        success = generate_with_new_architecture(False, config)
+        assert success, "Python model generation should succeed"
+    mpi_comm.Barrier()
+
+    run_param_id(config)
+
+    if rank == 0:
+        output_dir = os.path.join(
+            temp_output_dir,
+            f"{config['param_id_method']}_{config['file_prefix']}_3compartment_obs_data"
+        )
+        assert os.path.exists(output_dir), f"Output directory should exist: {output_dir}"
+
     mpi_comm.Barrier()
 
 
@@ -244,7 +295,7 @@ def test_compare_optimisers(base_user_inputs, resources_dir, temp_output_dir, mp
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 10000},
+        'debug_optimiser_options': {'num_calls_to_function': 10000, 'max_patience': 500},
     })
     
     # Create comparison object with full number of calls for testing
@@ -356,7 +407,7 @@ def test_param_id_test_fft_cost_is_zero(base_user_inputs, resources_dir, temp_ou
         },
         'param_id_obs_path': os.path.join(resources_dir, 'test_fft_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 200},  # Increased iterations for better convergence
+        'debug_optimiser_options': {'num_calls_to_function': 200, 'max_patience': 500},  # Increased iterations for better convergence
     })
     
     # Run parameter identification
@@ -441,7 +492,7 @@ def test_param_id_simple_physiological_succeeds(base_user_inputs, resources_dir,
         },
         'param_id_obs_path': os.path.join(resources_dir, 'simple_physiological_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 60},
+        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 500},
     })
     
     # Run parameter identification
@@ -494,7 +545,7 @@ def test_param_id_3compartment_cmaes_succeeds(base_user_inputs, resources_dir, t
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 100},
+        'debug_optimiser_options': {'num_calls_to_function': 100, 'max_patience': 500},
         'optimiser_options': {
             'num_calls_to_function': 100,
         },
@@ -570,7 +621,7 @@ def test_compare_optimisers(base_user_inputs, resources_dir, temp_output_dir, mp
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 10000},
+        'debug_optimiser_options': {'num_calls_to_function': 10000, 'max_patience': 500},
     })
     
     # Create comparison object with full number of calls for testing

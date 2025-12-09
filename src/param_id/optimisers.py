@@ -639,12 +639,13 @@ class CMAESOptimiser(Optimiser):
                     except StopIteration:
                         break
                 
-                if not candidates:
-                    break
-                
                 # Convert to numpy array for broadcasting
                 num_candidates = len(candidates)
-                candidate_array = np.array([c.value for c in candidates])
+                if num_candidates > 0:
+                    candidate_array = np.array([c.value for c in candidates])
+                else:
+                    # Ensure all ranks receive zero candidates and exit cleanly
+                    candidate_array = None
             else:
                 candidate_array = None
                 num_candidates = None
@@ -656,7 +657,12 @@ class CMAESOptimiser(Optimiser):
             comm.Bcast(num_candidates_buf, root=0)
             num_candidates = num_candidates_buf[0]
             
+            stop_loop = False
             if num_candidates == 0:
+                # Nothing to evaluate; terminate loop for all ranks
+                stop_loop = True
+                continue_flag = np.array([0], dtype='i')
+                comm.Bcast(continue_flag, root=0)
                 break
             
             # Broadcast candidates to all ranks
@@ -708,23 +714,20 @@ class CMAESOptimiser(Optimiser):
                 if iteration % 10 == 0:
                     print(f'Iteration {iteration}/{self.budget}, best cost: {best_cost:.6e}')
                 
-                # Check convergence
+                # Check convergence / stopping on rank 0 only
                 if best_cost < self.optimiser_options.get('cost_convergence', 1e-6):
                     print(f'Cost converged to {best_cost:.6e} (below tolerance {self.optimiser_options.get("cost_convergence", 1e-6)})')
-                    break
-                
-                # Patience-based early stop if no improvement
+                    stop_loop = True
                 if (iteration - last_improve_iter) >= max_patience:
                     print(f'Stopping CMA-ES: no improvement for {max_patience} iterations (best_cost={best_cost:.6e})')
-                    break
-                
+                    stop_loop = True
                 if iteration >= self.budget:
-                    break
+                    stop_loop = True
             
             # Broadcast whether to continue
-            continue_flag = np.array([1], dtype=int)
+            continue_flag = np.array([1], dtype='i')
             if rank == 0:
-                if iteration >= self.budget or best_cost < self.optimiser_options.get('cost_convergence', 1e-6) or (iteration - last_improve_iter) >= max_patience:
+                if stop_loop or iteration >= self.budget or best_cost < self.optimiser_options.get('cost_convergence', 1e-6) or (iteration - last_improve_iter) >= max_patience:
                     continue_flag[0] = 0
             comm.Bcast(continue_flag, root=0)
             

@@ -60,6 +60,35 @@ def test_generate_cellml_model_succeeds(file_prefix, input_param_file, model_typ
 
 @pytest.mark.integration
 @pytest.mark.slow
+@pytest.mark.parametrize(
+    "file_prefix,input_param_file,model_type,solver",
+    [
+        ('3compartment', '3compartment_parameters.csv', 'python', 'CVODE'),
+        ('SN_simple', 'SN_simple_parameters.csv', 'python', 'CVODE'),
+        ('pid_control', 'pid_control_parameters.csv', 'python', 'CVODE'),
+    ],
+)
+def test_generate_python_model_succeeds(file_prefix, input_param_file, model_type, solver, base_user_inputs, resources_dir):
+    """
+    Test that Python model generation succeeds for selected configurations.
+    """
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': file_prefix,
+        'input_param_file': input_param_file,
+        'model_type': model_type,
+        'solver': solver,
+    })
+
+    param_file_path = os.path.join(resources_dir, input_param_file)
+    assert os.path.exists(param_file_path), f"Parameter file not found: {param_file_path}"
+
+    success = generate_with_new_architecture(False, config)
+    assert success, f"Python model generation failed for {file_prefix} with {input_param_file}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
 def test_generate_cpp_model_succeeds(base_user_inputs, resources_dir, temp_output_dir):
     """
     Test that CPP model generation succeeds for aortic_bif_1d model.
