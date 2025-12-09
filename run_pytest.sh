@@ -74,6 +74,10 @@ if [ "$HAS_N_FLAG" = true ]; then
 fi
 
 # Run pytest with the OpenCOR Python shell
-# Pass all arguments to pytest
-${opencor_pythonshell_path} -m pytest "${PYTEST_ARGS[@]}"
+# Pass all arguments to pytest and tee output to a log file
+LOG_FILE="${SCRIPT_DIR}/log_test.log"
+touch "$LOG_FILE"
+echo "===== pytest run $(date -Iseconds) =====" | tee -a "$LOG_FILE"
+"${opencor_pythonshell_path}" -m pytest "${PYTEST_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
+exit "${PIPESTATUS[0]}"
 

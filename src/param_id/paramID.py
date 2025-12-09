@@ -1132,18 +1132,24 @@ class CVS0DParamID():
                     self.gt_df.iloc[II]["obs_dt"] = self.gt_df.iloc[II]["dt"]
             else: 
                 if 'obs_dt' in self.gt_df.iloc[II].keys():
-                    print(f'obs_dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
-                            f'with data type {self.gt_df.iloc[II]['data_type']}. obs_dt should only be used for series data. Exiting')
+                    print(
+                        f"obs_dt found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
+                        f"with data type {self.gt_df.iloc[II]['data_type']}. obs_dt should only be used for series data. Exiting"
+                    )
                     exit()
                 if 'dt' in self.gt_df.iloc[II].keys():
-                    print(f'WARNING dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
-                            f'with data type {self.gt_df.iloc[II]['data_type']}. dt is deprecated for obs_dt ',
-                            'and obs_dt should only be used for series data. Exiting')
+                    print(
+                        f"WARNING dt found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
+                        f"with data type {self.gt_df.iloc[II]['data_type']}. dt is deprecated for obs_dt "
+                        "and obs_dt should only be used for series data. Exiting"
+                    )
                     exit()
                 if 'sample_rate' in self.gt_df.iloc[II].keys():
-                    print(f'WARNING sample_rate found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
-                            f'with data type {self.gt_df.iloc[II]['data_type']}. sample_rate is deprecated for obs_dt ',
-                            'and obs_dt should only be used for series data. Exiting')
+                    print(
+                        f"WARNING sample_rate found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
+                        f"with data type {self.gt_df.iloc[II]['data_type']}. sample_rate is deprecated for obs_dt "
+                        "and obs_dt should only be used for series data. Exiting"
+                    )
                     exit()
 
 
