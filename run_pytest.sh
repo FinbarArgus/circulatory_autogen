@@ -66,8 +66,8 @@ if [ "$HAS_N_FLAG" = true ]; then
     fi
     
     # Replace -n with explicit --dist and --tx options
-    # This ensures workers use the OpenCOR Python shell
-    PYTEST_ARGS+=("--dist=load")
+    # Use loadgroup so xdist honors xdist_group marks (serial groups)
+    PYTEST_ARGS+=("--dist=loadgroup")
     for ((i=0; i<NUM_WORKERS; i++)); do
         PYTEST_ARGS+=("--tx" "popen//python=${opencor_pythonshell_path}")
     done

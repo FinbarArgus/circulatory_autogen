@@ -197,6 +197,100 @@ def test_model_configs():
     ]
 
 
+def pytest_collection_modifyitems(items):
+    """
+    Ensure autogeneration tests run before param_id tests, which in turn run before others.
+    This is useful when running the full suite so that generated assets exist before
+    parameter ID tests execute.
+    """
+    import os
+    autogen_items = [item for item in items if "test_autogeneration" in item.nodeid]
+    os.environ["AUTOGEN_TOTAL"] = str(len(autogen_items))
+
+    def sort_key(item):
+        nodeid = item.nodeid
+        # Highest priority: autogeneration tests
+        if "test_autogeneration" in nodeid:
+            return (0, nodeid)
+        # Next: param_id tests
+        if "test_param_id" in nodeid:
+            return (1, nodeid)
+        # Next: optimiser comparison tests
+        if "compare_optimisers" in nodeid:
+            return (1, nodeid)
+        # Then everything else
+        return (2, nodeid)
+
+    items.sort(key=sort_key)
+
+    # Mark param_id and comparison tests to run serially as one group under xdist
+    for item in items:
+        nodeid = item.nodeid
+        if "test_param_id" in nodeid or "compare_optimisers" in nodeid:
+            item.add_marker(pytest.mark.xdist_group("param_id_serial"))
+            item.add_marker(pytest.mark.need_autogen)
+
+    # Mark autogeneration tests so they record completion
+    for item in autogen_items:
+        item.add_marker(pytest.mark.autogen_task)
+
+
+@pytest.fixture(scope="session")
+def autogen_status_file(project_root):
+    """Path to the shared autogeneration completion tracker file."""
+    return os.path.join(project_root, ".pytest_autogen_status")
+
+
+@pytest.fixture(scope="function", autouse=True)
+def track_autogen_completion(request, autogen_status_file):
+    """
+    For autogeneration tests, append a line to the status file on completion.
+    Param/compare tests can wait on this file to ensure all autogen tests finished.
+    """
+    yield
+    if "autogen_task" in request.node.keywords:
+        # Append a line to indicate completion
+        with open(autogen_status_file, "a") as f:
+            f.write("done\n")
+
+
+@pytest.fixture(scope="function", autouse=True)
+def wait_for_autogen_if_needed(request, autogen_status_file):
+    """
+    Block param/compare tests until all autogeneration tests have completed.
+    """
+    if "need_autogen" not in request.node.keywords:
+        return
+    import time
+    import os
+
+    try:
+        total = int(os.environ.get("AUTOGEN_TOTAL", "0"))
+    except ValueError:
+        total = 0
+
+    if total == 0:
+        # No autogen tests collected; nothing to wait for
+        return
+
+    waited = 0.0
+    while True:
+        if os.path.exists(autogen_status_file):
+            try:
+                with open(autogen_status_file, "r") as f:
+                    count = sum(1 for _ in f)
+                if count >= total:
+                    return
+            except OSError:
+                pass
+        time.sleep(0.1)
+        waited += 0.1
+        # Optional: log every ~10 seconds to show waiting
+        if abs(waited - round(waited, 1)) < 1e-6 and int(waited) % 10 == 0 and waited > 0:
+            print(f"Waiting for autogeneration to finish... ({waited:.1f}s)")
+
+
+
 @pytest.fixture(scope="function")
 def minimal_param_id_config(base_user_inputs, resources_dir, temp_output_dir):
     """

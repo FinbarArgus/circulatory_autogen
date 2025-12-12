@@ -75,6 +75,8 @@ markers = [
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
     "mpi: marks tests that require MPI",
+    "need_autogen: waits for all autogeneration tests to finish before running",
+    "autogen_task: marks an autogeneration test that signals completion",
 ]
 # Coverage options
 [tool.coverage.run]
