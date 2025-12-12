@@ -8,6 +8,8 @@ import sys
 from sys import exit
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
+# Ensure solver_wrappers is importable for SimulationHelper/opencor_helper
+sys.path.append(os.path.join(os.path.dirname(__file__), '../solver_wrappers'))
 import math as math
 import opencor as oc
 import time
@@ -22,7 +24,7 @@ import utility_funcs
 import traceback
 from utility_funcs import Normalise_class
 paperPlotSetup.Setup_Plot(3)
-from opencor_helper import SimulationHelper
+from solver_wrappers import get_simulation_helper
 from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
 import re
@@ -152,7 +154,7 @@ class CVS0DParamID():
                                            self.obs_info, self.param_id_info,
                                            self.protocol_info, self.prediction_info, dt=self.dt,
                                            solver_info=self.solver_info, mcmc_options=mcmc_options,
-                                           DEBUG=self.DEBUG)
+                                           DEBUG=self.DEBUG, model_type=self.model_type)
             self.n_steps = mcmc_object.n_steps
         else:
             if model_type in ['cellml_only', 'python']:
@@ -161,7 +163,8 @@ class CVS0DParamID():
                                                self.obs_info, self.param_id_info, self.protocol_info,
                                                self.prediction_info, dt=self.dt,
                                                solver_info=self.solver_info, ga_options=ga_options,
-                                               optimiser_options=optimiser_options, DEBUG=self.DEBUG)
+                                               optimiser_options=optimiser_options, DEBUG=self.DEBUG, 
+                                               model_type=self.model_type)
                 self.n_steps = self.param_id.n_steps
         if self.rank == 0:
             self.set_output_dir(self.output_dir)
@@ -1707,11 +1710,12 @@ class OpencorParamID():
     def __init__(self, model_path, param_id_method,
                  obs_info, param_id_info, protocol_info, prediction_info,
                  dt=0.01, solver_info=None, 
-                 ga_options=None, optimiser_options=None, DEBUG=False):
+                 ga_options=None, optimiser_options=None, DEBUG=False, model_type=None):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
         self.output_dir = None
+        self.model_type = model_type
 
         self.solver_info = solver_info
         self.obs_info = obs_info
@@ -1739,7 +1743,6 @@ class OpencorParamID():
             # set temporary pre time, just to initialise the sim_helper
             self.pre_time = 0.001
 
-        self.model_type = getattr(self, "model_type", "cellml_only")
         self.sim_helper = self.initialise_sim_helper()
 
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
@@ -1784,11 +1787,9 @@ class OpencorParamID():
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
-        # TODO check what model_type and open corresponding sim helper
-        # rename to CellMLSimHelper
-        return SimulationHelper(self.model_path, self.dt, self.sim_time,
-                                solver_info=self.solver_info, pre_time=self.pre_time,
-                                model_type=self.model_type)
+        helper_cls = get_simulation_helper(self.model_type)
+        return helper_cls(self.model_path, self.dt, self.sim_time,
+                          solver_info=self.solver_info, pre_time=self.pre_time)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -1814,10 +1815,10 @@ class OpencorParamID():
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
         
-        if num_procs == 1:
-            print('WARNING Running in serial, are you sure you want to be a snail?')
-
         if rank == 0:
+            print(f'Running parameter identification across {num_procs} MPI rank(s)')
+            if num_procs == 1:
+                print('WARNING Running in serial, are you sure you want to be a snail?')
             # save date as identifier for the param_id
             np.save(os.path.join(self.output_dir, 'date'), date.today().strftime("%d_%m_%Y"))
 
@@ -1835,7 +1836,8 @@ class OpencorParamID():
                                     for list_of_names in self.param_id_info["param_names"]]), '/', ' ')
                 wr.writerows(new_array_names.reshape(1, -1))
 
-        print('starting param id run for rank = {} process'.format(rank))
+        if rank == 0:
+            print('Starting param id run (rank 0 coordinating)')
 
         # ________ Do parameter identification ________
 
@@ -1930,8 +1932,9 @@ class OpencorParamID():
 
             else:
                 # simulation set cost to large,
-                print('simulation failed with params...')
-                print(param_vals)
+                if MPI.COMM_WORLD.Get_rank() == 0:
+                    print('simulation failed with params...')
+                    print(param_vals)
                 return np.inf, [], []
         else:
             # loop through subexperiments
@@ -2274,6 +2277,8 @@ class OpencorParamID():
 
         cost = (cost + series_cost + amp_cost + phase_cost + prob_dist_cost) / num_weighted_obs
 
+        
+
         return cost
 
     def get_obs_output_dict(self, operands_outputs, get_all_series=False):
@@ -2541,10 +2546,10 @@ class OpencorMCMC(OpencorParamID):
 
     def __init__(self, model_path,
                  obs_info, param_id_info, protocol_info, prediction_info,
-                 dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False):
+                 dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False, model_type=None):
         super().__init__(model_path, "MCMC",
                 obs_info, param_id_info, protocol_info, prediction_info,
-                dt=dt, solver_info=solver_info, DEBUG=DEBUG)
+                dt=dt, solver_info=solver_info, DEBUG=DEBUG, model_type=model_type)
 
         # mcmc init stuff
         self.sampler = None

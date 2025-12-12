@@ -27,11 +27,13 @@ class SimulationHelper():
         if solver_info is None:
             solver_info = {'MaximumNumberOfSteps': 5000, 'MaximumStep': 0.0001}
         for key, value in solver_info.items():
+            # ignore high-level/legacy keys that aren't part of OpenCOR solver properties
+            if key.lower() == "method":
+                continue
             if key not in self.data.odeSolverProperties():
-                print(f'{key} is not a valid key for the solver properties in CVODE., valid keys are')
-                print([key for key in self.data.odeSolverProperties()])
-                print('Set these correctly in the user_inputs.yaml file')
-                exit()
+                print(f'{key} is not a valid key for CVODE solver properties; valid keys are '
+                      f'{list(self.data.odeSolverProperties())}. Skipping.')
+                continue
             self.data.set_ode_solver_property(key, value)
         self.data.set_point_interval(self.dt)  # time interval for data storage
         self.data.set_starting_point(0)

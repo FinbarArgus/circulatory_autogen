@@ -44,7 +44,8 @@ def run_param_id(inp_data_dict=None):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     num_procs = comm.Get_size()
-    print(f'starting script for rank = {rank}')
+    if rank == 0:
+        print(f'Starting parameter identification with {num_procs} MPI rank(s)')
 
     param_id = CVS0DParamID(model_path, model_type, param_id_method, False, file_prefix,
                             params_for_id_path=params_for_id_path,
@@ -128,4 +129,5 @@ if __name__ == '__main__':
     except:
         print(traceback.format_exc())
         comm.Abort()
+        MPI.Finalize()
         exit()

@@ -172,6 +172,8 @@ class OptimiserComparison:
             print(f"\n{'='*80}")
             print(f"RUNNING {method.upper()} OPTIMIZATION")
             print(f"{'='*80}")
+            sys.__stdout__.write(f"[COMPARE] method={method} num_calls={self.num_calls} num_procs={self.num_procs}\n")
+            sys.__stdout__.flush()
         
         # Get method-specific config
         if method not in self.method_configs:

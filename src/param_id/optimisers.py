@@ -114,10 +114,10 @@ class GeneticAlgorithmOptimiser(Optimiser):
         num_procs = self.num_procs
         
         if self.DEBUG:
-            num_elite = 1
-            num_survivors = 2
+            num_elite = 4
+            num_survivors = 6
             num_mutations_per_survivor = 2
-            num_cross_breed = 0
+            num_cross_breed = 10
         else:
             num_elite = 12
             num_survivors = 48
@@ -673,10 +673,10 @@ class CMAESOptimiser(Optimiser):
             # Evaluate candidates in parallel
             # Each processor evaluates its assigned candidates
             costs_local = np.full(num_candidates, np.inf)  # Initialize with inf
+            local_eval_count = len([i for i in range(num_candidates) if i % num_procs == rank])
+            eval_counts = comm.gather(local_eval_count, root=0)
             if rank == 0:
-                print(f'[CMA-ES] Num ranks: {num_procs}, rank {rank} evaluating {len([i for i in range(num_candidates) if i % num_procs == rank])} candidates')
-            else:
-                print(f'[CMA-ES] Rank {rank} evaluating {len([i for i in range(num_candidates) if i % num_procs == rank])} candidates')
+                print(f'[CMA-ES] Evaluating {num_candidates} candidates across {num_procs} rank(s); per-rank load={eval_counts}')
             for i in range(num_candidates):
                 if i % num_procs == rank:
                     cost = self.param_id_obj.get_cost_from_params(candidate_array[i, :])

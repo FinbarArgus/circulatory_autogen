@@ -10,6 +10,7 @@ from matplotlib.ticker import FuncFormatter
 import corner
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../solver_wrappers'))
 import math as math
 import opencor as oc
 import time

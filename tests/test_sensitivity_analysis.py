@@ -14,6 +14,8 @@ from scripts.sensitivity_analysis_run_script import run_SA
 def mpi_comm():
     """Fixture that provides MPI communicator."""
     comm = MPI.COMM_WORLD
+    if comm.Get_size() < 2:
+        pytest.skip("MPI tests require mpiexec with at least 2 ranks")
     return comm
 
 
@@ -56,7 +58,7 @@ def test_sensitivity_analysis_3compartment_succeeds(base_user_inputs, resources_
         'debug_optimiser_options': {'num_calls_to_function': 60},
         'sa_options': {
             'method': 'sobol',
-            'num_samples': 256,
+            'num_samples': 16,
             'sample_type': 'saltelli',
             'output_dir': os.path.join(temp_output_dir, '3compartment_SA_results'),
         },

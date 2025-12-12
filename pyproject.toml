@@ -77,6 +77,8 @@ markers = [
     "mpi: marks tests that require MPI",
     "need_autogen: waits for all autogeneration tests to finish before running",
     "autogen_task: marks an autogeneration test that signals completion",
+    "autogen_rank(idx): autogeneration test assigned rank index",
+    "xdist_group(name): group marker used by pytest-xdist to serialize groups",
 ]
 # Coverage options
 [tool.coverage.run]

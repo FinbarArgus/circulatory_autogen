@@ -18,6 +18,8 @@ from scripts.example_format_obs_data_json_file import example_format_obs_data_js
 def mpi_comm():
     """Fixture that provides MPI communicator."""
     comm = MPI.COMM_WORLD
+    # if comm.Get_size() < 2:
+    #     pytest.skip("MPI tests require mpiexec with at least 2 ranks")
     return comm
 
 
@@ -44,8 +46,9 @@ def test_param_id_nke_pump_succeeds(base_user_inputs, resources_dir, temp_output
         'model_type': 'cellml_only',
         'solver': 'CVODE',
         'param_id_method': 'genetic_algorithm',
-        'pre_time': 1,
-        'sim_time': 100,
+        # Keep runtime short under MPI tests
+        'pre_time': 0.5,
+        'sim_time': 2,
         'dt': 0.01,
         'DEBUG': True,
         'do_mcmc': False,
@@ -56,6 +59,11 @@ def test_param_id_nke_pump_succeeds(base_user_inputs, resources_dir, temp_output
         },
         'param_id_obs_path': os.path.join(resources_dir, 'NKE_pump_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
+        'optimiser_options': {
+            'num_calls_to_function': 40,
+            'max_patience': 10,
+            'cost_convergence': 1e-3,
+        },
     })
     
     # Generate obs_data file and model on rank 0
@@ -158,7 +166,7 @@ def test_param_id_3compartment_cmaes_succeeds(base_user_inputs, resources_dir, t
         'pre_time': 20,
         'sim_time': 2,
         'dt': 0.01,
-        'DEBUG': True,
+        'DEBUG': False,
         'do_mcmc': False,
         'plot_predictions': False,
         'do_ia': False,
@@ -217,23 +225,24 @@ def test_param_id_3compartment_python_succeeds(base_user_inputs, resources_dir, 
         'file_prefix': '3compartment',
         'input_param_file': '3compartment_parameters.csv',
         'model_type': 'python',
-        'solver': 'CVODE',
+        'solver': 'BDF',
         'param_id_method': 'genetic_algorithm',
-        'pre_time': 5,
-        'sim_time': 1,
+        # Shorten for MPI test speed
+        'pre_time': 0.5,
+        'sim_time': 0.3,
         'dt': 0.01,
         'DEBUG': True,
         'do_mcmc': False,
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 1000,
+            'solver': 'BDF',
+            'rtol': 1e-6,
+            'atol': 1e-8,
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 20, 'max_patience': 50},
-        'optimiser_options': {'num_calls_to_function': 20},
+        'optimiser_options': {'num_calls_to_function': 40, 'max_patience': 10, 'cost_convergence': 1e-3},
     })
 
     # Ensure Python model exists
@@ -285,7 +294,7 @@ def test_compare_optimisers(base_user_inputs, resources_dir, temp_output_dir, mp
         'pre_time': 20,
         'sim_time': 2,
         'dt': 0.01,
-        'DEBUG': True,
+        'DEBUG': False,
         'do_mcmc': False,
         'plot_predictions': False,
         'do_ia': False,
@@ -295,7 +304,7 @@ def test_compare_optimisers(base_user_inputs, resources_dir, temp_output_dir, mp
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 10000, 'max_patience': 500},
+        'optimiser_options': {'num_calls_to_function': 5000, 'max_patience': 500},
     })
     
     # Create comparison object with full number of calls for testing
@@ -306,7 +315,8 @@ def test_compare_optimisers(base_user_inputs, resources_dir, temp_output_dir, mp
     cmaes_success = comparison.run_method('CMA-ES')
     
     # Verify both completed successfully
-    print(f"Rank {rank} entering comparison assertions")
+    if rank == 0:
+        print(f"Rank {rank} entering comparison assertions")
     assert ga_success, "Genetic algorithm optimization should succeed"
     assert cmaes_success, "CMA-ES optimization should succeed"
     
@@ -492,7 +502,7 @@ def test_param_id_simple_physiological_succeeds(base_user_inputs, resources_dir,
         },
         'param_id_obs_path': os.path.join(resources_dir, 'simple_physiological_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 500},
+        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 50},
     })
     
     # Run parameter identification

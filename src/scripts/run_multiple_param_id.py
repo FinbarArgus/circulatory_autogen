@@ -48,7 +48,8 @@ if __name__ == '__main__':
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         num_procs = comm.Get_size()
-        print(f'starting script for rank = {rank}')
+        if rank == 0:
+            print(f'Starting multi-run parameter ID with {num_procs} MPI rank(s)')
 
 
         resources_dir= os.path.join(root_dir, 'resources')

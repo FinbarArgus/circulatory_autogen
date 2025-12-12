@@ -2,6 +2,8 @@ import importlib.util
 import numpy as np
 from scipy.integrate import solve_ivp
 import copy
+import sys
+DEBUG = False
 
 
 class SimulationHelper:
@@ -20,6 +22,15 @@ class SimulationHelper:
         self.dt = dt
         self.pre_time = pre_time
         self.sim_time = sim_time
+        self.solver_info = solver_info or {}
+        # pull optional SciPy solve_ivp settings; default method RK45
+        solver_method = self.solver_info.get('method')
+        self.solve_ivp_method = solver_method 
+        self.solve_ivp_kwargs = {
+            k: v
+            for k, v in self.solver_info.items()
+            if k in ["rtol", "atol", "max_step", "vectorized", "dense_output", "jac"]
+        }
         self._load_model()
         self._init_state()
         self.update_times(dt, 0.0, sim_time, pre_time)
@@ -38,6 +49,9 @@ class SimulationHelper:
         # maps
         self.state_name_to_idx = {info["name"]: idx for idx, info in enumerate(self.STATE_INFO)}
         self.var_name_to_idx = {info["name"]: idx for idx, info in enumerate(self.VARIABLE_INFO)}
+        # inverse maps for lookup once we've resolved indices
+        self.state_idx_to_name = {idx: info["name"] for idx, info in enumerate(self.STATE_INFO)}
+        self.var_idx_to_name = {idx: info["name"] for idx, info in enumerate(self.VARIABLE_INFO)}
 
         # identify constants and algebraics
         self.constant_indices = [i for i, info in enumerate(self.VARIABLE_INFO) if info["type"].name in ["CONSTANT", "COMPUTED_CONSTANT"]]
@@ -173,13 +187,44 @@ class SimulationHelper:
 
     def run(self):
         # integrate
-        sol = solve_ivp(self._rhs, (self.t_eval[0], self.t_eval[-1]),
-                        y0=self.states, t_eval=self.t_eval, method="RK45")
+        solve_kwargs = dict(
+            method=self.solve_ivp_method,
+            t_eval=self.t_eval,
+            **self.solve_ivp_kwargs,
+        )
+        if DEBUG:
+            sys_stdout = sys.__stdout__
+            try:
+                if sys_stdout:
+                    sys_stdout.write(f"[PY_SOLVE] start t0={self.t_eval[0]} t1={self.t_eval[-1]} dt={self.dt}\n")
+                    sys_stdout.flush()
+            except Exception:
+                pass
+
+        sol = solve_ivp(
+            self._rhs,
+            (self.t_eval[0], self.t_eval[-1]),
+            y0=self.states,
+            **solve_kwargs,
+        )
         if not sol.success:
+            if DEBUG:
+                try:
+                    sys_stdout.write(f"[PY_SOLVE] fail message={sol.message}\n")
+                    sys_stdout.flush()
+                except Exception:
+                    pass
             return False
         self._post_process(sol)
         # update current state to final
         self.states = list(sol.y[:, -1])
+        if DEBUG:
+            try:
+                sys_stdout.write(f"[PY_SOLVE] end t_last={sol.t[-1]} len={len(sol.t)}\n")
+                sys_stdout.flush()
+            except Exception:
+                pass
+
         return True
 
     # ---- results ----
@@ -194,6 +239,16 @@ class SimulationHelper:
             return data[self.pre_steps:]
         if name in self.var_name_to_idx:
             data = self.var_traj[name]
+            return data[self.pre_steps:]
+        # attempt to resolve common alternative namings (e.g., "a/b" vs "a_b")
+        kind, idx_res = self._resolve_name(name)
+        if kind == "state":
+            resolved_name = self.state_idx_to_name[idx_res]
+            data = self.state_traj[idx_res, :]
+            return data[self.pre_steps:]
+        if kind == "var":
+            resolved_name = self.var_idx_to_name[idx_res]
+            data = self.var_traj[resolved_name]
             return data[self.pre_steps:]
         raise ValueError(f"variable {name} not found")
 

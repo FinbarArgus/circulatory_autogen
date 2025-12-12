@@ -171,6 +171,20 @@ class YamlFileParser(object):
                 'MaximumStep is now an entry of solver_info in the user_inputs.yaml file')
             exit()
 
+        # For the Python solver path, use the 'solver' entry to select the solve_ivp method.
+        # Fall back to legacy 'method' or the top-level solver setting for backwards compatibility.
+        solver_method = inp_data_dict['solver']
+        if solver_method is None and 'method' in inp_data_dict['solver_info']:
+            solver_method = inp_data_dict['solver_info']['method']
+            print(f'solver_info["method"] = {solver_method} is now deprecated, use solver = {solver_method} instead')
+            print('This will be removed in a future version')
+            inp_data_dict['solver'] = solver_method
+        if solver_method is None:
+            print('solver must be an entry in the user_inputs.yaml file')
+            exit()
+        # also store it as method.
+        inp_data_dict['solver_info']['method'] = solver_method
+
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
                 # For backwards compatibility, still set ga_options if debug_ga_options exists

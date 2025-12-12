@@ -22,23 +22,23 @@ if ! ${opencor_pythonshell_path} -m pytest --version > /dev/null 2>&1; then
     fi
 fi
 
-# Check if -n flag is used (pytest-xdist parallel execution)
-# If so, ensure pytest-xdist is installed and configure it to use OpenCOR Python
+# Parse arguments and handle -n as the MPI process count (default 1)
 PYTEST_ARGS=()
-HAS_N_FLAG=false
-NUM_WORKERS=""
+NUM_PROCS=1
 
-# Parse arguments and handle -n flag specially
 while [[ $# -gt 0 ]]; do
     case $1 in
         -n)
-            HAS_N_FLAG=true
             shift
             if [[ $# -gt 0 ]]; then
-                NUM_WORKERS="$1"
+                NUM_PROCS="$1"
                 shift
             else
-                NUM_WORKERS="auto"
+                if command -v nproc >/dev/null 2>&1; then
+                    NUM_PROCS=$(nproc)
+                else
+                    NUM_PROCS=4
+                fi
             fi
             ;;
         *)
@@ -48,36 +48,24 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# If -n flag was used, configure pytest-xdist to use OpenCOR Python
-if [ "$HAS_N_FLAG" = true ]; then
-    if ! ${opencor_pythonshell_path} -m pip show pytest-xdist > /dev/null 2>&1; then
-        echo "pytest-xdist is required for parallel execution (-n flag). Installing..."
-        ${opencor_pythonshell_path} -m pip install pytest-xdist
-    fi
-    
-    # Determine number of workers
-    if [ "$NUM_WORKERS" = "auto" ]; then
-        # Use CPU count for auto
-        if command -v nproc > /dev/null 2>&1; then
-            NUM_WORKERS=$(nproc)
-        else
-            NUM_WORKERS=4  # Fallback
-        fi
-    fi
-    
-    # Replace -n with explicit --dist and --tx options
-    # Use loadgroup so xdist honors xdist_group marks (serial groups)
-    PYTEST_ARGS+=("--dist=loadgroup")
-    for ((i=0; i<NUM_WORKERS; i++)); do
-        PYTEST_ARGS+=("--tx" "popen//python=${opencor_pythonshell_path}")
-    done
+# Always disable pytest-xdist workers when running under mpiexec to avoid
+# spawning additional worker processes alongside MPI ranks.
+PYTEST_ARGS+=("-p" "no:xdist")
+
+# Ensure mpiexec is available
+if ! command -v mpiexec >/dev/null 2>&1; then
+    echo "mpiexec not found in PATH. Please install OpenMPI/MPICH or add mpiexec to PATH."
+    exit 1
 fi
+
+MPIEXEC_BIN="${MPIEXEC_BIN:-mpiexec}"
 
 # Run pytest with the OpenCOR Python shell
 # Pass all arguments to pytest and tee output to a log file
 LOG_FILE="${SCRIPT_DIR}/log_test.log"
 touch "$LOG_FILE"
 echo "===== pytest run $(date -Iseconds) =====" | tee -a "$LOG_FILE"
-"${opencor_pythonshell_path}" -m pytest "${PYTEST_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
+echo "Running pytest with ${NUM_PROCS} MPI rank(s) via ${MPIEXEC_BIN}" | tee -a "$LOG_FILE"
+"${MPIEXEC_BIN}" -n "${NUM_PROCS}" "${opencor_pythonshell_path}" -m pytest "${PYTEST_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
 exit "${PIPESTATUS[0]}"
 

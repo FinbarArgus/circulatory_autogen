@@ -13,6 +13,9 @@ def run_SA(inp_data_dict=None):
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
+    num_procs = comm.Get_size()
+    if rank == 0:
+        print(f'Running sensitivity analysis with {num_procs} MPI rank(s)')
 
     yaml_parser = YamlFileParser()
     inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=True, do_generation_with_fit_parameters=False)
@@ -42,12 +45,12 @@ def run_SA(inp_data_dict=None):
                                    ga_options=optimiser_options, param_id_obs_path=param_id_obs_path, params_for_id_path=params_for_id_path)
     SA_agent.run_sensitivity_analysis(sa_options=sa_options)
 
-    MPI.Finalize()
-
 if __name__ == '__main__':
     comm = MPI.COMM_WORLD
     try:
         run_SA()
+        MPI.Finalize()
     except:
         print(traceback.format_exc())
         comm.Abort()
+        MPI.Finalize()
