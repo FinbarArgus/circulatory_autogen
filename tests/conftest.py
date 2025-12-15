@@ -192,7 +192,15 @@ def pytest_runtest_logreport(report):
             if name == "autogen_rank":
                 assigned_rank = value
                 break
-        result = {"nodeid": report.nodeid, "status": report.outcome, "rank": assigned_rank}
+        # capture minimal failure info
+        msg = None
+        if report.failed:
+            # prefer longrepr text if available
+            try:
+                msg = str(report.longrepr)
+            except Exception:
+                msg = None
+        result = {"nodeid": report.nodeid, "status": report.outcome, "rank": assigned_rank, "message": msg}
         _AUTOGEN_RESULTS.append(result)
         # Emit immediate status from each rank to avoid waiting on summary
         try:
@@ -202,7 +210,10 @@ def pytest_runtest_logreport(report):
             sys.__stdout__.flush()
             # Persist to shared file for rank0 summary without MPI gather
             with open(_AUTOGEN_RESULTS_FILE, "a") as f:
-                f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}\n")
+                if msg:
+                    f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}|call|{msg}\n")
+                else:
+                    f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}\n")
         except Exception:
             pass
 
@@ -563,6 +574,10 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                     if len(parts) == 3:
                         nodeid, status, r = parts
                         results.append({"nodeid": nodeid, "status": status, "rank": int(r)})
+                    elif len(parts) >= 5:
+                        # extended format with failure info (nodeid|status|rank|phase|message)
+                        nodeid, status, r, phase, msg = parts[0], parts[1], parts[2], parts[3], "|".join(parts[4:])
+                        results.append({"nodeid": nodeid, "status": status, "rank": int(r), "phase": phase, "message": msg})
         except OSError:
             pass
 
@@ -572,33 +587,58 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     duration = time.time() - (_SESSION_START or time.time())
     results.sort(key=lambda r: r["nodeid"])
     passed = sum(1 for r in results if r["status"] == "passed")
+    failed = [r for r in results if r["status"] != "passed"]
     total = len(results)
 
-    # Align pytest's own pass count with aggregated autogen results so the footer
-    # reflects total passed tests across ranks (not just rank 0).
-    existing_passes = len(terminalreporter.stats.get("passed", []))
-    additional_needed = max(0, total - existing_passes)
+    # Align pytest stats: add dummy passed for unmatched, and dummy failed for failures (no duplicates)
+    stats_pass = terminalreporter.stats.setdefault("passed", [])
+    stats_failed = terminalreporter.stats.setdefault("failed", [])
+    existing_fail_nodeids = set(getattr(r, "nodeid", None) for r in stats_failed if hasattr(r, "nodeid"))
+    existing_passes = len(stats_pass)
+    additional_needed = max(0, total - len(failed) - existing_passes)
     if additional_needed:
         class _DummyReport:
             def __init__(self, nodeid):
                 self.nodeid = nodeid
-        terminalreporter.stats.setdefault("passed", []).extend(
-            _DummyReport(f"[autogen-aggregate-{i}]") for i in range(additional_needed)
-        )
+        stats_pass.extend(_DummyReport(f"[autogen-aggregate-pass-{i}]") for i in range(additional_needed))
+        terminalreporter._numcollected = max(getattr(terminalreporter, "_numcollected", 0), total)
+
+    for fail in failed:
+        if fail["nodeid"] in existing_fail_nodeids:
+            continue
+        class _DummyFailReport:
+            def __init__(self, nodeid, longrepr=None):
+                self.nodeid = nodeid
+                self.longrepr = longrepr
+                self.when = "call"
+                self.outcome = "failed"
+                self.failed = True
+                self.passed = False
+                self.skipped = False
+            def _get_verbose_word_with_markup(self, *args, **kwargs):
+                # minimal implementation expected by pytest terminal summary
+                return ("FAILED", {"red": True})
+        longrepr = None
+        if "message" in fail:
+            longrepr = fail["message"]
+        stats_failed.append(_DummyFailReport(fail["nodeid"], longrepr=longrepr))
         terminalreporter._numcollected = max(getattr(terminalreporter, "_numcollected", 0), total)
 
     terminalreporter.write_line("")
     for res in results:
-        terminalreporter.write_line(
-            f"[AUTOGEN] {res['nodeid']} {res['status'].upper()} on rank {res['rank']}"
-        )
+        line = f"[AUTOGEN] {res['nodeid']} {res['status'].upper()} on rank {res['rank']}"
+        if "phase" in res:
+            line += f" ({res['phase']})"
+        terminalreporter.write_line(line)
+        if res.get("message"):
+            terminalreporter.write_line(f"[AUTOGEN OUTPUT] {res['message']}")
+
     terminalreporter.write_line(
-        f"[AUTOGEN] Summary: {passed}/{total} passed in {duration:.2f}s"
+        f"[AUTOGEN] Summary: {passed}/{total} passed, {len(failed)} failed in {duration:.2f}s"
     )
-    # Provide an overall passed count across ranks to avoid misleading default summary
-    terminalreporter.write_sep(
-        "=", f"{passed} passed in {duration:.2f}s across ranks"
-    )
+    footer_status = "passed" if not failed else "failed"
+    footer_line = f"{passed} passed, {len(failed)} failed in {duration:.2f}s across ranks"
+    terminalreporter.write_sep("=", footer_line)
 
 
 
