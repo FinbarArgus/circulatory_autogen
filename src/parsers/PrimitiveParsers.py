@@ -199,6 +199,16 @@ class YamlFileParser(object):
 
         if not 'external_modules_dir' in inp_data_dict.keys():
             inp_data_dict['external_modules_dir'] = None
+        else:
+            # check if it is an absolute path
+            if not os.path.isabs(inp_data_dict['external_modules_dir']):
+                inp_data_dict['external_modules_dir'] = os.path.join(user_files_dir, inp_data_dict['external_modules_dir'])
+            else:
+                inp_data_dict['external_modules_dir'] = inp_data_dict['external_modules_dir']
+            # check if external_modules_dir is a valid directory
+            if not os.path.exists(inp_data_dict['external_modules_dir']):
+                print(f'external_modules_dir={inp_data_dict["external_modules_dir"]} does not exist')
+                exit()
         
         # for sensitivity analysis and parameter identification
         if not 'sa_options' in inp_data_dict.keys():
