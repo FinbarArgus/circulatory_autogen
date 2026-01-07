@@ -84,6 +84,9 @@ To install required python packages, navigate to `[OpenCOR_dir]` directory and r
     
     **Required packages for CMAES**:
     nevergrad
+    
+    **Required packages for testing**:
+    pytest
 
     **Required for some utilities**:
     ruamel.yaml
