@@ -12,7 +12,6 @@ def get_simulation_helper(model_type: str = None, model_path: str = None):
     Return the appropriate SimulationHelper class.
     Chooses Python solver if model_type == 'python' or the model_path ends with '.py'.
     """
-    print(model_type)
     if model_type == 'python' or (isinstance(model_path, str) and model_path.endswith('.py')):
         return PythonSimulationHelper
     return OpenCORSimulationHelper
