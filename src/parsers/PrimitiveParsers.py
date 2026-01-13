@@ -197,7 +197,7 @@ class YamlFileParser(object):
         else:
             inp_data_dict['DEBUG'] = False
 
-        if not 'external_modules_dir' in inp_data_dict.keys():
+        if 'external_modules_dir' not in inp_data_dict.keys() or inp_data_dict['external_modules_dir'] is None:
             inp_data_dict['external_modules_dir'] = None
         else:
             # check if it is an absolute path
