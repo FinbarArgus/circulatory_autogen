@@ -1787,7 +1787,9 @@ class OpencorParamID():
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
-        helper_cls = get_simulation_helper(self.model_type)
+        # Get solver from solver_info (check both 'solver' and 'method' for backward compatibility)
+        solver = self.solver_info.get('solver') or self.solver_info.get('method')
+        helper_cls = get_simulation_helper(solver=solver, model_type=self.model_type, model_path=self.model_path)
         return helper_cls(self.model_path, self.dt, self.sim_time,
                           solver_info=self.solver_info, pre_time=self.pre_time)
     

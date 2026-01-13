@@ -171,10 +171,10 @@ class YamlFileParser(object):
                 'MaximumStep is now an entry of solver_info in the user_inputs.yaml file')
             exit()
 
-        # For the Python solver path, use the 'solver' entry to select the solve_ivp method.
-        # Fall back to legacy 'method' or the top-level solver setting for backwards compatibility.
-        solver_method = inp_data_dict['solver']
-        if solver_method is None and 'method' in inp_data_dict['solver_info']:
+        # Parse and validate the solver parameter
+        # Supported solvers: CVODE (Myokit), CVODE_opencor (OpenCOR), or solve_ivp methods (RK45, RK4, etc.)
+        solver_method = inp_data_dict.get('solver')
+        if solver_method is None and 'method' in inp_data_dict.get('solver_info', {}):
             solver_method = inp_data_dict['solver_info']['method']
             print(f'solver_info["method"] = {solver_method} is now deprecated, use solver = {solver_method} instead')
             print('This will be removed in a future version')
@@ -182,8 +182,36 @@ class YamlFileParser(object):
         if solver_method is None:
             print('solver must be an entry in the user_inputs.yaml file')
             exit()
-        # also store it as method.
+
+        # Validate solver value
+        valid_cellml_solvers = ['CVODE', 'CVODE_opencor']
+        # Common solve_ivp methods (add more as needed)
+        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'RK4', 'forward_euler']
+
+        if solver_method not in valid_cellml_solvers and solver_method not in valid_solve_ivp_methods:
+            print(f'Invalid solver: {solver_method}')
+            print(f'Valid CellML solvers: {valid_cellml_solvers}')
+            print(f'Valid solve_ivp methods: {valid_solve_ivp_methods}')
+            exit()
+
+        # Validate solver-model compatibility
+        # CellML solvers cannot be used with Python models
+        if solver_method in valid_cellml_solvers:
+            if inp_data_dict.get('model_type') == 'python':
+                print(f'CellML solver {solver_method} cannot be used with Python models (model_type="python")')
+                print('Use a solve_ivp method (RK45, RK4, etc.) for Python models')
+                exit()
+
+        # solve_ivp methods can only be used with Python models
+        if solver_method in valid_solve_ivp_methods:
+            if inp_data_dict.get('model_type') not in ['python', None]:
+                print(f'solve_ivp method {solver_method} requires model_type to be "python"')
+                print('Use CVODE or CVODE_opencor for CellML models')
+                exit()
+
+        # Store in solver_info for backward compatibility and as primary key
         inp_data_dict['solver_info']['method'] = solver_method
+        inp_data_dict['solver_info']['solver'] = solver_method
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
