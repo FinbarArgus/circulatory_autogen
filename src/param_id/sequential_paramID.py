@@ -63,7 +63,7 @@ class SequentialParamID:
                                 param_id_obs_path=param_id_obs_path,
                                 sim_time=sim_time, pre_time=pre_time,
                                 solver_info=self.solver_info, dt=dt, ga_options=ga_options, DEBUG=DEBUG,
-                                param_id_output_dir=self.param_id_output_dir, resources_dir=resources_dir)
+                                param_id_output_dir=self.param_id_output_dir, resources_dir=resources_dir, one_rank=True)
 
 
         self.param_id.set_genetic_algorithm_parameters(num_calls_to_function)
@@ -288,7 +288,7 @@ class SequentialParamID:
                                 sim_time=self.sim_time, pre_time=self.pre_time, dt=self.dt,
                                 param_id_output_dir=self.param_id_output_dir, resources_dir=self.resources_dir,
                                 solver_info=self.solver_info, mcmc_options=self.mcmc_options,
-                                DEBUG=self.DEBUG)
+                                DEBUG=self.DEBUG, one_rank=True)
             if self.rank == 0:
                 if os.path.exists(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv')):
                     with open(os.path.join(mcmc.output_dir, 'param_names_to_remove.csv'), 'r') as r:
