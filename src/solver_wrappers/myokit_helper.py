@@ -72,7 +72,77 @@ class SimulationHelper:
             print(f"Myokit import failed, temp file kept at: {prepared_path}")
             raise e
         # Don't remove temp file for debugging
+        try:
+            self._apply_post_import_initial_expressions(model, prepared_path)
+        except Exception as e:
+            # Keep model usable even if this optional step fails; tests will surface issues.
+            print(f"Warning: post-import initial expression handling failed: {e}")
         return model
+
+    def _apply_post_import_initial_expressions(self, model, processed_cellml_path):
+        """
+        Convert CellML initial_value references into Myokit initial value expressions
+        after import. This preserves dependency of state initial values on constants
+        (Myokit #898 behavior), without pre-resolving values in XML.
+        """
+        if not processed_cellml_path or not os.path.exists(processed_cellml_path):
+            return
+
+        # Parse flattened CellML to find initial_value attributes
+        try:
+            tree = ET.parse(processed_cellml_path)
+            root = tree.getroot()
+        except Exception:
+            return
+
+        cellml_ns = "http://www.cellml.org/cellml/2.0#"
+        # Build lookup: component -> set(varnames), and component.var -> initial_value string
+        init_map = {}  # qname (comp.var) -> initial_value (string)
+        for comp in root.findall(f".//{{{cellml_ns}}}component"):
+            comp_name = comp.get("name")
+            if not comp_name:
+                continue
+            for var in comp.findall(f".//{{{cellml_ns}}}variable"):
+                vname = var.get("name")
+                init_val = var.get("initial_value")
+                if vname and init_val is not None:
+                    init_map[f"{comp_name}.{vname}"] = init_val
+
+        if not init_map:
+            return
+
+        # Map Myokit state qnames to their variables for fast lookup
+        # Myokit states are named like "<component>_module.<var>" after CellML import.
+        states = list(model.states())
+        for s in states:
+            qn = s.qname()
+            # Translate Myokit component name back to CellML component name used in init_map
+            # (strip the common "_module" suffix added by importer).
+            if "." not in qn:
+                continue
+            comp_mod, var_name = qn.split(".", 1)
+            comp = comp_mod[:-7] if comp_mod.endswith("_module") else comp_mod
+
+            cellml_qn = f"{comp}.{var_name}"
+            if cellml_qn not in init_map:
+                continue
+
+            init_val = init_map[cellml_qn].strip()
+            # Only handle non-numeric initial values (variable references or expressions)
+            try:
+                float(init_val)
+                continue
+            except Exception:
+                pass
+
+            # If init_val is an unqualified identifier, qualify it within the same component
+            # so Myokit parsing works (requires fully qualified names).
+            expr = init_val
+            if re.fullmatch(r"[A-Za-z_]\w*", init_val):
+                expr = f"{comp_mod}.{init_val}"
+
+            # Set initial value as expression string (Myokit will parse it)
+            s.set_initial_value(expr)
 
     def _prepare_cellml_for_myokit_libcellml(self, path):
         """
@@ -110,247 +180,249 @@ class SimulationHelper:
     def _apply_myokit_fixes(self, model_string):
         """
         Apply fixes needed for Myokit compatibility:
-        1. Resolve variable references in initial_value to numeric values by tracing connections
+        1. Resolve variable references in initial_value to numeric values by tracing connections# no longer done!
         2. Replace max functions with simplified expressions
         """
-        import re
         import xml.etree.ElementTree as ET
 
-        # Parse the model to work with XML structure for connection tracing
+        # Parse model XML (needed for any structured rewrites, e.g. max->piecewise)
+        # Note: We avoid touching initial_value resolution here; that is handled
+        # post-import in Myokit (see issue #898 strategy).
         try:
-            # Find the model element and parse just that
             model_start = model_string.find('<model')
             if model_start >= 0:
                 model_content = model_string[model_start:]
-                root = ET.fromstring(model_content)
             else:
-                raise ET.ParseError("No model element found")
+                # libcellml print_model should always include <model>, but guard anyway
+                model_content = model_string
+            root = ET.fromstring(model_content)
         except ET.ParseError as e:
-            print(f"XML parsing failed: {e}, falling back to regex approach")
-            return self._apply_myokit_fixes_regex(model_string)
+            # If parsing fails, skip structured rewrites and return original string.
+            print(f"XML parsing failed in _apply_myokit_fixes: {e}. Returning unmodified model string.")
+            return model_string
 
-        # Build connection map: variable_2 -> [possible variable_1 sources]
-        # Since multiple components can have the same variable name, we collect all possibilities
-        connections = {}  # var_2 -> list of (comp1, comp2, var_1)
+        # # Build connection map: variable_2 -> [possible variable_1 sources]
+        # # Since multiple components can have the same variable name, we collect all possibilities
+        # connections = {}  # var_2 -> list of (comp1, comp2, var_1)
 
-        # Find all connection blocks - try different formats
-        conn_blocks = (root.findall('.//{http://www.cellml.org/cellml/2.0#}connection') or
-                      root.findall('.//connection') or
-                      root.findall('.//{http://www.cellml.org/cellml/1.1#}connection'))
+        # # Find all connection blocks - try different formats
+        # conn_blocks = (root.findall('.//{http://www.cellml.org/cellml/2.0#}connection') or
+        #               root.findall('.//connection') or
+        #               root.findall('.//{http://www.cellml.org/cellml/1.1#}connection'))
 
-        print(f"DEBUG: Found {len(conn_blocks)} connection blocks")
+        # print(f"DEBUG: Found {len(conn_blocks)} connection blocks")
 
-        for conn_block in conn_blocks:
-            # Get the components being connected - try different formats
-            comp1 = conn_block.get('component_1')
-            comp2 = conn_block.get('component_2')
+        # for conn_block in conn_blocks:
+        #     # Get the components being connected - try different formats
+        #     comp1 = conn_block.get('component_1')
+        #     comp2 = conn_block.get('component_2')
 
-            if not comp1 or not comp2:
-                # Try the old format with map_components
-                comp1_elem = (conn_block.find('.//{http://www.cellml.org/cellml/1.1#}map_components') or
-                             conn_block.find('.//map_components'))
-                if comp1_elem is not None:
-                    comp1 = comp1_elem.get('component_1')
-                    comp2 = comp1_elem.get('component_2')
+        #     if not comp1 or not comp2:
+        #         # Try the old format with map_components
+        #         comp1_elem = (conn_block.find('.//{http://www.cellml.org/cellml/1.1#}map_components') or
+        #                      conn_block.find('.//map_components'))
+        #         if comp1_elem is not None:
+        #             comp1 = comp1_elem.get('component_1')
+        #             comp2 = comp1_elem.get('component_2')
 
-            if comp1 and comp2:
-                # Find all map_variables in this connection - try different formats
-                map_vars = (conn_block.findall('.//{http://www.cellml.org/cellml/2.0#}map_variables') or
-                           conn_block.findall('.//{http://www.cellml.org/cellml/1.1#}map_variables') or
-                           conn_block.findall('.//map_variables'))
+        #     if comp1 and comp2:
+        #         # Find all map_variables in this connection - try different formats
+        #         map_vars = (conn_block.findall('.//{http://www.cellml.org/cellml/2.0#}map_variables') or
+        #                    conn_block.findall('.//{http://www.cellml.org/cellml/1.1#}map_variables') or
+        #                    conn_block.findall('.//map_variables'))
 
-                for map_var in map_vars:
-                    var_1 = map_var.get('variable_1')  # source
-                    var_2 = map_var.get('variable_2')  # target
+        #         for map_var in map_vars:
+        #             var_1 = map_var.get('variable_1')  # source
+        #             var_2 = map_var.get('variable_2')  # target
 
-                    if var_1 and var_2:
-                        if var_2 not in connections:
-                            connections[var_2] = []
-                        connections[var_2].append((comp1, comp2, var_1))
+        #             if var_1 and var_2:
+        #                 if var_2 not in connections:
+        #                     connections[var_2] = []
+        #                 connections[var_2].append((comp1, comp2, var_1))
 
-        print(f"DEBUG: Found connections for {len(connections)} variables")
-        for var_2, sources in list(connections.items())[:3]:
-            print(f"DEBUG: {var_2} <- {sources}")
+        # print(f"DEBUG: Found connections for {len(connections)} variables")
+        # for var_2, sources in list(connections.items())[:3]:
+        #     print(f"DEBUG: {var_2} <- {sources}")
 
-        # Keep the working connection map (either namespace or non-namespace)
+        # # Keep the working connection map (either namespace or non-namespace)
 
-        # Build component-to-variable mapping and parameter values
-        component_vars = {}  # component -> list of (var_name, initial_value)
-        param_values = {}    # var_name -> initial_value (for parameters with numeric values)
-        computed_values = {} # var_name -> computed initial value
+        # # Build component-to-variable mapping and parameter values
+        # component_vars = {}  # component -> list of (var_name, initial_value)
+        # param_values = {}    # var_name -> initial_value (for parameters with numeric values)
+        # computed_values = {} # var_name -> computed initial value
 
-        # Try with namespace-aware search first
-        for comp in root.findall('.//{http://www.cellml.org/cellml/2.0#}component'):
-            comp_name = comp.get('name')
-            if comp_name:
-                component_vars[comp_name] = []
-                for var in comp.findall('.//{http://www.cellml.org/cellml/2.0#}variable'):
-                    var_name = var.get('name')
-                    init_val = var.get('initial_value')
-                    if var_name:
-                        component_vars[comp_name].append((var_name, init_val))
-                        if init_val:
-                            try:
-                                float(init_val)
-                                param_values[var_name] = init_val
-                            except ValueError:
-                                pass
+        # # Try with namespace-aware search first
+        # for comp in root.findall('.//{http://www.cellml.org/cellml/2.0#}component'):
+        #     comp_name = comp.get('name')
+        #     if comp_name:
+        #         component_vars[comp_name] = []
+        #         for var in comp.findall('.//{http://www.cellml.org/cellml/2.0#}variable'):
+        #             var_name = var.get('name')
+        #             init_val = var.get('initial_value')
+        #             if var_name:
+        #                 component_vars[comp_name].append((var_name, init_val))
+        #                 if init_val:
+        #                     try:
+        #                         float(init_val)
+        #                         param_values[var_name] = init_val
+        #                     except ValueError:
+        #                         pass
 
-        # Try to get computed values using libcellml analyser
-        try:
-            import utilities.libcellml_helper_funcs as cellml
-            from libcellml import Analyser, Generator, GeneratorProfile
-            # parse the model in non-strict mode to allow non CellML 2.0 models
-            model = cellml.parse_model(self.cellml_path, False)
-            # resolve imports, in non-strict mode
-            importer = cellml.resolve_imports(model, os.path.dirname(self.cellml_path), False)
-            # need a flattened model for analysing
-            flat_model = cellml.flatten_model(model, importer)
+        # # Try to get computed values using libcellml analyser
+        # try:
+        #     import utilities.libcellml_helper_funcs as cellml
+        #     from libcellml import Analyser, Generator, GeneratorProfile
+        #     # parse the model in non-strict mode to allow non CellML 2.0 models
+        #     model = cellml.parse_model(self.cellml_path, False)
+        #     # resolve imports, in non-strict mode
+        #     importer = cellml.resolve_imports(model, os.path.dirname(self.cellml_path), False)
+        #     # need a flattened model for analysing
+        #     flat_model = cellml.flatten_model(model, importer)
             
-            analyser = Analyser()
-            analyser.analyseModel(flat_model)
-            analysed_model = analyser.model()
+        #     analyser = Analyser()
+        #     analyser.analyseModel(flat_model)
+        #     analysed_model = analyser.model()
 
-            if analysed_model:
-                # Get all variables from the analysed model with component context
-                var_info = []  # List of (var_name, component_name, initial_value)
-                for i in range(analysed_model.variableCount()):
-                    analyser_var = analysed_model.variable(i)
-                    if analyser_var:
-                        # Get the actual variable from the analyser variable
-                        real_var = analyser_var.variable()
-                        if real_var:
-                            var_name = real_var.name()
+        #     if analysed_model:
+        #         # Get all variables from the analysed model with component context
+        #         var_info = []  # List of (var_name, component_name, initial_value)
+        #         for i in range(analysed_model.variableCount()):
+        #             analyser_var = analysed_model.variable(i)
+        #             if analyser_var:
+        #                 # Get the actual variable from the analyser variable
+        #                 real_var = analyser_var.variable()
+        #                 if real_var:
+        #                     var_name = real_var.name()
 
-                            component_name = None
-                            # Try to get the component this variable belongs to
-                            try:
-                                parent = real_var.parent()
-                                if parent:
-                                    component_name = parent.name()
-                            except:
-                                pass
+        #                     component_name = None
+        #                     # Try to get the component this variable belongs to
+        #                     try:
+        #                         parent = real_var.parent()
+        #                         if parent:
+        #                             component_name = parent.name()
+        #                     except:
+        #                         pass
 
-                            var_info.append((var_name, component_name))
+        #                     var_info.append((var_name, component_name))
 
-                print(f"DEBUG: Found {len(var_info)} variables with component info")
-                for var_name, comp_name, init_val in var_info[:5]:  # Show first 5
-                    print(f"  {var_name} in {comp_name}: {init_val}")
+        #         print(f"DEBUG: Found {len(var_info)} variables with component info")
+        #         for var_name, comp_name, init_val in var_info[:5]:  # Show first 5
+        #             print(f"  {var_name} in {comp_name}: {init_val}")
 
-                # Find computed constants (variables with initial values that are computed)
-                for var_name, comp_name, init_val in var_info:
-                    if var_name and init_val:
-                        try:
-                            # If it's already a number, we already have it
-                            float(init_val)
-                        except ValueError:
-                            # It's a computed value - try to evaluate it
-                            # libcellml analyser should have evaluated these
-                            computed_val = init_val
-                            if computed_val and computed_val != var_name:  # Not a self-reference
-                                try:
-                                    float(computed_val)  # Check if it's now a number
-                                    computed_values[var_name] = computed_val
-                                    print(f"Found computed value: {var_name} = {computed_val}")
-                                except ValueError:
-                                    pass
+        #         # Find computed constants (variables with initial values that are computed)
+        #         for var_name, comp_name, init_val in var_info:
+        #             if var_name and init_val:
+        #                 try:
+        #                     # If it's already a number, we already have it
+        #                     float(init_val)
+        #                 except ValueError:
+        #                     # It's a computed value - try to evaluate it
+        #                     # libcellml analyser should have evaluated these
+        #                     computed_val = init_val
+        #                     if computed_val and computed_val != var_name:  # Not a self-reference
+        #                         try:
+        #                             float(computed_val)  # Check if it's now a number
+        #                             computed_values[var_name] = computed_val
+        #                             print(f"Found computed value: {var_name} = {computed_val}")
+        #                         except ValueError:
+        #                             pass
 
-        except Exception as e:
-            print(f"Could not evaluate computed constants: {e}")
+        # except Exception as e:
+        #     print(f"Could not evaluate computed constants: {e}")
 
-        # Add computed values to param_values
-        param_values.update(computed_values)
+        # # Add computed values to param_values
+        # param_values.update(computed_values)
 
-        print(f"Found {len(connections)} connections and {len(param_values)} parameter values")
-        if connections:
-            print("Sample connections:", dict(list(connections.items())[:3]))
-        if param_values:
-            print("Sample param values:", dict(list(param_values.items())[:3]))
+        # print(f"Found {len(connections)} connections and {len(param_values)} parameter values")
+        # if connections:
+        #     print("Sample connections:", dict(list(connections.items())[:3]))
+        # if param_values:
+        #     print("Sample param values:", dict(list(param_values.items())[:3]))
 
-        # Resolve initial value references by tracing connections
-        def resolve_variable_reference(var_name, visited=None, component_context=None):
-            """Recursively resolve a variable reference to its numeric value"""
-            if visited is None:
-                visited = set()
+        # # Resolve initial value references by tracing connections
+        # def resolve_variable_reference(var_name, visited=None, component_context=None):
+        #     """Recursively resolve a variable reference to its numeric value"""
+        #     if visited is None:
+        #         visited = set()
 
-            if var_name in visited:
-                return None  # Circular reference
+        #     if var_name in visited:
+        #         return None  # Circular reference
 
-            visited.add(var_name)
+        #     visited.add(var_name)
 
-            # Direct lookup in parameters
-            if var_name in param_values:
-                return param_values[var_name]
+        #     # Direct lookup in parameters
+        #     if var_name in param_values:
+        #         return param_values[var_name]
 
-            # Check if it's a computed constant from libcellml
-            if var_name in computed_values:
-                return computed_values[var_name]
+        #     # Check if it's a computed constant from libcellml
+        #     if var_name in computed_values:
+        #         return computed_values[var_name]
 
-            # Trace through connections - now connections[var_name] is a list of (comp1, comp2, source_var)
-            if var_name in connections:
-                sources = connections[var_name]
-                print(f"DEBUG: {var_name} has {len(sources)} possible sources: {sources}")
+        #     # Trace through connections - now connections[var_name] is a list of (comp1, comp2, source_var)
+        #     if var_name in connections:
+        #         sources = connections[var_name]
+        #         print(f"DEBUG: {var_name} has {len(sources)} possible sources: {sources}")
 
-                # Try to find a source that matches the component context
-                if component_context:
-                    for comp1, comp2, source_var in sources:
-                        if component_context in comp1 or component_context in comp2 or component_context in source_var:
-                            # Avoid self-reference
-                            if source_var != var_name:
-                                print(f"DEBUG: Resolving {var_name} -> {source_var} (from {comp1} to {comp2}) using context {component_context}")
-                                return resolve_variable_reference(source_var, visited, component_context)
+        #         # Try to find a source that matches the component context
+        #         if component_context:
+        #             for comp1, comp2, source_var in sources:
+        #                 if component_context in comp1 or component_context in comp2 or component_context in source_var:
+        #                     # Avoid self-reference
+        #                     if source_var != var_name:
+        #                         print(f"DEBUG: Resolving {var_name} -> {source_var} (from {comp1} to {comp2}) using context {component_context}")
+        #                         return resolve_variable_reference(source_var, visited, component_context)
 
-                # If no context match or no context provided, try the first non-self-referencing source
-                for comp1, comp2, source_var in sources:
-                    if source_var != var_name:
-                        print(f"DEBUG: Resolving {var_name} -> {source_var} (from {comp1} to {comp2})")
-                        return resolve_variable_reference(source_var, visited, component_context)
+        #         # If no context match or no context provided, try the first non-self-referencing source
+        #         for comp1, comp2, source_var in sources:
+        #             if source_var != var_name:
+        #                 print(f"DEBUG: Resolving {var_name} -> {source_var} (from {comp1} to {comp2})")
+        #                 return resolve_variable_reference(source_var, visited, component_context)
 
-            return None
+        #     return None
 
-        # Create a component-to-variables mapping for context-aware resolution
-        component_vars = {}
-        for comp in root.findall('.//component') + root.findall('.//{http://www.cellml.org/cellml/2.0#}component'):
-            comp_name = comp.get('name')
-            if comp_name:
-                component_vars[comp_name] = []
-                for var in comp.findall('.//variable') + comp.findall('.//{http://www.cellml.org/cellml/2.0#}variable'):
-                    component_vars[comp_name].append(var)
+        # # Create a component-to-variables mapping for context-aware resolution
+        # component_vars = {}
+        # for comp in root.findall('.//component') + root.findall('.//{http://www.cellml.org/cellml/2.0#}component'):
+        #     comp_name = comp.get('name')
+        #     if comp_name:
+        #         component_vars[comp_name] = []
+        #         for var in comp.findall('.//variable') + comp.findall('.//{http://www.cellml.org/cellml/2.0#}variable'):
+        #             component_vars[comp_name].append(var)
 
-        # Update initial_value attributes that contain variable references with component context
-        resolved_count = 0
+        # # Update initial_value attributes that contain variable references with component context
+        # resolved_count = 0
 
-        def resolve_with_context(var_name, component_name):
-            """Resolve a variable reference with component context"""
-            return resolve_variable_reference(var_name, component_context=component_name)
+        # def resolve_with_context(var_name, component_name):
+        #     """Resolve a variable reference with component context"""
+        #     return resolve_variable_reference(var_name, component_context=component_name)
 
-        for comp_name, variables in component_vars.items():
-            for var in variables:
-                init_val = var.get('initial_value')
-                var_name = var.get('name')
+        # for comp_name, variables in component_vars.items():
+        #     for var in variables:
+        #         init_val = var.get('initial_value')
+        #         var_name = var.get('name')
 
-                if init_val and var_name:
-                    try:
-                        float(init_val)
-                        # Already numeric, skip
-                        continue
-                    except ValueError:
-                        # It's a variable reference, try to resolve it with component context
-                        resolved = resolve_with_context(init_val, comp_name)
-                        if resolved:
-                            var.set('initial_value', resolved)
-                            print(f"Resolved {comp_name}.{var_name}: {init_val} -> {resolved}")
-                        else:
-                            # Could not resolve - we need to compute the computed constant
-                            computed_success = False
+        #         if init_val and var_name:
+        #             try:
+        #                 float(init_val)
+        #                 # Already numeric, skip
+        #                 continue
+        #             except ValueError:
+        #                 # It's a variable reference, try to resolve it with component context
+        #                 resolved = resolve_with_context(init_val, comp_name)
+        #                 if resolved:
+        #                     var.set('initial_value', resolved)
+        #                     print(f"Resolved {comp_name}.{var_name}: {init_val} -> {resolved}")
+        #                 else:
+        #                     # Could not resolve - we need to compute the computed constant
+        #                     computed_success = False
 
-                            computed_success = self._compute_computed_constant(var_name, comp_name, flat_model, analysed_model, root, param_values, connections, resolve_variable_reference)
-                            if computed_success:
-                                var.set('initial_value', computed_success)
-                                print(f"Computed {comp_name}.{var_name}: {computed_success}")
-                            else:
-                                print(f"ERROR: Could not compute computed constant {var_name} in {comp_name}")
-                                raise ValueError(f"Could not compute computed constant {var_name} in {comp_name}")
+        #                     computed_success = self._compute_computed_constant(var_name, comp_name, flat_model, analysed_model, root, param_values, connections, resolve_variable_reference)
+        #                     if computed_success:
+        #                         var.set('initial_value', computed_success)
+        #                         print(f"Computed {comp_name}.{var_name}: {computed_success}")
+        #                     else:
+        #                         print(f"ERROR: Could not compute computed constant {var_name} in {comp_name}")
+        #                         raise ValueError(f"Could not compute computed constant {var_name} in {comp_name}")
 
         # Apply max function replacements to the XML - replace with piecewise
         print("Applying max function replacements with piecewise...")
@@ -416,14 +488,6 @@ class SimulationHelper:
         model_string = ET.tostring(root, encoding='unicode', method='xml')
 
         return model_string
-
-    def _compute_computed_constant(self, var_name, comp_name, flat_model, analysed_model, root, param_values, connections, resolve_variable_reference):
-        """
-        Compute the value of a computed constant by evaluating its MathML equation.
-        This is a placeholder implementation that returns None.
-        """
-        print(f"DEBUG: _compute_computed_constant called for {comp_name}.{var_name}")
-        return None
 
     def _setup_time(self, dt, sim_time, pre_time, start_time=0.0):
         self.dt = dt

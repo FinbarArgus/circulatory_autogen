@@ -110,6 +110,71 @@ class CVS0DCellMLGenerator(object):
 
             libcellml_utils.print_issues(a)
             print(analysed_model.type())
+            # Debug: show how libCellML classifies variables (constant vs variable vs state, etc.)
+            try:
+                # Always dump for init-states reproducer, otherwise only in DEBUG.
+                if self.inp_data_dict.get('DEBUG') or self.file_prefix == "test_init_states":
+                    from libcellml import AnalyserVariable
+
+                    type_names = {
+                        AnalyserVariable.Type.STATE: "STATE",
+                        AnalyserVariable.Type.CONSTANT: "CONSTANT",
+                        AnalyserVariable.Type.COMPUTED_CONSTANT: "COMPUTED_CONSTANT",
+                        AnalyserVariable.Type.ALGEBRAIC: "ALGEBRAIC",
+                        AnalyserVariable.Type.EXTERNAL: "EXTERNAL",
+                    }
+
+                    buckets = {}
+                    vcount = analysed_model.variableCount() if analysed_model else 0
+                    for i in range(vcount):
+                        av = analysed_model.variable(i)
+                        if av is None:
+                            continue
+                        v = av.variable()
+                        if v is None:
+                            continue
+                        try:
+                            comp = v.parent().name()
+                        except Exception:
+                            comp = ""
+                        key = type_names.get(av.type(), str(av.type()))
+                        buckets.setdefault(key, []).append(f"{comp}.{v.name()}" if comp else v.name())
+
+                    print("libCellML variable type summary:")
+                    print(f"  analysed_model.variableCount(): {vcount}")
+                    for key in sorted(buckets.keys()):
+                        items = sorted(buckets[key])
+                        print(f"  {key}: {len(items)}")
+                        # Print a small sample to keep logs readable
+                        for name in items[:20]:
+                            print(f"    - {name}")
+                        if len(items) > 20:
+                            print(f"    ... (+{len(items) - 20} more)")
+                    if vcount == 0 or not buckets:
+                        # Fallback: dump variables declared in the flattened model so we still see names.
+                        try:
+                            fallback = []
+                            for ci in range(flat_model.componentCount()):
+                                comp = flat_model.component(ci)
+                                cname = comp.name() if comp else ""
+                                if not comp:
+                                    continue
+                                for vi in range(comp.variableCount()):
+                                    var = comp.variable(vi)
+                                    if not var:
+                                        continue
+                                    vname = var.name()
+                                    fallback.append(f"{cname}.{vname}" if cname else vname)
+                            fallback = sorted(set(fallback))
+                            print("  (fallback) flattened model variables (sample):")
+                            for name in fallback[:40]:
+                                print(f"    - {name}")
+                            if len(fallback) > 40:
+                                print(f"    ... (+{len(fallback) - 40} more)")
+                        except Exception as e:
+                            print(f"  (fallback) could not list flattened variables: {e}")
+            except Exception as e:
+                print(f"Warning: could not dump libCellML variable types: {e}")
             if analysed_model.type() != AnalyserModel.Type.ODE:
                 print("WARNING model is has some issues, see above. "
                     "The model might still run with some of the above issues"

@@ -22,6 +22,7 @@ if _SRC_DIR not in sys.path:
 
 from solver_wrappers import get_simulation_helper
 from generators.PythonGenerator import PythonGenerator
+from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 import xml.etree.ElementTree as ET
 
 
@@ -239,49 +240,10 @@ def _check_initial_states(myokit_helper, opencor_helper, model_name):
     results["myokit_initial_states"] = {k: v for k, v in results["myokit_initial_states"].items() if k in matching_vars}
     results["opencor_initial_states"] = {oc_var: results["opencor_initial_states"][oc_var] for mk_var, oc_var in matching_vars.items() if oc_var in results["opencor_initial_states"]}
 
-    return mismatches
+    results["mismatches"] = mismatches
+    return results
 
     
-    # Try to match and compare
-    myokit_vars = list(results["myokit_initial_states"].keys())
-    opencor_vars = list(results["opencor_initial_states"].keys())
-    
-    var_mapping = _match_variables(myokit_vars, 'myokit', opencor_vars, 'opencor')
-    
-    print(f"\nMatched state variables: {len(var_mapping)}")
-    
-    mismatches = []
-    for myokit_var, opencor_var in var_mapping.items():
-        myokit_val = results["myokit_initial_states"][myokit_var]
-        opencor_val = results["opencor_initial_states"][opencor_var]
-        
-        if abs(myokit_val - opencor_val) > 1e-10:
-            rel_diff = abs(myokit_val - opencor_val) / max(abs(myokit_val), abs(opencor_val), 1e-10) * 100
-            mismatches.append({
-                "myokit_var": myokit_var,
-                "opencor_var": opencor_var,
-                "myokit_val": myokit_val,
-                "opencor_val": opencor_val,
-                "abs_diff": abs(myokit_val - opencor_val),
-                "rel_diff": rel_diff
-            })
-    
-    results["mismatches"] = mismatches
-    
-    if mismatches:
-        print(f"\n⚠️  Found {len(mismatches)} initial state mismatches:")
-        print(f"{'Myokit Variable':<40} {'OpenCOR Variable':<40} {'Myokit Value':>15} {'OpenCOR Value':>15} {'Rel Diff %':>12}")
-        print("-" * 122)
-        for mm in mismatches[:20]:  # Show first 20
-            print(f"{mm['myokit_var'][:39]:<40} {mm['opencor_var'][:39]:<40} {mm['myokit_val']:>15.6e} {mm['opencor_val']:>15.6e} {mm['rel_diff']:>12.6f}")
-        if len(mismatches) > 20:
-            print(f"... and {len(mismatches) - 20} more")
-    else:
-        print("\n✓ All matched initial states agree!")
-    
-    print("="*80)
-    
-    return results
 
 
 def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tolerance=0.01):
@@ -380,6 +342,57 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
         'matched_count': len(var_mapping),
         'compared_count': len(comparisons)
     }
+
+
+def test_init_states_myokit(base_user_inputs, resources_dir):
+    """
+    Repro for computed-constant initial state values via Myokit wrapper.
+
+    - Uses resources/test_init_states_vessel_array.csv
+    - Uses resources/test_init_states_parameters.csv where a_test_vessel = 3
+    - Module defines x0 = 2 * a and x has initial_value=\"x0\"
+    - Expect x(0) == 6 and y(0) == 1
+    """
+    # Prefer using the autogeneration step output; only generate here if missing.
+    cellml_path = os.path.join(_TEST_ROOT, "generated_models", "test_init_states", "test_init_states.cellml")
+    if not os.path.exists(cellml_path):
+        cfg = base_user_inputs.copy()
+        cfg.update({
+            "DEBUG": True,
+            "file_prefix": "test_init_states",
+            "input_param_file": "test_init_states_parameters.csv",
+            "model_type": "cellml_only",
+            "solver": "CVODE",
+            "pre_time": 0.0,
+            "sim_time": 0.1,
+            "dt": 0.01,
+            "plot_predictions": False,
+            "do_mcmc": False,
+            "solver_info": {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000},
+            # Make sure generation uses the repo resources dir (contains our vessel array)
+            "resources_dir": resources_dir,
+        })
+        ok = generate_with_new_architecture(False, cfg)
+        assert ok, "Autogeneration failed for test_init_states"
+        assert os.path.exists(cellml_path), f"Generated model not found after generation: {cellml_path}"
+
+    helper_cls = get_simulation_helper(solver="CVODE")
+    dt = 0.01
+    sim_time = 0.1
+    solver_info = {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000}
+    helper = helper_cls(cellml_path, dt, sim_time, solver_info=solver_info, pre_time=0.0)
+    assert helper.run(), "Myokit simulation failed for init_states_test"
+
+    # Find x and y state series
+    names = helper.get_all_variable_names()
+    x_name = next((n for n in names if n.endswith(".x")), None)
+    y_name = next((n for n in names if n.endswith(".y")), None)
+    assert x_name is not None and y_name is not None, f"Could not find x/y. Sample: {names[:20]}"
+
+    x0 = float(np.asarray(helper.get_results([x_name], flatten=True)[0][0])[0])
+    y0 = float(np.asarray(helper.get_results([y_name], flatten=True)[0][0])[0])
+    assert np.isclose(x0, 6.0, rtol=0, atol=1e-12), f"Expected x(0)=6.0, got {x0} ({x_name})"
+    assert np.isclose(y0, 1.0, rtol=0, atol=1e-12), f"Expected y(0)=1.0, got {y0} ({y_name})"
 
 
 @pytest.fixture(scope="function")

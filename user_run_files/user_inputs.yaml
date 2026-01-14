@@ -1,5 +1,5 @@
 #_______ general inputs ________
-DEBUG: false # TODO change back
+DEBUG: True# TODO change back
 # user_inputs_path_override: /home/farg967/Documents/git_projects/lymph_CA_user/lymphatic_user_inputs.yaml
 # user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/3compartment/3compartment_user_inputs.yaml
 # user_inputs_path_override: /hpc/farg967/git_projects/CA_user_FA_MG/control_parasymp/user_inputs_control_parasymp.yaml

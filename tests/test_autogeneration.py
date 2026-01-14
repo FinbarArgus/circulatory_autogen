@@ -13,6 +13,7 @@ from scripts.script_generate_with_new_architecture import generate_with_new_arch
 @pytest.mark.slow
 @pytest.mark.parametrize("file_prefix,input_param_file,model_type,solver", [
     ('ports_test', 'ports_test_parameters.csv', 'cellml_only', 'CVODE'),
+    ('test_init_states', 'test_init_states_parameters.csv', 'cellml_only', 'CVODE'),
     ('3compartment', '3compartment_parameters.csv', 'cellml_only', 'CVODE'),
     ('simple_physiological', 'simple_physiological_parameters.csv', 'cellml_only', 'CVODE'),
     ('parasympathetic_model', 'parasympathetic_model_parameters.csv', 'cellml_only', 'CVODE'),
