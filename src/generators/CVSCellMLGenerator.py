@@ -213,7 +213,7 @@ class CVS0DCellMLGenerator(object):
             from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
             gen = PythonGenerator(os.path.join(self.output_dir, f'{self.file_prefix}.cellml'), output_dir=self.output_dir)
             gen.generate()
-            sim_helper = PythonSimulationHelper(os.path.join(self.output_dir, f'{self.file_prefix}.py'), dt=0.01, sim_time=0.01)
+            sim_helper = PythonSimulationHelper(os.path.join(self.output_dir, f'{self.file_prefix}.py'), dt=0.00001, sim_time=0.00001)
             sim_helper.set_solve_ivp_method('BDF')
             success = sim_helper.run()
 

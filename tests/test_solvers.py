@@ -1,11 +1,9 @@
 """
 Tests for different solver implementations.
 
-These tests verify that OpenCOR (CVODE), Myokit (CVODE_myokit), and Python RK45 solvers
+These tests verify that OpenCOR (CVODE), Myokit (CVODE_myokit), and Python BDFsolvers
 work correctly for various models.
 
-Note: Uses RK45 instead of RK4 since SciPy's solve_ivp doesn't support RK4 directly.
-RK45 is a 4th/5th order Runge-Kutta method which is similar to RK4.
 """
 import os
 import sys
@@ -466,12 +464,9 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
     ("3compartment", "generated_models/3compartment/3compartment.cellml"),
     ("SN_simple", "generated_models/SN_simple/SN_simple.cellml"),
 ])
-def test_python_rk45_solver(model_name, model_path, temp_model_dir):
+def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     """
-    Test Python RK45 solver on Python models generated from CellML.
-    
-    Note: SciPy's solve_ivp doesn't support RK4 directly, so we use RK45
-    (4th/5th order Runge-Kutta) which is similar.
+    Test Python BDF solver on Python models generated from CellML.
     
     Args:
         model_name: Name of the model for test identification
@@ -503,11 +498,11 @@ def test_python_rk45_solver(model_name, model_path, temp_model_dir):
     sim_time = 1.0  # Short simulation for testing
     pre_time = 0.0
     solver_info = {
-        "method": "RK45",  # Use RK45 (4th/5th order Runge-Kutta) since SciPy doesn't support RK4
+        "method": "BDF",  # Use BDF (Backward Differentiation Formula)
         "max_step": dt,  # Maximum step size
     }
     
-    # Run simulation with Python RK45 solver
+    # Run simulation with Python BDF solver
     helper_cls = get_simulation_helper(solver="solve_ivp", model_path=python_model_path)
     helper = helper_cls(python_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
     
@@ -556,7 +551,7 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     results = {}
     
     # Test all solvers (skipping Myokit CVODE for nowsince it's not available)
-    for solver, method in [("CVODE", "CVODE"), ("solve_ivp", "RK45")]:
+    for solver, method in [("CVODE", "CVODE"), ("solve_ivp", "BDF")]:
         solver_info['method'] = method
         try:
             helper_cls = get_simulation_helper(solver=solver, model_path=full_model_path)
@@ -569,8 +564,8 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
             results[solver] = {"success": False, "error": str(e)}
             pytest.fail(f"{solver} {method} failed: {e}")
     
-    # Test Python RK45 (below to disable)
-    # results["Python RK45"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
+    # Test Python BDF (below to disable)
+    # results["Python BDF"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
     
     # Print summary
     print(f"\n{'='*80}")
@@ -636,11 +631,9 @@ def test_all_solvers(model_name, model_path, sim_time, temp_model_dir):
     This test verifies that:
     1. Myokit CVODE solver works
     2. OpenCOR CVODE solver works (if available)
-    3. Python RK45 solver works (after generating Python model)
+    3. Python BDF solver works (after generating Python model)
     4. Initial states are correctly defined in Myokit modified model
     5. Results agree within 0.01% relative error
-    
-    Note: Uses RK45 instead of RK4 since SciPy's solve_ivp doesn't support RK4 directly.
     
     Args:
         model_name: Name of the model for test identification
