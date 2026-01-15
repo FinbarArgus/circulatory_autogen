@@ -113,7 +113,8 @@ class CVS0DCellMLGenerator(object):
             # Debug: show how libCellML classifies variables (constant vs variable vs state, etc.)
             try:
                 # Always dump for init-states reproducer, otherwise only in DEBUG.
-                if self.inp_data_dict.get('DEBUG') or self.file_prefix == "test_init_states":
+                print_consts_etc = False
+                if print_consts_etc or self.file_prefix == "test_init_states":
                     from libcellml import AnalyserVariable
 
                     type_names = {

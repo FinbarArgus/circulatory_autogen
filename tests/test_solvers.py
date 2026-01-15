@@ -1,7 +1,7 @@
 """
 Tests for different solver implementations.
 
-These tests verify that Myokit (CVODE), OpenCOR (CVODE_opencor), and Python RK45 solvers
+These tests verify that OpenCOR (CVODE), Myokit (CVODE_myokit), and Python RK45 solvers
 work correctly for various models.
 
 Note: Uses RK45 instead of RK4 since SciPy's solve_ivp doesn't support RK4 directly.
@@ -408,21 +408,21 @@ def temp_model_dir():
     ("SN_simple", "generated_models/SN_simple/SN_simple.cellml"),
 ])
 @pytest.mark.parametrize("solver,solver_info", [
-    ("CVODE", {"MaximumStep": 0.0001}),  # Myokit
-    ("CVODE_opencor", {"MaximumStep": 0.0001}),  # OpenCOR
+    ("CVODE", {"MaximumStep": 0.0001}),  # OpenCOR 
+    ("CVODE_myokit", {"MaximumStep": 0.0001}),  # Myokit
 ])
 def test_cellml_solvers(model_name, model_path, solver, solver_info):
     """
-    Test CellML solvers (Myokit CVODE and OpenCOR CVODE).
+    Test CellML solvers (OpenCOR CVODE and Myokit CVODE).
     
     Args:
         model_name: Name of the model for test identification
         model_path: Path to the CellML model file
-        solver: Solver name ('CVODE' for Myokit, 'CVODE_opencor' for OpenCOR)
+        solver: Solver name ('CVODE' for OpenCOR, 'CVODE_myokit' for Myokit)
         solver_info: Solver configuration dictionary
     """
     # Skip OpenCOR tests if OpenCOR is not available
-    if solver == "CVODE_opencor":
+    if solver == "CVODE":
         try:
             helper_cls = get_simulation_helper(solver=solver)
             if helper_cls is None:
@@ -556,31 +556,20 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     results = {}
     
     # Test Myokit CVODE (use as reference)
-    try:
-        helper_cls = get_simulation_helper(solver="CVODE")
-        helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
-        result = helper.run()
-        assert result, "Myokit CVODE simulation failed"
-        helpers["Myokit CVODE"] = helper
-        results["Myokit CVODE"] = {"success": True, "variables": len(helper.get_all_variable_names())}
-    except Exception as e:
-        results["Myokit CVODE"] = {"success": False, "error": str(e)}
-        pytest.fail(f"Myokit CVODE failed: {e}")
+    for solver in ["CVODE", "CVODE_myokit", "RK45"]:
+        try:
+            helper_cls = get_simulation_helper(solver=solver)
+            helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+            result = helper.run()
+            assert result, f"{solver} simulation failed"
+            helpers[solver] = helper
+            results[solver] = {"success": True, "variables": len(helper.get_all_variable_names())}
+        except Exception as e:
+            results[solver] = {"success": False, "error": str(e)}
+            pytest.fail(f"{solver} failed: {e}")
     
-    # Test OpenCOR CVODE (if available)
-    try:
-        helper_cls = get_simulation_helper(solver="CVODE_opencor")
-        helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
-        result = helper.run()
-        assert result, "OpenCOR CVODE simulation failed"
-        helpers["OpenCOR CVODE"] = helper
-        results["OpenCOR CVODE"] = {"success": True, "variables": len(helper.get_all_variable_names())}
-    except (RuntimeError, AttributeError) as e:
-        results["OpenCOR CVODE"] = {"success": False, "skipped": True, "reason": str(e)}
-    
-    # Test Python RK45 (temporarily disabled)
-    # TODO: Re-enable after fixing hanging issue
-    results["Python RK45"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
+    # Test Python RK45 (below to disable)
+    # results["Python RK45"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
     
     # Print summary
     print(f"\n{'='*80}")

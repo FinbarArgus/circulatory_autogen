@@ -10,7 +10,7 @@ file_prefix: 3compartment
 input_param_file: 3compartment_parameters.csv
 
 # cpp generation inputs
-# model_type can be cellml_only or cpp atm 
+# model_type can be cellml_only, cpp, or python atm 
 # model_type: cpp
 model_type: cellml_only
 
@@ -46,7 +46,7 @@ cpp_1d_model_config_path:
 # Output time step (sampling) 
 dt: 0.01 # This should be smaller than all of the dt in your obs_data.json file. 
 
-# solver options are: CVODE (uses Myokit, default), CVODE_opencor (uses OpenCOR), or for Python models: RK4, forward_euler, CVODE, or any method from solve_ivp methods.
+# solver options are: CVODE (uses Myokit, default), CVODE_opencor (uses OpenCOR), or for Python models: solve_ivp
 solver: CVODE
 # TODO make this also change the solver in the opencor sims when not generating cpp.
 # solver: RK4
@@ -55,6 +55,7 @@ solver_info:
   # Maximum time step for solver
   MaximumStep: 0.001
   MaximumNumberOfSteps: 5000
+  # method: RK45 # any method for solve_ivp
 
 # param_id_obs_path needs to be an absolute path.
 # This for 3compartment

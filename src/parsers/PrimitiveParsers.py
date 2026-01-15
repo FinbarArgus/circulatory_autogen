@@ -172,7 +172,7 @@ class YamlFileParser(object):
             exit()
 
         # Parse and validate the solver parameter
-        # Supported solvers: CVODE (Myokit), CVODE_opencor (OpenCOR), or solve_ivp methods (RK45, RK4, etc.)
+        # Supported solvers: CVODE (OpenCOR), CVODE_myokit (Myokit), or solve_ivp methods (RK45, RK4, etc.)
         solver_method = inp_data_dict.get('solver')
         if solver_method is None and 'method' in inp_data_dict.get('solver_info', {}):
             solver_method = inp_data_dict['solver_info']['method']
@@ -184,14 +184,15 @@ class YamlFileParser(object):
             exit()
 
         # Validate solver value
-        valid_cellml_solvers = ['CVODE', 'CVODE_opencor']
+        valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
         # Common solve_ivp methods (add more as needed)
-        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'RK4', 'forward_euler']
+        valid_python_solvers = ['solve_ivp']
+        valid_pytho_solver_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
         if solver_method not in valid_cellml_solvers and solver_method not in valid_solve_ivp_methods:
             print(f'Invalid solver: {solver_method}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
-            print(f'Valid solve_ivp methods: {valid_solve_ivp_methods}')
+            print(f'Valid Python solvers: {valid_solve_ivp_methods}')
             exit()
 
         # Validate solver-model compatibility
@@ -206,7 +207,7 @@ class YamlFileParser(object):
         if solver_method in valid_solve_ivp_methods:
             if inp_data_dict.get('model_type') not in ['python', None]:
                 print(f'solve_ivp method {solver_method} requires model_type to be "python"')
-                print('Use CVODE or CVODE_opencor for CellML models')
+                print('Use CVODE or CVODE_myokit for CellML models')
                 exit()
 
         # Store in solver_info for backward compatibility and as primary key
