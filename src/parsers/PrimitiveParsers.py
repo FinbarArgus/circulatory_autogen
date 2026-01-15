@@ -187,13 +187,15 @@ class YamlFileParser(object):
         valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
         # Common solve_ivp methods (add more as needed)
         valid_python_solvers = ['solve_ivp']
-        valid_pytho_solver_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
+        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if solver_method not in valid_cellml_solvers and solver_method not in valid_solve_ivp_methods:
+        if solver_method not in valid_cellml_solvers and solver_method not in valid_python_solvers and solver_method not in valid_python_solver_methods:
             print(f'Invalid solver: {solver_method}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
-            print(f'Valid Python solvers: {valid_solve_ivp_methods}')
+            print(f'Valid Python solvers: {valid_python_solvers}')
             exit()
+        
+        
 
         # Validate solver-model compatibility
         # CellML solvers cannot be used with Python models

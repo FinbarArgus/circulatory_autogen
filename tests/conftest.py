@@ -213,13 +213,10 @@ def pytest_runtest_logreport(report):
                 msg = None
         result = {"nodeid": report.nodeid, "status": report.outcome, "rank": assigned_rank, "message": msg}
         _AUTOGEN_RESULTS.append(result)
-        # Emit immediate status from each rank to avoid waiting on summary
+        # Persist to shared file for rank0 summary without MPI gather.
+        # Do not emit immediate PASSED/FAILED lines here: we want only the
+        # "[AUTOGEN] Starting ..." line before the captured test output.
         try:
-            rank = MPI.COMM_WORLD.Get_rank()
-            color = _GREEN if report.outcome == "passed" else _RED
-            sys.__stdout__.write(f"{color}[AUTOGEN] {report.nodeid} {report.outcome.upper()} on rank {rank}{_RESET}\n")
-            sys.__stdout__.flush()
-            # Persist to shared file for rank0 summary without MPI gather
             with open(_AUTOGEN_RESULTS_FILE, "a") as f:
                 if msg:
                     f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}|call|{msg}\n")
@@ -421,6 +418,17 @@ def pytest_collection_modifyitems(items):
     size = comm.Get_size()
     assigned_counts = {}
 
+    # Guard: if using more MPI ranks than autogen tests, nothing useful can be
+    # scheduled on many ranks and output ordering/progress becomes confusing.
+    # Exit early with a clear message rather than silently wasting ranks.
+    if autogen_items and size > len(autogen_items):
+        msg = (
+            f"Requested {size} MPI rank(s) (-n {size}) but only {len(autogen_items)} "
+            f"autogeneration test(s) were collected. Please rerun with -n <= {len(autogen_items)}."
+        )
+        # Exit on all ranks so mpiexec terminates cleanly.
+        pytest.exit(msg, returncode=2)
+
     def sort_key(item):
         nodeid = item.nodeid
         # Highest priority: autogeneration tests
@@ -549,16 +557,14 @@ def autogen_rank_gate(request):
     assigned_rank = _get_assigned_autogen_rank(request)
 
     # Announce start so concurrency across ranks is visible immediately.
-    # Temporarily suspend capture so the line is flushed to the shared stdout and
-    # always begins on a fresh line for readability.
+    # Write to the original stdout to avoid pytest capture/xdist buffering, so the
+    # "Starting" line appears before any later PASSED/FAILED reporting hooks.
     try:
-        capman = _PYTEST_CONFIG.pluginmanager.getplugin("capturemanager") if _PYTEST_CONFIG else None
-        if capman:
-            capman.suspend_global_capture(in_=True)
+        sys.__stdout__.write(f"\n{_BLUE}[AUTOGEN] Starting {request.node.nodeid} on rank {rank}{_RESET}\n")
+        sys.__stdout__.flush()
+    except Exception:
+        # Fall back to regular print if sys.__stdout__ isn't usable
         print(f"\n{_BLUE}[AUTOGEN] Starting {request.node.nodeid} on rank {rank}{_RESET}", flush=True)
-    finally:
-        if capman:
-            capman.resume_global_capture()
 
     if rank != assigned_rank:
         pytest.fail(f"Autogeneration test assigned to rank {assigned_rank} reached rank {rank}")
@@ -581,10 +587,16 @@ def autogen_output_buffer(request):
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
         yield
     captured = buf.getvalue()
-    # Emit completion on the executing rank so progress is visible live
-    print(f"\n[AUTOGEN] Completed {request.node.nodeid} on rank {comm.Get_rank()}", flush=True)
+    # Emit captured output first (no extra headers before it), then a short
+    # completion line. This keeps the log clean: only the "[AUTOGEN] Starting ..."
+    # line precedes the simulation/generation output.
     if captured:
-        print(f"[AUTOGEN OUTPUT rank {comm.Get_rank()}] {request.node.nodeid}\n{captured}")
+        try:
+            sys.__stdout__.write("\n" + captured.rstrip() + "\n")
+            sys.__stdout__.flush()
+        except Exception:
+            print("\n" + captured.rstrip() + "\n", flush=True)
+    print(f"[AUTOGEN] Completed {request.node.nodeid} on rank {comm.Get_rank()}", flush=True)
 
 
 def pytest_report_teststatus(report, config):
