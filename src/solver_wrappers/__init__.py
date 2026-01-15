@@ -19,14 +19,11 @@ def get_simulation_helper(solver: str = None, model_type: str = None, model_path
 
     - CVODE: Use OpenCORsolver CVODE for CellML models (default)
     - CVODE_myokit: Use Myokit CVODE solver for CellML models
-    - solve_ivp methods (RK45, RK4, etc.): Use Python/SciPy solver for Python models
-    - For backward compatibility:
-      - Python solver if model_type == 'python' or model_path ends with '.py'
-      - Myokit solver when USE_MYOKIT env var is set (except for python models)
-      - OpenCOR otherwise.
+    - solve_ivp: methods (RK45, BDF, etc.): Use Python/SciPy solver for Python models
     """
     # Define valid solver types
     cellml_solvers = ['CVODE', 'CVODE_myokit']
+    python_solvers = ['solve_ivp']
     solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'RK4', 'forward_euler']
 
     # Determine if this is a Python model
@@ -45,13 +42,13 @@ def get_simulation_helper(solver: str = None, model_type: str = None, model_path
         if is_python_model:
             raise ValueError("CVODE solver cannot be used with Python models. Use a solve_ivp method instead.")
         return MyokitSimulationHelper
-    elif solver in solve_ivp_methods:
+    elif solver in python_solvers:
         if not is_python_model:
-            raise ValueError(f"solve_ivp method '{solver}' can only be used with Python models. Use CVODE or CVODE_opencor for CellML models.")
+            raise ValueError(f"solve_ivp method {solver} can only be used with Python models. Use CVODE or CVODE_opencor for CellML models.")
         return PythonSimulationHelper
     elif solver is not None:
         # Unknown solver type
-        raise ValueError(f"Unknown solver '{solver}'. Valid options are: {cellml_solvers + solve_ivp_methods}")
+        raise ValueError(f"Unknown solver {solver}. Valid options are: {cellml_solvers + python_solvers}")
 
     # Backward compatibility logic
     if is_python_model:

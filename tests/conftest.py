@@ -16,7 +16,6 @@ import fcntl
 import io
 import contextlib
 import time
-import functools
 from mpi4py import MPI
 
 # Ensure src is on sys.path before importing project modules
@@ -29,7 +28,6 @@ from scripts.script_generate_with_new_architecture import generate_with_new_arch
 
 # Store pytest config for hooks that need plugin access (xdist reports lack config)
 _PYTEST_CONFIG = None
-_AUTOGEN_RESULTS = []
 _AUTOGEN_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_autogen_results")
 _SESSION_START = None
 _PARAM_ID_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_param_id_results")
@@ -211,8 +209,6 @@ def pytest_runtest_logreport(report):
                 msg = str(report.longrepr)
             except Exception:
                 msg = None
-        result = {"nodeid": report.nodeid, "status": report.outcome, "rank": assigned_rank, "message": msg}
-        _AUTOGEN_RESULTS.append(result)
         # Persist to shared file for rank0 summary without MPI gather.
         # Do not emit immediate PASSED/FAILED lines here: we want only the
         # "[AUTOGEN] Starting ..." line before the captured test output.
@@ -225,15 +221,14 @@ def pytest_runtest_logreport(report):
         except Exception:
             pass
 
-    # Collect param_id/comparison/sensitivity outcomes and emit a concise green/red one-liner.
-    # These tests run under MPI; to avoid duplicate spam, only rank 0 records/emits.
+    # Collect param_id/comparison/sensitivity outcomes for summary aggregation.
+    # These tests run under MPI; to avoid duplicate spam, only rank 0 records.
     try:
         nodeid = getattr(report, "nodeid", "")
         if nodeid and _is_param_id_related_nodeid(nodeid) and "autogen_task" not in getattr(report, "keywords", {}):
             rank, size = _mpi_rank_size()
             if rank == 0:
                 status = report.outcome
-                color = _GREEN if status == "passed" else _RED
                 # capture a small failure hint if available
                 msg = None
                 if getattr(report, "failed", False):
@@ -241,13 +236,6 @@ def pytest_runtest_logreport(report):
                         msg = str(getattr(report, "longrepr", "")).strip()
                     except Exception:
                         msg = None
-                hint = ""
-                if msg:
-                    # keep the immediate line readable; full traceback stays in pytest's normal output
-                    first_line = msg.splitlines()[0] if msg.splitlines() else msg
-                    hint = f" :: {first_line[:200]}"
-                sys.__stdout__.write(f"{color}[PARAM_ID] {nodeid} {status.upper()} on rank {rank}{_RESET}{hint}\n")
-                sys.__stdout__.flush()
                 try:
                     with open(_PARAM_ID_RESULTS_FILE, "a") as f:
                         if msg:
@@ -295,6 +283,18 @@ def pytest_runtest_logreport(report):
         except Exception:
             # Do not fail the test if reading the file fails
             pass
+
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Attach per-phase reports to the item so fixtures can access the final outcome.
+    Used by autogen_output_buffer to print a colored PASSED/FAILED status after
+    emitting captured output (while keeping the log clean at test start).
+    """
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, "rep_" + rep.when, rep)
 
 @pytest.fixture(scope="session")
 def project_root():
@@ -596,7 +596,16 @@ def autogen_output_buffer(request):
             sys.__stdout__.flush()
         except Exception:
             print("\n" + captured.rstrip() + "\n", flush=True)
-    print(f"[AUTOGEN] Completed {request.node.nodeid} on rank {comm.Get_rank()}", flush=True)
+    # Print completion status (colored) after the captured output.
+    rep = getattr(request.node, "rep_call", None)
+    outcome = getattr(rep, "outcome", None) if rep is not None else None
+    status = (outcome or "unknown").upper()
+    color = _GREEN if outcome == "passed" else (_RED if outcome == "failed" else _RESET)
+    try:
+        sys.__stdout__.write(f"{color}[AUTOGEN] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}{_RESET}\n")
+        sys.__stdout__.flush()
+    except Exception:
+        print(f"[AUTOGEN] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}", flush=True)
 
 
 def pytest_report_teststatus(report, config):
@@ -611,6 +620,28 @@ def pytest_report_teststatus(report, config):
             rank = 0
         if rank == 0 and report.outcome == "passed":
             return report.outcome, "", ""
+    if report.when == "call" and _is_param_id_related_nodeid(getattr(report, "nodeid", "")):
+        try:
+            rank = MPI.COMM_WORLD.Get_rank()
+        except Exception:
+            rank = 0
+        if rank == 0:
+            nodeid = getattr(report, "nodeid", "")
+            if report.outcome == "passed":
+                return report.outcome, "P", f"PASSED[PARAM_ID] {nodeid} PASSED on rank {rank}"
+            if report.outcome == "failed":
+                # Keep status line single-line; full traceback is already in pytest output.
+                full_msg = ""
+                try:
+                    full_msg = str(getattr(report, "longrepr", "")).strip()
+                except Exception:
+                    full_msg = ""
+                first_line = full_msg.splitlines()[0] if full_msg else ""
+                details = f" :: {first_line}" if first_line else ""
+                return report.outcome, "F", f"FAILED[PARAM_ID] {nodeid} FAILED on rank {rank}{details}"
+    if report.when == "call" and report.outcome == "failed":
+        nodeid = getattr(report, "nodeid", "")
+        return report.outcome, "F", f"FAILED[TEST] {nodeid}"
     return None
 
 

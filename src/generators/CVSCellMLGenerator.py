@@ -207,8 +207,23 @@ class CVS0DCellMLGenerator(object):
 
         else:
             print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
-                  'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
-            return False
+                  ' We generate the model in python from cellml and check it can be run for a small \n'
+                  'amount of time.')
+            from generators.PythonGenerator import PythonGenerator
+            from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
+            gen = PythonGenerator(os.path.join(self.output_dir, f'{self.file_prefix}.cellml'), output_dir=self.output_dir)
+            gen.generate()
+            sim_helper = PythonSimulationHelper(os.path.join(self.output_dir, f'{self.file_prefix}.py'), dt=0.01, sim_time=0.01)
+            sim_helper.set_solve_ivp_method('BDF')
+            success = sim_helper.run()
+
+            if success:
+                print('Model generation has been successful.')
+                return True
+            else:
+                print('Model generation has failed. Or the simulation fails when trying to simulate'
+                      'in Python')
+                return False
 
     def __adjust_units_import_line(self, line):
         if 'import xlink:href="units.cellml"' in line:

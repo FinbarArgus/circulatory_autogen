@@ -173,15 +173,24 @@ class YamlFileParser(object):
 
         # Parse and validate the solver parameter
         # Supported solvers: CVODE (OpenCOR), CVODE_myokit (Myokit), or solve_ivp methods (RK45, RK4, etc.)
-        solver_method = inp_data_dict.get('solver')
-        if solver_method is None and 'method' in inp_data_dict.get('solver_info', {}):
-            solver_method = inp_data_dict['solver_info']['method']
-            print(f'solver_info["method"] = {solver_method} is now deprecated, use solver = {solver_method} instead')
-            print('This will be removed in a future version')
-            inp_data_dict['solver'] = solver_method
-        if solver_method is None:
+        solver = inp_data_dict.get('solver')
+        if solver is None:
             print('solver must be an entry in the user_inputs.yaml file')
             exit()
+        else:
+            inp_data_dict['solver'] = solver
+
+        if 'method' in inp_data_dict.get('solver_info', {}):
+            solver_method = inp_data_dict['solver_info']['method']
+        else:
+            if solver.startswith('CVODE'):
+                solver_method = 'CVODE'
+                inp_data_dict['solver_info']['method'] = solver_method
+            else:
+                print('method not set in solver_options, which should be set for solver solve_ivp,'
+                      'using default method RK45')
+                solver_method = 'RK45'
+                inp_data_dict['solver_info']['method'] = solver_method
 
         # Validate solver value
         valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
@@ -189,8 +198,8 @@ class YamlFileParser(object):
         valid_python_solvers = ['solve_ivp']
         valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if solver_method not in valid_cellml_solvers and solver_method not in valid_python_solvers and solver_method not in valid_python_solver_methods:
-            print(f'Invalid solver: {solver_method}')
+        if solver not in valid_cellml_solvers and solver not in valid_python_solvers:
+            print(f'Invalid solver: {solver}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
             exit()
