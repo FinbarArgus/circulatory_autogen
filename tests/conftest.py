@@ -28,14 +28,15 @@ from scripts.script_generate_with_new_architecture import generate_with_new_arch
 
 # Store pytest config for hooks that need plugin access (xdist reports lack config)
 _PYTEST_CONFIG = None
-_AUTOGEN_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_autogen_results")
+_AUTOGEN_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_one_rank_results")
+_SOLVER_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_solver_results")
 _SESSION_START = None
 _PARAM_ID_RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", ".pytest_param_id_results")
-_AUTOGEN_CONFIGS = [
-    {"file_prefix": "3compartment", "input_param_file": "3compartment_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
-    {"file_prefix": "simple_physiological", "input_param_file": "simple_physiological_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
-    {"file_prefix": "test_fft", "input_param_file": "test_fft_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
-]
+# _AUTOGEN_CONFIGS = [
+#     {"file_prefix": "3compartment", "input_param_file": "3compartment_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
+#     {"file_prefix": "simple_physiological", "input_param_file": "simple_physiological_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
+#     {"file_prefix": "test_fft", "input_param_file": "test_fft_parameters.csv", "model_type": "cellml_only", "solver": "CVODE"},
+# ]
 _LOCK_FILE = os.path.realpath(os.path.join(_TEST_ROOT, ".pytest_param_id_lock"))
 _PARAM_ID_TRIGGERS = ("test_param_id", "compare_optimisers", "test_sensitivity_analysis")
 
@@ -92,9 +93,9 @@ def _load_base_inputs(user_inputs_dir):
     return inp_data_dict
 
 
-def _get_assigned_autogen_rank(request):
+def _get_assigned_one_rank_rank(request):
     for key, val in getattr(request.node, "user_properties", []):
-        if key == "autogen_rank":
+        if key == "one_rank_rank":
             return val
     return 0
 
@@ -125,7 +126,7 @@ def pytest_configure(config):
 
     # Ensure pytest-xdist group marker is registered (also in pyproject for strict markers)
     config.addinivalue_line("markers", "xdist_group(name): serialize a group of tests under pytest-xdist")
-    config.addinivalue_line("markers", "autogen_rank(idx): rank assigned to run an autogeneration test")
+    config.addinivalue_line("markers", "one_rank_rank(idx): rank assigned to run an autogeneration test")
 
 
 def pytest_sessionstart(session):
@@ -137,6 +138,11 @@ def pytest_sessionstart(session):
     if rank == 0 and os.path.exists(_AUTOGEN_RESULTS_FILE):
         try:
             os.remove(_AUTOGEN_RESULTS_FILE)
+        except OSError:
+            pass
+    if rank == 0 and os.path.exists(_SOLVER_RESULTS_FILE):
+        try:
+            os.remove(_SOLVER_RESULTS_FILE)
         except OSError:
             pass
     if rank == 0 and os.path.exists(_PARAM_ID_RESULTS_FILE):
@@ -195,10 +201,10 @@ def pytest_runtest_logreport(report):
         return
 
     # Collect autogen outcomes for cross-rank aggregation
-    if "autogen_task" in getattr(report, "keywords", {}):
+    if "one_rank_task" in getattr(report, "keywords", {}):
         assigned_rank = 0
         for name, value in getattr(report, "user_properties", []):
-            if name == "autogen_rank":
+            if name == "one_rank_rank":
                 assigned_rank = value
                 break
         # capture minimal failure info
@@ -213,11 +219,18 @@ def pytest_runtest_logreport(report):
         # Do not emit immediate PASSED/FAILED lines here: we want only the
         # "[AUTOGEN] Starting ..." line before the captured test output.
         try:
-            with open(_AUTOGEN_RESULTS_FILE, "a") as f:
-                if msg:
-                    f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}|call|{msg}\n")
-                else:
-                    f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}\n")
+            if "solver_task" in getattr(report, "keywords", {}):
+                with open(_SOLVER_RESULTS_FILE, "a") as f:
+                    if msg:
+                        f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}|call|{msg}\n")
+                    else:
+                        f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}\n")
+            elif "autogen_task" in getattr(report, "keywords", {}):
+                with open(_AUTOGEN_RESULTS_FILE, "a") as f:
+                    if msg:
+                        f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}|call|{msg}\n")
+                    else:
+                        f.write(f"{report.nodeid}|{report.outcome}|{assigned_rank}\n")
         except Exception:
             pass
 
@@ -225,7 +238,7 @@ def pytest_runtest_logreport(report):
     # These tests run under MPI; to avoid duplicate spam, only rank 0 records.
     try:
         nodeid = getattr(report, "nodeid", "")
-        if nodeid and _is_param_id_related_nodeid(nodeid) and "autogen_task" not in getattr(report, "keywords", {}):
+        if nodeid and _is_param_id_related_nodeid(nodeid) and "one_rank_task" not in getattr(report, "keywords", {}):
             rank, size = _mpi_rank_size()
             if rank == 0:
                 status = report.outcome
@@ -412,7 +425,10 @@ def pytest_collection_modifyitems(items):
     """
     import os
     autogen_items = [item for item in items if "test_autogeneration" in item.nodeid]
-    os.environ["AUTOGEN_TOTAL"] = str(len(autogen_items))
+    solver_items = [item for item in items if "test_solvers" in item.nodeid]
+    one_rank_items = autogen_items + solver_items
+    
+    os.environ["ONE_RANK_TOTAL"] = str(len(one_rank_items))
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
@@ -421,7 +437,7 @@ def pytest_collection_modifyitems(items):
     # Guard: if using more MPI ranks than autogen tests, nothing useful can be
     # scheduled on many ranks and output ordering/progress becomes confusing.
     # Exit early with a clear message rather than silently wasting ranks.
-    if autogen_items and size > len(autogen_items):
+    if one_rank_items and size > len(one_rank_items):
         msg = (
             f"Requested {size} MPI rank(s) (-n {size}) but only {len(autogen_items)} "
             f"autogeneration test(s) were collected. Please rerun with -n <= {len(autogen_items)}."
@@ -434,17 +450,19 @@ def pytest_collection_modifyitems(items):
         # Highest priority: autogeneration tests
         if "test_autogeneration" in nodeid:
             return (0, nodeid)
+        if "test_solvers" in nodeid:
+            return (1, nodeid)
         # Next: param_id tests
         if "test_param_id" in nodeid:
-            return (1, nodeid)
+            return (2, nodeid)
         # Next: optimiser comparison tests
         if "compare_optimisers" in nodeid:
-            return (1, nodeid)
+            return (3, nodeid)
         # Ensure sensitivity analysis runs last
         if "test_sensitivity_analysis" in nodeid:
-            return (3, nodeid)
+            return (4, nodeid)
         # Then everything else
-        return (2, nodeid)
+        return (5, nodeid)
 
     items.sort(key=sort_key)
 
@@ -457,16 +475,21 @@ def pytest_collection_modifyitems(items):
         if "test_sensitivity_analysis" in nodeid:
             item.add_marker(pytest.mark.xdist_group("param_id_serial"))
             item.add_marker(pytest.mark.need_autogen)
+        if 'test_solvers' in nodeid:
+            item.add_marker(pytest.mark.solver_task)
+            item.add_marker(pytest.mark.one_rank_task)
+
 
     # Mark autogeneration tests so they record completion
     deselected = []
-    for idx, item in enumerate(autogen_items):
+    for idx, item in enumerate(one_rank_items):
         assigned_rank = idx % max(size, 1)
         assigned_counts[assigned_rank] = assigned_counts.get(assigned_rank, 0) + 1
         item.add_marker(pytest.mark.autogen_task)
-        item.add_marker(pytest.mark.autogen_rank(assigned_rank))
+        item.add_marker(pytest.mark.one_rank_task)
+        item.add_marker(pytest.mark.one_rank_rank(assigned_rank))
         # Store for runtime lookup
-        item.user_properties.append(("autogen_rank", assigned_rank))
+        item.user_properties.append(("one_rank_rank", assigned_rank))
         if size > 1 and assigned_rank != rank:
             deselected.append(item)
 
@@ -498,7 +521,7 @@ def track_autogen_completion(request, autogen_status_file):
     if "autogen_task" in request.node.keywords:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-        assigned_rank = _get_assigned_autogen_rank(request)
+        assigned_rank = _get_assigned_one_rank_rank(request)
         if rank != assigned_rank:
             return
         # Append a line to indicate completion
@@ -517,7 +540,7 @@ def wait_for_autogen_if_needed(request, autogen_status_file):
     import os
 
     try:
-        total = int(os.environ.get("AUTOGEN_TOTAL", "0"))
+        total = int(os.environ.get("ONE_RANK_TOTAL", "0"))
     except ValueError:
         total = 0
 
@@ -546,42 +569,54 @@ def wait_for_autogen_if_needed(request, autogen_status_file):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def autogen_rank_gate(request):
+def one_rank_rank_gate(request):
     """
     Ensure each autogen test runs only on its assigned rank.
     """
-    if "autogen_task" not in request.node.keywords:
+    if "one_rank_task" not in request.node.keywords:
         return
+    if 'solver_task' in request.node.keywords:
+        task_message_caps = "SOLVER"
+        task_message_low = "solver"
+    else:
+        task_message_caps = "AUTOGEN"
+        task_message_low = "autogen"
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
-    assigned_rank = _get_assigned_autogen_rank(request)
+    assigned_rank = _get_assigned_one_rank_rank(request)
 
     # Announce start so concurrency across ranks is visible immediately.
     # Write to the original stdout to avoid pytest capture/xdist buffering, so the
     # "Starting" line appears before any later PASSED/FAILED reporting hooks.
     try:
-        sys.__stdout__.write(f"\n{_BLUE}[AUTOGEN] Starting {request.node.nodeid} on rank {rank}{_RESET}\n")
+        sys.__stdout__.write(f"\n{_BLUE}[{task_message_caps}] Starting {request.node.nodeid} on rank {rank}{_RESET}\n")
         sys.__stdout__.flush()
     except Exception:
         # Fall back to regular print if sys.__stdout__ isn't usable
-        print(f"\n{_BLUE}[AUTOGEN] Starting {request.node.nodeid} on rank {rank}{_RESET}", flush=True)
+        print(f"\n{_BLUE}[{task_message_caps}] Starting {request.node.nodeid} on rank {rank}{_RESET}", flush=True)
 
     if rank != assigned_rank:
-        pytest.fail(f"Autogeneration test assigned to rank {assigned_rank} reached rank {rank}")
-    # Assigned rank proceeds without extra barriers to allow parallel autogen
+        pytest.fail(f"{task_message_low} test assigned to rank {assigned_rank} reached rank {rank}")
+    # Assigned rank proceeds without extra barriers to allow parallel autogen and solver tests
 
 
 @pytest.fixture(scope="function", autouse=True)
-def autogen_output_buffer(request):
+def one_rank_output_buffer(request):
     """
     Buffer stdout/stderr for autogen tests and emit once after completion,
     emitted on the executing rank. Avoid cross-rank gathers because autogen
     tests only run on their assigned rank.
     """
-    if "autogen_task" not in request.node.keywords:
+    if "one_rank_task" not in request.node.keywords:
         # Still yield to satisfy pytest's expectation for generator fixtures.
         yield
         return
+    if 'solver_task' in request.node.keywords:
+        task_message_caps = "SOLVER"
+        task_message_low = "solver"
+    else:
+        task_message_caps = "AUTOGEN"
+        task_message_low = "autogen"
     comm = MPI.COMM_WORLD
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
@@ -602,10 +637,10 @@ def autogen_output_buffer(request):
     status = (outcome or "unknown").upper()
     color = _GREEN if outcome == "passed" else (_RED if outcome == "failed" else _RESET)
     try:
-        sys.__stdout__.write(f"{color}[AUTOGEN] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}{_RESET}\n")
+        sys.__stdout__.write(f"{color}[{task_message_caps}] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}{_RESET}\n")
         sys.__stdout__.flush()
     except Exception:
-        print(f"[AUTOGEN] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}", flush=True)
+        print(f"[{task_message_caps}] Completed {request.node.nodeid} {status} on rank {comm.Get_rank()}", flush=True)
 
 
 def pytest_report_teststatus(report, config):
@@ -639,19 +674,103 @@ def pytest_report_teststatus(report, config):
                 first_line = full_msg.splitlines()[0] if full_msg else ""
                 details = f" :: {first_line}" if first_line else ""
                 return report.outcome, "F", f"FAILED[PARAM_ID] {nodeid} FAILED on rank {rank}{details}"
+    if report.when == "call" and "solver_task" in getattr(report, "keywords", {}):
+        try:
+            rank = MPI.COMM_WORLD.Get_rank()
+        except Exception:
+            rank = 0
+        if rank == 0:
+            nodeid = getattr(report, "nodeid", "")
+            if report.outcome == "passed":
+                return report.outcome, "P", f"PASSED[SOLVER] {nodeid} PASSED on rank {rank}"
+            else:
+                return report.outcome, "F", f"FAILED[SOLVER] {nodeid} FAILED on rank {rank}"
     if report.when == "call" and report.outcome == "failed":
         nodeid = getattr(report, "nodeid", "")
         return report.outcome, "F", f"FAILED[TEST] {nodeid}"
     return None
 
 
+def _read_results(path):
+    results = []
+    if not os.path.exists(path):
+        return results
+    try:
+        with open(path, "r") as f:
+            for line in f:
+                parts = line.strip().split("|")
+                if len(parts) >= 2:
+                    nodeid = parts[0]
+                    status = parts[1]
+                    results.append((nodeid, status))
+    except OSError:
+        return results
+    return results
+
+
+def _augment_terminal_stats(terminalreporter):
+    class _DummyPassReport:
+        def __init__(self, nodeid):
+            self.nodeid = nodeid
+            self.when = "call"
+            self.outcome = "passed"
+            self.passed = True
+            self.failed = False
+            self.skipped = False
+
+    class _DummyFailReport:
+        def __init__(self, nodeid, longrepr=None):
+            self.nodeid = nodeid
+            self.when = "call"
+            self.outcome = "failed"
+            self.passed = False
+            self.failed = True
+            self.skipped = False
+            self.longrepr = longrepr
+            self.head_line = nodeid
+            self.sections = []
+            self.location = (nodeid, 0, "dummy")
+        def _get_verbose_word_with_markup(self, *args, **kwargs):
+            return ("FAILED", {"red": True})
+        def toterminal(self, tw):
+            msg = self.longrepr or self.nodeid
+            tw.line(str(msg))
+
+    existing = set()
+    for key in ("passed", "failed", "skipped", "error", "xfailed", "xpassed"):
+        for rep in terminalreporter.stats.get(key, []):
+            nodeid = getattr(rep, "nodeid", None)
+            if nodeid:
+                existing.add(nodeid)
+
+    aggregated = []
+    aggregated += _read_results(_AUTOGEN_RESULTS_FILE)
+    aggregated += _read_results(_SOLVER_RESULTS_FILE)
+    aggregated += _read_results(_PARAM_ID_RESULTS_FILE)
+
+    for nodeid, status in aggregated:
+        if nodeid in existing:
+            continue
+        if status == "passed":
+            terminalreporter.stats.setdefault("passed", []).append(_DummyPassReport(nodeid))
+        else:
+            terminalreporter.stats.setdefault("failed", []).append(_DummyFailReport(nodeid))
+        existing.add(nodeid)
+
+    terminalreporter._numcollected = max(getattr(terminalreporter, "_numcollected", 0), len(existing))
+
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """
-    Aggregate autogen results across ranks and print a global summary after
-    pytest's own summary. Also print a concise summary for param_id/comparison/SA
-    tests so it's obvious which ones passed/failed.
+    Augment terminal summary stats before pytest prints the short summary, then
+    emit rank-0 aggregated summaries after pytest's own summary.
     """
     rank = MPI.COMM_WORLD.Get_rank()
+    if rank == 0:
+        _augment_terminal_stats(terminalreporter)
+    yield
+
     if rank != 0:
         return
 
@@ -680,40 +799,6 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         failed = [r for r in autogen_results if r["status"] != "passed"]
         total = len(autogen_results)
 
-        # Align pytest stats: add dummy passed for unmatched, and dummy failed for failures (no duplicates)
-        stats_pass = terminalreporter.stats.setdefault("passed", [])
-        stats_failed = terminalreporter.stats.setdefault("failed", [])
-        existing_fail_nodeids = set(getattr(r, "nodeid", None) for r in stats_failed if hasattr(r, "nodeid"))
-        existing_passes = len(stats_pass)
-        additional_needed = max(0, total - len(failed) - existing_passes)
-        if additional_needed:
-            class _DummyReport:
-                def __init__(self, nodeid):
-                    self.nodeid = nodeid
-            stats_pass.extend(_DummyReport(f"[autogen-aggregate-pass-{i}]") for i in range(additional_needed))
-            terminalreporter._numcollected = max(getattr(terminalreporter, "_numcollected", 0), total)
-
-        for fail in failed:
-            if fail["nodeid"] in existing_fail_nodeids:
-                continue
-            class _DummyFailReport:
-                def __init__(self, nodeid, longrepr=None):
-                    self.nodeid = nodeid
-                    self.longrepr = longrepr
-                    self.when = "call"
-                    self.outcome = "failed"
-                    self.failed = True
-                    self.passed = False
-                    self.skipped = False
-                def _get_verbose_word_with_markup(self, *args, **kwargs):
-                    # minimal implementation expected by pytest terminal summary
-                    return ("FAILED", {"red": True})
-            longrepr = None
-            if "message" in fail:
-                longrepr = fail["message"]
-            stats_failed.append(_DummyFailReport(fail["nodeid"], longrepr=longrepr))
-            terminalreporter._numcollected = max(getattr(terminalreporter, "_numcollected", 0), total)
-
         terminalreporter.write_line("")
         for res in autogen_results:
             line = f"[AUTOGEN] {res['nodeid']} {res['status'].upper()} on rank {res['rank']}"
@@ -725,6 +810,43 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
         terminalreporter.write_line(
             f"[AUTOGEN] Summary: {passed}/{total} passed, {len(failed)} failed in {duration:.2f}s"
+        )
+        footer_line = f"{passed} passed, {len(failed)} failed in {duration:.2f}s across ranks"
+        terminalreporter.write_sep("=", footer_line)
+
+    # --- SOLVER summary ---
+    solver_results = []
+    if os.path.exists(_SOLVER_RESULTS_FILE):
+        try:
+            with open(_SOLVER_RESULTS_FILE, "r") as f:
+                for line in f:
+                    parts = line.strip().split("|")
+                    if len(parts) == 3:
+                        nodeid, status, r = parts
+                        solver_results.append({"nodeid": nodeid, "status": status, "rank": int(r)})
+                    elif len(parts) >= 5:
+                        nodeid, status, r, phase, msg = parts[0], parts[1], parts[2], parts[3], "|".join(parts[4:])
+                        solver_results.append({"nodeid": nodeid, "status": status, "rank": int(r), "phase": phase, "message": msg})
+        except OSError:
+            pass
+
+    if solver_results:
+        solver_results.sort(key=lambda r: r["nodeid"])
+        passed = sum(1 for r in solver_results if r["status"] == "passed")
+        failed = [r for r in solver_results if r["status"] != "passed"]
+        total = len(solver_results)
+
+        terminalreporter.write_line("")
+        for res in solver_results:
+            line = f"[SOLVER] {res['nodeid']} {res['status'].upper()} on rank {res['rank']}"
+            if "phase" in res:
+                line += f" ({res['phase']})"
+            terminalreporter.write_line(line)
+            if res.get("message"):
+                terminalreporter.write_line(f"[SOLVER OUTPUT] {res['message']}")
+
+        terminalreporter.write_line(
+            f"[SOLVER] Summary: {passed}/{total} passed, {len(failed)} failed in {duration:.2f}s"
         )
         footer_line = f"{passed} passed, {len(failed)} failed in {duration:.2f}s across ranks"
         terminalreporter.write_sep("=", footer_line)
@@ -792,12 +914,12 @@ def mpi_banner_and_prepare_autogen(request, user_inputs_dir):
     if not _needs_param_id_autogen(request.session.items):
         return
 
-    if rank == 0:
-        base_inputs = _load_base_inputs(user_inputs_dir)
-        for cfg in _AUTOGEN_CONFIGS:
-            autogen_config = base_inputs.copy()
-            autogen_config.update(cfg)
-            generate_with_new_architecture(False, autogen_config)
+    # if rank == 0:
+    #     base_inputs = _load_base_inputs(user_inputs_dir)
+    #     for cfg in _AUTOGEN_CONFIGS:
+    #         autogen_config = base_inputs.copy()
+    #         autogen_config.update(cfg)
+    #         generate_with_new_architecture(False, autogen_config)
     comm.Barrier()
 
 
