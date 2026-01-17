@@ -7,7 +7,7 @@ import os
 from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
 try:
     from solver_wrappers.myokit_helper import SimulationHelper as MyokitSimulationHelper
-except
+except:
     MyokitSimulationHelper = None
 
 try:
@@ -44,7 +44,7 @@ def get_simulation_helper(solver: str = None, model_type: str = None, model_path
     elif solver == 'CVODE_myokit':
         if is_python_model:
             raise ValueError("CVODE solver cannot be used with Python models. Use a solve_ivp method instead.")
-        if MyokitSimulationHelper is not None
+        if MyokitSimulationHelper is not None:
             return MyokitSimulationHelper
         else:
             raise RuntimeError("Myokit solver requested but Myokit is not available")
