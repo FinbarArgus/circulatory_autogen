@@ -5,7 +5,10 @@ Provides access to OpenCOR, Myokit, and SciPy-based solvers through a common API
 """
 import os
 from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
-from solver_wrappers.myokit_helper import SimulationHelper as MyokitSimulationHelper
+try:
+    from solver_wrappers.myokit_helper import SimulationHelper as MyokitSimulationHelper
+except:
+    MyokitSimulationHelper = None
 
 try:
     from solver_wrappers.opencor_helper import SimulationHelper as OpenCORSimulationHelper
@@ -41,7 +44,10 @@ def get_simulation_helper(solver: str = None, model_type: str = None, model_path
     elif solver == 'CVODE_myokit':
         if is_python_model:
             raise ValueError("CVODE solver cannot be used with Python models. Use a solve_ivp method instead.")
-        return MyokitSimulationHelper
+        if MyokitSimulationHelper is not None:
+            return MyokitSimulationHelper
+        else:
+            raise RuntimeError("Myokit solver requested but Myokit is not available")
     elif solver in python_solvers:
         if not is_python_model:
             raise ValueError(f"solve_ivp method {solver} can only be used with Python models. Use CVODE or CVODE_opencor for CellML models.")
