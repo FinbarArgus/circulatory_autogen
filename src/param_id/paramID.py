@@ -47,7 +47,7 @@ import corner
 import csv
 from datetime import date
 # from skopt import gp_minimize, Optimizer
-from parsers.PrimitiveParsers import CSVFileParser
+from parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser
 import pandas as pd
 import json
@@ -219,8 +219,21 @@ class CVS0DParamID():
         else:
             self.param_id.set_param_names(param_names)
         
+    def set_ground_truth_data(self, ground_truth_data_dict):
+        # here we create an obs_data.json file from the ground_truth_data_dict
+        path_to_save_obs_data = os.path.join(self.output_dir, f'{self.file_name_prefix}_obs_data.json')
+        with open(path_to_save_obs_data, 'w') as f:
+            json.dump(ground_truth_data_dict, f)
 
-        # TODO have to save param names as in __set_and_save_param_names!!
+        self.obs_info = self.__set_obs_names_and_df(path_to_save_obs_data)
+    
+    def set_params_for_id(self, params_for_id_dict):
+        path_to_save_params_for_id = os.path.join(self.output_dir, f'{self.file_name_prefix}_params_for_id.csv')
+        with open(path_to_save_params_for_id, 'w') as f:
+            json.dump(params_for_id_dict, f)
+
+        self.params_for_id_path = path_to_save_params_for_id
+        self.__set_and_save_param_names()
 
     def set_best_param_vals(self, best_param_vals):
         if self.mcmc_instead:
@@ -1331,8 +1344,13 @@ class CVS0DParamID():
         # Each entry in param_names is a name or list of names that gets modified by one parameter
         self.param_id_info = {}
         if self.params_for_id_path:
-            csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
+            
+            if self.params_for_id_path.endswith('.csv'):
+                csv_parser = CSVFileParser()
+                input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
+            elif self.params_for_id_path .endswith('.json'):
+                json_parser = JSONFileParser()
+                input_params = json_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
             self.param_id_info["param_names"] = []
             param_names_for_gen = []
             for II in range(input_params.shape[0]):

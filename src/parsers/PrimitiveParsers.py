@@ -92,8 +92,16 @@ class YamlFileParser(object):
                 user_files_dir = ''
         else:
             user_files_dir = ''
-    
-        file_prefix = inp_data_dict['file_prefix']
+
+        if inp_data_dict is None:
+            print('no inp_data_dict provided and user_inputs.yaml not found, exiting')
+            exit()
+            
+        if 'file_prefix' not in inp_data_dict.keys():
+            print('file_prefix not found in inp_data_dict, exiting')
+            exit()
+        else:
+            file_prefix = inp_data_dict['file_prefix']
 
         # overwrite dir paths if set in user_inputs.yaml
         if "resources_dir" in inp_data_dict.keys():
@@ -116,17 +124,18 @@ class YamlFileParser(object):
                     print(f'param_id_obs_path={inp_data_dict["param_id_obs_path"]} does not exist')
                     exit()
             else:
-                print(f'param_id_obs_path needs to be defined in user_inputs.yaml')
-                exit()
+                print(f'param_id_obs_path not defined in user_inputs.yaml')
+                print(f'Must run param_id.create_param_id_obs to create the param_id_observables')
+                inp_data_dict['param_id_obs_path'] = None
 
             if 'params_for_id_file' in inp_data_dict.keys():
                 inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['params_for_id_file'])
             else:
                 inp_data_dict['params_for_id_path'] = os.path.join(inp_data_dict['resources_dir'], f'{file_prefix}_params_for_id.csv')
-
-            if not os.path.exists(inp_data_dict['params_for_id_path']):
-                print(f'params_for_id path of {inp_data_dict["params_for_id_path"]} doesn\'t exist, user must create this file')
-                exit()
+                if not os.path.exists(inp_data_dict['params_for_id_path']):
+                    print(f'params_for_id_path={inp_data_dict["params_for_id_path"]} does not exist')
+                    print(f'Therefore, you must run param_id.create_params_for_id to define the parameters for identification')
+                    inp_data_dict['params_for_id_path'] = None
 
         if do_generation_with_fit_parameters:
             data_str_addon = re.sub('.json', '', os.path.split(inp_data_dict['param_id_obs_path'])[1])
@@ -143,10 +152,18 @@ class YamlFileParser(object):
         if not os.path.exists(inp_data_dict['generated_models_subdir']):
             os.mkdir(inp_data_dict['generated_models_subdir'])
             
+        if 'model_type' not in inp_data_dict.keys():
+            inp_data_dict['model_type'] = 'cellml_only'
+            
         if inp_data_dict.get('model_type') == 'python':
             model_ext = '.py'
-        else:
+        elif inp_data_dict.get('model_type') == 'cellml_only':
             model_ext = '.cellml'
+        elif inp_data_dict.get('model_type') == 'cpp':
+            model_ext = '.cpp'
+        else:
+            print(f'Invalid model type: {inp_data_dict.get("model_type")}')
+            exit()
 
         inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}{model_ext}')
 
@@ -166,24 +183,51 @@ class YamlFileParser(object):
         else:
             inp_data_dict['sim_time'] = None
 
-        if inp_data_dict['solver_info'] is None:
-            print('solver_info must be defined in user_inputs.yaml',
-                'MaximumStep is now an entry of solver_info in the user_inputs.yaml file')
-            exit()
-
         # Parse and validate the solver parameter
         # Supported solvers: CVODE (OpenCOR), CVODE_myokit (Myokit), or solve_ivp methods (RK45, RK4, etc.)
-        solver = inp_data_dict.get('solver')
-        if solver is None:
-            print('solver must be an entry in the user_inputs.yaml file')
-            exit()
+        if 'solver' not in inp_data_dict.keys():
+            if inp_data_dict.get('model_type') == 'cellml_only':
+                inp_data_dict['solver'] = 'CVODE'
+            elif inp_data_dict.get('model_type') == 'python':
+                inp_data_dict['solver'] = 'solve_ivp'
+            elif inp_data_dict.get('model_type') == 'cpp':
+                inp_data_dict['solver'] = 'CVODE'
+            else:
+                print(f'Invalid model type: {inp_data_dict.get("model_type")}')
+                exit()
         else:
-            inp_data_dict['solver'] = solver
+            if inp_data_dict['solver'] not in ['CVODE', 'CVODE_myokit', 'solve_ivp']:
+                print(f'Invalid solver: {inp_data_dict["solver"]}')
+                exit()
+
+        if 'solver_info' not in inp_data_dict.keys(): 
+            if inp_data_dict.get('model_type') == 'cellml_only':
+                inp_data_dict['solver_info'] = {
+                    'MaximumStep': 0.001,
+                    'MaximumNumberOfSteps': 5000
+                }
+            elif inp_data_dict.get('model_type') == 'python':
+                inp_data_dict['solver_info'] = {
+                    'MaximumStep': 0.001,
+                    'MaximumNumberOfSteps': 5000
+                }
+            elif inp_data_dict.get('model_type') == 'cpp':
+                inp_data_dict['solver_info'] = {
+                    'MaximumStep': 0.001
+                }
+            else:
+                print(f'Invalid model type: {inp_data_dict.get("model_type")}')
+                exit()
+        else:
+            if 'MaximumStep' not in inp_data_dict['solver_info'].keys():
+                inp_data_dict['solver_info']['MaximumStep'] = 0.001
+            if 'MaximumNumberOfSteps' not in inp_data_dict['solver_info'].keys():
+                inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
 
         if 'method' in inp_data_dict.get('solver_info', {}):
             solver_method = inp_data_dict['solver_info']['method']
         else:
-            if solver.startswith('CVODE'):
+            if inp_data_dict['solver'].startswith('CVODE'):
                 solver_method = 'CVODE'
                 inp_data_dict['solver_info']['method'] = solver_method
             else:
@@ -198,20 +242,18 @@ class YamlFileParser(object):
         valid_python_solvers = ['solve_ivp']
         valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if solver not in valid_cellml_solvers and solver not in valid_python_solvers:
-            print(f'Invalid solver: {solver}')
+        if inp_data_dict['solver'] not in valid_cellml_solvers and inp_data_dict['solver'] not in valid_python_solvers:
+            print(f'Invalid solver: {inp_data_dict["solver"]}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
             exit()
         
         
-
         # Validate solver-model compatibility
         # CellML solvers cannot be used with Python models
-        if solver_method in valid_cellml_solvers:
-            if inp_data_dict.get('model_type') == 'python':
+        if inp_data_dict.get('model_type') == 'python' and inp_data_dict['solver'] not in valid_python_solvers:
                 print(f'CellML solver {solver_method} cannot be used with Python models (model_type="python")')
-                print('Use a solve_ivp method (RK45, RK4, etc.) for Python models')
+                print(f'Use {valid_python_solvers} for Python models')
                 exit()
 
         # solve_ivp methods can only be used with Python models
@@ -520,6 +562,17 @@ class JSONFileParser(object):
             df = pd.concat([df, user_module_df], ignore_index=True)
         for external_module_df in external_module_dfs:
             df = pd.concat([df, external_module_df], ignore_index=True)
+        return df
+    
+    def get_data_as_dataframe_multistrings(self, filename, has_header=True):
+        '''
+        Returns the data in the CSV file as a Pandas dataframe where entries in the data array that have two
+        entries are put in a list in the entry for the dataframe
+        :param filename: filename of CSV file
+        '''
+        with open(filename, 'r') as f:
+            json_obj = json.load(f)
+        df = pd.DataFrame(json_obj)
         return df
 
     def append_module_config_info_to_vessel_df(self, vessel_df, module_df):
