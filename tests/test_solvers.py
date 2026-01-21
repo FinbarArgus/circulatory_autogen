@@ -374,12 +374,12 @@ def test_init_states_myokit(base_user_inputs, resources_dir):
         assert ok, "Autogeneration failed for test_init_states"
         assert os.path.exists(cellml_path), f"Generated model not found after generation: {cellml_path}"
 
-    helper_cls = get_simulation_helper(solver="CVODE")
     dt = 0.01
     sim_time = 0.1
     solver_info = {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000}
-    helper = helper_cls(cellml_path, dt, sim_time, solver_info=solver_info, pre_time=0.0)
-    assert helper.run(), "Myokit simulation failed for init_states_test"
+    helper = get_simulation_helper(model_path=cellml_path, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=0.0, solver="CVODE")
+    result = helper.run()
+    assert result, "Myokit simulation failed for init_states_test"
 
     # Find x and y state series
     names = helper.get_all_variable_names()
@@ -420,14 +420,6 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
         solver_info: Solver configuration dictionary
     """
     # Skip OpenCOR tests if OpenCOR is not available
-    if solver == "CVODE":
-        try:
-            helper_cls = get_simulation_helper(solver=solver)
-            if helper_cls is None:
-                pytest.skip("OpenCOR solver not available")
-        except RuntimeError:
-            pytest.skip("OpenCOR solver not available")
-    
     # Check if model file exists
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     if not os.path.exists(full_model_path):
@@ -437,10 +429,14 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
     dt = 0.01
     sim_time = 1.0  # Short simulation for testing
     pre_time = 0.0
-    
-    # Run simulation
-    helper_cls = get_simulation_helper(solver=solver)
-    helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+
+    if solver == "CVODE":
+        try:
+            helper = get_simulation_helper(model_path=model_path, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
+            if helper_cls is None:
+                pytest.skip("OpenCOR solver not available")
+        except RuntimeError:
+            pytest.skip("OpenCOR solver not available")
     
     # Run simulation
     result = helper.run()
@@ -503,8 +499,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     }
     
     # Run simulation with Python BDF solver
-    helper_cls = get_simulation_helper(solver="solve_ivp", model_path=python_model_path)
-    helper = helper_cls(python_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+    helper = get_simulation_helper(model_path=python_model_path, solver="solve_ivp", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
     
     # Run simulation
     result = helper.run()
@@ -554,8 +549,7 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     for solver, method in [("CVODE", "CVODE"), ("solve_ivp", "BDF")]:
         solver_info['method'] = method
         try:
-            helper_cls = get_simulation_helper(solver=solver, model_path=full_model_path)
-            helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+            helper = get_simulation_helper(model_path=full_model_path, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
             result = helper.run()
             assert result, f"{solver} {method} simulation failed"
             helpers[solver] = helper

@@ -41,6 +41,12 @@ class SimulationHelper():
         self.data.set_starting_point(0)
         self.data.set_ending_point(self.stop_time)
         self.tSim = np.linspace(pre_time, self.stop_time, self.n_steps + 1)  # time values for stored part of simulation
+        
+    def get_time(self, include_pre_time=False):
+        if include_pre_time:
+            return self.tSim
+        else:
+            return self.tSim - self.tSim[0]
 
     # inner psutil function # TODO only needed for memory checking
     def process_memory(self):

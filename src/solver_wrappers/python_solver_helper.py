@@ -36,6 +36,12 @@ class SimulationHelper:
         self._init_state()
         self.update_times(dt, 0.0, sim_time, pre_time)
 
+    def get_time(self, include_pre_time=False):
+        if include_pre_time:
+            return self.tSim
+        else:
+            return self.tSim - self.pre_time
+
     def set_solve_ivp_method(self, method):
         self.solve_ivp_method = method 
         

@@ -174,6 +174,13 @@ class YamlFileParser(object):
             inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
 
 
+        if 'dt' not in inp_data_dict.keys():
+            inp_data_dict['dt'] = 0.01
+        else:
+            if type(inp_data_dict['dt']) != float:
+                print(f'dt must be a float, but is {type(inp_data_dict["dt"])}')
+                exit()
+            
         if 'pre_time' in inp_data_dict.keys():
             inp_data_dict['pre_time'] = inp_data_dict['pre_time']
         else:

@@ -1812,9 +1812,10 @@ class OpencorParamID():
     def initialise_sim_helper(self):
         # Get method from solver_info (check both 'solver' and 'method' for backward compatibility)
         solver = self.solver_info.get('solver')
-        helper_cls = get_simulation_helper(solver=solver, model_type=self.model_type, model_path=self.model_path)
-        return helper_cls(self.model_path, self.dt, self.sim_time,
-                          solver_info=self.solver_info, pre_time=self.pre_time)
+        helper_cls = get_simulation_helper(solver=solver, model_type=self.model_type,
+                                           model_path=self.model_path, dt=self.dt, sim_time=self.sim_time,
+                                           solver_info=self.solver_info, pre_time=self.pre_time)
+        return helper_cls
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
