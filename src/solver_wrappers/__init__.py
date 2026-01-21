@@ -55,7 +55,7 @@ def get_simulation_helper(model_path: str = None, solver: str = None,
         return PythonSimulationHelper(model_path, dt, sim_time, solver_info, pre_time=pre_time)
     elif solver is not None:
         # Unknown solver type
-        raise ValueError(f"Unknown solver {solver}. Valid options are: {cellml_solvers + python_solvers}")
+        raise ValueError(f"Unknown solver {solver}. Valid options are: {cellml_solvers} for CellML models and {python_solvers} for Python models")
 
     # Backward compatibility logic
     if is_python_model:
@@ -64,7 +64,7 @@ def get_simulation_helper(model_path: str = None, solver: str = None,
     return OpenCORSimulationHelper(model_path, dt, sim_time, solver_info, pre_time=pre_time)
 
 def get_simulation_helper_from_inp_data_dict(inp_data_dict):
-    return get_simulation_helper(model_path=inp_data_dict["model_path"], solver=inp_data_dict["solver"], model_type=inp_data_dict["model_type"], dt=inp_data_dict["dt"], sim_time=inp_data_dict["sim_time"], solver_info=inp_data_dict["solver_info"], pre_time=inp_data_dict["pre_time"])
+    return get_simulation_helper(model_path=inp_data_dict["model_path"], solver=inp_data_dict["solver_info"]["solver"], model_type=inp_data_dict["model_type"], dt=inp_data_dict["dt"], sim_time=inp_data_dict["sim_time"], solver_info=inp_data_dict["solver_info"], pre_time=inp_data_dict["pre_time"])
 
 __all__ = [
     "get_simulation_helper",

@@ -377,7 +377,7 @@ def test_init_states_myokit(base_user_inputs, resources_dir):
     dt = 0.01
     sim_time = 0.1
     solver_info = {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000}
-    helper = get_simulation_helper(model_path=cellml_path, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=0.0, solver="CVODE")
+    helper = get_simulation_helper(model_path=cellml_path, model_type="cellml_only", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=0.0, solver="CVODE")
     result = helper.run()
     assert result, "Myokit simulation failed for init_states_test"
 
@@ -430,16 +430,25 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
     sim_time = 1.0  # Short simulation for testing
     pre_time = 0.0
 
-    if solver == "CVODE":
-        try:
-            helper = get_simulation_helper(model_path=model_path, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
-            if helper_cls is None:
-                pytest.skip("OpenCOR solver not available")
-        except RuntimeError:
-            pytest.skip("OpenCOR solver not available")
+    try:
+        helper = get_simulation_helper(
+            model_path=model_path,
+            model_type="cellml_only",
+            solver=solver,
+            dt=dt,
+            sim_time=sim_time,
+            solver_info=solver_info,
+            pre_time=pre_time,
+        )
+    except RuntimeError as e:
+        # Missing solver backend (OpenCOR/Myokit) should skip instead of fail.
+        pytest.skip(f"{solver} solver not available: {e}")
     
     # Run simulation
-    result = helper.run()
+    try:
+        result = helper.run()
+    except RuntimeError as e:
+        pytest.fail(f"{solver} simulation failed for {model_name}: {e}")
     assert result, f"{solver} simulation failed for {model_name}"
     
     # Verify results
@@ -499,7 +508,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     }
     
     # Run simulation with Python BDF solver
-    helper = get_simulation_helper(model_path=python_model_path, solver="solve_ivp", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
+    helper = get_simulation_helper(model_path=python_model_path, model_type="python_only", solver="solve_ivp", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
     
     # Run simulation
     result = helper.run()
@@ -546,10 +555,10 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     results = {}
     
     # Test all solvers (skipping Myokit CVODE for nowsince it's not available)
-    for solver, method in [("CVODE", "CVODE"), ("solve_ivp", "BDF")]:
+    for model_type, solver, method in [("cellml_only", "CVODE", "CVODE"), ("python", "solve_ivp", "BDF")]:
         solver_info['method'] = method
         try:
-            helper = get_simulation_helper(model_path=full_model_path, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
+            helper = get_simulation_helper(model_path=full_model_path, model_type=model_type, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
             result = helper.run()
             assert result, f"{solver} {method} simulation failed"
             helpers[solver] = helper

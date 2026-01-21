@@ -52,7 +52,7 @@ class SensitivityAnalysis():
     """
     def __init__(self, model_path, model_type, file_name_prefix, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, model_out_names=[], 
-                 solver_info={}, dt=0.01, ga_options={}, param_id_obs_path=None, params_for_id_path=None):
+                 solver_info={}, dt=0.01, optimiser_options={}, param_id_obs_path=None, params_for_id_path=None):
 
         self.model_path = model_path
         self.model_type = model_type
@@ -63,11 +63,38 @@ class SensitivityAnalysis():
         self.model_out_names = model_out_names
         self.solver_info = solver_info
         self.dt = dt
-        # For backwards compatibility, accept both ga_options and optimiser_options
-        # The parser will merge ga_options into optimiser_options, but we keep ga_options for now
-        self.ga_options = ga_options
+        self.optimiser_options = optimiser_options
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path
+
+    @classmethod
+    def from_dict(cls, inp_data_dict):
+        # Only pass kwargs that exist in inp_data_dict
+        arg_options = [
+            'model_path', 'model_type', 'file_name_prefix', 'DEBUG', 'param_id_output_dir',
+            'resources_dir', 'model_out_names', 'solver_info',
+            'dt', 'optimiser_options', 'param_id_obs_path', 'params_for_id_path'
+        ]
+        kwargs = {key: inp_data_dict[key] for key in arg_options if key in inp_data_dict}
+
+        # Support common naming used elsewhere
+        if 'file_name_prefix' not in kwargs and 'file_prefix' in inp_data_dict:
+            kwargs['file_name_prefix'] = inp_data_dict['file_prefix']
+
+        return cls(**kwargs)
+
+    def set_sa_options(self, sa_options):
+        self.sa_options = sa_options
+    
+    def set_model_out_names(self, obs_data_dict):
+        # TODO fix for arbitrary number of operands
+        # mohammad must have done this already.
+        self.model_out_names = []
+        for item in obs_data_dict["data_items"]:
+            if len(item["operands"]) > 1:
+                print(f'{RED}ERROR: more than one operand for {item["name_for_plotting"]}, not supported{RESET}')
+                exit()
+            self.model_out_names.append(item["operands"][0])
 
     def run_sensitivity_analysis(self, sa_options):
         if sa_options['method'] == 'naive':
@@ -100,7 +127,7 @@ class SensitivityAnalysis():
 
         SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, SA_cfg, self.dt, 
                             output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
-                            verbose=False, use_MPI=True, ga_options=self.ga_options)
+                            verbose=False, use_MPI=True, optimiser_options=self.optimiser_options)
         S1_all, ST_all, S2_all = SA_manager.run()
 
         if rank == 0:

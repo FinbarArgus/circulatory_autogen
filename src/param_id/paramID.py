@@ -75,10 +75,10 @@ class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, model_type, param_id_method, mcmc_instead, file_name_prefix,
+    def __init__(self, model_path, model_type, param_id_method, mcmc_instead=False, file_name_prefix='no_name',
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, dt=0.01,
-                 solver_info=None, mcmc_options=None, ga_options=None, optimiser_options=None, DEBUG=False,
+                 solver_info=None, mcmc_options=None, optimiser_options=None, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, one_rank=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -90,17 +90,18 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
-        # For backwards compatibility, merge ga_options into optimiser_options
-        self.optimiser_options = optimiser_options or {}
-        if ga_options is not None:
-            for key, value in ga_options.items():
-                if key not in self.optimiser_options:
-                    self.optimiser_options[key] = value
         self.mcmc_options = mcmc_options
-        self.solver_info = solver_info
+        if solver_info is None:
+            self.solver_info = {"solver": "CVODE"} 
+        else:
+            self.solver_info = solver_info
         self.dt = dt
 
-        self.param_id_obs_file_prefix = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
+        if param_id_obs_path is None:
+            date_str = date.today().strftime("%Y%m%d")
+            self.param_id_obs_file_prefix = f"obs_{date_str}"
+        else:
+            self.param_id_obs_file_prefix = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
         case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
         if self.rank == 0:
             if param_id_output_dir is None:
@@ -136,18 +137,27 @@ class CVS0DParamID():
         self.gt_df = None
         self.protocol_info = None
         self.obs_info = None
+        self.prediction_info = None
         self.params_for_id_path = params_for_id_path
         if param_id_obs_path:
             self.__set_obs_names_and_df(param_id_obs_path, sim_time=sim_time, pre_time=pre_time)
         if self.params_for_id_path:
             self.__set_and_save_param_names()
 
-        # ground truth values
-        self.__get_ground_truth_values()
+        if self.gt_df is not None:
+            # ground truth values
+            self.__get_ground_truth_values()
 
-        # get prediction variables
-        self.__set_prediction_var() # To be made obsolete, as prediction_info gets 
-                                    # parsed in __set_obs_names_and_df
+        if optimiser_options is not None:
+            self.optimiser_options = optimiser_options
+        else:
+            print("No optimiser options provided, using default options")
+            self.optimiser_options = {
+                'cost_convergence': 0.0001,
+                'max_patience': 10,
+                'num_calls_to_function': 10000
+            }
+            print(f'Default optimiser options: {self.optimiser_options}')
 
         if self.mcmc_instead:
             # This mcmc_object will be an instance of the OpencorParamID class
@@ -157,18 +167,16 @@ class CVS0DParamID():
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_info, self.param_id_info,
-                                           self.protocol_info, self.prediction_info, dt=self.dt,
-                                           solver_info=self.solver_info, mcmc_options=mcmc_options,
+                                           self.protocol_info, self.prediction_info, self.solver_info, dt=self.dt,
+                                           mcmc_options=mcmc_options,
                                            DEBUG=self.DEBUG, model_type=self.model_type)
             self.n_steps = mcmc_object.n_steps
         else:
             if model_type in ['cellml_only', 'python']:
-                optimiser_options = getattr(self, 'optimiser_options', None)
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocol_info,
-                                               self.prediction_info, dt=self.dt,
-                                               solver_info=self.solver_info, ga_options=ga_options,
-                                               optimiser_options=optimiser_options, DEBUG=self.DEBUG, 
+                                               self.prediction_info, self.solver_info, dt=self.dt,
+                                               optimiser_options=self.optimiser_options, DEBUG=self.DEBUG, 
                                                model_type=self.model_type)
                 self.n_steps = self.param_id.n_steps
         if self.rank == 0:
@@ -176,6 +184,24 @@ class CVS0DParamID():
         
         self.best_output_calculated = False
         self.sensitivity_calculated = False
+
+    @classmethod
+    def from_dict(cls, inp_data_dict):
+        # Only pass kwargs that exist in inp_data_dict
+        arg_options = [
+            'model_path', 'model_type', 'param_id_method', 'mcmc_instead',
+            'file_name_prefix', 'params_for_id_path', 'param_id_obs_path',
+            'sim_time', 'pre_time', 'dt', 'solver_info', 'mcmc_options',
+            'optimiser_options', 'DEBUG', 'param_id_output_dir', 'resources_dir',
+            'one_rank',
+        ]
+        kwargs = {key: inp_data_dict[key] for key in arg_options if key in inp_data_dict}
+
+        # Support common naming used elsewhere
+        if 'file_name_prefix' not in kwargs and 'file_prefix' in inp_data_dict:
+            kwargs['file_name_prefix'] = inp_data_dict['file_prefix']
+
+        return cls(**kwargs)
 
     def temp_test(self):
         self.param_id.temp_test()
@@ -218,22 +244,28 @@ class CVS0DParamID():
             mcmc_object.set_param_names(param_names)
         else:
             self.param_id.set_param_names(param_names)
-        
-    def set_ground_truth_data(self, ground_truth_data_dict):
-        # here we create an obs_data.json file from the ground_truth_data_dict
-        path_to_save_obs_data = os.path.join(self.output_dir, f'{self.file_name_prefix}_obs_data.json')
-        with open(path_to_save_obs_data, 'w') as f:
-            json.dump(ground_truth_data_dict, f)
+    
+    def set_optimiser_options(self, optimiser_options):
+        self.optimiser_options = optimiser_options
+        self.param_id.set_optimiser_options(optimiser_options)
 
-        self.obs_info = self.__set_obs_names_and_df(path_to_save_obs_data)
+    def set_param_id_method(self, param_id_method):
+        self.param_id_method = param_id_method
+        self.param_id.set_param_id_method(param_id_method)
+        
+    def set_ground_truth_data(self, obs_data_dict):
+        print(f'Setting ground truth data: {obs_data_dict}')
+        self.__set_obs_names_and_df(obs_data_dict=obs_data_dict)
+        self.__get_ground_truth_values()
+        self.param_id.set_obs_info(self.obs_info)
+        self.param_id.set_prediction_info(self.prediction_info)
+        print(f'Ground truth data set: {self.obs_info}')
     
     def set_params_for_id(self, params_for_id_dict):
-        path_to_save_params_for_id = os.path.join(self.output_dir, f'{self.file_name_prefix}_params_for_id.csv')
-        with open(path_to_save_params_for_id, 'w') as f:
-            json.dump(params_for_id_dict, f)
-
-        self.params_for_id_path = path_to_save_params_for_id
-        self.__set_and_save_param_names()
+        print(f'Setting params for id: {params_for_id_dict}')
+        self.__set_and_save_param_names(params_for_id_dict=params_for_id_dict)
+        self.param_id.set_param_id_info(self.param_id_info)
+        print(f'Params for id set: {self.param_id_info["param_names"]}')
 
     def set_best_param_vals(self, best_param_vals):
         if self.mcmc_instead:
@@ -938,9 +970,6 @@ class CVS0DParamID():
 
         return
 
-    def set_genetic_algorithm_parameters(self, n_calls):
-        self.param_id.set_genetic_algorithm_parameters(n_calls)
-
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         self.param_id.set_bayesian_parameters(n_calls, n_initial_points, acq_func, random_state,
                                               acq_func_kwargs=acq_func_kwargs)
@@ -951,7 +980,7 @@ class CVS0DParamID():
         else:
             self.param_id.close_simulation()
 
-    def __set_obs_names_and_df(self, param_id_obs_path, pre_time=None, sim_time=None):
+    def __set_obs_names_and_df(self, param_id_obs_path=None, obs_data_dict=None, pre_time=None, sim_time=None):
         # TODO this function should be in the parsing section. as it parses the 
         # ground truth data.
         # TODO it should also be cleaned up substantially.
@@ -962,8 +991,14 @@ class CVS0DParamID():
             pre_time (_type_): _description_
             sim_time (_type_): _description_
         """
-        with open(param_id_obs_path, encoding='utf-8-sig') as rf:
-            json_obj = json.load(rf)
+        if param_id_obs_path is not None:
+            with open(param_id_obs_path, encoding='utf-8-sig') as rf:
+                json_obj = json.load(rf)
+        elif obs_data_dict is not None:
+            json_obj = obs_data_dict
+        else:
+            print("No observable data provided, call set_ground_truth_data() to set the observable data")
+            exit()
         if type(json_obj) == list:
             self.gt_df = pd.DataFrame(json_obj)
             self.protocol_info = {"pre_times": [pre_time], 
@@ -1215,7 +1250,7 @@ class CVS0DParamID():
                     else:
                         self.obs_info["cost_type"].append("MSE") # default to mean squared error
                 else:
-                    print("cost_type not found in obs_data.json, ga_options, or mcmc_options, exiting")
+                    print("cost_type not found in obs_data.json, or optimiser_options, exiting")
                     exit()
 
 
@@ -1338,19 +1373,22 @@ class CVS0DParamID():
         self.protocol_info["scaled_weight_prob_dist_from_exp_sub"] = prob_dist_map
         return
 
-    def __set_and_save_param_names(self, idxs_to_ignore=None):
+    def __set_and_save_param_names(self, params_for_id_dict=None, idxs_to_ignore=None):
         # This should also be a function under parsers.
 
         # Each entry in param_names is a name or list of names that gets modified by one parameter
         self.param_id_info = {}
-        if self.params_for_id_path:
-            
-            if self.params_for_id_path.endswith('.csv'):
-                csv_parser = CSVFileParser()
-                input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
-            elif self.params_for_id_path .endswith('.json'):
-                json_parser = JSONFileParser()
-                input_params = json_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
+        if self.params_for_id_path or params_for_id_dict is not None:
+            if params_for_id_dict is not None:
+                # convert the params_for_id_dict to a dataframe
+                input_params = pd.DataFrame(params_for_id_dict)
+            else:
+                if self.params_for_id_path.endswith('.csv'):
+                    csv_parser = CSVFileParser()
+                    input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
+                elif self.params_for_id_path .endswith('.json'):
+                    json_parser = JSONFileParser()
+                    input_params = json_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
             self.param_id_info["param_names"] = []
             param_names_for_gen = []
             for II in range(input_params.shape[0]):
@@ -1578,34 +1616,6 @@ class CVS0DParamID():
 
         self.remove_params_by_idx(param_idxs_to_remove)
 
-    def __set_prediction_var(self):
-        # TODO make the prediction_variables csv obsolete. Should be in obs_data.json
-        # TODO when done this function will also be obsolete
-
-        if self.prediction_info is not None:
-            # prediction_info has already been parsed from obs_data.json file
-            pass
-        else:
-            self.prediction_info = {}
-            pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
-            if os.path.exists(pred_var_path):
-                # TODO change this to loading with parser
-                csv_parser = CSVFileParser()
-                pred_var_df = csv_parser.get_data_as_dataframe_multistrings(pred_var_path)
-                self.prediction_info['names'] = [pred_var_df["name"][II].strip()
-                                                for II in range(pred_var_df.shape[0])]
-                self.prediction_info['units'] = [pred_var_df["unit"][II].strip()
-                                                for II in range(pred_var_df.shape[0])]
-                self.prediction_info['names_for_plotting'] = np.array([pred_var_df["name_for_plotting"][II].strip()
-                                                for II in range(pred_var_df.shape[0])])
-            else:
-                self.prediction_info['names'] = None
-                self.prediction_info['units'] = None
-                self.prediction_info['names_for_plotting'] = None
-
-            self.prediction_info['experiment_idxs'] = [0] # only functionality for first experiment 
-                                                          # when using (to be obsolete) csv file
-
     def postprocess_predictions(self):
         # TODO redo this for new prediction_info in obs_data.json 
         # TODO This should be straight forward
@@ -1732,8 +1742,8 @@ class OpencorParamID():
     """
     def __init__(self, model_path, param_id_method,
                  obs_info, param_id_info, protocol_info, prediction_info,
-                 dt=0.01, solver_info=None, 
-                 ga_options=None, optimiser_options=None, DEBUG=False, model_type=None):
+                 solver_info, dt=0.01, 
+                 optimiser_options=None, DEBUG=False, model_type=None):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1744,10 +1754,11 @@ class OpencorParamID():
         self.obs_info = obs_info
         self.param_id_info = param_id_info
         self.prediction_info = prediction_info # currently not used
-        self.num_params = len(self.param_id_info["param_names"])
+        if self.param_id_info is not None:
+            self.num_params = len(self.param_id_info["param_names"])
+            self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
 
         self.protocol_info = protocol_info
-        self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
 
         sfp = scriptFunctionParser()
         self.operation_funcs_dict = sfp.get_operation_funcs_dict()
@@ -1755,15 +1766,22 @@ class OpencorParamID():
 
         # set up opencor simulation
         self.dt = dt
-        if self.protocol_info['sim_times'][0][0] is not None:
-            self.sim_time = self.protocol_info['sim_times'][0][0]
+        if self.protocol_info is not None:
+            if self.protocol_info['sim_times'][0][0] is not None:
+                self.sim_time = self.protocol_info['sim_times'][0][0]
+            else:
+                # set temporary sim time, just to initialise the sim_helper
+                self.sim_time = 0.001
         else:
-            # set temporary sim time, just to initialise the sim_helper
             self.sim_time = 0.001
-        if self.protocol_info['pre_times'][0] is not None:
-            self.pre_time = self.protocol_info['pre_times'][0]
+
+        if self.protocol_info is not None:
+            if self.protocol_info['pre_times'][0] is not None:
+                self.pre_time = self.protocol_info['pre_times'][0]
+            else:
+                # set temporary pre time, just to initialise the sim_helper
+                self.pre_time = 0.001
         else:
-            # set temporary pre time, just to initialise the sim_helper
             self.pre_time = 0.001
 
         self.sim_helper = self.initialise_sim_helper()
@@ -1791,22 +1809,11 @@ class OpencorParamID():
         self.pred_param_importance = None
         self.pred_collinearity_idx_pairs = None
 
-        # Merge ga_options into optimiser_options for backwards compatibility
-        self.optimiser_options = optimiser_options or {}
-        if ga_options is not None:
-            for key, value in ga_options.items():
-                if key not in self.optimiser_options:
-                    self.optimiser_options[key] = value
         
-        # Set default options if not provided
-        if 'cost_convergence' not in self.optimiser_options:
-            self.optimiser_options['cost_convergence'] = 0.0001
-        if 'max_patience' not in self.optimiser_options:
-            self.optimiser_options['max_patience'] = 10
-        if 'num_calls_to_function' not in self.optimiser_options:
-            self.optimiser_options['num_calls_to_function'] = 10000
-        
-        self.cost_type = self.obs_info["cost_type"]
+        if self.obs_info is not None:
+            self.cost_type = self.obs_info["cost_type"]
+        else:
+            self.cost_type = None
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
@@ -1823,7 +1830,25 @@ class OpencorParamID():
     def set_param_names(self, param_names):
         self.param_id_info["param_names"] = param_names
         self.num_params = len(self.param_id_info["param_names"])
+    
+    def set_param_id_info(self, param_id_info):
+        self.param_id_info = param_id_info
+        self.num_params = len(self.param_id_info["param_names"])
+        self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
+        
+    def set_prediction_info(self, prediction_info):
+        self.prediction_info = prediction_info
+    
+    def set_obs_info(self, obs_info):
+        self.obs_info = obs_info
+        self.cost_type = self.obs_info["cost_type"]
 
+    def set_optimiser_options(self, optimiser_options):
+        self.optimiser_options = optimiser_options
+
+    def set_param_id_method(self, param_id_method):
+        self.param_id_method = param_id_method
+    
     def remove_params_by_idx(self, param_idxs_to_remove):
         if len(param_idxs_to_remove) > 0:
             self.param_id_info["param_names"] = [self.param_id_info["param_names"][II] for II in range(self.num_params) if II not in param_idxs_to_remove]
@@ -1878,7 +1903,6 @@ class OpencorParamID():
             optimiser = BayesianOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG,
                 acq_func=self.acq_func,
@@ -1895,7 +1919,6 @@ class OpencorParamID():
             optimiser = GeneticAlgorithmOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG
             )
@@ -1908,7 +1931,6 @@ class OpencorParamID():
             optimiser = CMAESOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG
             )
@@ -2530,13 +2552,6 @@ class OpencorParamID():
             # TODO make the printing of the obs_dict more informative
             print(obs_dict['const'])
 
-    def set_genetic_algorithm_parameters(self, n_calls):
-        if not self.param_id_method == 'genetic_algorithm':
-            print('param_id is not set up as a genetic algorithm')
-            exit()
-        self.optimiser_options['num_calls_to_function'] = n_calls
-        # TODO add more of the gen alg constants here so they can be changed by user.
-
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         if not self.param_id_method == 'bayesian':
             print('param_id is not set up as a bayesian optimization process')
@@ -2744,7 +2759,7 @@ class MCMC_plotter:
                  params_for_id_path=None, num_calls_to_function=1000,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, 
                  solver_info=None, 
-                 dt=0.01, mcmc_options=None, ga_options=None,
+                 dt=0.01, mcmc_options=None, 
                  param_id_output_dir=None, resources_dir=None,
                  DEBUG=False):
 

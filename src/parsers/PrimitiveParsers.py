@@ -192,49 +192,43 @@ class YamlFileParser(object):
 
         # Parse and validate the solver parameter
         # Supported solvers: CVODE (OpenCOR), CVODE_myokit (Myokit), or solve_ivp methods (RK45, RK4, etc.)
-        if 'solver' not in inp_data_dict.keys():
+        solver_name = inp_data_dict.get('solver_info', {}).get('solver')
+        if solver_name is None:
+            solver_name = inp_data_dict.get('solver')
+
+        if solver_name is None:
             if inp_data_dict.get('model_type') == 'cellml_only':
-                inp_data_dict['solver'] = 'CVODE'
+                solver_name = 'CVODE'
             elif inp_data_dict.get('model_type') == 'python':
-                inp_data_dict['solver'] = 'solve_ivp'
+                solver_name = 'solve_ivp'
             elif inp_data_dict.get('model_type') == 'cpp':
-                inp_data_dict['solver'] = 'CVODE'
+                solver_name = 'CVODE'
             else:
                 print(f'Invalid model type: {inp_data_dict.get("model_type")}')
                 exit()
         else:
-            if inp_data_dict['solver'] not in ['CVODE', 'CVODE_myokit', 'solve_ivp']:
-                print(f'Invalid solver: {inp_data_dict["solver"]}')
+            if solver_name not in ['CVODE', 'CVODE_myokit', 'solve_ivp']:
+                print(f'Invalid solver: {solver_name}')
                 exit()
+        
 
         if 'solver_info' not in inp_data_dict.keys(): 
-            if inp_data_dict.get('model_type') == 'cellml_only':
-                inp_data_dict['solver_info'] = {
-                    'MaximumStep': 0.001,
-                    'MaximumNumberOfSteps': 5000
-                }
-            elif inp_data_dict.get('model_type') == 'python':
-                inp_data_dict['solver_info'] = {
-                    'MaximumStep': 0.001,
-                    'MaximumNumberOfSteps': 5000
-                }
-            elif inp_data_dict.get('model_type') == 'cpp':
-                inp_data_dict['solver_info'] = {
-                    'MaximumStep': 0.001
-                }
-            else:
-                print(f'Invalid model type: {inp_data_dict.get("model_type")}')
-                exit()
+            inp_data_dict['solver_info'] = get_solver_info_default(inp_data_dict['model_type'])
         else:
             if 'MaximumStep' not in inp_data_dict['solver_info'].keys():
-                inp_data_dict['solver_info']['MaximumStep'] = 0.001
+                inp_data_dict['solver_info']['MaximumStep'] = get_solver_info_default(inp_data_dict['model_type'])['MaximumStep']
             if 'MaximumNumberOfSteps' not in inp_data_dict['solver_info'].keys():
-                inp_data_dict['solver_info']['MaximumNumberOfSteps'] = 5000
+                inp_data_dict['solver_info']['MaximumNumberOfSteps'] = get_solver_info_default(inp_data_dict['model_type'])['MaximumNumberOfSteps']
+        if 'solver' not in inp_data_dict['solver_info'].keys():
+            inp_data_dict['solver_info']['solver'] = solver_name
+
+        if 'solver' in inp_data_dict:
+            del inp_data_dict['solver']
 
         if 'method' in inp_data_dict.get('solver_info', {}):
             solver_method = inp_data_dict['solver_info']['method']
         else:
-            if inp_data_dict['solver'].startswith('CVODE'):
+            if solver_name.startswith('CVODE'):
                 solver_method = 'CVODE'
                 inp_data_dict['solver_info']['method'] = solver_method
             else:
@@ -249,8 +243,8 @@ class YamlFileParser(object):
         valid_python_solvers = ['solve_ivp']
         valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if inp_data_dict['solver'] not in valid_cellml_solvers and inp_data_dict['solver'] not in valid_python_solvers:
-            print(f'Invalid solver: {inp_data_dict["solver"]}')
+        if solver_name not in valid_cellml_solvers and solver_name not in valid_python_solvers:
+            print(f'Invalid solver: {solver_name}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
             exit()
@@ -258,7 +252,7 @@ class YamlFileParser(object):
         
         # Validate solver-model compatibility
         # CellML solvers cannot be used with Python models
-        if inp_data_dict.get('model_type') == 'python' and inp_data_dict['solver'] not in valid_python_solvers:
+        if inp_data_dict.get('model_type') == 'python' and solver_name not in valid_python_solvers:
                 print(f'CellML solver {solver_method} cannot be used with Python models (model_type="python")')
                 print(f'Use {valid_python_solvers} for Python models')
                 exit()
@@ -269,10 +263,6 @@ class YamlFileParser(object):
                 print(f'solve_ivp method {solver_method} requires model_type to be "python"')
                 print('Use CVODE or CVODE_myokit for CellML models')
                 exit()
-
-        # Store in solver_info for backward compatibility and as primary key
-        inp_data_dict['solver_info']['method'] = solver_method
-        inp_data_dict['solver_info']['solver'] = solver_method
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
@@ -350,6 +340,8 @@ class YamlFileParser(object):
             # Ensure optimiser_options is a dictionary
             if inp_data_dict['optimiser_options'] is None:
                 inp_data_dict['optimiser_options'] = {}
+            
+        # Merge ga_options into optimiser_options for backwards compatibility
         
         # Backwards compatibility: convert ga_options to optimiser_options
         # Only copy entries that don't already exist in optimiser_options to avoid duplicates
@@ -404,6 +396,26 @@ class YamlFileParser(object):
         inp_data_dict['parameters_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['input_param_file'])
 
         return inp_data_dict
+
+def get_solver_info_default(model_type):
+    if model_type == 'cellml_only':
+        return {
+            'solver': 'CVODE',
+            'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 5000
+        }
+    if model_type == 'python':
+        return {
+            'solver': 'solve_ivp',
+            'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 5000
+        }
+    if model_type == 'cpp':
+        return {
+            'solver': 'CVODE',
+            'MaximumStep': 0.001
+        }
+    raise ValueError(f'Invalid model type: {model_type}')
 
 class CSVFileParser(object):
     '''
