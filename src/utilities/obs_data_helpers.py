@@ -101,6 +101,10 @@ class ObsDataCreator:
             if entry['subexperiment_idx'] < 0 or entry['subexperiment_idx'] >= len(self.obs_data_dict['protocol_info']['sim_times'][entry['experiment_idx']]):
                 raise ValueError(f"subexperiment_idx {entry['subexperiment_idx']} is out of bounds for the number of subexperiments in experiment {entry['experiment_idx']} ({len(self.obs_data_dict['protocol_info']['sim_times'][entry['experiment_idx']])}).")
 
+        for key in entry.keys():
+            if isinstance(entry[key], np.ndarray):
+                entry[key] = entry[key].tolist()
+
         self.obs_data_dict['data_items'].append(entry)
     
     def get_obs_data_dict(self):
