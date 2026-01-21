@@ -646,15 +646,42 @@ class sobol_SA():
                     success = self.sim_helper.run()
 
                     operands_outputs_dict = {}
+
+                    retry_count = 0
+                    max_retries = 5
+                    original_MaximumStep = self.solver_info.get("MaximumStep", None)
+                    original_MaximumNumberOfSteps = self.solver_info.get("MaximumNumberOfSteps", None)
+
+                    while not success and retry_count < max_retries:
+
+                        original_MaximumStep = self.solver_info.get("MaximumStep", None)
+                        reduced_MaximumStep = original_MaximumStep / 2 if original_MaximumStep else 0.001
+                        increased_MaximumNumberOfSteps = original_MaximumNumberOfSteps * 2 if original_MaximumNumberOfSteps else 1000000
+                        retry_count += 1
+                        # Reduce max_dt for retry
+                        self.solver_info["MaximumStep"] = reduced_MaximumStep
+                        self.solver_info["MaximumNumberOfSteps"] = increased_MaximumNumberOfSteps
+                                
+                        self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
+                        self.sim_helper.reset_states()
+                        success = self.sim_helper.run()
+
+                        # Restore original max_dt after retries
+                        self.solver_info["MaximumStep"] = original_MaximumStep
+                        self.solver_info["MaximumNumberOfSteps"] = original_MaximumNumberOfSteps
+                    
                     if success:
                         operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
-                        # For single experiment and subexperiment, use (0, 0) as key
                         operands_outputs_dict[(0, 0)] = operands_outputs
+
+                        self.sim_helper.reset_and_clear()
                     else:
-                        self._rank0_print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}")
-                        local_outputs.append([np.inf])  # fail marker
-                        pbar.update(1)
-                        continue
+                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, subexp={subexp_count} after {retry_count} retries")
+                        # Set a flag in operands_outputs_dict to indicate failure
+                        operands_outputs_dict[(0, 0)] = {"failed": True}
+
+                        # reset at the end of each experiment
+                        self.sim_helper.reset_and_clear()
 
                 else:
                     # multiple subexperiments
@@ -737,6 +764,9 @@ class sobol_SA():
                     operands_outputs = operands_outputs_dict.get((exp_idx, subexp_idx), None)
                     if operands_outputs is not None and not (isinstance(operands_outputs, dict) and operands_outputs == {"failed": True}):
                         feature = func(*operands_outputs[j], **self.obs_info["operation_kwargs"][j])
+                        if feature is None or (isinstance(feature, (float, int)) and np.isnan(feature)):
+                            feature = np.nanmean(features) if not np.all(np.isnan(features)) else 0.0
+
                         features.append(feature)
                     else:
                         # WARNING: using mean biases variance estimates (shrinks variance), underestimates sensitivity
@@ -849,6 +879,173 @@ class sobol_SA():
             plt.clf()
             plt.close()
 
+    def get_sobol_output_labels(self, num_labels):
+        """
+        Generates a list of output labels for Sobol sensitivity analysis plots.
+
+        Labels are generated based on whether plotting information exists in self.obs_info
+        
+        Args:
+            self (object): The instance containing the obs_info dictionary.
+            sobol_indices (np.ndarray): Array used for determining the number of labels.
+            S1_all (np.ndarray): Array used for determining the number of labels (often has same shape as sobol_indices).
+
+        Returns:
+            list: A list of formatted label strings.
+        """
+        
+        end_range = num_labels
+
+        has_plotting_info = (
+            hasattr(self, "obs_info") and 
+            self.obs_info and 
+            "names_for_plotting" in self.obs_info
+        )
+        
+        if has_plotting_info:
+            # Use a rich label format with experimental details
+            def generate_label(i):
+                name = self.obs_info['names_for_plotting'][i]
+                # Use .get() with a default for slightly more robustness
+                exp_idx = self.obs_info.get('experiment_idxs', ['?'])[i]
+                sub_idx = self.obs_info.get('subexperiment_idxs', ['?'])[i]
+                # The rf"..." is used to render text as LaTeX/Math Text
+                return rf"{name} (Exp{exp_idx}, Sub{sub_idx})"
+        else:
+            # Use a generic label format
+            def generate_label(i):
+                return f"feature_{i}"
+
+        output_labels = [generate_label(i) for i in range(end_range)]
+            
+        return output_labels
+    
+    def plot_sobol_heatmap(self, S1_all, ST_all):
+        
+        if self.rank != 0:
+            return
+        
+        """
+        Generates 2D heatmaps for first-order (S1) and total-order (ST) Sobol indices.
+        
+        The heatmaps show:
+        Y-axis: Input Parameters (self.SA_cfg["param_names"])
+        X-axis: Model Outputs (concatenated names from self.obs_info)
+        Color: Sobol Index Value
+        
+        Parameters:
+            S1_all (np.ndarray): First-order Sobol indices, shape (n_outputs, n_params)
+            ST_all (np.ndarray): Total-order Sobol indices, shape (n_outputs, n_params)
+        """
+        
+        print("\nGenerating Sobol Index Heatmaps...")
+        
+        # 1. Define Axis Labels
+        output_labels = self.get_sobol_output_labels(S1_all.shape[0])
+
+        param_labels = [rf"${name}$" for name in self.param_id_info["param_names_for_plotting"]]
+
+        # Current shape: (n_outputs, n_params) -> Desired shape: (n_params, n_outputs)
+        S1_heatmap_data = S1_all.T
+        ST_heatmap_data = ST_all.T
+        
+        # Define the title prefix using the total sample count (N * (D+2))
+        total_samples = S1_all.shape[1] * (S1_all.shape[0] + 2) if hasattr(self, 'num_params') else 'N/A'
+        title_prefix = f"Sobol Indices (N={self.num_samples*(self.num_params+2)})"
+        
+        def create_heatmap(data, index_type):
+            
+            df_data = pd.DataFrame(data, index=param_labels, columns=output_labels)
+            
+            fig_width = max(10, len(output_labels) * 0.5) 
+            fig_height = max(6, len(param_labels) * 0.5)
+            
+            plt.figure(figsize=(fig_width, fig_height))
+            
+            sns.heatmap(
+                df_data,
+                annot=True,               # Annotate with the index values
+                fmt=".2f",                # Format annotations to 2 decimal places
+                cmap="viridis",           # Good colormap for continuous data
+                linewidths=0.5,           # Lines between cells
+                linecolor='lightgray',
+                cbar_kws={'label': f'{index_type} Index Value'}
+            )
+
+            plt.title(f'{title_prefix} - {index_type}', fontsize=14)
+            plt.xlabel('Model Output', fontsize=12)
+            plt.ylabel('Input Parameter', fontsize=12)
+            
+            plt.xticks(rotation=45, ha='right', fontsize=8) 
+            plt.yticks(rotation=0, fontsize=8) 
+            
+            plt.tight_layout()
+            
+            file_name = f"{index_type.replace('-', '_')}_Sobol_Heatmap.png"
+            save_path = os.path.join(self.save_path, file_name)
+            plt.savefig(save_path, bbox_inches='tight', dpi=300)
+            plt.close()
+            print(f"Saved {index_type} heatmap to {save_path}")
+
+        create_heatmap(S1_heatmap_data, 'First-Order ($S_1$)')
+        create_heatmap(ST_heatmap_data, 'Total-Order ($S_T$)')
+
+    def save_sobol_indices(self, S1_all, ST_all, S2_all):
+        if self.rank != 0:
+            return
+
+        """
+        Save all Sobol indices to single CSV files (one for S1/ST, one for S2).
+
+        Parameters:
+            S1_all (np.ndarray): First-order Sobol indices, shape (n_outputs, n_params)
+            ST_all (np.ndarray): Total-order Sobol indices, shape (n_outputs, n_params)
+            S2_all (np.ndarray): Second-order Sobol indices, shape (n_outputs, n_params, n_params)
+        """
+        n_outputs = S1_all.shape[0]
+        param_names = self.SA_cfg["param_names"]
+
+        # Prepare output/feature names
+        if n_outputs <= len(self.obs_info['names_for_plotting']):
+            output_names = [
+                f"{self.obs_info['names_for_plotting'][i]} (Exp{self.obs_info['experiment_idxs'][i]}, Sub{self.obs_info['subexperiment_idxs'][i]})"
+                for i in range(n_outputs)
+            ]
+        else:
+            output_names = [
+                f"{self.obs_info['names_for_plotting'][i]} (Exp{self.obs_info['experiment_idxs'][i]}, Sub{self.obs_info['subexperiment_idxs'][i]})"
+                for i in range(n_outputs-1)
+            ]
+            output_names.append("Cost")
+
+        # --- Save S1/ST indices ---
+        df_Sobol = pd.DataFrame({'Parameter': param_names})
+        for i, out_name in enumerate(output_names):
+            df_Sobol[f"S1_{out_name}"] = S1_all[i]
+            df_Sobol[f"ST_{out_name}"] = ST_all[i]
+        file_name = f"all_outputs_n{self.num_samples}_Sobol_indices.csv"
+        df_Sobol.to_csv(os.path.join(self.save_path, file_name), index=False)
+
+        # --- Save S2 indices ---
+        # For each output, flatten S2 into a DataFrame with MultiIndex columns
+        s2_dict = {}
+        for i, out_name in enumerate(output_names):
+            # S2_all[i]: (n_params, n_params)
+            s2_flat = pd.DataFrame(
+                S2_all[i],
+                index=param_names,
+                columns=param_names
+            )
+            # Rename columns to include output name
+            s2_flat.columns = [f"{out_name}__{col}" for col in s2_flat.columns]
+            s2_dict[out_name] = s2_flat
+
+        # Concatenate all S2 DataFrames horizontally
+        df_S2 = pd.concat([s2_dict[out_name] for out_name in output_names], axis=1)
+        df_S2.index.name = "Parameter"
+        file_name_S2 = f"all_outputs_n{self.num_samples}_Sobol_2nd_order_indices.csv"
+        df_S2.to_csv(os.path.join(self.save_path, file_name_S2))
+        
     def run(self):
         samples = self.generate_samples()
         if self.use_mpi:
