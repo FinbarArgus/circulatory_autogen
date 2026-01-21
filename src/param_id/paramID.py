@@ -139,6 +139,7 @@ class CVS0DParamID():
         self.obs_info = None
         self.prediction_info = None
         self.params_for_id_path = params_for_id_path
+        self.optimiser_options = optimiser_options
         if param_id_obs_path:
             self.__set_obs_names_and_df(param_id_obs_path, sim_time=sim_time, pre_time=pre_time)
         if self.params_for_id_path:
@@ -148,9 +149,7 @@ class CVS0DParamID():
             # ground truth values
             self.__get_ground_truth_values()
 
-        if optimiser_options is not None:
-            self.optimiser_options = optimiser_options
-        else:
+        if self.optimiser_options is None:
             print("No optimiser options provided, using default options")
             self.optimiser_options = {
                 'cost_convergence': 0.0001,
@@ -1754,6 +1753,7 @@ class OpencorParamID():
         self.obs_info = obs_info
         self.param_id_info = param_id_info
         self.prediction_info = prediction_info # currently not used
+        self.optimiser_options = optimiser_options
         if self.param_id_info is not None:
             self.num_params = len(self.param_id_info["param_names"])
             self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
@@ -2586,11 +2586,11 @@ class OpencorMCMC(OpencorParamID):
     """
 
     def __init__(self, model_path,
-                 obs_info, param_id_info, protocol_info, prediction_info,
-                 dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False, model_type=None):
+                 obs_info, param_id_info, protocol_info, prediction_info, solver_info,
+                 dt=0.01, mcmc_options=None, DEBUG=False, model_type=None):
         super().__init__(model_path, "MCMC",
-                obs_info, param_id_info, protocol_info, prediction_info,
-                dt=dt, solver_info=solver_info, DEBUG=DEBUG, model_type=model_type)
+                obs_info, param_id_info, protocol_info, prediction_info, solver_info,
+                dt=dt, DEBUG=DEBUG, model_type=model_type)
 
         # mcmc init stuff
         self.sampler = None

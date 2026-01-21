@@ -86,7 +86,7 @@ debug_optimiser_options:
   # Note: When DEBUG is True, debug_optimiser_options overrides optimiser_options
 
 #______ mcmc inputs ___________
-do_mcmc: False
+do_mcmc: True
 mcmc_options:
   num_steps: 1000
   num_walkers: 64
