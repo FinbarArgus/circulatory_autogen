@@ -441,8 +441,8 @@ class CSVFileParser(object):
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
         for II in range(csv_dataframe.shape[0]):
-            for column_name in csv_dataframe.columns:
-                entry = csv_dataframe[column_name][II]
+            for column_index, column_name in enumerate(csv_dataframe.columns):
+                entry = csv_dataframe.iat[II, column_index]
                 if type(entry) is not str:
                     sub_entries = []
                 else:
@@ -460,7 +460,8 @@ class CSVFileParser(object):
                     else:
                         new_entry = sub_entries[0].strip()
 
-                csv_dataframe.loc[II, column_name] = new_entry
+                # Use iat to avoid pandas trying to broadcast list-like values.
+                csv_dataframe.iat[II, column_index] = new_entry
 
         # for column_name in csv_dataframe.columns:
         #     if column_name == 'vessel_name':

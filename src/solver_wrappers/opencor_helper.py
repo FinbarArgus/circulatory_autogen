@@ -60,9 +60,7 @@ class SimulationHelper():
         except RuntimeError:
             print("Failed to converge")
             print('restarting simulation object')
-            self.simulation.reset()
-            self.simulation.release_all_values()
-            self.simulation.clear_results()
+            self.reset_and_clear()
             return False
 
         return True
