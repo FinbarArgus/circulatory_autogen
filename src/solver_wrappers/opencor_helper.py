@@ -48,6 +48,46 @@ class SimulationHelper():
         else:
             return self.tSim - self.tSim[0]
 
+    def _resolve_name(self, name):
+        """
+        Resolve parameter names that may include prefixes or separators.
+        Returns ("state"|"const", resolved_name) or (None, None).
+        """
+        name = str(name).strip()
+
+        def _match(candidate):
+            if candidate in self.data.states():
+                return ("state", candidate)
+            if candidate in self.data.constants():
+                return ("const", candidate)
+            return (None, None)
+
+        candidates = [name]
+        if "/" in name:
+            parts = name.split("/")
+            last = parts[-1]
+            first = parts[0]
+            candidates.append(last)
+            candidates.append(name.replace("/", "_"))
+            candidates.append(f"{first}_{last}")
+            candidates.append(f"{last}_{first}")
+            candidates.append(f"{first}{last}")
+            candidates.append(name.replace("/", ""))
+
+        # Strip common global prefixes
+        candidates += [c.replace("global_", "") for c in list(candidates)]
+        candidates += [c.replace("global/", "") for c in list(candidates)]
+
+        # Also try adding a global prefix if needed
+        candidates += [f"global/{c}" for c in list(candidates)]
+        candidates += [f"global_{c}" for c in list(candidates)]
+
+        for candidate in candidates:
+            kind, resolved = _match(candidate)
+            if kind is not None:
+                return (kind, resolved)
+        return (None, None)
+
     # inner psutil function # TODO only needed for memory checking
     def process_memory(self):
         process = self.resource_module.Process(os.getpid())
@@ -122,17 +162,15 @@ class SimulationHelper():
 
             param_init.append([])
             for param_name in param_name_or_list:
-                if param_name in self.data.states():
-                    param_init[JJ].append(self.data.states()[param_name])
-                elif param_name in self.data.constants():
-                    param_init[JJ].append(self.data.constants()[param_name])
+                kind, resolved = self._resolve_name(param_name)
+                if kind == "state":
+                    param_init[JJ].append(self.data.states()[resolved])
+                elif kind == "const":
+                    param_init[JJ].append(self.data.constants()[resolved])
                 else:
-                    print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                          f'The states are:')
-                    print([name for name in self.data.states()])
-                    print('the constants are:')
-                    print([name for name in self.data.constants()])
-                    exit()
+                    raise ValueError(
+                        f"parameter name {param_name} not found in OpenCOR states/constants"
+                    )
 
         return param_init
 
@@ -143,17 +181,15 @@ class SimulationHelper():
                 param_name_or_list = [param_name_or_list]
 
             for param_name in param_name_or_list:
-                if param_name in self.data.states():
-                    self.data.states()[param_name] = param_vals[JJ]
-                elif param_name in self.data.constants():
-                    self.data.constants()[param_name] = param_vals[JJ]
+                kind, resolved = self._resolve_name(param_name)
+                if kind == "state":
+                    self.data.states()[resolved] = param_vals[JJ]
+                elif kind == "const":
+                    self.data.constants()[resolved] = param_vals[JJ]
                 else:
-                    print(f'parameter name of {param_name} doesn\'t exist in either constants or states'
-                          f'The states are:')
-                    print([name for name in self.data.states()])
-                    print('the constants are:')
-                    print([name for name in self.data.constants()])
-                    exit()
+                    raise ValueError(
+                        f"parameter name {param_name} not found in OpenCOR states/constants"
+                    )
 
     def modify_params_and_run_and_get_results(self, param_names, mod_factors, obs_names, absolute=False):
 

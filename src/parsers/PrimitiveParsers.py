@@ -440,6 +440,8 @@ class CSVFileParser(object):
             csv_dataframe = pd.read_csv(filename, dtype=str, header=None, na_filter=False)
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
+        # Ensure object dtype so list-like assignments are allowed (pandas >=2.0 uses StringArray)
+        csv_dataframe = csv_dataframe.astype(object)
         for II in range(csv_dataframe.shape[0]):
             for column_index, column_name in enumerate(csv_dataframe.columns):
                 entry = csv_dataframe.iat[II, column_index]
