@@ -122,7 +122,7 @@ class SensitivityAnalysis():
         rank = comm.Get_rank()
         output_dir = self.SA_manager.output_dir
 
-        self.SA_manager.set_sa_info(sa_options)
+        self.SA_manager.set_sa_options(sa_options)
 
         if self.SA_manager.gt_df is None or self.SA_manager.param_id_info is None:
             print(f'{RED}ERROR: need to set ground truth data and params for id before running sobol sensitivity analysis{RESET}')

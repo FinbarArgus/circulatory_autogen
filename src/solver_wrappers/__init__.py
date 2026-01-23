@@ -14,6 +14,11 @@ try:
     from solver_wrappers.opencor_helper import SimulationHelper as OpenCORSimulationHelper
 except Exception:
     OpenCORSimulationHelper = None
+try:
+    from mpi4py import MPI
+    _MPI_AVAILABLE = True
+except Exception:
+    _MPI_AVAILABLE = False
 
 
 def get_simulation_helper(model_path: str = None, solver: str = None, 

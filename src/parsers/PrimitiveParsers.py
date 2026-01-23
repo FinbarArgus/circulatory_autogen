@@ -13,6 +13,14 @@ import json
 import copy
 import yaml
 import re
+try: 
+    from mpi4py import MPI
+except:
+    mpi_available = False
+    rank=0
+else:
+    mpi_available = True
+    rank = MPI.COMM_WORLD.Get_rank()
 
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
@@ -377,18 +385,16 @@ class YamlFileParser(object):
                         inp_data_dict['optimiser_options'][key] = value
         
         # Handle debug_optimiser_options (new preferred way)
-        # When DEBUG is True, debug_optimiser_options should override everything
-        if inp_data_dict['DEBUG']:
-            if 'debug_optimiser_options' in inp_data_dict.keys() and inp_data_dict['debug_optimiser_options'] is not None:
-                debug_opts = inp_data_dict['debug_optimiser_options']
-                if isinstance(debug_opts, dict):
-                    for key, value in debug_opts.items():
-                        # Debug optimiser options override everything (highest precedence)
-                        if key in inp_data_dict['optimiser_options']:
-                            if inp_data_dict['optimiser_options'][key] != value:
-                                print(f'Note: debug_optimiser_options["{key}"] overriding optimiser_options["{key}"] '
-                                      f'({inp_data_dict["optimiser_options"][key]} -> {value})')
-                        inp_data_dict['optimiser_options'][key] = value
+        # If provided, merge them into optimiser_options and allow overrides
+        if 'debug_optimiser_options' in inp_data_dict.keys() and inp_data_dict['debug_optimiser_options'] is not None:
+            debug_opts = inp_data_dict['debug_optimiser_options']
+            if isinstance(debug_opts, dict):
+                for key, value in debug_opts.items():
+                    if key in inp_data_dict['optimiser_options']:
+                        if inp_data_dict['optimiser_options'][key] != value:
+                            print(f'Note: debug_optimiser_options["{key}"] overriding optimiser_options["{key}"] '
+                                  f'({inp_data_dict["optimiser_options"][key]} -> {value})')
+                    inp_data_dict['optimiser_options'][key] = value
 
         # for generation only
     
@@ -713,7 +719,7 @@ class ObsAndParamDataParser(object):
             "prediction_info": prediction_info
         }
 
-    def process_obs_info(self, gt_df):
+    def process_obs_info(self, gt_df, output_dir, dt):
         """
         Generates the detailed obs_info dictionary, including names, units, 
         plotting defaults, operations, and kwargs from the ground truth dataframe.
@@ -805,68 +811,68 @@ class ObsAndParamDataParser(object):
 
         obs_info["cost_type"] = [gt_df.iloc[II].get("cost_type", "MSE") for II in range(N)]
 
-        obs_info = self.get_ground_truth_values(gt_df, obs_info)
+        obs_info = self.get_ground_truth_values(gt_df, obs_info, output_dir, dt)
         
         return obs_info
     
-    def get_ground_truth_values(self, gt_df, obs_info):
+    def get_ground_truth_values(self, gt_df, obs_info, output_dir, dt):
 
         # _______ First we access data for constant values
 
         # TODO make all of the below lists instead of arrays? So we can have different sized entries.
 
-        ground_truth_const = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "constant"])
+        ground_truth_const = np.array([gt_df.iloc[II]["value"] for II in range(gt_df.shape[0])
+                                        if gt_df.iloc[II]["data_type"] == "constant"])
 
         # _______ Then for time series
-        ground_truth_series = [np.array(self.gt_df.iloc[II]["value"]) for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"]
+        ground_truth_series = [np.array(gt_df.iloc[II]["value"]) for II in range(gt_df.shape[0])
+                                        if gt_df.iloc[II]["data_type"] == "series"]
 
         # _______ Then for frequency series
-        ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        ground_truth_amp = np.array([gt_df.iloc[II]["value"] for II in range(gt_df.shape[0])
+                                        if gt_df.iloc[II]["data_type"] == "frequency"])
 
         # then for ground truth probability distributions
-        ground_truth_prob_dist_params = np.array([self.gt_df.iloc[II]["prob_dist_params"] for II in range(self.gt_df.shape[0])
-                                            if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
+        ground_truth_prob_dist_params = np.array([gt_df.iloc[II]["prob_dist_params"] for II in range(gt_df.shape[0])
+                                            if gt_df.iloc[II]["data_type"] == "prob_dist"])
 
 
         # _______ and the phase of the freq data
         ground_truth_phase_list = []
-        for II in range(self.gt_df.shape[0]):
-            if self.gt_df.iloc[II]["data_type"] == "frequency":
-                if "phase" not in self.gt_df.iloc[II].keys():
+        for II in range(gt_df.shape[0]):
+            if gt_df.iloc[II]["data_type"] == "frequency":
+                if "phase" not in gt_df.iloc[II].keys():
                     ground_truth_phase_list.append(None)
                 else:
-                    ground_truth_phase_list.append(self.gt_df.iloc[II]["phase"])
+                    ground_truth_phase_list.append(gt_df.iloc[II]["phase"])
         ground_truth_phase = np.array(ground_truth_phase_list)
 
         # get the dt for the series data
         dt_list = []
-        for II in range(self.gt_df.shape[0]):
-            if self.gt_df.iloc[II]["data_type"] == "series":
-                if "obs_dt" not in self.gt_df.iloc[II].keys():
+        for II in range(gt_df.shape[0]):
+            if gt_df.iloc[II]["data_type"] == "series":
+                if "obs_dt" not in gt_df.iloc[II].keys():
                     print("dt not found in obs_data.json for series data, exiting")
                     exit()
-                dt_list.append(self.gt_df.iloc[II]["obs_dt"])
+                dt_list.append(gt_df.iloc[II]["obs_dt"])
         
         obs_info["obs_dt"] = np.array(dt_list)
         
         if len(obs_info["obs_dt"]) > 0:
-            if min(obs_info["obs_dt"]) < self.dt:
+            if min(obs_info["obs_dt"]) < dt:
                 print("one of the dt in obs_data.json is less than the dt in user_inputs.yaml, the output timestep"
                     "defined in user_inputs.yaml must be less than the smallest dt for your data. Exiting")
                 exit()
 
         # The std for the different observables
-        obs_info["std_const_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                       if self.gt_df.iloc[II]["data_type"] == "constant"])
+        obs_info["std_const_vec"] = np.array([gt_df.iloc[II]["std"] for II in range(gt_df.shape[0])
+                                       if gt_df.iloc[II]["data_type"] == "constant"])
 
-        obs_info["std_series_vec"] = [np.array(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"]
+        obs_info["std_series_vec"] = [np.array(gt_df.iloc[II]["std"]) for II in range(gt_df.shape[0])
+                                        if gt_df.iloc[II]["data_type"] == "series"]
 
-        obs_info["std_amp_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
+        obs_info["std_amp_vec"] = np.array([gt_df.iloc[II]["std"] for II in range(gt_df.shape[0])
+                                        if gt_df.iloc[II]["data_type"] == "frequency"])
 
         # if len(ground_truth_series) > 0:
             # TODO what if we have ground truths of different size or sample rate?
@@ -879,15 +885,15 @@ class ObsAndParamDataParser(object):
         if len(ground_truth_phase) > 0:
             ground_truth_phase = np.stack(ground_truth_phase)
 
-        if self.rank == 0:
-            np.save(os.path.join(self.output_dir, 'ground_truth_const.npy'), ground_truth_const)
+        if rank == 0:
+            np.save(os.path.join(output_dir, 'ground_truth_const.npy'), ground_truth_const)
             if len(ground_truth_series) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), 
+                np.save(os.path.join(output_dir, 'ground_truth_series.npy'), 
                         np.array(ground_truth_series, dtype=object), allow_pickle=True)
             if len(ground_truth_amp) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
+                np.save(os.path.join(output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
             if len(ground_truth_phase) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
+                np.save(os.path.join(output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
 
         obs_info["ground_truth_const"] = ground_truth_const
         obs_info["ground_truth_prob_dist_params"] = ground_truth_prob_dist_params
@@ -1015,23 +1021,70 @@ class ObsAndParamDataParser(object):
 
         csv_parser = CSVFileParser()
         input_params = csv_parser.get_data_as_dataframe_multistrings(params_for_id_path)
+        return self._build_param_id_info_from_df(input_params, idxs_to_ignore=idxs_to_ignore)
+
+    def get_param_id_info_from_entries(self, params_for_id_entries, idxs_to_ignore=None):
+        """
+        Build param_id_info from a list/dict of parameter entries.
+        Each entry should include: vessel_name, param_name, min, max.
+        """
+        if params_for_id_entries is None:
+            print('params_for_id_entries cannot be None, exiting')
+            return None
+
+        # Allow callers to pass a dict wrapper
+        if isinstance(params_for_id_entries, dict):
+            if "params_for_id_path" in params_for_id_entries:
+                return self.get_param_id_info(params_for_id_entries["params_for_id_path"],
+                                              idxs_to_ignore=idxs_to_ignore)
+            if "params" in params_for_id_entries:
+                params_for_id_entries = params_for_id_entries["params"]
+
+        if not isinstance(params_for_id_entries, list):
+            raise ValueError("params_for_id_entries must be a list of dicts or include params_for_id_path")
+
+        input_params = pd.DataFrame(params_for_id_entries)
+        return self._build_param_id_info_from_df(input_params, idxs_to_ignore=idxs_to_ignore)
+
+    def _build_param_id_info_from_df(self, input_params, idxs_to_ignore=None):
+        if input_params is None or input_params.empty:
+            raise ValueError("No parameter entries provided")
+
+        required_cols = {"vessel_name", "param_name", "min", "max"}
+        missing = required_cols - set(input_params.columns)
+        if missing:
+            raise ValueError(f"params_for_id is missing required columns: {sorted(list(missing))}")
+
+        input_params = input_params.copy()
+
+        def _to_list(val):
+            if isinstance(val, list):
+                return val
+            if val is None:
+                return []
+            if isinstance(val, float) and np.isnan(val):
+                return []
+            val_str = str(val).strip()
+            if val_str == "":
+                return []
+            return [entry.strip() for entry in val_str.split()]
+
+        input_params["vessel_name"] = input_params["vessel_name"].apply(_to_list)
 
         # --- 1. Filter the DataFrame first ---
         # Create a mask for indices to KEEP (not ignore)
         if idxs_to_ignore is not None:
             all_indices = set(range(input_params.shape[0]))
             valid_indices = sorted(list(all_indices - set(idxs_to_ignore)))
-            # Filter the DataFrame based on valid indices
-            # .copy() is used to avoid SettingWithCopyWarning, though reset_index usually handles this
             filtered_params = input_params.iloc[valid_indices].reset_index(drop=True)
         else:
-            filtered_params = input_params.copy()
-            
+            filtered_params = input_params.reset_index(drop=True)
+
         N_params = filtered_params.shape[0]
 
         param_id_info = {}
         param_names_for_gen = []
-        param_id_info["param_names"] = [] # The list of names to be stored
+        param_id_info["param_names"] = []
 
         # --- 2. Iterate ONLY over the filtered data ---
         for II in range(N_params):
@@ -1040,7 +1093,7 @@ class ObsAndParamDataParser(object):
 
             # A. Build the full, complex names (e.g., 'vessel_name/param_name')
             param_full_names = [
-                row["vessel_name"][JJ] + '/' + row["param_name"] 
+                row["vessel_name"][JJ] + '/' + row["param_name"]
                 for JJ in range(len(row["vessel_name"]))
             ]
             param_id_info["param_names"].append(param_full_names)
@@ -1050,35 +1103,31 @@ class ObsAndParamDataParser(object):
                 param_names_for_gen.append([row["param_name"]])
             else:
                 param_gen_names = [
-                    row["param_name"] + '_' + row["vessel_name"][JJ] 
+                    row["param_name"] + '_' + row["vessel_name"][JJ]
                     for JJ in range(len(row["vessel_name"]))
                 ]
                 param_names_for_gen.append(param_gen_names)
-        
-        # --- 3. Set Arrays using the filtered DataFrame (Simple Array Creation) ---
 
+        # --- 3. Set Arrays using the filtered DataFrame ---
         param_id_info["param_mins"] = filtered_params["min"].to_numpy(dtype=float)
         param_id_info["param_maxs"] = filtered_params["max"].to_numpy(dtype=float)
-        
-        # Plotting Names
+
         if "name_for_plotting" in filtered_params.columns:
             param_id_info["param_names_for_plotting"] = filtered_params["name_for_plotting"].to_numpy()
         else:
-            # Use the first element of the complex name list generated above
-            param_id_info["param_names_for_plotting"] = np.array([p_names[0] 
-                                                                    for p_names in param_id_info["param_names"]])
-        
-        # Priors
+            param_id_info["param_names_for_plotting"] = np.array([p_names[0]
+                                                                  for p_names in param_id_info["param_names"]])
+
         if "prior" in filtered_params.columns:
             param_id_info["param_prior_types"] = filtered_params["prior"].to_numpy()
         else:
             param_id_info["param_prior_types"] = np.array(["uniform"] * N_params)
 
         param_id_info["param_names_for_gen"] = param_names_for_gen
-        
+
         return param_id_info
 
-    def save_param_names(self, param_id_info, output_dir, rank=0):
+    def save_param_names(self, param_id_info, output_dir):
         """
         Saves the generated parameter names and generator names to CSV files.
         Requires the dictionary returned by _process_param_info.

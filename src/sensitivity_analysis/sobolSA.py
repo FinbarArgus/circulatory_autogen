@@ -109,12 +109,19 @@ class sobol_SA():
             # TODO should we include prediction info in SA?
             self.prediction_info = parsed_data["prediction_info"]
 
-            self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df)
+            self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
             self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
                 gt_df=self.gt_df,
                 protocol_info=self.protocol_info,
                 dt=self.dt
             )
+
+        if self.protocol_info is None:
+            self.protocol_info = {
+                "pre_times": [pre_time],
+                "sim_times": [[sim_time]],
+                "params_to_change": [[None]]
+            }
 
         # set up opencor simulation
         if self.protocol_info['sim_times'][0][0] is not None:
@@ -143,7 +150,7 @@ class sobol_SA():
         self.param_id_info = None
         if self.params_for_id_path:
             self.param_id_info = self.obs_and_param_parser.get_param_id_info(self.params_for_id_path)
-            self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir, self.rank)
+            self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
             # self.__set_and_save_param_names()
 
         if self.param_id_info is not None:
@@ -160,7 +167,7 @@ class sobol_SA():
         self.protocol_info = parsed_data["protocol_info"]
         self.prediction_info = parsed_data["prediction_info"]
 
-        self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df)
+        self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
         self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
             gt_df=self.gt_df,
             protocol_info=self.protocol_info,
@@ -170,8 +177,8 @@ class sobol_SA():
     
     def set_params_for_id(self, params_for_id_dict):
         print(f'Setting params for id: {params_for_id_dict}')
-        self.param_id_info = self.obs_and_param_parser.parse_obs_data(params_for_id_dict=params_for_id_dict)
-        self.obs_and_param_parser.save_param_names(self.param_id_info["param_names"], self.output_dir)
+        self.param_id_info = self.obs_and_param_parser.get_param_id_info_from_entries(params_for_id_dict)
+        self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
         self.create_SA_info(self.sample_type, self.SA_info["num_samples"])
         print(f'Params for id set: {self.param_id_info["param_names"]}')
 
@@ -199,6 +206,10 @@ class sobol_SA():
         self.num_params = len(SA_info["param_names"])
 
         return SA_info
+
+    def create_SA_info(self, sample_type, num_samples):
+        # Backwards compatibility alias
+        return self._create_SA_info(sample_type, num_samples)
 
 
     def initialise_sim_helper(self):
@@ -309,7 +320,7 @@ class sobol_SA():
 
                         self.sim_helper.reset_and_clear()
                     else:
-                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, subexp={subexp_count} after {retry_count} retries")
+                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals} after {retry_count} retries")
                         # Set a flag in operands_outputs_dict to indicate failure
                         operands_outputs_dict[(0, 0)] = {"failed": True}
 

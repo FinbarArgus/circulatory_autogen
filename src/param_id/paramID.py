@@ -96,6 +96,8 @@ class CVS0DParamID():
         else:
             self.solver_info = solver_info
         self.dt = dt
+        self.sim_time = sim_time
+        self.pre_time = pre_time
 
         if param_id_obs_path is None:
             date_str = date.today().strftime("%Y%m%d")
@@ -152,7 +154,7 @@ class CVS0DParamID():
             self.protocol_info = parsed_data["protocol_info"]
             self.prediction_info = parsed_data["prediction_info"]
 
-            self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df)
+            self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
             self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
                 gt_df=self.gt_df,
                 protocol_info=self.protocol_info,
@@ -161,7 +163,7 @@ class CVS0DParamID():
 
         if self.params_for_id_path:
             self.param_id_info = self.obs_and_param_parser.get_param_id_info(self.params_for_id_path)
-            self.obs_and_param_parser.save_param_names(self.param_id_info["param_names"], self.output_dir)
+            self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
 
         if self.optimiser_options is None:
             print("No optimiser options provided, using default options")
@@ -277,7 +279,7 @@ class CVS0DParamID():
         self.protocol_info = parsed_data["protocol_info"]
         self.prediction_info = parsed_data["prediction_info"]
 
-        self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df)
+        self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
         self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
             gt_df=self.gt_df,
             protocol_info=self.protocol_info,
@@ -289,8 +291,8 @@ class CVS0DParamID():
     
     def set_params_for_id(self, params_for_id_dict):
         print(f'Setting params for id: {params_for_id_dict}')
-        self.param_id_info = self.obs_and_param_parser.parse_obs_data(params_for_id_dict=params_for_id_dict)
-        self.obs_and_param_parser.save_param_names(self.param_id_info["param_names"], self.output_dir)
+        self.param_id_info = self.obs_and_param_parser.get_param_id_info_from_entries(params_for_id_dict)
+        self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
         self.param_id.set_param_id_info(self.param_id_info)
         print(f'Params for id set: {self.param_id_info["param_names"]}')
 
