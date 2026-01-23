@@ -308,7 +308,7 @@ class YamlFileParser(object):
                     inp_data_dict['sa_options']['output_dir'] = os.path.join(root_dir, 'sensitivity_outputs', inp_data_dict['sa_options']['output_dir']) 
             
             if not os.path.exists(inp_data_dict['sa_options']['output_dir']):
-                os.makedirs(inp_data_dict['sa_options']['output_dir'])
+                os.makedirs(inp_data_dict['sa_options']['output_dir'], exist_ok=True)
             
             if 'method' not in inp_data_dict['sa_options'].keys():
                 print('No method specified for sensitivity analysis, setting to sobol by default')
@@ -635,6 +635,467 @@ class JSONFileParser(object):
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]
 
+class ObsAndParamDataParser(object):
+    def __init__(self):
+        pass
+
+    def parse_obs_data_json(self, param_id_obs_path=None, obs_data_dict=None, pre_time=None, sim_time=None):
+        """
+        Loads the ground truth observation data from the JSON file and returns 
+        the core data structures: gt_df, protocol_info, and prediction_info.
+        """
+        
+        if param_id_obs_path is not None:
+            with open(param_id_obs_path, encoding='utf-8-sig') as rf:
+                json_obj = json.load(rf)
+        elif obs_data_dict is not None:
+            json_obj = obs_data_dict
+        else:
+            print("No obs data path or obs data dict provided, exiting")
+            return None
+
+        gt_df, protocol_info, prediction_info = None, None, None
+
+        # --- Case 1: Simple list of data items ---
+        if type(json_obj) == list:
+            gt_df = pd.DataFrame(json_obj)
+            protocol_info = {"pre_times": [pre_time], 
+                             "sim_times": [[sim_time]],
+                             "params_to_change": [[None]]}
+            prediction_info = {'names': [], 'units': [], 'names_for_plotting': [], 'experiment_idxs': []}
+            
+
+        # --- Case 2: Dictionary structure ---
+        elif type(json_obj) == dict:
+            # Load Data Items (gt_df)
+            if 'data_items' in json_obj.keys():
+                gt_df = pd.DataFrame(json_obj['data_items'])
+            elif 'data_item' in json_obj.keys():
+                gt_df = pd.DataFrame(json_obj['data_item']) 
+            else:
+                print("data_items not found in json object. ",
+                      "Please check that data_items is the key for the list of data items")
+
+            # Load Protocol Info
+            if 'protocol_info' in json_obj.keys():
+                protocol_info = json_obj['protocol_info']
+                if "sim_times" not in protocol_info: protocol_info["sim_times"] = [[sim_time]]
+                if "pre_times" not in protocol_info: protocol_info["pre_times"] = [pre_time]
+            else:
+                if pre_time is None or sim_time is None:
+                    print("protocol_info not found in json object. ",
+                          "If this is the case sim_time and pre_time must be set",
+                          "in the user_inputs.yaml file")
+                    exit()
+                protocol_info = {"pre_times": [pre_time], "sim_times": [[sim_time]], "params_to_change": [[None]]}
+
+            # Load Prediction Info
+            if 'prediction_items' in json_obj.keys():
+                prediction_info = {'names': [], 'units': [], 'names_for_plotting': [], 'experiment_idxs': []}
+                for entry in json_obj['prediction_items']:
+                    if 'variable' not in entry: print('"variable" missing, exiting'); exit()
+                    if 'unit' not in entry: print('"unit" missing, exiting'); exit()
+                    
+                    prediction_info['names'].append(entry['variable'])
+                    prediction_info['units'].append(entry['unit'])
+                    prediction_info['names_for_plotting'].append(entry.get('name_for_plotting', entry['variable']))
+                    prediction_info['experiment_idxs'].append(entry.get('experiment_idx', 0))
+            else:
+                prediction_info = None
+            
+        else:
+            print(f"Error: unknown data type for imported json object of {type(json_obj)}")
+            return None
+        
+        return {
+            "gt_df": gt_df, 
+            "protocol_info": protocol_info, 
+            "prediction_info": prediction_info
+        }
+
+    def process_obs_info(self, gt_df):
+        """
+        Generates the detailed obs_info dictionary, including names, units, 
+        plotting defaults, operations, and kwargs from the ground truth dataframe.
+        """
+        obs_info = {}
+        
+        # --- Simple Array Generation ---
+        N = gt_df.shape[0]
+        
+        obs_info["obs_names"] = gt_df["variable"].tolist()
+        obs_info["data_types"] = gt_df["data_type"].tolist()
+        obs_info["units"] = gt_df["unit"].tolist()
+        obs_info["experiment_idxs"] = [gt_df.iloc[II].get("experiment_idx", 0) for II in range(N)]
+        obs_info["subexperiment_idxs"] = [gt_df.iloc[II].get("subexperiment_idx", 0) for II in range(N)]
+
+        # --- Plotting Colors ---
+        possible_colors = ['b', 'g', 'c', 'm', 'y', 'tab:brown', 'tab:pink', 'tab:olive', 'tab:orange']
+        obs_info["plot_colors"] = [gt_df.iloc[II].get("plot_color", possible_colors[II % len(possible_colors)]) 
+                                        for II in range(N)]
+        
+        # --- Plotting Type Defaults (Logic preserved) ---
+        obs_info["plot_type"] = []
+        warning_printed = False
+        for II in range(N):
+            if "plot_type" not in gt_df.iloc[II].keys():
+                if gt_df.iloc[II]["data_type"] == "constant":
+                    if not warning_printed:
+                        print('constant data types plot type defaults to horizontal lines',
+                            'change "plot_type" in obs_data.json to change this')
+                        warning_printed = True
+                    obs_info["plot_type"].append("horizontal")
+                elif gt_df.iloc[II]["data_type"] == "prob_dist":
+                    if not warning_printed:
+                        print('prob_dist data types plot type defaults to horizontal lines',
+                            'change "plot_type" in obs_data.json to change this')
+                        warning_printed = True
+                    obs_info["plot_type"].append("horizontal")
+                elif gt_df.iloc[II]["data_type"] == "series":
+                    obs_info["plot_type"].append("series")
+                elif gt_df.iloc[II]["data_type"] == "frequency":
+                    obs_info["plot_type"].append("frequency")
+                elif gt_df.iloc[II]["data_type"] == "plot_dist":
+                    obs_info["plot_type"].append("horizontal")
+                else:
+                    print(f'data type {gt_df.iloc[II]["data_type"]} not recognised')
+            else:
+                obs_info["plot_type"].append(gt_df.iloc[II]["plot_type"])
+                if obs_info["plot_type"][II] in ["None", "null", "Null", "none", "NONE"]:
+                    obs_info["plot_type"][II] = None
+
+        # --- Operations (Mapping obs_type to operation) ---
+        obs_info["operations"] = []
+        obs_info["operands"] = []
+        obs_info["operation_kwargs"] = [gt_df.iloc[II].get("operation_kwargs", {}) for II in range(N)]
+        obs_info["freqs"] = [gt_df.iloc[II].get("frequencies") for II in range(N)]
+        obs_info["names_for_plotting"] = [gt_df.iloc[II].get("name_for_plotting", obs_info["obs_names"][II]) for II in range(N)]
+
+        for II in range(N):
+            op = gt_df.iloc[II].get("operation")
+            obs_type = gt_df.iloc[II].get("obs_type")
+            operands = gt_df.iloc[II].get("operands")
+
+            if op in ["Null", "None", "null", "none", "", "nan", np.nan, None]:
+                if obs_type in ["series", "frequency"]:
+                    obs_info["operations"].append(None)
+                    obs_info["operands"].append(operands)
+                elif obs_type in ["min", "max", "mean"]: 
+                    obs_info["operations"].append(obs_type)
+                    obs_info["operands"].append([gt_df.iloc[II]["variable"]])
+                else:
+                    obs_info["operations"].append(None)
+                    obs_info["operands"].append(operands)
+            else:
+                obs_info["operations"].append(op)
+                obs_info["operands"].append(operands)
+
+        # --- Weights and Cost Types ---
+        weights = gt_df["weight"].to_numpy()
+        data_types = np.array(obs_info["data_types"])
+        
+        obs_info["num_obs"] = N
+        obs_info["weight_const_vec"] = weights[data_types == "constant"]
+        obs_info["weight_series_vec"] = weights[data_types == "series"]
+        obs_info["weight_amp_vec"] = weights[data_types == "frequency"]
+        obs_info["weight_prob_dist_vec"] = weights[data_types == "prob_dist"]
+
+        phase_weights = gt_df.get("phase_weight", pd.Series([1] * N))
+        obs_info["weight_phase_vec"] = phase_weights[data_types == "frequency"].to_numpy()
+
+        obs_info["cost_type"] = [gt_df.iloc[II].get("cost_type", "MSE") for II in range(N)]
+
+        obs_info = self.get_ground_truth_values(gt_df, obs_info)
+        
+        return obs_info
+    
+    def get_ground_truth_values(self, gt_df, obs_info):
+
+        # _______ First we access data for constant values
+
+        # TODO make all of the below lists instead of arrays? So we can have different sized entries.
+
+        ground_truth_const = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "constant"])
+
+        # _______ Then for time series
+        ground_truth_series = [np.array(self.gt_df.iloc[II]["value"]) for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"]
+
+        # _______ Then for frequency series
+        ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
+
+        # then for ground truth probability distributions
+        ground_truth_prob_dist_params = np.array([self.gt_df.iloc[II]["prob_dist_params"] for II in range(self.gt_df.shape[0])
+                                            if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
+
+
+        # _______ and the phase of the freq data
+        ground_truth_phase_list = []
+        for II in range(self.gt_df.shape[0]):
+            if self.gt_df.iloc[II]["data_type"] == "frequency":
+                if "phase" not in self.gt_df.iloc[II].keys():
+                    ground_truth_phase_list.append(None)
+                else:
+                    ground_truth_phase_list.append(self.gt_df.iloc[II]["phase"])
+        ground_truth_phase = np.array(ground_truth_phase_list)
+
+        # get the dt for the series data
+        dt_list = []
+        for II in range(self.gt_df.shape[0]):
+            if self.gt_df.iloc[II]["data_type"] == "series":
+                if "obs_dt" not in self.gt_df.iloc[II].keys():
+                    print("dt not found in obs_data.json for series data, exiting")
+                    exit()
+                dt_list.append(self.gt_df.iloc[II]["obs_dt"])
+        
+        obs_info["obs_dt"] = np.array(dt_list)
+        
+        if len(obs_info["obs_dt"]) > 0:
+            if min(obs_info["obs_dt"]) < self.dt:
+                print("one of the dt in obs_data.json is less than the dt in user_inputs.yaml, the output timestep"
+                    "defined in user_inputs.yaml must be less than the smallest dt for your data. Exiting")
+                exit()
+
+        # The std for the different observables
+        obs_info["std_const_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+                                       if self.gt_df.iloc[II]["data_type"] == "constant"])
+
+        obs_info["std_series_vec"] = [np.array(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "series"]
+
+        obs_info["std_amp_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
+                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
+
+        # if len(ground_truth_series) > 0:
+            # TODO what if we have ground truths of different size or sample rate?
+            # ground_truth_series = np.stack(ground_truth_series)
+            # removed because we have data of different sizes
+
+        if len(ground_truth_amp) > 0:
+            ground_truth_amp = np.stack(ground_truth_amp)
+
+        if len(ground_truth_phase) > 0:
+            ground_truth_phase = np.stack(ground_truth_phase)
+
+        if self.rank == 0:
+            np.save(os.path.join(self.output_dir, 'ground_truth_const.npy'), ground_truth_const)
+            if len(ground_truth_series) > 0:
+                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), 
+                        np.array(ground_truth_series, dtype=object), allow_pickle=True)
+            if len(ground_truth_amp) > 0:
+                np.save(os.path.join(self.output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
+            if len(ground_truth_phase) > 0:
+                np.save(os.path.join(self.output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
+
+        obs_info["ground_truth_const"] = ground_truth_const
+        obs_info["ground_truth_prob_dist_params"] = ground_truth_prob_dist_params
+        obs_info["ground_truth_series"] = ground_truth_series
+        obs_info["ground_truth_amp"] = ground_truth_amp
+        obs_info["ground_truth_phase"] = ground_truth_phase
+
+        # create a mapping between const_idx and the obs_idx
+        const_count = 0
+        series_count = 0
+        freq_count = 0
+        prob_dist_count = 0
+        obs_info["const_idx_to_obs_idx"] = []
+        obs_info["series_idx_to_obs_idx"] = []
+        obs_info["freq_idx_to_obs_idx"] = []
+        obs_info["prob_dist_idx_to_obs_idx"] = []
+        for obs_idx in range(obs_info["num_obs"]):
+            if obs_info["data_types"][obs_idx] == "constant":
+                obs_info["const_idx_to_obs_idx"].append(obs_idx)
+                const_count += 1
+            elif obs_info["data_types"][obs_idx] == "series":
+                obs_info["series_idx_to_obs_idx"].append(obs_idx)
+                series_count += 1
+            elif obs_info["data_types"][obs_idx] == "frequency":
+                obs_info["freq_idx_to_obs_idx"].append(obs_idx)
+                freq_count += 1
+            elif obs_info["data_types"][obs_idx] == "prob_dist":
+                obs_info["prob_dist_idx_to_obs_idx"].append(obs_idx)
+                prob_dist_count += 1
+
+        return obs_info
+
+    def process_protocol_and_weights(self, gt_df, protocol_info, dt):
+        """
+        Calculates time totals, validates protocol labels/colors, and generates 
+        the scaled weight maps for experiment/subexperiment cost calculation.
+        """
+        protocol = protocol_info
+        df = gt_df
+        
+        # --- Protocol Info Preprocessing ---
+        protocol['num_experiments'] = len(protocol["sim_times"])
+        protocol['num_sub_per_exp'] = [len(protocol["sim_times"][exp_idx]) for exp_idx in range(protocol["num_experiments"])]
+        protocol['num_sub_total'] = sum(protocol['num_sub_per_exp'])
+        
+        protocol["total_sim_times_per_exp"] = []
+        protocol["tSims_per_exp"] = []
+        protocol["num_steps_total_per_exp"] = []
+
+        for exp_idx in range(protocol['num_experiments']):
+            total_sim_time = np.sum(protocol["sim_times"][exp_idx])
+            num_steps_total = int(total_sim_time / dt)
+            tSim_per_exp = np.linspace(0.0, total_sim_time, num_steps_total + 1)
+            
+            protocol["total_sim_times_per_exp"].append(total_sim_time)
+            protocol["tSims_per_exp"].append(tSim_per_exp)
+            protocol["num_steps_total_per_exp"].append(num_steps_total)
+            
+        # --- Protocol Info Validation ---
+        N_exp = protocol['num_experiments']
+        
+        if "experiment_colors" not in protocol:
+            protocol["experiment_colors"] = ['r'] * N_exp
+        elif len(protocol["experiment_colors"]) != N_exp:
+            print('Error: experiment_colors length does not match num_experiments, exiting')
+            exit()
+            
+        if "experiment_labels" not in protocol:
+            protocol["experiment_labels"] = [None] * N_exp
+        elif len(protocol["experiment_labels"]) != N_exp:
+            print('Error: experiment_labels length does not match num_experiments, exiting')
+            exit()
+
+        # --- Weight Mapping Initialization ---
+        
+        # Ensure experiment_idx and subexperiment_idx exist in the DataFrame
+        # IMPORTANT: These columns must be added safely if they don't exist
+        df["experiment_idx"] = df.apply(lambda row: row.get("experiment_idx", 0), axis=1)
+        df["subexperiment_idx"] = df.apply(lambda row: row.get("subexperiment_idx", 0), axis=1)
+
+        # Initialize nested lists for weight maps (one list per data type)
+        const_map = [[[] for _ in range(protocol['num_sub_per_exp'][exp_idx])] for exp_idx in range(N_exp)]
+        series_map = [[[] for _ in range(protocol['num_sub_per_exp'][exp_idx])] for exp_idx in range(N_exp)]
+        amp_map = [[[] for _ in range(protocol['num_sub_per_exp'][exp_idx])] for exp_idx in range(N_exp)]
+        phase_map = [[[] for _ in range(protocol['num_sub_per_exp'][exp_idx])] for exp_idx in range(N_exp)]
+        prob_dist_map = [[[] for _ in range(protocol['num_sub_per_exp'][exp_idx])] for exp_idx in range(N_exp)]
+
+        
+        # --- Calculate Scaled Weight Maps ---
+        
+        for exp_idx in range(N_exp):
+            for this_sub_idx in range(protocol['num_sub_per_exp'][exp_idx]):
+                
+                # Mask to find observations belonging to the current experiment/subexperiment
+                mask = (df["experiment_idx"] == exp_idx) & (df["subexperiment_idx"] == this_sub_idx)
+                
+                # Iterate over all possible data types
+                for data_type, weight_map in [
+                    ("constant", const_map), ("series", series_map), ("frequency", amp_map), ("prob_dist", prob_dist_map)
+                ]:
+                    # Create the full weight vector (Weight if matched, 0.0 otherwise)
+                    full_weights = np.where(mask & (df["data_type"] == data_type), df["weight"], 0.0)
+                    weight_map[exp_idx][this_sub_idx] = full_weights
+                
+                # Handle phase map separately
+                freq_mask = mask & (df["data_type"] == "frequency")
+                # Use "phase_weight" if present, otherwise use "weight", or 0.0
+                phase_weights = np.where(freq_mask, df.apply(lambda row: row.get("phase_weight", row["weight"]), axis=1), 0.0)
+                phase_map[exp_idx][this_sub_idx] = phase_weights
+
+        # --- Store Final Maps in protocol_info ---
+        protocol["scaled_weight_const_from_exp_sub"] = const_map
+        protocol["scaled_weight_series_from_exp_sub"] = series_map
+        protocol["scaled_weight_amp_from_exp_sub"] = amp_map
+        protocol["scaled_weight_phase_from_exp_sub"] = phase_map
+        protocol["scaled_weight_prob_dist_from_exp_sub"] = prob_dist_map
+        
+        return protocol
+    
+    def get_param_id_info(self, params_for_id_path, idxs_to_ignore= None):
+    
+        if not params_for_id_path:
+            print(f'params_for_id_path cannot be None, exiting')
+            return None
+
+        csv_parser = CSVFileParser()
+        input_params = csv_parser.get_data_as_dataframe_multistrings(params_for_id_path)
+
+        # --- 1. Filter the DataFrame first ---
+        # Create a mask for indices to KEEP (not ignore)
+        if idxs_to_ignore is not None:
+            all_indices = set(range(input_params.shape[0]))
+            valid_indices = sorted(list(all_indices - set(idxs_to_ignore)))
+            # Filter the DataFrame based on valid indices
+            # .copy() is used to avoid SettingWithCopyWarning, though reset_index usually handles this
+            filtered_params = input_params.iloc[valid_indices].reset_index(drop=True)
+        else:
+            filtered_params = input_params.copy()
+            
+        N_params = filtered_params.shape[0]
+
+        param_id_info = {}
+        param_names_for_gen = []
+        param_id_info["param_names"] = [] # The list of names to be stored
+
+        # --- 2. Iterate ONLY over the filtered data ---
+        for II in range(N_params):
+            # Current row data from the filtered DataFrame
+            row = filtered_params.iloc[II]
+
+            # A. Build the full, complex names (e.g., 'vessel_name/param_name')
+            param_full_names = [
+                row["vessel_name"][JJ] + '/' + row["param_name"] 
+                for JJ in range(len(row["vessel_name"]))
+            ]
+            param_id_info["param_names"].append(param_full_names)
+
+            # B. Build the simplified names for generator/code
+            if row["vessel_name"][0] == 'global':
+                param_names_for_gen.append([row["param_name"]])
+            else:
+                param_gen_names = [
+                    row["param_name"] + '_' + row["vessel_name"][JJ] 
+                    for JJ in range(len(row["vessel_name"]))
+                ]
+                param_names_for_gen.append(param_gen_names)
+        
+        # --- 3. Set Arrays using the filtered DataFrame (Simple Array Creation) ---
+
+        param_id_info["param_mins"] = filtered_params["min"].to_numpy(dtype=float)
+        param_id_info["param_maxs"] = filtered_params["max"].to_numpy(dtype=float)
+        
+        # Plotting Names
+        if "name_for_plotting" in filtered_params.columns:
+            param_id_info["param_names_for_plotting"] = filtered_params["name_for_plotting"].to_numpy()
+        else:
+            # Use the first element of the complex name list generated above
+            param_id_info["param_names_for_plotting"] = np.array([p_names[0] 
+                                                                    for p_names in param_id_info["param_names"]])
+        
+        # Priors
+        if "prior" in filtered_params.columns:
+            param_id_info["param_prior_types"] = filtered_params["prior"].to_numpy()
+        else:
+            param_id_info["param_prior_types"] = np.array(["uniform"] * N_params)
+
+        param_id_info["param_names_for_gen"] = param_names_for_gen
+        
+        return param_id_info
+
+    def save_param_names(self, param_id_info, output_dir, rank=0):
+        """
+        Saves the generated parameter names and generator names to CSV files.
+        Requires the dictionary returned by _process_param_info.
+        """
+        if rank == 0:
+            # 1. Save param_names (vessel_name/param_name format)
+            param_names_path = os.path.join(output_dir, 'param_names.csv')
+            with open(param_names_path, 'w', newline='') as f:
+                wr = csv.writer(f)
+                wr.writerows(param_id_info["param_names"])
+            
+            # 2. Save param_names_for_gen (simplified format)
+            param_gen_path = os.path.join(output_dir, 'param_names_for_gen.csv')
+            with open(param_gen_path, 'w', newline='') as f:
+                wr = csv.writer(f)
+                wr.writerows(param_id_info["param_names_for_gen"])
+        return
 
 
 
