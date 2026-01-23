@@ -152,6 +152,31 @@ if __name__ == '__main__':
         success = generate_with_new_architecture(False, inp_data_dict)
         gen_success_list.append(('aortic_bif_1d_cpp', success))
 
+        inp_data_dict['solver'] = 'CVODE'
+
+        print('')
+        print('running aortic_bif_hybrid #1 cpp autogeneration test')
+        inp_data_dict['file_prefix'] = 'aortic_bif_hybrid_V1'
+        inp_data_dict['input_param_file'] = 'aortic_bif_hybrid_V1_parameters.csv'
+        inp_data_dict['cpp_generated_models_dir'] = '/tmp'
+        inp_data_dict['cpp_1d_model_config_path'] = None # TODO this isn't used yet.
+        success = generate_with_new_architecture(False, inp_data_dict)
+        gen_success_list.append(('aortic_bif_hybrid_V1_cpp', success))
+
+        inp_data_dict['solver'] = 'PETSC'
+
+        print('')
+        print('running aortic_bif_hybrid #2 cpp autogeneration test')
+        inp_data_dict['file_prefix'] = 'aortic_bif_hybrid_V2'
+        inp_data_dict['input_param_file'] = 'aortic_bif_hybrid_V2_parameters.csv'
+        inp_data_dict['cpp_generated_models_dir'] = '/tmp'
+        inp_data_dict['cpp_1d_model_config_path'] = None # TODO this isn't used yet.
+        success = generate_with_new_architecture(False, inp_data_dict)
+        gen_success_list.append(('aortic_bif_hybrid_V2_cpp', success))
+
+        inp_data_dict['solver'] = 'CVODE'
+
+        print('')
         print("standard autogeneration tests complete. ",
               "Checking to see if CA_users directory exists for extra tests.")
         # Now test the CA_users directory
@@ -171,6 +196,7 @@ if __name__ == '__main__':
         else:
             print('CA_users directory does not exist, skipping CA_users autogeneration tests')
 
+        print('')
         print("autogeneration tests complete. Printing results:")
         for model_name, success in gen_success_list:
             if success:

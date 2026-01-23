@@ -16,7 +16,7 @@ user_inputs_dir= os.path.join(root_dir, 'user_run_files')
 
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
-from generators.CVSCppGenerator import CVS0DCppGenerator
+from generators.CVSCppGenerator import CVS0DCppGenerator, CVS1DPythonGenerator
 from parsers.PrimitiveParsers import YamlFileParser
 
 
@@ -30,52 +30,160 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     DEBUG = inp_data_dict['DEBUG']
     file_prefix = inp_data_dict['file_prefix']
     resources_dir = inp_data_dict['resources_dir']
-    resources_dir = inp_data_dict['resources_dir']
+    # resources_dir = inp_data_dict['resources_dir']
     generated_models_dir = inp_data_dict['generated_models_dir']
     generated_models_subdir = inp_data_dict['generated_models_subdir']
     vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
     parameters_csv_abs_path = inp_data_dict['parameters_csv_abs_path']
+    
+
+    file_prefix_0d = None
+    file_prefix_1d = None
+    if (inp_data_dict['model_type'] == 'cpp' and inp_data_dict['couple_to_1d']):
+        file_prefix_0d = file_prefix + '_0d'
+        file_prefix_1d = file_prefix + '_1d'
+        # inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix_0d + '_vessel_array.csv')
+        # vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
 
 
     if do_generation_with_fit_parameters:
         param_id_output_dir_abs_path = inp_data_dict['param_id_output_dir_abs_path']
         parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
-                                  param_id_output_dir_abs_path)
+                                file_prefix_0d, file_prefix_1d,
+                                param_id_output_dir_abs_path)
     else:
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path)
+        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
+                                file_prefix_0d, file_prefix_1d)
 
     model = parser.load_model()
 
+    print("Check point 0")
+    print("\n")
 
     if inp_data_dict['model_type'] == 'cellml_only':
         code_generator = CVS0DCellMLGenerator(model, generated_models_subdir, file_prefix,
                                           resources_dir=resources_dir)
         success = code_generator.generate_files()
     elif inp_data_dict['model_type'] == 'cpp':
-        if inp_data_dict['couple_to_1d']:
-            code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix,
-                                            resources_dir=resources_dir, solver=inp_data_dict['solver'], 
-                                            couple_to_1d=inp_data_dict['couple_to_1d'],
-                                            cpp_generated_models_dir=inp_data_dict['cpp_generated_models_dir'],
-                                            cpp_1d_model_config_path=inp_data_dict['cpp_1d_model_config_path'])
+        if 'dt' in inp_data_dict:
+            dtSample = inp_data_dict['dt']
         else:
+            dtSample = 1.0e-3
+
+        if 'solver_info' in inp_data_dict:
+            if 'MaximumStep' in inp_data_dict['solver_info']:
+                dtSolver = inp_data_dict['solver_info']['MaximumStep']
+            else:
+                dtSolver = 1.0e-4
+            if 'MaximumNumberOfSteps' in inp_data_dict['solver_info']:
+                nMaxSteps = inp_data_dict['solver_info']['MaximumNumberOfSteps']
+            else:
+                nMaxSteps = 5000
+        else:
+            dtSolver = 1.0e-4
+            nMaxSteps = 5000
+
+        if inp_data_dict['couple_to_1d']:
+            # object from class CVS0DCppGenerator
+            if 'create_main_0d' in inp_data_dict:
+                create_main_0d = inp_data_dict['create_main_0d']
+            else:
+                create_main_0d = False
+            if 'model_1d_config_path' in inp_data_dict:
+                model_1d_config_path = inp_data_dict['model_1d_config_path']
+            else:
+                if 'cpp_1d_model_config_path' in inp_data_dict:
+                    model_1d_config_path = inp_data_dict['cpp_1d_model_config_path']
+                else:
+                    print("No model_1d_config_path or cpp_1d_model_config_path found in inp_data_dict")
+                    exit()
+            if 'cpp_generated_models_dir' in inp_data_dict:
+                cpp_generated_models_dir = inp_data_dict['cpp_generated_models_dir']
+            else:
+                cpp_generated_models_dir = None
+
+            if 'generate_1d' in inp_data_dict:
+                generate_1d = inp_data_dict['generate_1d']
+            else:
+                generate_1d = False
+            if not generate_1d:
+                print("WARNING: 1D model input files and solver will not be generated. Check they already exist and they run properly.")
+                print("     Otherwise, modify your choice in the user input yaml file.")
+                
+            print("Check point 1A")
+
+            code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix_0d, #XXX
+                                            resources_dir=resources_dir, solver=inp_data_dict['solver'], 
+                                            dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps,
+                                            couple_to_1d=inp_data_dict['couple_to_1d'],
+                                            cpp_generated_models_dir=cpp_generated_models_dir,
+                                            model_1d_config_path=model_1d_config_path,
+                                            create_main_0d=create_main_0d,
+                                            conn_1d_0d_info=parser.conn_1d_0d_info)
+            
+            print("Check point 2A")
+            
+            code1d_generator = None
+            if generate_1d:
+                vessels1d_csv_abs_path = inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix_1d + '_vessel_array.csv')
+                if 'solver_1d_type' in inp_data_dict:
+                    if inp_data_dict['solver_1d_type'].startswith('py'):
+                        code1d_generator = CVS1DPythonGenerator(model, file_prefix_1d, vessels1d_csv_abs_path, parameters_csv_abs_path,
+                                                        model_1d_config_path, generated_models_subdir, 
+                                                        cpp_generated_models_dir=cpp_generated_models_dir,
+                                                        solver=inp_data_dict['solver'], dtSample=dtSample, dtSolver=dtSolver, 
+                                                        conn_1d_0d_info=parser.conn_1d_0d_info)
+                    elif inp_data_dict['solver_1d_type'].startswith('cpp'):
+                        #XXX This would use the class CVS1DCppGenerator() that Finbar was working on.
+                        sys.exit('ERROR :: Class for generating Cpp files for 1D model not yet implemeneted. Please change your 1D solver type.')
+                else:
+                    sys.exit('ERROR :: solver_1d_type not found in user input yaml file. Please specify your 1D solver type.')
+
+            print("Check point 3A")
+    
+        else:
+            # object from class CVS0DCppGenerator
+            print("Check point 1B")
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix,
-                                            resources_dir=resources_dir, solver=inp_data_dict['solver'])
+                                            resources_dir=resources_dir, solver=inp_data_dict['solver'],
+                                            dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps)
+            print("Check point 2B")
+
 
         code_generator.generate_cellml()
+        print("Check point 3")
         code_generator.annotate_cellml()
-        success = code_generator.generate_cpp()
+        print("Check point 4")
+        success0d = code_generator.generate_cpp()
+        print(f"Check point with success (0d) {success0d}")
+        
+        success1d = True
+        if inp_data_dict['couple_to_1d']:
+            if generate_1d:
+                success1d = code1d_generator.generate_files()
+        print(f"Check point with success (1d) {success1d}")
+
+        if success0d and success1d:
+            success = True
+        else:
+            success = False
 
     else: 
         print('model_type must be either cellml_only or cpp, not ' + inp_data_dict['model_type'])
-        exit()
-        
+        success = False
+    
     return success
 
 
 if __name__ == '__main__':
     try:
         do_generation_with_fit_parameters = sys.argv[1] in ['true', 'True']
+        # if len(sys.argv) > 2 and sys.argv[2] not in ["None", "none"]:
+        #     inp_data_dict = sys.argv[2]
+        #     print(inp_data_dict)
+        #     generate_with_new_architecture(do_generation_with_fit_parameters, inp_data_dict=inp_data_dict)
+        # else:
+        #     generate_with_new_architecture(do_generation_with_fit_parameters)
         generate_with_new_architecture(do_generation_with_fit_parameters)
 
     except:
