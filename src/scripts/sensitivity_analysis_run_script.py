@@ -25,7 +25,7 @@ def run_SA(inp_data_dict=None):
     #                                DEBUG=DEBUG, model_out_names=model_out_names, solver_info=solver_info, dt=dt, 
     #                                ga_options=optimiser_options, param_id_obs_path=param_id_obs_path, params_for_id_path=params_for_id_path)
     SA_agent = SensitivityAnalysis.from_dict(inp_data_dict)
-    SA_agent.run_sensitivity_analysis(inp_data_dict['sa_options'])
+    SA_agent.run_sensitivity_analysis()
 
 if __name__ == '__main__':
     comm = MPI.COMM_WORLD

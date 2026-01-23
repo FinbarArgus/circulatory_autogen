@@ -53,7 +53,7 @@ class sobol_SA():
         if self._is_rank0():
             print(*args, **kwargs)
 
-    def __init__(self, model_path, model_out_names, solver_info, SA_cfg, dt, save_path, 
+    def __init__(self, model_path, model_out_names, solver_info, SA_info, dt, save_path, 
                  param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, ga_options=None,
                  sim_time=2.0, pre_time=20.0):
 
@@ -63,7 +63,7 @@ class sobol_SA():
             model_path (str): Path to the model file.
             model_out_names (list): Names of the model outputs to be analyzed.
             solver_info (dict): Solver configuration parameters.
-            SA_cfg (dict): Configuration for sensitivity analysis, including sample type, number of samples,
+            SA_info (dict): Configuration for sensitivity analysis, including sample type, number of samples,
                            parameter names, and their bounds.
             protocol_info (dict): Information about the simulation protocol, including simulation times and pre-times.
             dt (float): Time step for the simulation.
@@ -77,8 +77,8 @@ class sobol_SA():
         self.save_path = save_path
 
         self.solver_info = solver_info
-        self.SA_cfg = SA_cfg
-        self.sample_type = self.SA_cfg["sample_type"]
+        self.SA_info = SA_info
+        self.sample_type = self.SA_info["sample_type"]
         self.num_params = None
         self.model_output_names = model_out_names
         # For backwards compatibility, accept both ga_options and optimiser_options
@@ -147,7 +147,7 @@ class sobol_SA():
             # self.__set_and_save_param_names()
 
         if self.param_id_info is not None:
-            self.SA_cfg = self.create_SA_cfg(self.sample_type, self.SA_cfg["num_samples"])
+            self.SA_info = self.create_SA_info(self.sample_type, self.SA_info["num_samples"])
     
     def set_ground_truth_data(self, obs_data_dict):
         print(f'Setting ground truth data: {obs_data_dict}')
@@ -172,16 +172,19 @@ class sobol_SA():
         print(f'Setting params for id: {params_for_id_dict}')
         self.param_id_info = self.obs_and_param_parser.parse_obs_data(params_for_id_dict=params_for_id_dict)
         self.obs_and_param_parser.save_param_names(self.param_id_info["param_names"], self.output_dir)
-        self.create_SA_cfg(self.sample_type, self.SA_cfg["num_samples"])
+        self.create_SA_info(self.sample_type, self.SA_info["num_samples"])
         print(f'Params for id set: {self.param_id_info["param_names"]}')
 
-    def create_SA_cfg(self, sample_type, num_samples):
+    def set_sa_options(self, sa_options):
+        self.SA_info = self._create_SA_info(sa_options['sample_type'], sa_options['num_samples'])
+
+    def _create_SA_info(self, sample_type, num_samples):
         
-        # Use param_id_info to build SA_cfg dynamically
+        # Use param_id_info to build SA_info dynamically
         if not hasattr(self, "param_id_info") or not self.param_id_info:
             raise ValueError("param_id_info is not set. Please run __set_and_save_param_names() first.")
 
-        SA_cfg = {
+        SA_info = {
             "sample_type": sample_type,
             "param_names": [name[0] if isinstance(name, list) else name for name in self.param_id_info["param_names"]],
             "num_samples": num_samples,
@@ -191,11 +194,11 @@ class sobol_SA():
 
         # if self.verbose:
         #     print("Sensitivity Analysis Configuration:")
-        #     print(json.dumps(SA_cfg, indent=4))
+        #     print(json.dumps(SA_info, indent=4))
 
-        self.num_params = len(SA_cfg["param_names"])
+        self.num_params = len(SA_info["param_names"])
 
-        return SA_cfg
+        return SA_info
 
 
     def initialise_sim_helper(self):
@@ -216,24 +219,24 @@ class sobol_SA():
 
         problem = {
             'num_vars': self.num_params,
-            'names': self.SA_cfg["param_names"],
-            'bounds': list(zip(self.SA_cfg["param_mins"], self.SA_cfg["param_maxs"]))
+            'names': self.SA_info["param_names"],
+            'bounds': list(zip(self.SA_info["param_mins"], self.SA_info["param_maxs"]))
         }
         self.problem = problem
 
-        self.num_samples = self.SA_cfg["num_samples"]
+        self.num_samples = self.SA_info["num_samples"]
 
-        if self.SA_cfg["sample_type"] == "saltelli":
+        if self.SA_info["sample_type"] == "saltelli":
             samples = saltelli.sample(problem, self.num_samples, calc_second_order=True)  # Enable second-order interactions
-        elif self.SA_cfg["sample_type"] == "sobol":
+        elif self.SA_info["sample_type"] == "sobol":
             samples = sobol.sample(problem, self.num_samples, calc_second_order=True)  # Enable second-order interactions
         else:
-            raise ValueError(f"Unsupported sample type: {self.SA_cfg['sample_type']}")
+            raise ValueError(f"Unsupported sample type: {self.SA_info['sample_type']}")
         
         return samples
     
     def run_model_and_get_results(self, param_vals):
-        self.sim_helper.set_param_vals(self.SA_cfg["param_names"], param_vals)
+        self.sim_helper.set_param_vals(self.SA_info["param_names"], param_vals)
         self.sim_helper.reset_states()
         self.sim_helper.run()
 
@@ -465,12 +468,12 @@ class sobol_SA():
             # output_name = self.obs_info["names_for_plotting"][i] if hasattr(self, "obs_info") else f"Output_{i}"
 
             # Set figure width adaptively based on number of parameters (xticks)
-            fig_width = max(12, 1.0 * len(self.SA_cfg["param_names"]))
+            fig_width = max(12, 1.0 * len(self.SA_info["param_names"]))
             plt.figure(figsize=(fig_width, 5))
             plt.bar(x - 0.2, S1, width=0.4, label='First-order', color='blue', alpha=0.7)
             plt.bar(x + 0.2, ST, width=0.4, label='Total-order', color='red', alpha=0.7)
 
-            plt.xticks(x, self.SA_cfg["param_names"], rotation=45, fontsize=8)
+            plt.xticks(x, self.SA_info["param_names"], rotation=45, fontsize=8)
             plt.ylabel('Sensitivity Index')
             plt.title(rf'Sobol Sensitivity - {output_name}')
             plt.legend()
@@ -498,9 +501,9 @@ class sobol_SA():
             output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info['experiment_idxs'][i]}, subexperiment{self.obs_info['subexperiment_idxs'][i]}"
 
             # plt.figure(figsize=(6, 5))
-            fig_width = max(6, 1.0 * len(self.SA_cfg["param_names"]))
+            fig_width = max(6, 1.0 * len(self.SA_info["param_names"]))
             plt.figure(figsize=(fig_width, fig_width))
-            sns.heatmap(S2, annot=True, fmt=".2f", xticklabels=self.SA_cfg["param_names"], yticklabels=self.SA_cfg["param_names"], cmap="coolwarm")
+            sns.heatmap(S2, annot=True, fmt=".2f", xticklabels=self.SA_info["param_names"], yticklabels=self.SA_info["param_names"], cmap="coolwarm")
             plt.title(rf"2nd order Sobol Indices - {output_name}")
             plt.tight_layout()
 
@@ -559,7 +562,7 @@ class sobol_SA():
         Generates 2D heatmaps for first-order (S1) and total-order (ST) Sobol indices.
         
         The heatmaps show:
-        Y-axis: Input Parameters (self.SA_cfg["param_names"])
+        Y-axis: Input Parameters (self.SA_info["param_names"])
         X-axis: Model Outputs (concatenated names from self.obs_info)
         Color: Sobol Index Value
         
@@ -633,7 +636,7 @@ class sobol_SA():
             S2_all (np.ndarray): Second-order Sobol indices, shape (n_outputs, n_params, n_params)
         """
         n_outputs = S1_all.shape[0]
-        param_names = self.SA_cfg["param_names"]
+        param_names = self.SA_info["param_names"]
 
         # Prepare output/feature names
         if n_outputs <= len(self.obs_info['names_for_plotting']):

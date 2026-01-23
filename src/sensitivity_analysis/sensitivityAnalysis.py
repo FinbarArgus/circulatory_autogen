@@ -50,7 +50,7 @@ class SensitivityAnalysis():
     """
     Class for doing sensitivity analysis on a 0D model
     """
-    def __init__(self, model_path, model_type, file_name_prefix, DEBUG=False,
+    def __init__(self, model_path, model_type, file_name_prefix, SA_cfg, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, model_out_names=[], 
                  solver_info={}, dt=0.01, optimiser_options={}, param_id_obs_path=None, params_for_id_path=None):
 
@@ -66,12 +66,17 @@ class SensitivityAnalysis():
         self.optimiser_options = optimiser_options
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path
+        sa_output_dir = SA_cfg['output_dir']
+        
+        self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, SA_cfg, self.dt, 
+                            sa_output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
+                            verbose=False, use_MPI=True, optimiser_options=self.optimiser_options)
 
     @classmethod
     def from_dict(cls, inp_data_dict):
         # Only pass kwargs that exist in inp_data_dict
         arg_options = [
-            'model_path', 'model_type', 'file_name_prefix', 'DEBUG', 'param_id_output_dir',
+            'model_path', 'model_type', 'file_name_prefix', 'SA_cfg', 'DEBUG', 'param_id_output_dir',
             'resources_dir', 'model_out_names', 'solver_info',
             'dt', 'optimiser_options', 'param_id_obs_path', 'params_for_id_path'
         ]
@@ -84,7 +89,13 @@ class SensitivityAnalysis():
         return cls(**kwargs)
 
     def set_sa_options(self, sa_options):
-        self.sa_options = sa_options
+        self.SA_manager.set_sa_options(sa_options)
+
+    def set_ground_truth_data(self, obs_data_dict):
+        self.SA_manager.set_ground_truth_data(obs_data_dict)
+        
+    def set_params_for_id(self, params_for_id_dict):
+        self.SA_manager.set_params_for_id(params_for_id_dict)
     
     def set_model_out_names(self, obs_data_dict):
         # TODO fix for arbitrary number of operands
@@ -105,33 +116,24 @@ class SensitivityAnalysis():
             print('ERROR: sensitivity analysis method not recognised')
             exit()
 
-    def run_sobol_sensitivity(self, sa_options):
+    def run_sobol_sensitivity(self, sa_options=None):
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
+        output_dir = self.SA_manager.output_dir
 
-        num_samples = sa_options['num_samples']
-        sample_type = sa_options['sample_type']
-        output_dir = sa_options['output_dir']
+        self.SA_manager.set_sa_info(sa_options)
 
-        SA_cfg = {
-            "sample_type" : sample_type,
-            "num_samples": num_samples,
-        }
-
-        if self.param_id_obs_path is None or self.params_for_id_path is None:
-            print(f'{RED}ERROR: need to provide param_id_obs_path and params_for_id_path for sobol sensitivity analysis{RESET}')
+        if self.SA_manager.gt_df is None or self.SA_manager.param_id_info is None:
+            print(f'{RED}ERROR: need to set ground truth data and params for id before running sobol sensitivity analysis{RESET}')
             exit()
 
-        SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, SA_cfg, self.dt, 
-                            output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
-                            verbose=False, use_MPI=True, optimiser_options=self.optimiser_options)
-        S1_all, ST_all, S2_all = SA_manager.run()
+        S1_all, ST_all, S2_all = self.SA_manager.run()
 
         if rank == 0:
             print(f"{GREEN}Sensitivity analysis completed successfully :){RESET}")
             print(f'{CYAN}saving results in {output_dir}{RESET}')
-            SA_manager.save_sobol_indices(S1_all, ST_all, S2_all)
-            SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
-            SA_manager.plot_sobol_S2_idx(S2_all)
-            SA_manager.plot_sobol_heatmap(S1_all, ST_all)
+            self.SA_manager.save_sobol_indices(S1_all, ST_all, S2_all)
+            self.SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
+            self.SA_manager.plot_sobol_S2_idx(S2_all)
+            self.SA_manager.plot_sobol_heatmap(S1_all, ST_all)
