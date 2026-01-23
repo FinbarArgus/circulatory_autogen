@@ -22,17 +22,17 @@ class CSV0DModelParser(object):
     '''
     Creates a 0D model representation from a vessel and a parameter CSV files.
     '''
-    def __init__(self, vessel_filename, parameter_filename, vessel_filename_prefix_0d, vessel_filename_prefix_1d, parameter_id_dir=None):
-        self.vessel_filename = vessel_filename
+    def __init__(self, inp_data_dict, parameter_id_dir=None):
+        
+        self.vessel_filename = inp_data_dict['vessels_csv_abs_path']
         self.vessel_filename_0d = None
         self.vessel_filename_1d = None
-        if vessel_filename_prefix_0d is not None:
-            find_string = vessel_filename_prefix_0d[:-3] 
-            idx_last = self.vessel_filename.rfind(find_string)
-            self.vessel_filename_0d = self.vessel_filename[:idx_last] + vessel_filename_prefix_0d + self.vessel_filename[idx_last+len(find_string):]
-            self.vessel_filename_1d = self.vessel_filename[:idx_last] + vessel_filename_prefix_1d + self.vessel_filename[idx_last+len(find_string):]
-        
-        self.parameter_filename = parameter_filename
+        if (inp_data_dict['model_type'] == 'cpp' and inp_data_dict['couple_to_1d']):
+            self.vessel_filename_0d = inp_data_dict['vessels_0d_csv_abs_path']
+            self.vessel_filename_1d = inp_data_dict['vessels_1d_csv_abs_path']
+            
+        self.parameter_filename = inp_data_dict['parameters_csv_abs_path']
+        self.external_modules_dir = inp_data_dict['external_modules_dir']
         self.parameter_id_dir = parameter_id_dir
         self.module_config_dir = generator_resources_dir_path
         self.module_config_user_dir = os.path.join(base_dir, 'module_config_user')
@@ -434,7 +434,7 @@ class CSV0DModelParser(object):
             exit()
 
 
-        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_dir, self.module_config_user_dir)
+        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_dir, self.module_config_user_dir, self.external_modules_dir)
         
         # Check for repeated entries of vessel_type and BC_type in module_df
         duplicates = module_df[module_df.duplicated(subset=["vessel_type", "BC_type"], keep=False)]

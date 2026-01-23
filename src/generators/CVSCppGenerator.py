@@ -44,7 +44,7 @@ class CVS0DCppGenerator(object):
     '''
 
 
-    def __init__(self, model, generated_model_subdir, filename_prefix, resources_dir=None, 
+    def __init__(self, model, generated_model_subdir, file_prefix, resources_dir=None, 
                  solver='CVODE', dtSample=1e-3, dtSolver=1e-4, nMaxSteps=5000,
                  couple_to_1d=False, cpp_generated_models_dir=None,
                  model_1d_config_path=None, create_main_0d=False,
@@ -60,18 +60,18 @@ class CVS0DCppGenerator(object):
         self.generated_model_subdir = generated_model_subdir
         if not os.path.exists(self.generated_model_subdir):
             os.mkdir(self.generated_model_subdir)
-        self.filename_prefix = filename_prefix
-        self.filename_prefix_with_ids = f'{self.filename_prefix}-with-ids'
+        self.file_prefix = file_prefix
+        self.file_prefix_with_ids = f'{self.file_prefix}-with-ids'
         if resources_dir is None:
             self.resources_dir = os.path.join(generators_dir_path, '../../resources')
         else:
             self.resources_dir = resources_dir 
         self.generated_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix + '.cellml')
+                                                      self.file_prefix + '.cellml')
         self.generated_wID_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix_with_ids + '.cellml')
+                                                      self.file_prefix_with_ids + '.cellml')
         self.annotated_model_file_path = os.path.join(self.generated_model_subdir, 
-                                                      self.filename_prefix_with_ids + '--annotations.ttl')
+                                                      self.file_prefix_with_ids + '--annotations.ttl')
         
         self.cellml_model = None 
         self.couple_to_1d = couple_to_1d
@@ -81,7 +81,7 @@ class CVS0DCppGenerator(object):
                                                     # to allow for coupling to cpp 1d model.
             self.conn_1d_0d_info = conn_1d_0d_info
         else:
-            self.output_cpp_file_name = self.filename_prefix
+            self.output_cpp_file_name = self.file_prefix
             self.conn_1d_0d_info = None
 
         self.external_headers = []
@@ -667,7 +667,7 @@ class CVS0DCppGenerator(object):
 
     def generate_cellml(self):
         print("generating CellML files, before Cpp generation")
-        cellml_generator = CVS0DCellMLGenerator(self.model, self.generated_model_subdir, self.filename_prefix)
+        cellml_generator = CVS0DCellMLGenerator(self.model, self.inp_data_dict)
         cellml_generator.generate_files()
 
     def set_annotated_model_file_path(self, annotated_model_file_path):
@@ -955,7 +955,7 @@ class CVS0DCppGenerator(object):
 
         model_string = cellml.print_model(flat_model)
         
-        with open(os.path.join(self.generated_model_subdir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+        with open(os.path.join(self.generated_model_subdir, self.file_prefix + '_flat.cellml'), 'w') as f:
             f.write(model_string)
         
         # analyse the model
@@ -2242,111 +2242,6 @@ void Model0d::set_ode_solver(std::string ODEsolver)
             pipesFunctions += '\n'
 
 
-#             pipesFunctions = """ 
-# int Model0d::openPipes(std::string pipePath)
-# {
-#     // Open write pipe for time step.
-#     std::string opipeName = pipePath+std::string("zero_to_parent_dt");
-#     write_pipe_dt.open(opipeName);
-#     if (!write_pipe_dt.is_open()) {
-#         std::cerr << "0d solver :: failed to open time step write pipe" << std::endl;
-#         return 1;
-#     }
-#     // Open write pipe for each 1d-0d connection.
-#     write_pipe.reserve(N1d0d);
-#     for (int i = 0; i < N1d0d; ++i) {
-#         std::string pipeID = std::to_string(i+1);
-#         std::ofstream ofs;
-#         std::string opipeName = pipePath+std::string("zero_to_parent_")+pipeID;
-#         // Open write pipe.
-#         ofs.open(opipeName);
-#         if (!ofs.is_open()) {
-#             std::cerr << "0d solver :: failed to open write pipe " << pipeID << std::endl;
-#             return 1;
-#         }  
-#         write_pipe.push_back(std::move(ofs));
-#     }
-#     // Open read pipe for time step.
-#     std::string ipipeName = pipePath+std::string("parent_to_zero_dt");
-#     read_pipe_dt.open(ipipeName);
-#     if (!read_pipe_dt.is_open()) {
-#         std::cerr << "0d solver :: failed to open time step read pipe" << std::endl;
-#         return 1;
-#     }
-#     // Open read pipe for each 1d-0d connection.
-#     read_pipe.reserve(N1d0d);
-#     for (int i = 0; i < N1d0d; ++i) {
-#         std::string pipeID = std::to_string(i+1);
-#         std::ifstream ifs;
-#         std::string ipipeName = pipePath+std::string("parent_to_zero_")+pipeID;
-#         // Open read pipe.
-#         ifs.open(ipipeName);
-#         if (!ifs.is_open()) {
-#             std::cerr << "0d solver :: failed to open read pipe " << pipeID << std::endl;
-#             return 1;
-#         }
-#         read_pipe.push_back(std::move(ifs));
-#     }
-
-#     DATA_LENGTH = 2;
-#     zero_data_dt = new double[DATA_LENGTH];
-#     parent_data_dt = new double[DATA_LENGTH];
-#     for (int j = 0; j < DATA_LENGTH; ++j){
-#         zero_data_dt[j] = 0.0;
-#         parent_data_dt[j] = 0.0;
-#     }
-#     zero_data = new double*[N1d0d];
-#     parent_data = new double*[N1d0d];
-#     for (int i = 0; i < N1d0d; ++i) {
-#         zero_data[i] = new double[DATA_LENGTH];
-#         parent_data[i] = new double[DATA_LENGTH];
-#     }
-#     for (int i = 0; i < N1d0d; ++i){
-#         for (int j = 0; j < DATA_LENGTH; ++j){
-#             zero_data[i][j] = 0.0;
-#             parent_data[i][j] = 0.0;
-#         }
-#     }
-# """
-#             if self.couple_volume_sum:
-#                 pipesFunctions += """ 
-#     // Open read pipe for volume sum.
-#     std::string ipipeName = pipePath+std::string("parent_to_zero_vol");
-#     read_pipe_vol.open(ipipeName);
-#     if (!read_pipe_vol.is_open()) {
-#         std::cerr << "0d solver :: failed to open volume sum read pipe" << std::endl;
-#         return 1;
-#     }
-# """
-#             pipesFunctions += """   
-#     return 0;
-# }
-# """
-
-#             pipesFunctions += """ 
-# void Model0d::closePipes()
-# {
-#     write_pipe_dt.close();
-#     read_pipe_dt.close();
-#     for (int i = 0; i < N1d0d; ++i) {
-#         write_pipe[i].close();
-#         read_pipe[i].close();
-#     }
-# """
-#             if self.couple_volume_sum:
-#                 pipesFunctions += """
-#     read_pipe_vol.close();
-# """
-
-#             pipesFunctions += """ 
-#     std::cout << "### 0d solver :: All pipes closed. ###" << std::endl;
-# }
-#     """
-
-#         else:
-#             pipesFunctions = ""
-
-
         # print("#################################################")
         # print("pipesFunctions")
         # print(pipesFunctions)
@@ -2373,138 +2268,6 @@ void Model0d::set_ode_solver(std::string ODEsolver)
                 outputFunctions += line #+ '\n'
         outputFunctions += '\n'
 
-#         outputFunctions = """
-# void Model0d::openOutputFiles(std::string outDir)
-# {
-#     int status;
-# 	const char * aux;
-# 	aux = outDir.c_str();
-# 	status = mkdir(aux, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-#     if (status != 0){
-#         std::cout << \"0d solver :: openOutputFiles() could not create folder \" << outDir.c_str() << \" \" << status << std::endl;
-#         perror( \"Error opening file\" );
-#         printf( \"Error opening file: %s\\n\", strerror( errno ) );
-#     }
-
-# 	std::string path = outDir+"sol0D_states.txt";
-# 	outFileStates.open(path.c_str());
-#     path = outDir+"sol0D_variables.txt";
-# 	outFileVars.open(path.c_str());
-
-#     int count = 0;
-#     std::vector<std::string> modules_list_tmp;
-#     std::string mod_suffix = "_module";
-#     outFileStates << \"# 0: t[s]; \";
-#     for (size_t i = 0; i < STATE_COUNT; ++i) {
-#         std::string mod_name;
-#         std::string state_name;
-#         std::string units;
-
-#         idx_states_to_output.push_back(i);
-        
-#         mod_name = std::string(STATE_INFO[i].component);
-#         size_t pos = mod_name.rfind(mod_suffix);
-#         if (pos != std::string::npos && pos == mod_name.size() - mod_suffix.size()) {
-#             mod_name.erase(pos);
-#             if (std::find(modules_list_tmp.begin(), modules_list_tmp.end(), mod_name) == modules_list_tmp.end()) {
-#                 modules_list_tmp.push_back(mod_name);
-#             }
-#         }
-#         state_name = std::string(STATE_INFO[i].name);
-#         units = std::string(STATE_INFO[i].units);
-#         std::string state_string = std::to_string(count+1) + \": \" 
-#                                     + mod_name + \"/\" 
-#                                     + state_name + \"[\" 
-#                                     + units + \"]; \";
-#         outFileStates << state_string;
-#         count++;
-#     }
-#     outFileStates << std::endl;
-#     outFileStates.flush();
-
-#     count = 0;
-#     outFileVars << \"# 0: t[s]; \";
-#     for (size_t i = 0; i < VARIABLE_COUNT; ++i) {
-#     """
-#         if self.couple_to_1d:
-#             outputFunctions += """
-#         if (VARIABLE_INFO[i].type == EXTERNAL || VARIABLE_INFO[i].type == ALGEBRAIC){
-#         """
-#         else:
-#             outputFunctions += """
-#         if (VARIABLE_INFO[i].type == ALGEBRAIC){
-#         """
-#         outputFunctions += """
-#             std::string mod_name;
-#             std::string var_name;
-#             std::string units;
-
-#             if (std::string(VARIABLE_INFO[i].component)==\"parameters\"){
-#                 var_name = std::string(VARIABLE_INFO[i].name);
-#                 for (size_t j = 0; j < modules_list_tmp.size(); ++j) {
-#                     if (var_name.find(modules_list_tmp[j]) != std::string::npos) {
-#                         mod_name = modules_list_tmp[j];
-#                         break;
-#                     }
-#                 }
-#                 std::string var_suffix = \"_\"+mod_name;
-#                 size_t pos = var_name.rfind(var_suffix);
-#                 if (pos != std::string::npos && pos == var_name.size() - var_suffix.size()) {
-#                     var_name.erase(pos);
-#                 }
-#                 units = std::string(VARIABLE_INFO[i].units);
-#                 std::string var_string = std::to_string(count+1) + \": \" 
-#                                         + mod_name + \"/\" 
-#                                         + var_name + \"[\" 
-#                                         + units + \"]; \";
-#                 outFileVars << var_string;
-#                 idx_vars_to_output.push_back(i);
-#                 count++;
-#             } else{
-#                 mod_name = std::string(VARIABLE_INFO[i].component);
-#                 size_t pos = mod_name.rfind(mod_suffix);
-#                 if (pos != std::string::npos && pos == mod_name.size() - mod_suffix.size()) {
-#                     mod_name.erase(pos); 
-#                     var_name = std::string(VARIABLE_INFO[i].name);
-#                     units = std::string(VARIABLE_INFO[i].units);
-#                     std::string var_string = std::to_string(count+1) + \": \" 
-#                                             + mod_name + \"/\" 
-#                                             + var_name + \"[\" 
-#                                             + units + \"]; \";
-#                     outFileVars << var_string;
-#                     idx_vars_to_output.push_back(i);
-#                     count++;
-#                 }
-#             }
-#         }
-#     }
-#     outFileVars << std::endl;
-#     outFileVars.flush();
-# }
-
-# void Model0d::writeOutput(double voiLoc)
-# {
-#     outFileStates << std::scientific << std::setprecision(18) << voiLoc << \" \";
-#     for (size_t i = 0; i < idx_states_to_output.size(); ++i) {
-# 		outFileStates << std::scientific << std::setprecision(18) << states[idx_states_to_output[i]] << \" \";
-#     }
-# 	outFileStates << std::endl;
-#     outFileStates.flush();
-
-#     outFileVars << std::scientific << std::setprecision(18) << voiLoc << \" \";
-#     for (size_t i = 0; i < idx_vars_to_output.size(); ++i) {
-# 		outFileVars << std::scientific << std::setprecision(18) << variables[idx_vars_to_output[i]] << \" \";
-#     }
-# 	outFileVars << std::endl;
-#     outFileVars.flush();
-# }
-
-# void Model0d::closeOutputFiles()
-# {
-#     outFileStates.close();
-#     outFileVars.close();
-# }
-# """
 
         # print("#################################################")
         # print("outputFunctions")
@@ -4006,7 +3769,8 @@ class CVS1DCppGenerator(object):
     WARNING: THIS CPP 1D CODE IS CURRENTLY NOT OPEN SOURCE, SO THIS CLASS WON'T WORK UNTIL IT IS MADE OPEN SOURCE.
     '''
 
-    def __init__(self, model, output_path, filename_prefix):
+
+    def __init__(self, model, output_path, file_prefix):
         '''
         Constructor
         '''
@@ -4014,7 +3778,7 @@ class CVS1DCppGenerator(object):
         self.output_path = output_path
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
-        self.filename_prefix = filename_prefix
+        self.file_prefix = file_prefix
         self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
 
     
@@ -4027,7 +3791,7 @@ class CVSCoupledCppGenerator(object):
     Generates Cpp files for coupled 0D and 1D models.
     '''
     
-    def __init__(self, model, output_path, filename_prefix):
+    def __init__(self, model, output_path, file_prefix):
         '''
         Constructor
         '''
@@ -4035,15 +3799,15 @@ class CVSCoupledCppGenerator(object):
         self.output_path = output_path
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
-        self.filename_prefix = filename_prefix
+        self.file_prefix = file_prefix
         self.user_resources_path = os.path.join(generators_dir_path, '../../resources')
     
     def generate_files(self):
-        zeroD_generator = CVS0DCppGenerator(self.model, self.output_path, self.filename_prefix)
+        zeroD_generator = CVS0DCppGenerator(self.model, self.output_path, self.file_prefix)
         zeroD_generator.generate_files()
 
         # currently we don't generate the 1D model, we assume it is already generated.
-        # oneD_generator = CVS1DCppGenerator(self.model, self.output_path, self.filename_prefix)
+        # oneD_generator = CVS1DCppGenerator(self.model, self.output_path, self.file_prefix)
         # oneD_generator.generate_files()
         print("Now do the coupling...")
 

@@ -7,6 +7,7 @@ The parameter identification part of Circulatory_Autogen is designed to allow ca
 
 Those files should be added to the `[CA_dir]/resources` directory. Proper names of the files are **[file_prefix]_params_for_id.csv** and **[file_prefix]_obs_data.json**, respectively.
 
+
 ## Creating params_for_id file
 
 This file defines which parameters (constants and initial_states) within your model that you will vary in the parameter id process and their allowed ranges (prior distribution). Following is an example of the `params_for_id.csv` file.
@@ -83,6 +84,21 @@ Not to be confused with the dt for the model simulation outputs.
 !!! warning
     **obs_type**: This has been deprecated in favor of the **operation** entry.
 
+## Running external cellml models
+
+Running cellml models that weren't generated with Circulatory_Autogen is also just as straightforward:
+
+Simply set the `file_prefix` in your user_inputs.yaml file to the name of your cellml model `<file_prefix>.cellml`. Then set `generated_models_dir` to the path to the dir where your model subdir is and the subdir where the calibrated model will be generated. Make sure your cellml file/files are in a directory of the same name i.e.:
+
+`path/to/your/generated_models_dir/<file_prefix>/<file_prefix>.cellml`
+
+After calibration, the following directory will be created with your generated model:
+
+`path/to/your/generated_models_dir/<file_prefix>_<obs_file_name>/`
+
+!!! note
+    Currently the generated model needs to be run in the new OpenCOR, with LibOpenCOR backend because a cellml2.0 model is generated
+
 ## Creating your own operations
 
 To enable flexibility we allow you to create your own user-defined operation functions in python to extract features from your model outputs and compare to data in the calibration.
@@ -109,24 +125,78 @@ Note:
 
 - Currently there are no kwargs for user defined cost functions. But there will be: see [issue](https://github.com/FinbarArgus/circulatory_autogen/issues/84)
 
+## Solver
+
+Before doing calibration, a solver for the model needs to be chosen
+
+- **solver** this defines what solver (and wrapper of that solver) to use. Options are: 
+    - CVODE: solver by Sundials, using opencor to wrap around CVODE 
+    - CVODE\_myokit: CVODE solver by Sundials, using myokit to wrap around CVODE 
+    - solve\_ivp: solver by scipy, using myokit to wrap around CVODE 
+- **solver_info** this defines settings for the solver you have chosen
+    - **MaximumStep**: maximum step size that the adaptive time step solver will use. Equal to dt if a non-adaptive time step solver is used
+    - **MaximumNumberOfSteps**: maximum number of substeps that the adaptive timestep solver will attempt before stepping
+    - **method**: any method for solve\_ivp, e.g. RK45, BDF, etc. Not needed for CVODE as that is the solver and the method.
+
 
 ## Parameter Identification Settings
 
 To run the parameter identification we need to set a few entries in the `[CA_dir]/user_run_files/user_inputs.yaml file`:
 
-- **param_id_method**: this defines the optimisation method we use. Currently this can only be genetic_algorithm, but more methods are being implemented. Eventually we aim to use CVODES to allow for gradient based optimisation methods.
+- **param_id_method**: this defines the optimisation method we use. Currently supported methods are:
+    - **genetic_algorithm**: Genetic algorithm optimizer (default, well-tested)
+    - **CMA-ES**: Covariance Matrix Adaptation Evolution Strategy using Nevergrad (supports parallel execution)
+    - **bayesian**: Bayesian optimization using scikit-optimize (deprecated, untested)
 - **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`. IMPORTANT: THis is overwritten by the pre_times within the obs_data.json file, see the next section.
 - **sim_time**: The amount of time used to compare simulation output and observable data. This should be equal to the length of a series observable entry divided by the "sample_rate". If not, only up to the minimum length of observable data and modelled data will be compared. 
 - **maximum_step**: The maximum time step for the CVODE solver
 - **dt**: The output time step (This hasn't been tested well for anything but 0.01 s currently)
 - **param_id_obs_path**: the path to the `obs_data.json` file described above.
-- **ga_options**:
+- **ga_options**: Legacy dictionary (deprecated, use `optimiser_options` instead):
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.
 	- **num_calls_to_function**: How many forward simulations of pre_time+sim_time will be run in the optimisation algorithm.
 	- **cost_convergence**: If the cost value is lower than this threshold then the calibration run is complete.
 	- **max_patience**: If the cost doesn't improve for this number of simulations, then calibration is complete (we assume that the cost has converged to the global minima or can't get out of a local minima).
-  - Note: In the future entries to ga_options will be kwargs that are used in the underlying user defined optimisation schemes (see [link](https://github.com/FinbarArgus/circulatory_autogen/issues/79))
+  - Note: For backwards compatibility, entries in `ga_options` are automatically merged into `optimiser_options` if not already present. It is recommended to use `optimiser_options` instead.
 
+- **optimiser_options**: Dictionary for optimizer-specific options (preferred over `ga_options`). Common options shared across optimisers:
+    - **num_calls_to_function**: Maximum number of function evaluations (default: 10000)
+    - **cost_convergence**: Convergence tolerance for cost (default: 0.0001)
+    - **max_patience**: Maximum patience for convergence (default: 10)
+    - **cost_type**: Cost function type (e.g., 'MSE')
+  
+  CMA-ES specific options:
+    - **sigma0**: Initial standard deviation for CMA-ES (optional, default: 0.2 of parameter range)
+    - Note: 
+      - The number of parallel workers is automatically determined from the number of MPI processes
+      - Initial parameter values are automatically loaded from `{file_prefix}_parameters.csv`
+
+- **ga_options**: Legacy dictionary for optimization options. For backwards compatibility, entries in `ga_options` are automatically merged into `optimiser_options` if not already present. It is recommended to use `optimiser_options` instead.
+
+
+## Choosing an Optimization Method
+
+### Genetic Algorithm (genetic_algorithm)
+- **Pros**: Well-tested, robust, handles non-smooth cost functions well
+- **Cons**: Can be slower, requires more function evaluations
+- **Best for**: Complex, multi-modal optimization problems, when you have many function evaluations available
+
+### CMA-ES (CMA-ES)
+- **Pros**: Efficient gradient-free optimization, supports parallel execution, good convergence properties
+- **Cons**: Requires Nevergrad package (`pip install nevergrad`)
+- **Best for**: Smooth optimization landscapes, when you want faster convergence with parallel execution
+
+Example configuration for CMA-ES:
+```yaml
+param_id_method: CMA-ES
+optimiser_options:
+  num_calls_to_function: 10000  # shared option
+  cost_convergence: 0.001         # shared option
+  sigma0: 0.1                      # CMA-ES specific (optional, initial standard deviation)
+  # Note: Initial parameter values are automatically loaded from {file_prefix}_parameters.csv
+```
+
+Note: For backwards compatibility, `ga_options` can still be used and will be automatically merged into `optimiser_options`.
 
 ## Running parameter identification
 

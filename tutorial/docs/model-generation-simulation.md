@@ -16,6 +16,10 @@ The Circulatory_Autogen project (`[project_dir]`) contains five folders as prese
     - **[file_prefix]_user_inputs.yaml
     - **resources**: Contains the config csv files that defines model connection network ([file_prefix]_vessel_array.csv) and parameters ([file_prefix]_parameters.csv) that will be generated and config files to prescribe the parameters to calibrate ([file_prefix]_params_for_id.csv) and the ground truth to calibrate towards ([file_prefix]_obs_data.json).
 
+!!! Note 
+    set "external_modules_dir" to a directory where you store your cellml modules and config.json files if you want this to be external to the circulatory_autogen dir. 
+    The cellml modules must end in modules.cellml
+
 The following folders will be generated in `[CA_user_dir]` (or `[project_dir]` if `user_inputs_path_override` isn't defined) after running model autogeneration and parameter identification.
 
 - **generated_models**: Includes the generated code for the models that have been automatically generated. It also contains the generated models with parameters that have been fit with the parameter identification code. These models can be run in OpenCOR or through OpenCOR's version of Python.

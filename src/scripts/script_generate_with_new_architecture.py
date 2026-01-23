@@ -17,6 +17,7 @@ user_inputs_dir= os.path.join(root_dir, 'user_run_files')
 from parsers.ModelParsers import CSV0DModelParser
 from generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from generators.CVSCppGenerator import CVS0DCppGenerator, CVS1DPythonGenerator
+from generators.PythonGenerator import PythonGenerator
 from parsers.PrimitiveParsers import YamlFileParser
 
 
@@ -35,25 +36,33 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     generated_models_subdir = inp_data_dict['generated_models_subdir']
     vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
     parameters_csv_abs_path = inp_data_dict['parameters_csv_abs_path']
-    
 
     file_prefix_0d = None
     file_prefix_1d = None
     if (inp_data_dict['model_type'] == 'cpp' and inp_data_dict['couple_to_1d']):
         file_prefix_0d = file_prefix + '_0d'
         file_prefix_1d = file_prefix + '_1d'
-        # inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix_0d + '_vessel_array.csv')
-        # vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
 
+        idx_last = vessels_csv_abs_path.rfind(file_prefix)
+        vessel_filename_0d = vessels_csv_abs_path[:idx_last] + file_prefix_0d + vessels_csv_abs_path[idx_last+len(file_prefix):]
+        vessel_filename_1d = vessels_csv_abs_path[:idx_last] + file_prefix_1d + vessels_csv_abs_path[idx_last+len(file_prefix):]
+
+        inp_data_dict['vessels_0d_csv_abs_path'] = vessel_filename_0d # adding this new key to inp_data_dict
+        inp_data_dict['vessels_1d_csv_abs_path'] = vessel_filename_1d # adding this new key to inp_data_dict
+    
+    solver_info = inp_data_dict['solver_info']
+    # Get solver from solver_info (check both 'solver' and 'method' for backward compatibility)
+    # solver = solver_info.get('solver') or solver_info.get('method')
+    if 'solver' in solver_info or 'method' in solver_info:
+        solver = solver_info.get('solver') or solver_info.get('method')
+    else:
+        solver = inp_data_dict['solver']
 
     if do_generation_with_fit_parameters:
         param_id_output_dir_abs_path = inp_data_dict['param_id_output_dir_abs_path']
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
-                                file_prefix_0d, file_prefix_1d,
-                                param_id_output_dir_abs_path)
+        parser = CSV0DModelParser(inp_data_dict, parameter_id_dir=param_id_output_dir_abs_path)
     else:
-        parser = CSV0DModelParser(vessels_csv_abs_path, parameters_csv_abs_path, 
-                                file_prefix_0d, file_prefix_1d)
+        parser = CSV0DModelParser(inp_data_dict)
 
     model = parser.load_model()
 
@@ -61,9 +70,17 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     print("\n")
 
     if inp_data_dict['model_type'] == 'cellml_only':
-        code_generator = CVS0DCellMLGenerator(model, generated_models_subdir, file_prefix,
-                                          resources_dir=resources_dir)
+        code_generator = CVS0DCellMLGenerator(model, inp_data_dict)
         success = code_generator.generate_files()
+    elif inp_data_dict['model_type'] == 'python':
+        # First generate the CellML model, then emit a Python module in the same directory.
+        cellml_generator = CVS0DCellMLGenerator(model, inp_data_dict)
+        success = cellml_generator.generate_files()
+        if success:
+            cellml_path = os.path.join(generated_models_subdir, f'{file_prefix}.cellml')
+            py_gen = PythonGenerator(cellml_path, output_dir=generated_models_subdir, module_name=file_prefix)
+            py_gen.generate()
+            success = True
     elif inp_data_dict['model_type'] == 'cpp':
         if 'dt' in inp_data_dict:
             dtSample = inp_data_dict['dt']
@@ -113,7 +130,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
             print("Check point 1A")
 
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix_0d, #XXX
-                                            resources_dir=resources_dir, solver=inp_data_dict['solver'], 
+                                            resources_dir=resources_dir, solver=solver, 
                                             dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps,
                                             couple_to_1d=inp_data_dict['couple_to_1d'],
                                             cpp_generated_models_dir=cpp_generated_models_dir,
@@ -131,7 +148,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
                         code1d_generator = CVS1DPythonGenerator(model, file_prefix_1d, vessels1d_csv_abs_path, parameters_csv_abs_path,
                                                         model_1d_config_path, generated_models_subdir, 
                                                         cpp_generated_models_dir=cpp_generated_models_dir,
-                                                        solver=inp_data_dict['solver'], dtSample=dtSample, dtSolver=dtSolver, 
+                                                        solver=solver, dtSample=dtSample, dtSolver=dtSolver, 
                                                         conn_1d_0d_info=parser.conn_1d_0d_info)
                     elif inp_data_dict['solver_1d_type'].startswith('cpp'):
                         #XXX This would use the class CVS1DCppGenerator() that Finbar was working on.
@@ -145,7 +162,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
             # object from class CVS0DCppGenerator
             print("Check point 1B")
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix,
-                                            resources_dir=resources_dir, solver=inp_data_dict['solver'],
+                                            resources_dir=resources_dir, solver=solver,
                                             dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps)
             print("Check point 2B")
 

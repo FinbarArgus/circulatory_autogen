@@ -29,21 +29,23 @@ class CVS0DCellMLGenerator(object):
     Generates CellML files for the 0D model represented in @
     '''
 
-    def __init__(self, model, output_dir, filename_prefix, resources_dir=None):
+    def __init__(self, model, inp_data_dict):
         '''
         Constructor
         '''
         self._units_line_re = re.compile('[ \t]*<units .*/>')
 
         self.model = model
-        self.output_dir = output_dir
+        self.output_dir = inp_data_dict['generated_models_subdir']
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
-        self.filename_prefix = filename_prefix
-        if resources_dir is None:
+        self.file_prefix = inp_data_dict['file_prefix']
+        self.inp_data_dict = inp_data_dict
+
+        if inp_data_dict['resources_dir'] is None:
             self.resources_dir = os.path.join(generators_dir, '../../resources')
         else:
-            self.resources_dir = resources_dir 
+            self.resources_dir = inp_data_dict['resources_dir']
 
         self.base_script = os.path.join(generators_dir, 'resources/base_script.cellml')
 
@@ -54,6 +56,10 @@ class CVS0DCellMLGenerator(object):
         self.module_scripts += [os.path.join(base_dir, 'module_config_user', filename) for filename in
                                os.listdir(os.path.join(base_dir, 'module_config_user'))
                                if filename.endswith('modules.cellml')]
+        if inp_data_dict['external_modules_dir'] is not None:
+            self.module_scripts += [os.path.join(self.inp_data_dict['external_modules_dir'], filename) for filename in
+                                os.listdir(os.path.join(self.inp_data_dict['external_modules_dir']))
+                                if filename.endswith('modules.cellml')]
         self.units_scripts = [os.path.join(generators_dir, 'resources/units.cellml'),
                               os.path.join(base_dir, 'module_config_user/user_units.cellml')]
         self.all_parameters_defined = False
@@ -85,7 +91,7 @@ class CVS0DCellMLGenerator(object):
 
         if LIBCELLML_available:
             # parse the model in non-strict mode to allow non CellML 2.0 models
-            model = cellml.parse_model(os.path.join(self.output_dir, self.filename_prefix + '.cellml'), False)
+            model = cellml.parse_model(os.path.join(self.output_dir, self.file_prefix + '.cellml'), False)
             # resolve imports, in non-strict mode
             importer = cellml.resolve_imports(model, self.output_dir, False)
             # need a flattened model for analysing
@@ -93,7 +99,7 @@ class CVS0DCellMLGenerator(object):
             model_string = cellml.print_model(flat_model)
             
             # this if we want to create the flat model, for debugging
-            with open(os.path.join(self.output_dir, self.filename_prefix + '_flat.cellml'), 'w') as f:
+            with open(os.path.join(self.output_dir, self.file_prefix + '_flat.cellml'), 'w') as f:
                 f.write(model_string)
 
             # analyse the model
@@ -103,9 +109,74 @@ class CVS0DCellMLGenerator(object):
             analysed_model = a.model()
 
             libcellml_utils.print_issues(a)
-            # print(analysed_model.type())
             print(f"analysed model has type {analysed_model.type()} . Is it ODE type? {analysed_model.type()==AnalyserModel.Type.ODE}")
-            # print(f"analysed model has type {analysed_model.type()} . Is it DAE type? {analysed_model.type()==AnalyserModel.Type.DAE}")
+            # print(analysed_model.type())
+            # Debug: show how libCellML classifies variables (constant vs variable vs state, etc.)
+            try:
+                # Always dump for init-states reproducer, otherwise only in DEBUG.
+                print_consts_etc = False
+                if print_consts_etc or self.file_prefix == "test_init_states":
+                    from libcellml import AnalyserVariable
+
+                    type_names = {
+                        AnalyserVariable.Type.STATE: "STATE",
+                        AnalyserVariable.Type.CONSTANT: "CONSTANT",
+                        AnalyserVariable.Type.COMPUTED_CONSTANT: "COMPUTED_CONSTANT",
+                        AnalyserVariable.Type.ALGEBRAIC: "ALGEBRAIC",
+                        AnalyserVariable.Type.EXTERNAL: "EXTERNAL",
+                    }
+
+                    buckets = {}
+                    vcount = analysed_model.variableCount() if analysed_model else 0
+                    for i in range(vcount):
+                        av = analysed_model.variable(i)
+                        if av is None:
+                            continue
+                        v = av.variable()
+                        if v is None:
+                            continue
+                        try:
+                            comp = v.parent().name()
+                        except Exception:
+                            comp = ""
+                        key = type_names.get(av.type(), str(av.type()))
+                        buckets.setdefault(key, []).append(f"{comp}.{v.name()}" if comp else v.name())
+
+                    print("libCellML variable type summary:")
+                    print(f"  analysed_model.variableCount(): {vcount}")
+                    for key in sorted(buckets.keys()):
+                        items = sorted(buckets[key])
+                        print(f"  {key}: {len(items)}")
+                        # Print a small sample to keep logs readable
+                        for name in items[:20]:
+                            print(f"    - {name}")
+                        if len(items) > 20:
+                            print(f"    ... (+{len(items) - 20} more)")
+                    if vcount == 0 or not buckets:
+                        # Fallback: dump variables declared in the flattened model so we still see names.
+                        try:
+                            fallback = []
+                            for ci in range(flat_model.componentCount()):
+                                comp = flat_model.component(ci)
+                                cname = comp.name() if comp else ""
+                                if not comp:
+                                    continue
+                                for vi in range(comp.variableCount()):
+                                    var = comp.variable(vi)
+                                    if not var:
+                                        continue
+                                    vname = var.name()
+                                    fallback.append(f"{cname}.{vname}" if cname else vname)
+                            fallback = sorted(set(fallback))
+                            print("  (fallback) flattened model variables (sample):")
+                            for name in fallback[:40]:
+                                print(f"    - {name}")
+                            if len(fallback) > 40:
+                                print(f"    ... (+{len(fallback) - 40} more)")
+                        except Exception as e:
+                            print(f"  (fallback) could not list flattened variables: {e}")
+            except Exception as e:
+                print(f"Warning: could not dump libCellML variable types: {e}")
             if analysed_model.type() != AnalyserModel.Type.ODE:
                 print("WARNING model has some issues, see above. "
                     "The model might still run with some of the above issues "
@@ -120,7 +191,7 @@ class CVS0DCellMLGenerator(object):
             opencor_available = False
             pass
         if opencor_available:
-            sim = oc.open_simulation(os.path.join(self.output_dir, f'{self.filename_prefix}.cellml'))
+            sim = oc.open_simulation(os.path.join(self.output_dir, f'{self.file_prefix}.cellml'))
             if sim.valid():
                 print('Model generation has been successful.')
                 return True
@@ -133,27 +204,42 @@ class CVS0DCellMLGenerator(object):
                 else:
                     print('The OpenCOR model is not yet working because all parameters have not been given values, \n'
                           f'Enter the values in '
-                          f'{os.path.join(self.resources_dir, f"{self.filename_prefix}_parameters_unfinished.csv")}')
+                          f'{os.path.join(self.resources_dir, f"{self.file_prefix}_parameters_unfinished.csv")}')
                     return False
 
         else:
             print('Model generation is complete but OpenCOR could not be opened to test the model. \n'
-                  'If you want this check to happen make sure you use the python that is shipped with OpenCOR')
-            return False
+                  ' We generate the model in python from cellml and check it can be run for a small \n'
+                  'amount of time.')
+            from generators.PythonGenerator import PythonGenerator
+            from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
+            gen = PythonGenerator(os.path.join(self.output_dir, f'{self.file_prefix}.cellml'), output_dir=self.output_dir)
+            gen.generate()
+            sim_helper = PythonSimulationHelper(os.path.join(self.output_dir, f'{self.file_prefix}.py'), dt=0.00001, sim_time=0.00001)
+            sim_helper.set_solve_ivp_method('BDF')
+            success = sim_helper.run()
+
+            if success:
+                print('Model generation has been successful.')
+                return True
+            else:
+                print('Model generation has failed. Or the simulation fails when trying to simulate'
+                      'in Python')
+                return False
 
     def __adjust_units_import_line(self, line):
         if 'import xlink:href="units.cellml"' in line:
-            line = re.sub('units', f'{self.filename_prefix}_units', line)
+            line = re.sub('units', f'{self.file_prefix}_units', line)
         return line
 
     def __generate_CellML_file(self):
-        print("Generating CellML file {}.cellml".format(self.filename_prefix))
+        print("Generating CellML file {}.cellml".format(self.file_prefix))
         with open(self.base_script, 'r') as rf:
-            with open(os.path.join(self.output_dir, f'{self.filename_prefix}.cellml'), 'w') as wf:
+            with open(os.path.join(self.output_dir, f'{self.file_prefix}.cellml'), 'w') as wf:
                 for line in rf:
                     line = self.__adjust_units_import_line(line)
                     if 'import xlink:href="parameters_autogen.cellml"' in line:
-                        line = re.sub('parameters_autogen', f'{self.filename_prefix}_parameters', line)
+                        line = re.sub('parameters_autogen', f'{self.file_prefix}_parameters', line)
 
                     # copy the start of the basescript until line that says #STARTGENBELOW
                     wf.write(line)
@@ -240,12 +326,12 @@ class CVS0DCellMLGenerator(object):
                 wf.write('</model>\n')
 
     def __generate_parameters_file(self):
-        print("Generating CellML file {}_parameters.cellml".format(self.filename_prefix))
+        print("Generating CellML file {}_parameters.cellml".format(self.file_prefix))
         """
         Takes in a data frame of the params and generates the parameter_cellml file
         """
 
-        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.cellml'), 'w') as wf:
+        with open(os.path.join(self.output_dir, f'{self.file_prefix}_parameters.cellml'), 'w') as wf:
             wf.write('<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n')
             wf.write('<model name="Parameters" xmlns="http://www.cellml.org/cellml/1.1#'
                      '" xmlns:cellml="http://www.cellml.org/cellml/1.1#" xmlns:xlink="http://www.w3.org/1999/xlink">\n')
@@ -284,10 +370,10 @@ class CVS0DCellMLGenerator(object):
         # check if all the required parameters have been defined, if not we make an "unfinished"
         # csv file which makes it easy for the user to include the required parameters
         if self.all_parameters_defined:
-            file_to_create = os.path.join(self.output_dir, f'{self.filename_prefix}_parameters.csv')
+            file_to_create = os.path.join(self.output_dir, f'{self.file_prefix}_parameters.csv')
         else:
             file_to_create = os.path.join(self.resources_dir,
-                                          f'{self.filename_prefix}_parameters_unfinished.csv')
+                                          f'{self.file_prefix}_parameters_unfinished.csv')
             print(f'\n WARNING \nRequired parameters are missing. \nCreating a file {file_to_create},\n'
                   f'which has EMPTY_MUST_BE_FILLED tags where parameters\n'
                   f'need to be included. The user should include these parameters then remove \n'
@@ -300,8 +386,8 @@ class CVS0DCellMLGenerator(object):
     def __generate_units_file(self):
         # TODO allow a specific units file to be generated
         #  This function simply copies the units file
-        print(f'Generating CellML file {self.filename_prefix}_units.cellml')
-        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_units.cellml'), 'w') as wf:
+        print(f'Generating CellML file {self.file_prefix}_units.cellml')
+        with open(os.path.join(self.output_dir, f'{self.file_prefix}_units.cellml'), 'w') as wf:
             for file_idx, units_script in enumerate(self.units_scripts):
                 with open(units_script, 'r') as rf:
                     for line_idx, line in enumerate(rf):
@@ -334,8 +420,8 @@ class CVS0DCellMLGenerator(object):
         return None
 
     def __generate_modules_file(self):
-        print(f'Generating modules file {self.filename_prefix}_modules.cellml')
-        with open(os.path.join(self.output_dir, f'{self.filename_prefix}_modules.cellml'), 'w') as wf:
+        print(f'Generating modules file {self.file_prefix}_modules.cellml')
+        with open(os.path.join(self.output_dir, f'{self.file_prefix}_modules.cellml'), 'w') as wf:
             # write first two lines
             wf.write("<?xml version='1.0' encoding='UTF-8'?>\n")
             wf.write(
@@ -381,7 +467,7 @@ class CVS0DCellMLGenerator(object):
 
     def __write_units(self, wf):
 
-        wf.writelines(f'<import xlink:href="{self.filename_prefix}_units.cellml">\n')
+        wf.writelines(f'<import xlink:href="{self.file_prefix}_units.cellml">\n')
         for unit in self.all_units:
             wf.writelines(f'    <units name="{unit}" units_ref="{unit}"/>\n')
         # units_list = []
@@ -411,7 +497,7 @@ class CVS0DCellMLGenerator(object):
             # add a zero mapping to heart ivc or svc flow input if only one input is specified
             if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] or \
                     "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
-                wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
+                wf.writelines([f'<import xlink:href="{self.file_prefix}_modules.cellml">\n',
                                f'    <component component_ref="zero_flow" name="zero_flow_module"/>\n',
                                '</import>\n'])
             if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] and \
@@ -979,7 +1065,7 @@ class CVS0DCellMLGenerator(object):
                         if vessel_tup.out_vessels[II] == venous_name:
                             if vessel_name not in vessel_df.loc[vessel_df["name"] == venous_name].squeeze()["inp_vessels"]:
                                 print(f'venous input of {venous_name} does not include the terminal vessel '
-                                      f'{vessel_name} as an inp_vessel in {self.filename_prefix}_vessel_array. '
+                                      f'{vessel_name} as an inp_vessel in {self.file_prefix}_vessel_array. '
                                       f'not including terminal names as input has been deprecated')
                                 exit()
                             terminal_names_for_first_venous[idx].append(vessel_name)
@@ -1734,6 +1820,8 @@ class CVS0DCellMLGenerator(object):
                                 self.__write_mapping(wf, inp_vessel_name+'_module', 'sum_blood_volume', [q_1], [q_2])
 
                             # then map volume
+                            # q_1 = f'q_{sum_vess_name}'
+                            # q_2 = sum_vess_variable add _sum to change the name
                             q_1 = f'q_{sum_vess_name}_sum'
                             q_2 = sum_vess_variable
                             self.__write_mapping(wf, 'sum_blood_volume', sum_vess_name+'_module', [q_1], [q_2])
@@ -1964,7 +2052,7 @@ class CVS0DCellMLGenerator(object):
 
         str_addon = '_module'
 
-        wf.writelines([f'<import xlink:href="{self.filename_prefix}_modules.cellml">\n',
+        wf.writelines([f'<import xlink:href="{self.file_prefix}_modules.cellml">\n',
                        f'    <component component_ref="{module_type}" name="{vessel_tup.name + str_addon}"/>\n',
                        '</import>\n'])
 
