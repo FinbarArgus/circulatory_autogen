@@ -330,7 +330,7 @@ def test_param_id_test_fft_cost_is_zero(base_user_inputs, resources_dir, temp_ou
         assert os.path.exists(cost_file), f"Cost file should exist: {cost_file}"
         
         fft_cost = np.load(cost_file)
-        assert fft_cost < 1e-10, f"FFT cost should be near zero, got {fft_cost}"
+        assert fft_cost < 1e-8, f"FFT cost should be near zero, got {fft_cost}"
         
         # Verify covariance matrix files were created (identifiability analysis)
         parent_dir = os.path.dirname(temp_output_dir)

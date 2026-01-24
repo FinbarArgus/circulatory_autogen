@@ -49,11 +49,15 @@ class scriptFunctionParser(object):
         funcs = [item for item in dir(operation_funcs) if callable(getattr(operation_funcs, item))]
         funcs_user = [item for item in dir(operation_funcs_user) if callable(getattr(operation_funcs_user, item))]
 
+
         # create dict with keys of string of function names
         for func in funcs:
             operation_funcs_dict[func] = getattr(operation_funcs, func)
         for func in funcs_user:
             operation_funcs_dict[func] = getattr(operation_funcs_user, func)
+
+        # TODO check that this works.
+        operation_funcs_dict[None] = lambda x: x
         
         return operation_funcs_dict
 
