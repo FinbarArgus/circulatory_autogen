@@ -57,6 +57,8 @@ def get_simulation_helper(model_path: str = None, solver: str = None,
     elif solver in python_solvers:
         if not is_python_model:
             raise ValueError(f"solve_ivp method {solver} can only be used with Python models. Use CVODE or CVODE_opencor for CellML models.")
+        if not model_path.endswith('.py'):
+            raise ValueError(f"model_path {model_path} does not end with .py, which is required for Python models")
         return PythonSimulationHelper(model_path, dt, sim_time, solver_info, pre_time=pre_time)
     elif solver is not None:
         # Unknown solver type

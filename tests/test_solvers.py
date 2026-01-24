@@ -557,6 +557,8 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     # Test all solvers (skipping Myokit CVODE for nowsince it's not available)
     for model_type, solver, method in [("cellml_only", "CVODE", "CVODE"), ("python", "solve_ivp", "BDF")]:
         solver_info['method'] = method
+        if model_type == "python":
+            full_model_path = full_model_path.replace('.cellml', '.py')
         try:
             helper = get_simulation_helper(model_path=full_model_path, model_type=model_type, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
             result = helper.run()
@@ -623,6 +625,7 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
 
 @pytest.mark.integration
 @pytest.mark.slow
+# .cellml gets converted to .py for python solvers
 @pytest.mark.parametrize("model_name,model_path,sim_time", [
     ("3compartment", "generated_models/3compartment/3compartment.cellml", 0.1),
     ("SN_simple", "generated_models/SN_simple/SN_simple.cellml", 1.0),
