@@ -153,6 +153,8 @@ class sobol_SA():
     
     def set_ground_truth_data(self, obs_data_dict):
         print(f'Setting ground truth data: {obs_data_dict}')
+        if self.obs_and_param_parser is None:
+            self.obs_and_param_parser = ObsAndParamDataParser()
         parsed_data = self.obs_and_param_parser.parse_obs_data_json(
             obs_data_dict=obs_data_dict,
             pre_time=self.pre_time,
@@ -172,6 +174,8 @@ class sobol_SA():
     
     def set_params_for_id(self, params_for_id_dict):
         print(f'Setting params for id: {params_for_id_dict}')
+        if self.obs_and_param_parser is None:
+            self.obs_and_param_parser = ObsAndParamDataParser()
         self.param_id_info = self.obs_and_param_parser.get_param_id_info_from_entries(params_for_id_dict)
         self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
         self.create_SA_info(self.sample_type, self.SA_info["num_samples"])

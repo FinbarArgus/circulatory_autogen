@@ -299,7 +299,7 @@ def test_param_id_test_fft_cost_is_zero(base_user_inputs, resources_dir, temp_ou
         },
         'param_id_obs_path': os.path.join(resources_dir, 'test_fft_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 200, 'max_patience': 500},  # Increased iterations for better convergence
+        'debug_optimiser_options': {'num_calls_to_function': 2000, 'max_patience': 500},  
     })
     
     # Run parameter identification

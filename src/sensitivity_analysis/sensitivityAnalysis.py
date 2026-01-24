@@ -107,7 +107,12 @@ class SensitivityAnalysis():
                 exit()
             self.model_out_names.append(item["operands"][0])
 
-    def run_sensitivity_analysis(self, sa_options):
+    def run_sensitivity_analysis(self, sa_options=None):
+        if sa_options is None:
+            sa_options = self.sa_options
+        else:
+            self.set_sa_options(sa_options)
+            
         if sa_options['method'] == 'naive':
             self.run_naive_sensitivity()
         elif sa_options['method'] == 'sobol':
