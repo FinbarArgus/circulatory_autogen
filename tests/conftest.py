@@ -298,6 +298,53 @@ def pytest_runtest_logreport(report):
             pass
 
 
+def pytest_exception_interact(node, call, report):
+    """
+    When a test fails under MPI, abort all ranks to avoid deadlocks on barriers.
+    """
+    try:
+        comm = MPI.COMM_WORLD
+        if comm.Get_size() > 1:
+            nodeid = getattr(report, "nodeid", "")
+            if not _is_param_id_related_nodeid(nodeid):
+                return
+            # Emit the failure details from the rank that hit the error
+            try:
+                print(f"[MPI][Rank {comm.Get_rank()}] Test failure:"
+                      "Exiting tests. When running with MPI the tests exit on "
+                      "failure rather than continuing.")
+                print(str(getattr(report, "longrepr", report)))
+                print("Dumping prior test results, since we can't have proper"
+                      "test summary after failing in multi rank param_id testing")
+                if os.path.exists(_AUTOGEN_RESULTS_FILE):
+                    try:
+                        print("[MPI] Prior autogeneration results:")
+                        with open(_AUTOGEN_RESULTS_FILE, "r") as f:
+                            print(f.read())
+                    except Exception:
+                        pass
+                if os.path.exists(_SOLVER_RESULTS_FILE):
+                    try:
+                        print("[MPI] Prior solver results:")
+                        with open(_SOLVER_RESULTS_FILE, "r") as f:
+                            print(f.read())
+                    except Exception:
+                        pass
+                if os.path.exists(_PARAM_ID_RESULTS_FILE):
+                    try:
+                        print("[MPI] Prior param_id results:")
+                        with open(_PARAM_ID_RESULTS_FILE, "r") as f:
+                            print(f.read())
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            comm.Abort(1)
+    except Exception:
+        # If MPI is not available or already finalized, do nothing.
+        return
+
+
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     """

@@ -54,7 +54,7 @@ class sobol_SA():
             print(*args, **kwargs)
 
     def __init__(self, model_path, model_out_names, solver_info, SA_info, dt, save_path, 
-                 param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, ga_options=None,
+                 param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, 
                  sim_time=2.0, pre_time=20.0):
 
         """
@@ -80,11 +80,6 @@ class sobol_SA():
         self.SA_info = SA_info
         self.sample_type = self.SA_info["sample_type"]
         self.num_params = None
-        self.model_output_names = model_out_names
-        # For backwards compatibility, accept both ga_options and optimiser_options
-        # optimiser_options takes precedence
-        self.ga_options = ga_options  # Keep for backwards compatibility
-        self.optimiser_options = None  # Will be set if passed
         self.protocol_info = None
         self.dt = dt
         
@@ -254,7 +249,6 @@ class sobol_SA():
         operands = self.sim_helper.get_results(self.obs_info["operands"])
 
         self.sim_helper.reset_and_clear()
-        # y = self.sim_helper.get_results(self.model_output_names)
         # t = self.sim_helper.tSim - self.pre_time
         # return y, t
         return operands

@@ -119,6 +119,8 @@ class CVS0DParamID():
             self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
             if not os.path.exists(self.plot_dir):
                 os.mkdir(self.plot_dir)
+        else:
+            self.output_dir = None
         
         if resources_dir is None:
             self.resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')

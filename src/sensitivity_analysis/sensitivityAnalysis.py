@@ -50,7 +50,7 @@ class SensitivityAnalysis():
     """
     Class for doing sensitivity analysis on a 0D model
     """
-    def __init__(self, model_path, model_type, file_name_prefix, SA_cfg, DEBUG=False,
+    def __init__(self, model_path, model_type, file_name_prefix, sa_options, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, model_out_names=[], 
                  solver_info={}, dt=0.01, optimiser_options={}, param_id_obs_path=None, params_for_id_path=None):
 
@@ -66,17 +66,17 @@ class SensitivityAnalysis():
         self.optimiser_options = optimiser_options
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path
-        sa_output_dir = SA_cfg['output_dir']
+        sa_output_dir = sa_options['output_dir']
         
-        self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, SA_cfg, self.dt, 
+        self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, sa_options, self.dt, 
                             sa_output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
-                            verbose=False, use_MPI=True, optimiser_options=self.optimiser_options)
+                            verbose=False, use_MPI=True)
 
     @classmethod
     def from_dict(cls, inp_data_dict):
         # Only pass kwargs that exist in inp_data_dict
         arg_options = [
-            'model_path', 'model_type', 'file_name_prefix', 'SA_cfg', 'DEBUG', 'param_id_output_dir',
+            'model_path', 'model_type', 'file_name_prefix', 'sa_options', 'DEBUG', 'param_id_output_dir',
             'resources_dir', 'model_out_names', 'solver_info',
             'dt', 'optimiser_options', 'param_id_obs_path', 'params_for_id_path'
         ]

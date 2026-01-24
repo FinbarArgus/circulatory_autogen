@@ -153,7 +153,6 @@ def test_param_id_3compartment_cmaes_succeeds(base_user_inputs, resources_dir, t
         temp_output_dir: Temporary output directory fixture
         mpi_comm: MPI communicator fixture
     """
-    pytest.skip("Temporarily skipped: CMA-ES parallelization investigation in progress")
     rank = mpi_comm.Get_rank()
     
     # Setup configuration
