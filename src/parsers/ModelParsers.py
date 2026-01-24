@@ -404,7 +404,6 @@ class CSV0DModelParser(object):
     def load_model(self):
         # TODO if file ending is csv. elif file ending is json
         # TODO create a json_parser
-
         if self.vessel_filename_0d is None:
             vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename, True)
         else:
@@ -496,8 +495,12 @@ class CSV0DModelParser(object):
             #     str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
             #     module = 'systemic'
             str_addon = f'_{vessel_tup.name}'
-
             # add str_addon to param name from module_config if constant
+            if (vessel_tup.variables_and_units is None 
+                or vessel_tup.variables_and_units=='None' 
+                or len(vessel_tup.variables_and_units) == 0):
+                continue
+
             required_params += [(vessel_tup.variables_and_units[i][0] + str_addon,
                                  vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
                                    i in range(len(vessel_tup.variables_and_units)) if

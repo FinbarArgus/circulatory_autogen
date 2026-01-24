@@ -164,10 +164,11 @@ class CVS0DCppGenerator(object):
         
 
     def annotate_cellml(self):
-        print("annotating CellML files, before Cpp generation...is this really necessary (Bea asks)?")
+        print("annotating CellML files, before Cpp generation...")
+        #XXX Bea: is this really necessary???
         # TODO most of this function 
         # isn't needed for the generation anymore, but is it good to keep annotation in here? Probably.
-        print("Inside annotate_cellml() function")
+        print(self.generated_model_file_path)
         self.cellml_model = cellml.parse_model(self.generated_model_file_path, False)
         annotator = Annotator()
         annotator.setModel(self.cellml_model)
@@ -665,9 +666,9 @@ class CVS0DCppGenerator(object):
             f.write(self.g.serialize(format='ttl'))
 
 
-    def generate_cellml(self):
+    def generate_cellml(self, inp_data_dict):
         print("generating CellML files, before Cpp generation")
-        cellml_generator = CVS0DCellMLGenerator(self.model, self.inp_data_dict)
+        cellml_generator = CVS0DCellMLGenerator(self.model, inp_data_dict)
         cellml_generator.generate_files()
 
     def set_annotated_model_file_path(self, annotated_model_file_path):
@@ -1221,10 +1222,10 @@ class CVS0DCppGenerator(object):
 
         #XXX saving final 1d-0d connectvity information in generated model directory
         if self.conn_1d_0d_info is not None and self.couple_to_1d:
-            if self.filename_prefix.endswith("_0d"):
-                json_filename = self.filename_prefix[:-3]+"_coupler1d0d.json"
+            if self.file_prefix.endswith("_0d"):
+                json_filename = self.file_prefix[:-3]+"_coupler1d0d.json"
             else:
-                json_filename = self.filename_prefix+"_coupler1d0d.json"
+                json_filename = self.file_prefix+"_coupler1d0d.json"
             
             with open(self.generated_model_subdir+"/"+json_filename, "w") as f:
                 json.dump(self.conn_1d_0d_info, f, indent=4)
@@ -2193,7 +2194,7 @@ void Model0d::set_ode_solver(std::string ODEsolver)
         # print("solverInitFunction")
         # print(solverInitFunction) 
 
-
+        pipesFunctions = ''
         if self.couple_to_1d and N1d0dTot>0:
 
             iStart1 = None
@@ -2217,7 +2218,6 @@ void Model0d::set_ode_solver(std::string ODEsolver)
                     iEnd2 = iL
                     break
             
-            pipesFunctions = ''
             for iL, line in enumerate(lines_tmp[iStart1:iStart2], start=iStart1):
                 if iL==iEnd1:
                     if not self.couple_volume_sum:
@@ -2771,8 +2771,10 @@ void Model0d::initialise(double voiLoc, double *statesLoc, double *ratesLoc, dou
     initialiseVariables(voiLoc, statesLoc, ratesLoc, varLoc);
 
     auto isValid = [](const char* p) { 
+        if (p == nullptr) return false;
+
         std::string s(p);
-        return (p != nullptr && s != \"None\" && !s.empty()); 
+        return (s != \"None\" && !s.empty()); 
     };
 
     // Load initial state from files and overwrite defaults
@@ -3501,6 +3503,7 @@ int main(void){{
 
         mainScript += f"""
     double end_time = 5.0;
+    double save_time = 4.0;
     double dt = {self.dtSolver};
     double eps = 1e-12;
     std::string ODEsolver = \"{self.solver}\";
@@ -3519,10 +3522,17 @@ int main(void){{
     """
         mainScript += """
     
-    model0d_inst.writeOutput(model0d_inst.voi);
+    if (model0d_inst.voi>=save_time-eps){
+        model0d_inst.writeOutput(model0d_inst.voi);
+    }
+
     while (model0d_inst.voi < end_time-eps) {
         model0d_inst.solveOneStep(dt);
-        model0d_inst.writeOutput(model0d_inst.voi);
+        
+        if (model0d_inst.voi>=save_time-eps){
+            model0d_inst.writeOutput(model0d_inst.voi);
+        }
+
         std::cout << "time: " << model0d_inst.voi << " states[0]: " << model0d_inst.states[0] << std::endl;
         // std::cout << "time: " << model0d_inst.voi << " V_delay: " << model0d_inst.variables[2] << std::endl;
     }
@@ -3628,9 +3638,9 @@ int main(void){{
                         line = line.replace('// ', '')
 
                 if 'std::string resFold =' in line:
-                    model_name = self.filename_prefix
-                    if self.filename_prefix.endswith("_0d"):
-                        model_name = self.filename_prefix[:-3]
+                    model_name = self.file_prefix
+                    if self.file_prefix.endswith("_0d"):
+                        model_name = self.file_prefix[:-3]
                     # results0d_folder = os.path.join(self.cpp_generated_models_dir+"/../..", f"simulation_outputs_cpp/{model_name}/")
                     results0d_folder = os.path.join(self.cpp_generated_models_dir+"/../..", f"simulation_outputs_cpp/")
                     if not os.path.exists(results0d_folder):
@@ -3685,7 +3695,7 @@ class CVS1DPythonGenerator(object):
     Generates Python files for 1D model.
     '''
 
-    def __init__(self, model, filename_prefix, vessels1d_csv_abs_path, parameters_csv_abs_path,
+    def __init__(self, model, file_prefix, vessels1d_csv_abs_path, parameters_csv_abs_path,
                 model_1d_config_path, generated_model_subdir, cpp_generated_models_dir=None,
                 solver='CVODE', dtSample=1e-3, dtSolver=1e-4, conn_1d_0d_info=None):
         '''
@@ -3693,7 +3703,7 @@ class CVS1DPythonGenerator(object):
         '''
 
         self.model = model
-        self.filename_prefix = filename_prefix
+        self.file_prefix = file_prefix
         self.initFile1d = model_1d_config_path
         
         self.run1dFold = os.path.dirname(model_1d_config_path)
@@ -3704,7 +3714,7 @@ class CVS1DPythonGenerator(object):
         if not os.path.exists(self.initFiles1dFold):
             os.mkdir(self.initFiles1dFold)
 
-        # print(self.filename_prefix)
+        # print(self.file_prefix)
         # print(self.initFile1d)
         # print(self.run1dFold, os.path.exists(self.run1dFold))
         # print(self.initFiles1dFold, os.path.exists(self.initFiles1dFold))
@@ -3724,9 +3734,9 @@ class CVS1DPythonGenerator(object):
         self.vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(vessels1d_csv_abs_path, True) 
         self.params_df = self.csv_parser.get_data_as_dataframe_multistrings(parameters_csv_abs_path, True)
 
-        self.vessFileName = self.initFiles1dFold+f'/vess_{self.filename_prefix[:-3]}.txt'
-        self.nodeFileName = self.initFiles1dFold+f'/nodes_{self.filename_prefix[:-3]}.txt'
-        self.nameFileName = self.initFiles1dFold+f'/names_{self.filename_prefix[:-3]}.csv'
+        self.vessFileName = self.initFiles1dFold+f'/vess_{self.file_prefix[:-3]}.txt'
+        self.nodeFileName = self.initFiles1dFold+f'/nodes_{self.file_prefix[:-3]}.txt'
+        self.nameFileName = self.initFiles1dFold+f'/names_{self.file_prefix[:-3]}.csv'
 
 
     def generate_files(self):
@@ -3744,13 +3754,13 @@ class CVS1DPythonGenerator(object):
             if "port_volume_sum" in self.conn_1d_0d_info[str(i+1)]:
                 if self.conn_1d_0d_info[str(i+1)]["port_volume_sum"]==1:
                     computeTotBV = True
-        generate1DPythonSimInitFile(self.params_df, vess1d, nodes1d, self.initFile1d, self.filename_prefix, self.run1dFold, self.ODEsolver, self.dtSample, computeTotBV)
+        generate1DPythonSimInitFile(self.params_df, vess1d, nodes1d, self.initFile1d, self.file_prefix, self.run1dFold, self.ODEsolver, self.dtSample, computeTotBV)
 
 
-        if self.filename_prefix.endswith("_1d"):
-            json_filename = self.filename_prefix[:-3]+"_coupler1d0d.json"
+        if self.file_prefix.endswith("_1d"):
+            json_filename = self.file_prefix[:-3]+"_coupler1d0d.json"
         else:
-            json_filename = self.filename_prefix+"_coupler1d0d.json"
+            json_filename = self.file_prefix+"_coupler1d0d.json"
         with open(self.initFiles1dFold+"/"+json_filename, "w") as f:
             json.dump(self.conn_1d_0d_info, f, indent=4)
 

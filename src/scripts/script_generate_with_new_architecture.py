@@ -52,11 +52,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
     
     solver_info = inp_data_dict['solver_info']
     # Get solver from solver_info (check both 'solver' and 'method' for backward compatibility)
-    # solver = solver_info.get('solver') or solver_info.get('method')
-    if 'solver' in solver_info or 'method' in solver_info:
-        solver = solver_info.get('solver') or solver_info.get('method')
-    else:
-        solver = inp_data_dict['solver']
+    solver = solver_info.get('solver') or solver_info.get('method')
 
     if do_generation_with_fit_parameters:
         param_id_output_dir_abs_path = inp_data_dict['param_id_output_dir_abs_path']
@@ -82,6 +78,16 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
             py_gen.generate()
             success = True
     elif inp_data_dict['model_type'] == 'cpp':
+        solver_cpp = inp_data_dict.get('solver')
+        if solver_cpp is None:
+            solver_cpp = 'CVODE' # default solver
+        else:
+            if solver_cpp.startswith('RK4'):
+                solver_cpp = 'RK4'
+            elif solver_cpp.startswith('CVODE'):
+                solver_cpp = 'CVODE'
+        print(f"Using Cpp solver: {solver_cpp}")
+
         if 'dt' in inp_data_dict:
             dtSample = inp_data_dict['dt']
         else:
@@ -130,7 +136,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
             print("Check point 1A")
 
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix_0d, #XXX
-                                            resources_dir=resources_dir, solver=solver, 
+                                            resources_dir=resources_dir, solver=solver_cpp, 
                                             dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps,
                                             couple_to_1d=inp_data_dict['couple_to_1d'],
                                             cpp_generated_models_dir=cpp_generated_models_dir,
@@ -148,7 +154,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
                         code1d_generator = CVS1DPythonGenerator(model, file_prefix_1d, vessels1d_csv_abs_path, parameters_csv_abs_path,
                                                         model_1d_config_path, generated_models_subdir, 
                                                         cpp_generated_models_dir=cpp_generated_models_dir,
-                                                        solver=solver, dtSample=dtSample, dtSolver=dtSolver, 
+                                                        solver=solver_cpp, dtSample=dtSample, dtSolver=dtSolver, 
                                                         conn_1d_0d_info=parser.conn_1d_0d_info)
                     elif inp_data_dict['solver_1d_type'].startswith('cpp'):
                         #XXX This would use the class CVS1DCppGenerator() that Finbar was working on.
@@ -162,12 +168,12 @@ def generate_with_new_architecture(do_generation_with_fit_parameters,
             # object from class CVS0DCppGenerator
             print("Check point 1B")
             code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix,
-                                            resources_dir=resources_dir, solver=solver,
+                                            resources_dir=resources_dir, solver=solver_cpp,
                                             dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps)
             print("Check point 2B")
 
 
-        code_generator.generate_cellml()
+        code_generator.generate_cellml(inp_data_dict)
         print("Check point 3")
         code_generator.annotate_cellml()
         print("Check point 4")
