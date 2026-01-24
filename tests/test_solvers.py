@@ -423,7 +423,7 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
     # Check if model file exists
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     # Simulation parameters
     dt = 0.01
@@ -441,8 +441,8 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
             pre_time=pre_time,
         )
     except RuntimeError as e:
-        # Missing solver backend (OpenCOR/Myokit) should skip instead of fail.
-        pytest.skip(f"{solver} solver not available: {e}")
+        # Missing solver backend (OpenCOR/Myokit) should fail.
+        pytest.fail(f"{solver} solver not available: {e}")
     
     # Run simulation
     try:
@@ -481,7 +481,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     # Check if model file exists
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     # Generate Python model from CellML
     try:
@@ -492,11 +492,11 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
         )
         python_model_path = py_generator.generate()
     except Exception as e:
-        pytest.skip(f"Failed to generate Python model: {e}")
+        pytest.fail(f"Failed to generate Python model: {e}")
     
     # Check if Python model was generated
     if not os.path.exists(python_model_path):
-        pytest.skip(f"Python model not generated: {python_model_path}")
+        pytest.fail(f"Python model not generated: {python_model_path}")
     
     # Simulation parameters
     dt = 0.01
@@ -548,17 +548,28 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     solver_info = {"MaximumStep": 0.0001}
     helpers = {}
     results = {}
     
-    # Test all solvers (skipping Myokit CVODE for nowsince it's not available)
-    for model_type, solver, method in [("cellml_only", "CVODE", "CVODE"), ("python", "solve_ivp", "BDF")]:
+    for model_type, solver, method in [("cellml_only", "CVODE", "CVODE"), ("python", "solve_ivp", "BDF"), ("cellml_only", "CVODE_myokit", "CVODE")]:
         solver_info['method'] = method
         if model_type == "python":
-            full_model_path = full_model_path.replace('.cellml', '.py')
+            # Generate Python model from CellML
+            try:
+                py_generator = PythonGenerator(
+                    full_model_path,
+                    output_dir=temp_model_dir,
+                    module_name=model_name
+                )
+                python_model_path = py_generator.generate()
+                full_model_path = python_model_path
+            except Exception as e:
+                results[solver] = {"success": False, "error": str(e)}
+                pytest.fail(f"{model_name} {model_type} {solver} {method} failed: Failed to generate Python model: {e}")
+
         try:
             helper = get_simulation_helper(model_path=full_model_path, model_type=model_type, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
             result = helper.run()
@@ -567,7 +578,7 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
             results[solver] = {"success": True, "variables": len(helper.get_all_variable_names())}
         except Exception as e:
             results[solver] = {"success": False, "error": str(e)}
-            pytest.fail(f"{solver} {method} failed: {e}")
+            pytest.fail(f"{model_name} {model_type} {solver} {method} failed: {e}")
     
     # Test Python BDF (below to disable)
     # results["Python BDF"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
@@ -585,18 +596,18 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
             print(f"✗ {solver_name}: FAILED ({result.get('error', 'N/A')})")
     
     # Compare results (use Myokit as reference)
-    ref_helper = helpers["Myokit CVODE"]
+    ref_helper = helpers["CVODE_myokit"]
     comparison_results = {}
     
     for solver_name, other_helper in helpers.items():
-        if solver_name == "Myokit CVODE":
+        if solver_name == "CVODE_myokit":
             continue
         
         print(f"\n{'='*80}")
-        print(f"Comparing Myokit CVODE vs {solver_name}")
+        print(f"Comparing CVODE_myokit vs {solver_name}")
         print("="*80)
         
-        comp_result = _compare_solver_results(ref_helper, "Myokit CVODE", other_helper, solver_name, tolerance=tolerance)
+        comp_result = _compare_solver_results(ref_helper, "CVODE_myokit", other_helper, solver_name, tolerance=tolerance)
         comparison_results[solver_name] = comp_result
         
         print(f"Matched variables: {comp_result['matched_count']}")

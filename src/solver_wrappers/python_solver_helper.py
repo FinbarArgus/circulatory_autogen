@@ -52,6 +52,9 @@ class SimulationHelper:
         spec.loader.exec_module(module)
         self.model = module
 
+        if not hasattr(module, 'STATE_COUNT') and not hasattr(module, 'VARIABLE_INFO'):
+            raise ValueError(f"Module {self.model_path} Does have any states or variables. Model invalid")
+
         self.STATE_COUNT = module.STATE_COUNT
         self.VARIABLE_INFO = module.VARIABLE_INFO
         self.STATE_INFO = module.STATE_INFO

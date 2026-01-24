@@ -17,4 +17,5 @@ schwimmbad>=0.3.0
 pytest
 libcellml==0.6.3
 nevergrad==1.0.12
+importlib_metadata
 
