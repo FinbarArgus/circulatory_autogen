@@ -56,10 +56,18 @@ class scriptFunctionParser(object):
         for func in funcs_user:
             operation_funcs_dict[func] = getattr(operation_funcs_user, func)
 
-        # TODO check that this works.
+        # add a do nothing function to the dict
         operation_funcs_dict[None] = lambda x: x
         
         return operation_funcs_dict
+    
+    def add_user_operation_func(self, operation_funcs_dict, func):
+        operation_funcs_dict[func.__name__] = func
+        return operation_funcs_dict
+    
+    def add_user_cost_func(self, cost_funcs_dict, func):
+        cost_funcs_dict[func.__name__] = func
+        return cost_funcs_dict
 
     def get_cost_funcs_dict(self):
         # import cost_funcs # currently all costs are in cost_funcs_user

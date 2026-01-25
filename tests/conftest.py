@@ -314,8 +314,19 @@ def pytest_exception_interact(node, call, report):
                       "Exiting tests. When running with MPI the tests exit on "
                       "failure rather than continuing.")
                 print(str(getattr(report, "longrepr", report)))
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
                 print("Dumping prior test results, since we can't have proper"
-                      "test summary after failing in multi rank param_id testing")
+                      "test summary after failing in multi rank param_id or sensitivity analysis testing")
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
+                print('--------------------------------')
                 if os.path.exists(_AUTOGEN_RESULTS_FILE):
                     try:
                         print("[MPI] Prior autogeneration results:")

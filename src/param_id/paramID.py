@@ -256,6 +256,13 @@ class CVS0DParamID():
         else:
             self.param_id.set_output_dir(self.output_dir)
     
+
+    def add_user_operation_func(self, func):
+        self.param_id.add_user_operation_func(func)
+    
+    def add_user_cost_func(self, func):
+        self.param_id.add_user_cost_func(func)
+    
     def set_param_names(self, param_names):
         if self.mcmc_instead:
             mcmc_object.set_param_names(param_names)
@@ -1205,9 +1212,9 @@ class OpencorParamID():
 
         self.protocol_info = protocol_info
 
-        sfp = scriptFunctionParser()
-        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
-        self.cost_funcs_dict = sfp.get_cost_funcs_dict()
+        self.sfp = scriptFunctionParser()
+        self.operation_funcs_dict = self.sfp.get_operation_funcs_dict()
+        self.cost_funcs_dict = self.sfp.get_cost_funcs_dict()
 
         # set up opencor simulation
         self.dt = dt
@@ -1268,6 +1275,12 @@ class OpencorParamID():
                                            model_path=self.model_path, dt=self.dt, sim_time=self.sim_time,
                                            solver_info=self.solver_info, pre_time=self.pre_time)
         return helper_cls
+    
+    def add_user_operation_func(self, func):
+        self.operation_funcs_dict = self.sfp.add_user_operation_func(self.operation_funcs_dict, func)
+    
+    def add_user_cost_func(self, func):
+        self.cost_funcs_dict = self.sfp.add_user_cost_func(self.cost_funcs_dict, func)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals

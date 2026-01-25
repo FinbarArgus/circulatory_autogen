@@ -53,7 +53,7 @@ class sobol_SA():
         if self._is_rank0():
             print(*args, **kwargs)
 
-    def __init__(self, model_path, model_out_names, solver_info, SA_info, dt, save_path, 
+    def __init__(self, model_path, model_out_names, solver_info, SA_info, dt, sa_output_dir, 
                  param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, 
                  sim_time=2.0, pre_time=20.0):
 
@@ -74,7 +74,7 @@ class sobol_SA():
         self.model_path = model_path
         self.output_dir = None
         self.verbose = verbose
-        self.save_path = save_path
+        self.set_output_dir(sa_output_dir)
 
         self.solver_info = solver_info
         self.SA_info = SA_info
@@ -84,8 +84,8 @@ class sobol_SA():
         self.dt = dt
         
         # set up observables functions
-        sfp = scriptFunctionParser()
-        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
+        self.sfp = scriptFunctionParser()
+        self.operation_funcs_dict = self.sfp.get_operation_funcs_dict()
         
         self.obs_and_param_parser = None
         self.gt_df = None
@@ -134,7 +134,6 @@ class sobol_SA():
         self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
         self.n_steps = int(self.sim_time/self.dt)
 
-        self.set_output_dir(save_path)
 
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
@@ -151,6 +150,10 @@ class sobol_SA():
         if self.param_id_info is not None:
             self.SA_info = self.create_SA_info(self.sample_type, self.SA_info["num_samples"])
     
+
+    def add_user_operation_func(self, func):
+        self.operation_funcs_dict = self.sfp.add_user_operation_func(self.operation_funcs_dict, func)
+        
     def set_ground_truth_data(self, obs_data_dict):
         print(f'Setting ground truth data: {obs_data_dict}')
         if self.obs_and_param_parser is None:
@@ -183,6 +186,7 @@ class sobol_SA():
 
     def set_sa_options(self, sa_options):
         self.SA_info = self._create_SA_info(sa_options['sample_type'], sa_options['num_samples'])
+        self.set_output_dir(sa_options['output_dir'])
 
     def _create_SA_info(self, sample_type, num_samples):
         
@@ -438,6 +442,28 @@ class sobol_SA():
             return None, None, None
         
         outputs = np.array(outputs)
+
+        # Ensure outputs are numeric scalars; SALib expects 1D numeric Y per output.
+        if outputs.dtype == object:
+            def _coerce_scalar(val):
+                if isinstance(val, (list, tuple, np.ndarray)):
+                    arr = np.asarray(val)
+                    if arr.size != 1:
+                        raise TypeError(
+                            "Sobol outputs must be scalar per sample/output; "
+                            f"got array-like with size={arr.size} and dtype={arr.dtype}."
+                        )
+                    val = arr.item()
+                return float(val)
+
+            try:
+                outputs = np.array([[_coerce_scalar(v) for v in row] for row in outputs], dtype=float)
+            except Exception as e:
+                raise TypeError(
+                    "Sobol outputs are not numeric scalars. "
+                    "Check your operation functions or operands; they may return lists/arrays "
+                    "instead of a single number."
+                ) from e
     
         if outputs.ndim == 1:
             outputs = outputs[:, np.newaxis]  # convert to (n_samples, 1)
@@ -446,6 +472,9 @@ class sobol_SA():
         S1_all = np.zeros((n_outputs, self.num_params))
         ST_all = np.zeros((n_outputs, self.num_params))
         S2_all = np.zeros((n_outputs, self.num_params, self.num_params))
+
+        # change names to series here as SALib has an issue with lists https://github.com/SALib/SALib/issues/671
+        self.problem['names'] = pd.Series(self.problem['names'])
 
         for i in range(n_outputs):
             Si = sobol.analyze(self.problem, outputs[:,i], print_to_console=self.verbose)
@@ -473,7 +502,7 @@ class sobol_SA():
         for i in range(n_outputs):
             S1 = S1_all[i]
             ST = ST_all[i]
-            output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info['experiment_idxs'][i]}, subexperiment{self.obs_info['subexperiment_idxs'][i]}"
+            output_name = rf"{self.obs_info['names_for_plotting'][i]} - experiment{self.obs_info['experiment_idxs'][i]}, subexperiment{self.obs_info['subexperiment_idxs'][i]}"
             # output_name = self.obs_info["names_for_plotting"][i] if hasattr(self, "obs_info") else f"Output_{i}"
 
             # Set figure width adaptively based on number of parameters (xticks)
@@ -489,7 +518,7 @@ class sobol_SA():
             plt.tight_layout()
 
             file_name = f"{output_name}_n{self.num_samples}_First_order_idx.png"
-            plt.savefig(os.path.join(self.save_path, file_name))
+            plt.savefig(os.path.join(self.output_dir, file_name))
             plt.clf()
             plt.close()
 
@@ -507,7 +536,7 @@ class sobol_SA():
         n_outputs = S2_all.shape[0]
         for i in range(n_outputs):
             S2 = S2_all[i]
-            output_name = rf"${self.obs_info['names_for_plotting'][i]}$ - experiment{self.obs_info['experiment_idxs'][i]}, subexperiment{self.obs_info['subexperiment_idxs'][i]}"
+            output_name = rf"{self.obs_info['names_for_plotting'][i]} - experiment{self.obs_info['experiment_idxs'][i]}, subexperiment{self.obs_info['subexperiment_idxs'][i]}"
 
             # plt.figure(figsize=(6, 5))
             fig_width = max(6, 1.0 * len(self.SA_info["param_names"]))
@@ -517,7 +546,7 @@ class sobol_SA():
             plt.tight_layout()
 
             filename = f"{output_name}_n{self.num_samples}_2nd_order_idx.png"
-            plt.savefig(os.path.join(self.save_path, filename))
+            plt.savefig(os.path.join(self.output_dir, filename))
             plt.clf()
             plt.close()
 
@@ -585,7 +614,7 @@ class sobol_SA():
         # 1. Define Axis Labels
         output_labels = self.get_sobol_output_labels(S1_all.shape[0])
 
-        param_labels = [rf"${name}$" for name in self.param_id_info["param_names_for_plotting"]]
+        param_labels = [rf"{name}" for name in self.param_id_info["param_names_for_plotting"]]
 
         # Current shape: (n_outputs, n_params) -> Desired shape: (n_params, n_outputs)
         S1_heatmap_data = S1_all.T
@@ -624,7 +653,7 @@ class sobol_SA():
             plt.tight_layout()
             
             file_name = f"{index_type.replace('-', '_')}_Sobol_Heatmap.png"
-            save_path = os.path.join(self.save_path, file_name)
+            save_path = os.path.join(self.output_dir, file_name)
             plt.savefig(save_path, bbox_inches='tight', dpi=300)
             plt.close()
             print(f"Saved {index_type} heatmap to {save_path}")
@@ -666,7 +695,7 @@ class sobol_SA():
             df_Sobol[f"S1_{out_name}"] = S1_all[i]
             df_Sobol[f"ST_{out_name}"] = ST_all[i]
         file_name = f"all_outputs_n{self.num_samples}_Sobol_indices.csv"
-        df_Sobol.to_csv(os.path.join(self.save_path, file_name), index=False)
+        df_Sobol.to_csv(os.path.join(self.output_dir, file_name), index=False)
 
         # --- Save S2 indices ---
         # For each output, flatten S2 into a DataFrame with MultiIndex columns
@@ -686,7 +715,7 @@ class sobol_SA():
         df_S2 = pd.concat([s2_dict[out_name] for out_name in output_names], axis=1)
         df_S2.index.name = "Parameter"
         file_name_S2 = f"all_outputs_n{self.num_samples}_Sobol_2nd_order_indices.csv"
-        df_S2.to_csv(os.path.join(self.save_path, file_name_S2))
+        df_S2.to_csv(os.path.join(self.output_dir, file_name_S2))
         
     def run(self):
         samples = self.generate_samples()

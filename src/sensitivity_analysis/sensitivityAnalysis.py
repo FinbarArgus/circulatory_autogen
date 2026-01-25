@@ -66,6 +66,7 @@ class SensitivityAnalysis():
         self.optimiser_options = optimiser_options
         self.param_id_obs_path = param_id_obs_path
         self.params_for_id_path = params_for_id_path
+        self.sa_options = sa_options
         sa_output_dir = sa_options['output_dir']
         
         self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, sa_options, self.dt, 
@@ -87,6 +88,9 @@ class SensitivityAnalysis():
             kwargs['file_name_prefix'] = inp_data_dict['file_prefix']
 
         return cls(**kwargs)
+
+    def add_user_operation_func(self, func):
+        self.SA_manager.add_user_operation_func(func)
 
     def set_sa_options(self, sa_options):
         self.SA_manager.set_sa_options(sa_options)
@@ -112,7 +116,7 @@ class SensitivityAnalysis():
             sa_options = self.sa_options
         else:
             self.set_sa_options(sa_options)
-            
+
         if sa_options['method'] == 'naive':
             self.run_naive_sensitivity()
         elif sa_options['method'] == 'sobol':
