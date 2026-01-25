@@ -36,6 +36,12 @@ class SimulationHelper:
         self._init_state()
         self.update_times(dt, 0.0, sim_time, pre_time)
 
+    def get_time(self, include_pre_time=False):
+        if include_pre_time:
+            return self.tSim
+        else:
+            return self.tSim - self.pre_time
+
     def set_solve_ivp_method(self, method):
         self.solve_ivp_method = method 
         
@@ -45,6 +51,9 @@ class SimulationHelper:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         self.model = module
+
+        if not hasattr(module, 'STATE_COUNT') and not hasattr(module, 'VARIABLE_INFO'):
+            raise ValueError(f"Module {self.model_path} Does have any states or variables. Model invalid")
 
         self.STATE_COUNT = module.STATE_COUNT
         self.VARIABLE_INFO = module.VARIABLE_INFO

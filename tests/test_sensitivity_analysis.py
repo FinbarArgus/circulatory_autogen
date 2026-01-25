@@ -15,7 +15,8 @@ def mpi_comm():
     """Fixture that provides MPI communicator."""
     comm = MPI.COMM_WORLD
     if comm.Get_size() < 2:
-        pytest.skip("MPI tests require mpiexec with at least 2 ranks")
+        # pytest.skip("MPI tests require mpiexec with at least 2 ranks")
+        print("Running param ID and Sensitivity Analysis tests with 1 rank, this is slow")
     return comm
 
 

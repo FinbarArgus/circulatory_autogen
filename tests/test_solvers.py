@@ -374,12 +374,12 @@ def test_init_states_myokit(base_user_inputs, resources_dir):
         assert ok, "Autogeneration failed for test_init_states"
         assert os.path.exists(cellml_path), f"Generated model not found after generation: {cellml_path}"
 
-    helper_cls = get_simulation_helper(solver="CVODE")
     dt = 0.01
     sim_time = 0.1
     solver_info = {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000}
-    helper = helper_cls(cellml_path, dt, sim_time, solver_info=solver_info, pre_time=0.0)
-    assert helper.run(), "Myokit simulation failed for init_states_test"
+    helper = get_simulation_helper(model_path=cellml_path, model_type="cellml_only", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=0.0, solver="CVODE")
+    result = helper.run()
+    assert result, "Myokit simulation failed for init_states_test"
 
     # Find x and y state series
     names = helper.get_all_variable_names()
@@ -420,30 +420,35 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
         solver_info: Solver configuration dictionary
     """
     # Skip OpenCOR tests if OpenCOR is not available
-    if solver == "CVODE":
-        try:
-            helper_cls = get_simulation_helper(solver=solver)
-            if helper_cls is None:
-                pytest.skip("OpenCOR solver not available")
-        except RuntimeError:
-            pytest.skip("OpenCOR solver not available")
-    
     # Check if model file exists
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     # Simulation parameters
     dt = 0.01
     sim_time = 1.0  # Short simulation for testing
     pre_time = 0.0
+
+    try:
+        helper = get_simulation_helper(
+            model_path=model_path,
+            model_type="cellml_only",
+            solver=solver,
+            dt=dt,
+            sim_time=sim_time,
+            solver_info=solver_info,
+            pre_time=pre_time,
+        )
+    except RuntimeError as e:
+        # Missing solver backend (OpenCOR/Myokit) should fail.
+        pytest.fail(f"{solver} solver not available: {e}")
     
     # Run simulation
-    helper_cls = get_simulation_helper(solver=solver)
-    helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
-    
-    # Run simulation
-    result = helper.run()
+    try:
+        result = helper.run()
+    except RuntimeError as e:
+        pytest.fail(f"{solver} simulation failed for {model_name}: {e}")
     assert result, f"{solver} simulation failed for {model_name}"
     
     # Verify results
@@ -476,7 +481,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     # Check if model file exists
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     # Generate Python model from CellML
     try:
@@ -487,11 +492,11 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
         )
         python_model_path = py_generator.generate()
     except Exception as e:
-        pytest.skip(f"Failed to generate Python model: {e}")
+        pytest.fail(f"Failed to generate Python model: {e}")
     
     # Check if Python model was generated
     if not os.path.exists(python_model_path):
-        pytest.skip(f"Python model not generated: {python_model_path}")
+        pytest.fail(f"Python model not generated: {python_model_path}")
     
     # Simulation parameters
     dt = 0.01
@@ -503,8 +508,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
     }
     
     # Run simulation with Python BDF solver
-    helper_cls = get_simulation_helper(solver="solve_ivp", model_path=python_model_path)
-    helper = helper_cls(python_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+    helper = get_simulation_helper(model_path=python_model_path, model_type="python", solver="solve_ivp", dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
     
     # Run simulation
     result = helper.run()
@@ -544,25 +548,37 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
     full_model_path = os.path.join(_TEST_ROOT, model_path)
     
     if not os.path.exists(full_model_path):
-        pytest.skip(f"Model file not found: {full_model_path}")
+        pytest.fail(f"Model file not found: {full_model_path}")
     
     solver_info = {"MaximumStep": 0.0001}
     helpers = {}
     results = {}
     
-    # Test all solvers (skipping Myokit CVODE for nowsince it's not available)
-    for solver, method in [("CVODE", "CVODE"), ("solve_ivp", "BDF")]:
+    for model_type, solver, method in [("cellml_only", "CVODE", "CVODE"), ("python", "solve_ivp", "BDF"), ("cellml_only", "CVODE_myokit", "CVODE")]:
         solver_info['method'] = method
+        if model_type == "python":
+            # Generate Python model from CellML
+            try:
+                py_generator = PythonGenerator(
+                    full_model_path,
+                    output_dir=temp_model_dir,
+                    module_name=model_name
+                )
+                python_model_path = py_generator.generate()
+                full_model_path = python_model_path
+            except Exception as e:
+                results[solver] = {"success": False, "error": str(e)}
+                pytest.fail(f"{model_name} {model_type} {solver} {method} failed: Failed to generate Python model: {e}")
+
         try:
-            helper_cls = get_simulation_helper(solver=solver, model_path=full_model_path)
-            helper = helper_cls(full_model_path, dt, sim_time, solver_info=solver_info, pre_time=pre_time)
+            helper = get_simulation_helper(model_path=full_model_path, model_type=model_type, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
             result = helper.run()
             assert result, f"{solver} {method} simulation failed"
             helpers[solver] = helper
             results[solver] = {"success": True, "variables": len(helper.get_all_variable_names())}
         except Exception as e:
             results[solver] = {"success": False, "error": str(e)}
-            pytest.fail(f"{solver} {method} failed: {e}")
+            pytest.fail(f"{model_name} {model_type} {solver} {method} failed: {e}")
     
     # Test Python BDF (below to disable)
     # results["Python BDF"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
@@ -580,18 +596,18 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
             print(f"✗ {solver_name}: FAILED ({result.get('error', 'N/A')})")
     
     # Compare results (use Myokit as reference)
-    ref_helper = helpers["Myokit CVODE"]
+    ref_helper = helpers["CVODE_myokit"]
     comparison_results = {}
     
     for solver_name, other_helper in helpers.items():
-        if solver_name == "Myokit CVODE":
+        if solver_name == "CVODE_myokit":
             continue
         
         print(f"\n{'='*80}")
-        print(f"Comparing Myokit CVODE vs {solver_name}")
+        print(f"Comparing CVODE_myokit vs {solver_name}")
         print("="*80)
         
-        comp_result = _compare_solver_results(ref_helper, "Myokit CVODE", other_helper, solver_name, tolerance=tolerance)
+        comp_result = _compare_solver_results(ref_helper, "CVODE_myokit", other_helper, solver_name, tolerance=tolerance)
         comparison_results[solver_name] = comp_result
         
         print(f"Matched variables: {comp_result['matched_count']}")
@@ -620,6 +636,7 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
 
 @pytest.mark.integration
 @pytest.mark.slow
+# .cellml gets converted to .py for python solvers
 @pytest.mark.parametrize("model_name,model_path,sim_time", [
     ("3compartment", "generated_models/3compartment/3compartment.cellml", 0.1),
     ("SN_simple", "generated_models/SN_simple/SN_simple.cellml", 1.0),

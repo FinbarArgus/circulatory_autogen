@@ -21,7 +21,7 @@ from generators.PythonGenerator import PythonGenerator
 from parsers.PrimitiveParsers import YamlFileParser
 
 
-def generate_with_new_architecture(do_generation_with_fit_parameters,
+def generate_with_new_architecture(do_generation_with_fit_parameters=False,
                                    inp_data_dict=None):
 
     yaml_parser = YamlFileParser()
