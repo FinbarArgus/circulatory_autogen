@@ -322,7 +322,7 @@ class sobol_SA():
 
                         self.sim_helper.reset_and_clear()
                     else:
-                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals} after {retry_count} retries")
+                        print(f"[MPI Rank {self.rank}] Simulation failed for params: {param_vals}, after {retry_count} retries")
                         # Set a flag in operands_outputs_dict to indicate failure
                         operands_outputs_dict[(0, 0)] = {"failed": True}
 
