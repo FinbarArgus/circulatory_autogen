@@ -212,10 +212,13 @@ class YamlFileParser(object):
         valid_python_solvers = ['solve_ivp']
         valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if solver not in valid_cellml_solvers and solver not in valid_python_solvers:
+        if (solver not in valid_cellml_solvers 
+            and solver not in valid_python_solvers
+            and solver not in valid_cpp_solvers):
             print(f'Invalid solver: {solver}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
+            print(f'Valid Cpp solvers: {valid_cpp_solvers}')
             exit()
         
         
