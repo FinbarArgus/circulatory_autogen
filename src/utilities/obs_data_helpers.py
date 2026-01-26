@@ -140,3 +140,14 @@ class ObsDataCreator:
         with open(output_path, 'w') as f:
             json.dump(self.obs_data_dict, f, indent=2)
         print(f"Observation data dumped to {output_path}")
+    
+    def load_from_json_file(self, input_path):
+        """
+        Loads the observation data dictionary from a JSON file.
+        input_path: path to the JSON file
+        """
+        with open(input_path, 'r') as f:
+            data = json.load(f)
+        self.obs_data_dict = data
+        print(f"Observation data loaded from {input_path}")
+        return data

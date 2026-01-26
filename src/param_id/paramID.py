@@ -203,7 +203,7 @@ class CVS0DParamID():
         self.sensitivity_calculated = False
 
     @classmethod
-    def from_dict(cls, inp_data_dict):
+    def init_from_dict(cls, inp_data_dict):
         # Only pass kwargs that exist in inp_data_dict
         arg_options = [
             'model_path', 'model_type', 'param_id_method', 'mcmc_instead',
