@@ -47,7 +47,7 @@ import corner
 import csv
 from datetime import date
 # from skopt import gp_minimize, Optimizer
-from parsers.PrimitiveParsers import CSVFileParser
+from parsers.PrimitiveParsers import CSVFileParser, ObsAndParamDataParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser
 import pandas as pd
 import json
@@ -75,10 +75,10 @@ class CVS0DParamID():
     """
     Class for doing parameter identification on a 0D cvs model
     """
-    def __init__(self, model_path, model_type, param_id_method, mcmc_instead, file_name_prefix,
+    def __init__(self, model_path, model_type, param_id_method, mcmc_instead=False, file_name_prefix='no_name',
                  params_for_id_path=None,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, dt=0.01,
-                 solver_info=None, mcmc_options=None, ga_options=None, optimiser_options=None, DEBUG=False,
+                 solver_info=None, mcmc_options=None, optimiser_options=None, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, one_rank=False):
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -90,17 +90,20 @@ class CVS0DParamID():
         self.rank = self.comm.Get_rank()
         self.num_procs = self.comm.Get_size()
 
-        # For backwards compatibility, merge ga_options into optimiser_options
-        self.optimiser_options = optimiser_options or {}
-        if ga_options is not None:
-            for key, value in ga_options.items():
-                if key not in self.optimiser_options:
-                    self.optimiser_options[key] = value
         self.mcmc_options = mcmc_options
-        self.solver_info = solver_info
+        if solver_info is None:
+            self.solver_info = {"solver": "CVODE"} 
+        else:
+            self.solver_info = solver_info
         self.dt = dt
+        self.sim_time = sim_time
+        self.pre_time = pre_time
 
-        self.param_id_obs_file_prefix = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
+        if param_id_obs_path is None:
+            date_str = date.today().strftime("%Y%m%d")
+            self.param_id_obs_file_prefix = f"obs_{date_str}"
+        else:
+            self.param_id_obs_file_prefix = re.sub('.json', '', os.path.split(param_id_obs_path)[1])
         case_type = f'{param_id_method}_{file_name_prefix}_{self.param_id_obs_file_prefix}'
         if self.rank == 0:
             if param_id_output_dir is None:
@@ -116,6 +119,8 @@ class CVS0DParamID():
             self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
             if not os.path.exists(self.plot_dir):
                 os.mkdir(self.plot_dir)
+        else:
+            self.output_dir = None
         
         if resources_dir is None:
             self.resources_dir = os.path.join(os.path.dirname(__file__), '../../resources')
@@ -136,18 +141,40 @@ class CVS0DParamID():
         self.gt_df = None
         self.protocol_info = None
         self.obs_info = None
+        self.prediction_info = None
         self.params_for_id_path = params_for_id_path
+        self.optimiser_options = optimiser_options
+        self.obs_and_param_parser = ObsAndParamDataParser()
         if param_id_obs_path:
-            self.__set_obs_names_and_df(param_id_obs_path, sim_time=sim_time, pre_time=pre_time)
+            # self.__set_obs_names_and_df(param_id_obs_path, sim_time=sim_time, pre_time=pre_time)
+            parsed_data = self.obs_and_param_parser.parse_obs_data_json(
+                param_id_obs_path=param_id_obs_path,
+                pre_time=pre_time,
+                sim_time=sim_time
+            )
+            self.gt_df = parsed_data["gt_df"]
+            self.protocol_info = parsed_data["protocol_info"]
+            self.prediction_info = parsed_data["prediction_info"]
+
+            self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
+            self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
+                gt_df=self.gt_df,
+                protocol_info=self.protocol_info,
+                dt=self.dt
+            )
+
         if self.params_for_id_path:
-            self.__set_and_save_param_names()
+            self.param_id_info = self.obs_and_param_parser.get_param_id_info(self.params_for_id_path)
+            self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
 
-        # ground truth values
-        self.__get_ground_truth_values()
-
-        # get prediction variables
-        self.__set_prediction_var() # To be made obsolete, as prediction_info gets 
-                                    # parsed in __set_obs_names_and_df
+        if self.optimiser_options is None:
+            print("No optimiser options provided, using default options")
+            self.optimiser_options = {
+                'cost_convergence': 0.0001,
+                'max_patience': 10,
+                'num_calls_to_function': 10000
+            }
+            print(f'Default optimiser options: {self.optimiser_options}')
 
         if self.mcmc_instead:
             # This mcmc_object will be an instance of the OpencorParamID class
@@ -157,18 +184,16 @@ class CVS0DParamID():
             global mcmc_object 
             mcmc_object = OpencorMCMC(self.model_path,
                                            self.obs_info, self.param_id_info,
-                                           self.protocol_info, self.prediction_info, dt=self.dt,
-                                           solver_info=self.solver_info, mcmc_options=mcmc_options,
+                                           self.protocol_info, self.prediction_info, self.solver_info, dt=self.dt,
+                                           mcmc_options=mcmc_options,
                                            DEBUG=self.DEBUG, model_type=self.model_type)
             self.n_steps = mcmc_object.n_steps
         else:
             if model_type in ['cellml_only', 'python']:
-                optimiser_options = getattr(self, 'optimiser_options', None)
                 self.param_id = OpencorParamID(self.model_path, self.param_id_method,
                                                self.obs_info, self.param_id_info, self.protocol_info,
-                                               self.prediction_info, dt=self.dt,
-                                               solver_info=self.solver_info, ga_options=ga_options,
-                                               optimiser_options=optimiser_options, DEBUG=self.DEBUG, 
+                                               self.prediction_info, self.solver_info, dt=self.dt,
+                                               optimiser_options=self.optimiser_options, DEBUG=self.DEBUG, 
                                                model_type=self.model_type)
                 self.n_steps = self.param_id.n_steps
         if self.rank == 0:
@@ -176,6 +201,24 @@ class CVS0DParamID():
         
         self.best_output_calculated = False
         self.sensitivity_calculated = False
+
+    @classmethod
+    def init_from_dict(cls, inp_data_dict):
+        # Only pass kwargs that exist in inp_data_dict
+        arg_options = [
+            'model_path', 'model_type', 'param_id_method', 'mcmc_instead',
+            'file_name_prefix', 'params_for_id_path', 'param_id_obs_path',
+            'sim_time', 'pre_time', 'dt', 'solver_info', 'mcmc_options',
+            'optimiser_options', 'DEBUG', 'param_id_output_dir', 'resources_dir',
+            'one_rank',
+        ]
+        kwargs = {key: inp_data_dict[key] for key in arg_options if key in inp_data_dict}
+
+        # Support common naming used elsewhere
+        if 'file_name_prefix' not in kwargs and 'file_prefix' in inp_data_dict:
+            kwargs['file_name_prefix'] = inp_data_dict['file_prefix']
+
+        return cls(**kwargs)
 
     def temp_test(self):
         self.param_id.temp_test()
@@ -213,14 +256,54 @@ class CVS0DParamID():
         else:
             self.param_id.set_output_dir(self.output_dir)
     
+
+    def add_user_operation_func(self, func):
+        self.param_id.add_user_operation_func(func)
+    
+    def add_user_cost_func(self, func):
+        self.param_id.add_user_cost_func(func)
+    
     def set_param_names(self, param_names):
         if self.mcmc_instead:
             mcmc_object.set_param_names(param_names)
         else:
             self.param_id.set_param_names(param_names)
-        
+    
+    def set_optimiser_options(self, optimiser_options):
+        self.optimiser_options = optimiser_options
+        self.param_id.set_optimiser_options(optimiser_options)
 
-        # TODO have to save param names as in __set_and_save_param_names!!
+    def set_param_id_method(self, param_id_method):
+        self.param_id_method = param_id_method
+        self.param_id.set_param_id_method(param_id_method)
+        
+    def set_ground_truth_data(self, obs_data_dict):
+        print(f'Setting ground truth data: {obs_data_dict}')
+        parsed_data = self.obs_and_param_parser.parse_obs_data_json(
+            obs_data_dict=obs_data_dict,
+            pre_time=self.pre_time,
+            sim_time=self.sim_time
+        )
+        self.gt_df = parsed_data["gt_df"]
+        self.protocol_info = parsed_data["protocol_info"]
+        self.prediction_info = parsed_data["prediction_info"]
+
+        self.obs_info = self.obs_and_param_parser.process_obs_info(gt_df=self.gt_df, output_dir=self.output_dir, dt=self.dt)
+        self.protocol_info = self.obs_and_param_parser.process_protocol_and_weights(
+            gt_df=self.gt_df,
+            protocol_info=self.protocol_info,
+            dt=self.dt
+        )
+        self.param_id.set_obs_info(self.obs_info)
+        self.param_id.set_prediction_info(self.prediction_info)
+        print(f'Ground truth data set: {self.obs_info}')
+    
+    def set_params_for_id(self, params_for_id_dict):
+        print(f'Setting params for id: {params_for_id_dict}')
+        self.param_id_info = self.obs_and_param_parser.get_param_id_info_from_entries(params_for_id_dict)
+        self.obs_and_param_parser.save_param_names(self.param_id_info, self.output_dir)
+        self.param_id.set_param_id_info(self.param_id_info)
+        print(f'Params for id set: {self.param_id_info["param_names"]}')
 
     def set_best_param_vals(self, best_param_vals):
         if self.mcmc_instead:
@@ -925,9 +1008,6 @@ class CVS0DParamID():
 
         return
 
-    def set_genetic_algorithm_parameters(self, n_calls):
-        self.param_id.set_genetic_algorithm_parameters(n_calls)
-
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         self.param_id.set_bayesian_parameters(n_calls, n_initial_points, acq_func, random_state,
                                               acq_func_kwargs=acq_func_kwargs)
@@ -938,580 +1018,7 @@ class CVS0DParamID():
         else:
             self.param_id.close_simulation()
 
-    def __set_obs_names_and_df(self, param_id_obs_path, pre_time=None, sim_time=None):
-        # TODO this function should be in the parsing section. as it parses the 
-        # ground truth data.
-        # TODO it should also be cleaned up substantially.
-        """_summary_
-
-        Args:
-            param_id_obs_path (_type_): _description_
-            pre_time (_type_): _description_
-            sim_time (_type_): _description_
-        """
-        with open(param_id_obs_path, encoding='utf-8-sig') as rf:
-            json_obj = json.load(rf)
-        if type(json_obj) == list:
-            self.gt_df = pd.DataFrame(json_obj)
-            self.protocol_info = {"pre_times": [pre_time], 
-                                    "sim_times": [[sim_time]],
-                                    "params_to_change": [[None]]}
-            self.prediction_info = {'names': [],
-                                    'units': [],
-                                    'names_for_plotting': [],
-                                    'experiment_idxs': []}
-        elif type(json_obj) == dict:
-            if 'data_items' in json_obj.keys():
-                self.gt_df = pd.DataFrame(json_obj['data_items'])
-            elif 'data_item' in json_obj.keys():
-                self.gt_df = pd.DataFrame(json_obj['data_item']) # should be data_items but accept this
-            else:
-                print("data_items not found in json object. ",
-                      "Please check that data_items is the key for the list of data items")
-            if 'protocol_info' in json_obj.keys():
-                self.protocol_info = json_obj['protocol_info']
-                if "sim_times" not in self.protocol_info.keys():
-                    self.protocol_info["sim_times"] = [[sim_time]]
-                if "pre_times" not in self.protocol_info.keys():
-                    self.protocol_info["pre_times"] = [pre_time]
-            else:
-                if pre_time is None or sim_time is None:
-                    print("protocol_info not found in json object. ",
-                          "If this is the case sim_time and pre_time must be set",
-                          "in the user_inputs.yaml file")
-                    exit()
-
-                self.protocol_info = {"pre_times": [pre_time], 
-                                      "sim_times": [[sim_time]],
-                                      "params_to_change": [[None]]}
-            if 'prediction_items' in json_obj.keys():
-                self.prediction_info = {'names': [],
-                                        'units': [],
-                                        'names_for_plotting': [],
-                                        'experiment_idxs': []}
-
-                for entry in json_obj['prediction_items']:
-                    if 'variable' in entry.keys():
-                        self.prediction_info['names'].append(entry['variable'])
-                    else:
-                        print('"variable" not found in prediction item in obs_data.json file, ',
-                              'exitiing') 
-                        exit()
-                    if 'unit' in entry.keys():
-                        self.prediction_info['units'].append(entry['unit'])
-                    else:
-                        print('"unit" not found in prediction item in obs_data.json file, ',
-                              'exitiing') 
-                        exit()
-                    if 'name_for_plotting' in entry.keys():
-                        self.prediction_info['names_for_plotting'].append(entry['name_for_plotting'])
-                    else:
-                        self.prediction_info['names_for_plotting'].append(entry['variable'])
-                    if 'experiment_idx' in entry.keys():
-                        self.prediction_info['experiment_idxs'].append(entry['experiment_idx'])
-                    else:
-                        self.prediction_info['experiment_idxs'].append(0)
-            else:
-                self.prediction_info = None
-        else:
-            print(f"unknown data type for imported json object of {type(json_obj)}")
-        
-        self.obs_info = {}
-        self.obs_info["obs_names"] = [self.gt_df.iloc[II]["variable"] for II in range(self.gt_df.shape[0])]
-
-        # OBSOLETE self.obs_types = [self.gt_df.iloc[II]["obs_type"] for II in range(self.gt_df.shape[0])]
-        self.obs_info["data_types"] = [self.gt_df.iloc[II]["data_type"] for II in range(self.gt_df.shape[0])]
-        self.obs_info["units"] = [self.gt_df.iloc[II]["unit"] for II in range(self.gt_df.shape[0])]
-        self.obs_info["experiment_idxs"] = [self.gt_df.iloc[II]["experiment_idx"] if "experiment_idx" in 
-                                            self.gt_df.iloc[II].keys() else 0 for II in range(self.gt_df.shape[0])]
-        self.obs_info["subexperiment_idxs"] = [self.gt_df.iloc[II]["subexperiment_idx"] if "subexperiment_idx" in
-                                               self.gt_df.iloc[II].keys() else 0 for II in range(self.gt_df.shape[0])]
-
-        # get plotting color, asign to randomish color if not defined
-        # list of all possible colors
-        possible_colors = ['b', 'g', 'c', 'm', 'y', 
-                           'tab:brown', 'tab:pink', 'tab:olive', 'tab:orange'] # don't include red or black, 
-                                                    # because they are used for plotting the series
-        self.obs_info["plot_colors"] = [self.gt_df.iloc[II]["plot_color"] if "plot_color" in 
-                                        self.gt_df.iloc[II].keys() else possible_colors[II%len(possible_colors)] 
-                                        for II in range(self.gt_df.shape[0])]
-        self.obs_info["plot_type"] = []
-
-        # get plotting type
-        # TODO make the plot_types operation_funcs so the user can defined how they are plotted.
-        warning_printed = False
-        for II in range(self.gt_df.shape[0]):
-            if "plot_type" not in self.gt_df.iloc[II].keys():
-                if self.gt_df.iloc[II]["data_type"] == "constant":
-                    if not warning_printed:
-                        print('constant data types plot type defaults to horizontal lines',
-                            'change "plot_type" in obs_data.json to change this')
-                        warning_printed = True
-                    self.obs_info["plot_type"].append("horizontal")
-                elif self.gt_df.iloc[II]["data_type"] == "prob_dist":
-                    if not warning_printed:
-                        print('prob_dist data types plot type defaults to horizontal lines',
-                            'change "plot_type" in obs_data.json to change this')
-                        warning_printed = True
-                    self.obs_info["plot_type"].append("horizontal")
-                elif self.gt_df.iloc[II]["data_type"] == "series":
-                    self.obs_info["plot_type"].append("series")
-                elif self.gt_df.iloc[II]["data_type"] == "frequency":
-                    self.obs_info["plot_type"].append("frequency")
-                elif self.gt_df.iloc[II]["data_type"] == "plot_dist":
-                    self.obs_info["plot_type"].append("horizontal")
-                else:
-                    print(f'data type {self.gt_df.iloc[II]["data_type"]} not recognised')
-            else:
-                self.obs_info["plot_type"].append(self.gt_df.iloc[II]["plot_type"])
-                if self.obs_info["plot_type"][II] in ["None", "null", "Null", "none", "NONE"]:
-                    self.obs_info["plot_type"][II] = None
-
-        self.obs_info["operations"] = []
-        self.obs_info["names_for_plotting"] = []
-        self.obs_info["operands"] = []
-        self.obs_info["freqs"] = []
-        self.obs_info["operation_kwargs"] = []
-        # below we remove the need for obs_types, but keep it backwards compatible so 
-        # previous specifications of obs_type = mean etc should still work
-        for II in range(self.gt_df.shape[0]):
-            if "operation" not in self.gt_df.iloc[II].keys() or \
-                    self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", "", "nan", np.nan]:
-                if "obs_type" in self.gt_df.iloc[II].keys():
-                    if self.gt_df.iloc[II]["obs_type"] == "series":
-                        self.obs_info["operations"].append(None)
-                        if "operands" in self.gt_df.iloc[II].keys():
-                            self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
-                        else:
-                            self.obs_info["operands"].append(None)
-                    elif self.gt_df.iloc[II]["obs_type"] == "frequency":
-                        self.obs_info["operations"].append(None)
-                        if "operands" in self.gt_df.iloc[II].keys():
-                            self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
-                        else:
-                            self.obs_info["operands"].append(None)
-                    # TODO remove these eventually when I get rid of obs_type
-                    elif self.gt_df.iloc[II]["obs_type"] == "min":
-                        self.obs_info["operations"].append("min")
-                        self.obs_info["operands"].append([self.gt_df.iloc[II]["variable"]])
-                    elif self.gt_df.iloc[II]["obs_type"] == "max":
-                        self.obs_info["operations"].append("max")
-                        self.obs_info["operands"].append([self.gt_df.iloc[II]["variable"]])
-                    elif self.gt_df.iloc[II]["obs_type"] == "mean":
-                        self.obs_info["operations"].append("mean")
-                        self.obs_info["operands"].append([self.gt_df.iloc[II]["variable"]])
-                else:
-                    self.obs_info["operations"].append(None)
-                    if "operands" in self.gt_df.iloc[II].keys():
-                        self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
-                    else:
-                        self.obs_info["operands"].append(None)
-            elif self.gt_df.iloc[II]["operation"] in ["Null", "None", "null", "none", ""]:
-                self.obs_info["operations"].append(None)
-                self.obs_info["operands"].append(None)
-            else:
-                self.obs_info["operations"].append(self.gt_df.iloc[II]["operation"])
-                self.obs_info["operands"].append(self.gt_df.iloc[II]["operands"])
-
-            if "frequencies" not in self.gt_df.iloc[II].keys():
-                self.obs_info["freqs"].append(None)
-            else:
-                self.obs_info["freqs"].append(self.gt_df.iloc[II]["frequencies"])
-
-            if "name_for_plotting" in self.gt_df.iloc[II].keys():
-                self.obs_info['names_for_plotting'].append(self.gt_df.iloc[II]["name_for_plotting"])
-            else:
-                self.obs_info['names_for_plotting'].append(self.obs_info["obs_names"][II])
-
-            if "operation_kwargs" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["operation_kwargs"] \
-                    not in ["Null", "None", "null", "none", "", np.nan]:
-                self.obs_info["operation_kwargs"].append(self.gt_df.iloc[II]["operation_kwargs"])
-            else:
-                self.obs_info["operation_kwargs"].append({})
-
-            if self.gt_df.iloc[II]["data_type"] == "series":
-                if 'sample_rate' in self.gt_df.iloc[II].keys():
-                    print(f'WARNING sample_rate found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
-                        'this is deprecated, please use obs_dt instead. Setting obs_dt = (1 / sample_rate)')
-                    self.gt_df.iloc[II]["obs_dt"] = 1 / self.gt_df.iloc[II]["sample_rate"]
-                if 'dt' in self.gt_df.iloc[II].keys():
-                    print(f'WARNING dt found in obs_data.json for observable {self.obs_info["obs_names"][II]}, ',
-                        'this is deprecated, please use obs_dt instead. Setting obs_dt = dt')
-                    self.gt_df.iloc[II]["obs_dt"] = self.gt_df.iloc[II]["dt"]
-            else: 
-                if 'obs_dt' in self.gt_df.iloc[II].keys():
-                    print(
-                        f"obs_dt found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
-                        f"with data type {self.gt_df.iloc[II]['data_type']}. obs_dt should only be used for series data. Exiting"
-                    )
-                    exit()
-                if 'dt' in self.gt_df.iloc[II].keys():
-                    print(
-                        f"WARNING dt found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
-                        f"with data type {self.gt_df.iloc[II]['data_type']}. dt is deprecated for obs_dt "
-                        "and obs_dt should only be used for series data. Exiting"
-                    )
-                    exit()
-                if 'sample_rate' in self.gt_df.iloc[II].keys():
-                    print(
-                        f"WARNING sample_rate found in obs_data.json for observable {self.obs_info['obs_names'][II]}, "
-                        f"with data type {self.gt_df.iloc[II]['data_type']}. sample_rate is deprecated for obs_dt "
-                        "and obs_dt should only be used for series data. Exiting"
-                    )
-                    exit()
-
-
-        self.obs_info["num_obs"] = len(self.obs_info["obs_names"])
-
-        # how much to weight the different observable errors by
-        self.obs_info["weight_const_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
-                                          if self.gt_df.iloc[II]["data_type"] == "constant"])
-
-        self.obs_info["weight_series_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
-                                           if self.gt_df.iloc[II]["data_type"] == "series"])
-
-        self.obs_info["weight_amp_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
-                                           if self.gt_df.iloc[II]["data_type"] == "frequency"])
-        
-        self.obs_info["weight_prob_dist_vec"] = np.array([self.gt_df.iloc[II]["weight"] for II in range(self.gt_df.shape[0])
-                                          if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
-
-        weight_phase_list = [] 
-        for II in range(self.gt_df.shape[0]):
-            if self.gt_df.iloc[II]["data_type"] == "frequency":
-                if "phase_weight" not in self.gt_df.iloc[II].keys():
-                    weight_phase_list.append(1)
-                else:
-                    weight_phase_list.append(self.gt_df.iloc[II]["phase_weight"])
-        self.obs_info["weight_phase_vec"] = np.array(weight_phase_list)
-
-        # set the cost type for each observable
-        self.obs_info["cost_type"] = []
-        for II in range(self.gt_df.shape[0]):
-            if "cost_type" in self.gt_df.iloc[II].keys() and self.gt_df.iloc[II]["cost_type"] not in [np.nan, None, "None", ""]:
-                self.obs_info["cost_type"].append(self.gt_df.iloc[II]["cost_type"])
-            else:
-                if self.optimiser_options is not None and len(self.optimiser_options) > 0:
-                    if "cost_type" in self.optimiser_options.keys():
-                        self.obs_info["cost_type"].append(self.optimiser_options["cost_type"]) # default to cost type in optimiser_options
-                    else:
-                        self.obs_info["cost_type"].append("MSE") # default to mean squared error
-                elif self.mcmc_options is not None:
-                    if "cost_type" in self.mcmc_options.keys():
-                        self.obs_info["cost_type"].append(self.mcmc_options["cost_type"]) # default to cost type in mcmc_options
-                    else:
-                        self.obs_info["cost_type"].append("MSE") # default to mean squared error
-                else:
-                    print("cost_type not found in obs_data.json, ga_options, or mcmc_options, exiting")
-                    exit()
-
-
-
-        # preprocess information in the protocol_info dataframe
-        self.protocol_info['num_experiments'] = len(self.protocol_info["sim_times"])
-        self.protocol_info['num_sub_per_exp'] = [len(self.protocol_info["sim_times"][II]) for II in range(self.protocol_info["num_experiments"])]
-        self.protocol_info['num_sub_total'] = sum(self.protocol_info['num_sub_per_exp'])
-
-        # calculate total experiment sim times
-        self.protocol_info["total_sim_times_per_exp"] = []
-        self.protocol_info["tSims_per_exp"] = []
-        self.protocol_info["num_steps_total_per_exp"] = []
-        for exp_idx in range(self.protocol_info['num_experiments']):
-            total_sim_time = np.sum([self.protocol_info["sim_times"][exp_idx][II] for
-                            II in range(self.protocol_info["num_sub_per_exp"][exp_idx])])
-            num_steps_total = int(total_sim_time/self.dt)
-            tSim_per_exp = np.linspace(0.0, total_sim_time, num_steps_total + 1)
-            self.protocol_info["total_sim_times_per_exp"].append(total_sim_time)
-            self.protocol_info["tSims_per_exp"].append(tSim_per_exp)
-            self.protocol_info["num_steps_total_per_exp"].append(num_steps_total)
-            
-
-        if "experiment_colors" not in self.protocol_info.keys():
-            self.protocol_info["experiment_colors"] = ['r']
-            if self.protocol_info['num_experiments'] > 1:
-                self.protocol_info["experiment_colors"] = ['r']*self.protocol_info['num_experiments']
-        else:
-            if len(self.protocol_info["experiment_colors"]) != self.protocol_info['num_experiments']:
-                print('experiment_colors in obs_data.json not the same length as num_experiments, exiting')
-                exit()
-
-        if "experiment_labels" in self.protocol_info.keys():
-            if len(self.protocol_info["experiment_labels"]) != self.protocol_info['num_experiments']:
-                print('experiment_labels in obs_data.json not the same length as num_experiments, exiting')
-                exit()
-        else:
-            self.protocol_info["experiment_labels"] = [None]
-            if self.protocol_info['num_experiments'] > 1:
-                self.protocol_info["experiment_labels"] = [None]*self.protocol_info['num_experiments']
-        
-        # set experiment and subexperiment idxs to 0 if they are not defined. print warning if multiple subexperiments
-        for II in range(self.gt_df.shape[0]):
-            if "experiment_idx" not in self.gt_df.iloc[II].keys():
-                self.gt_df["experiment_idx"] = 0
-                if self.protocol_info['num_sub_total'] > 1:
-                    print(f'experiment_idx not found in obs_data.json entry {self.gt_df.iloc[II]["variable"]}, '
-                          'but multiple experiments are defined.',
-                          'Setting experiment_idx to 0 for all data points')
-            if "subexperiment_idx" not in self.gt_df.iloc[II].keys():
-                self.gt_df["subexperiment_idx"] = 0
-                if self.protocol_info['num_sub_total'] > 1:
-                    print(f'subexperiment_idx not found in obs_data.json entry {self.gt_df.iloc[II]["variable"]}, '
-                          'but multiple subexperiments are defined.',
-                          'Setting subexperiment_idx to 0 for all data points')
-        
-        # calculate the mapping from sub and experiment idx to the weight of the observable for that subexperiment
-        const_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
-                     for exp_idx in range(self.protocol_info['num_experiments'])]
-        series_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
-                     for exp_idx in range(self.protocol_info['num_experiments'])]
-        amp_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
-                     for exp_idx in range(self.protocol_info['num_experiments'])]
-        phase_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
-                     for exp_idx in range(self.protocol_info['num_experiments'])]
-        prob_dist_map = [[[] for sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx])]
-                     for exp_idx in range(self.protocol_info['num_experiments'])]
-
-        for exp_idx in range(self.protocol_info['num_experiments']):
-            for this_sub_idx in range(self.protocol_info['num_sub_per_exp'][exp_idx]):
-
-                for II in range(self.gt_df.shape[0]):
-                    if self.gt_df.iloc[II]["data_type"] == "constant":
-                        if self.gt_df.iloc[II]["experiment_idx"] == exp_idx and \
-                            self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
-                            const_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
-                        else:
-                            # if the data point is not in assigned to this experiment/subexperiment, 
-                            # set the weight mapping to 0, so it doesn't influence the cost in this 
-                            # subexperiment
-                            const_map[exp_idx][this_sub_idx].append(0.0)
-                    if self.gt_df.iloc[II]["data_type"] == "series":
-                        if self.gt_df.iloc[II]["experiment_idx"] == exp_idx and \
-                            self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
-                            series_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
-                        else:
-                            series_map[exp_idx][this_sub_idx].append(0.0)
-
-                    if self.gt_df.iloc[II]["data_type"] == "frequency":
-                        if self.gt_df.iloc[II]["experiment_idx"] == exp_idx and \
-                            self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
-                            amp_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
-                            if "phase_weight" not in self.gt_df.iloc[II].keys():
-                                # if there is no phase weight, weight it the same as the amplitude
-                                phase_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
-                            else:
-                                phase_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["phase_weight"])
-                        else:
-                            amp_map[exp_idx][this_sub_idx].append(0.0)
-                            phase_map[exp_idx][this_sub_idx].append(0.0)
-
-                    if self.gt_df.iloc[II]["data_type"] == "prob_dist":
-                        if self.gt_df.iloc[II]["experiment_idx"] == exp_idx and \
-                            self.gt_df.iloc[II]["subexperiment_idx"] == this_sub_idx:
-                            prob_dist_map[exp_idx][this_sub_idx].append(self.gt_df.iloc[II]["weight"])
-                        else:
-                            prob_dist_map[exp_idx][this_sub_idx].append(0.0)
-
-                # make each weight vector a numpy array
-                const_map[exp_idx][this_sub_idx] = np.array(const_map[exp_idx][this_sub_idx])
-                series_map[exp_idx][this_sub_idx] = np.array(series_map[exp_idx][this_sub_idx])
-                amp_map[exp_idx][this_sub_idx] = np.array(amp_map[exp_idx][this_sub_idx])
-                phase_map[exp_idx][this_sub_idx] = np.array(phase_map[exp_idx][this_sub_idx])
-                prob_dist_map[exp_idx][this_sub_idx] = np.array(prob_dist_map[exp_idx][this_sub_idx])
-
-        self.protocol_info["scaled_weight_const_from_exp_sub"] = const_map
-        self.protocol_info["scaled_weight_series_from_exp_sub"] = series_map
-        self.protocol_info["scaled_weight_amp_from_exp_sub"] = amp_map
-        self.protocol_info["scaled_weight_phase_from_exp_sub"] = phase_map
-        self.protocol_info["scaled_weight_prob_dist_from_exp_sub"] = prob_dist_map
-        return
-
-    def __set_and_save_param_names(self, idxs_to_ignore=None):
-        # This should also be a function under parsers.
-
-        # Each entry in param_names is a name or list of names that gets modified by one parameter
-        self.param_id_info = {}
-        if self.params_for_id_path:
-            csv_parser = CSVFileParser()
-            input_params = csv_parser.get_data_as_dataframe_multistrings(self.params_for_id_path)
-            self.param_id_info["param_names"] = []
-            param_names_for_gen = []
-            for II in range(input_params.shape[0]):
-                if idxs_to_ignore is not None:
-                    if II in idxs_to_ignore:
-                        continue
-                self.param_id_info["param_names"].append([input_params["vessel_name"][II][JJ] + '/' +
-                                               input_params["param_name"][II]for JJ in
-                                               range(len(input_params["vessel_name"][II]))])
-
-                if input_params["vessel_name"][II][0] == 'global':
-                    param_names_for_gen.append([input_params["param_name"][II]])
-
-                else:
-                    param_names_for_gen.append([input_params["param_name"][II] + '_' +
-                                                input_params["vessel_name"][II][JJ] # re.sub('_T$', '', input_params["vessel_name"][II][JJ])
-                                                for JJ in range(len(input_params["vessel_name"][II]))])
-
-            # set param ranges from file and strings for plotting parameter names
-            if idxs_to_ignore is not None:
-                self.param_id_info["param_mins"] = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])
-                                            if JJ not in idxs_to_ignore])
-                self.param_id_info["param_maxs"] = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])
-                                            if JJ not in idxs_to_ignore])
-                if "name_for_plotting" in input_params.columns:
-                    self.param_id_info["param_names_for_plotting"] = np.array([input_params["name_for_plotting"][JJ]
-                                                            for JJ in range(input_params.shape[0])
-                                                            if JJ not in idxs_to_ignore])
-                else:
-                    self.param_id_info["param_names_for_plotting"] = np.array([self.param_id_info["param_names"][JJ][0]
-                                                            for JJ in range(len(self.param_id_info["param_names"]))
-                                                            if JJ not in idxs_to_ignore])
-            else:
-                self.param_id_info["param_mins"] = np.array([float(input_params["min"][JJ]) for JJ in range(input_params.shape[0])])
-                self.param_id_info["param_maxs"] = np.array([float(input_params["max"][JJ]) for JJ in range(input_params.shape[0])])
-                if "name_for_plotting" in input_params.columns:
-                    self.param_id_info["param_names_for_plotting"] = np.array([input_params["name_for_plotting"][JJ]
-                                                            for JJ in range(input_params.shape[0])])
-                else:
-                    self.param_id_info["param_names_for_plotting"] = np.array([param_name[0] for param_name in self.param_id_info["param_names"]])
-                # check that max is greater than min
-                for JJ in range(len(self.param_id_info["param_mins"])):
-                    if self.param_id_info["param_maxs"][JJ] <= self.param_id_info["param_mins"][JJ]:
-                        raise ValueError(f"Parameter {self.param_id_info['param_names'][JJ]} has max <= min")
-            
-
-            # set param_priors
-            if "prior" in input_params.columns:
-                self.param_id_info["param_prior_types"] = np.array([input_params["prior"][JJ] for JJ in range(input_params.shape[0])])
-            else:
-                self.param_id_info["param_prior_types"] = np.array(["uniform" for JJ in range(input_params.shape[0])])
-
-
-        else:
-            print(f'params_for_id_path cannot be None, exiting')
-
-        if self.rank == 0:
-            with open(os.path.join(self.output_dir, 'param_names.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(self.param_id_info["param_names"])
-            with open(os.path.join(self.output_dir, 'param_names_for_gen.csv'), 'w') as f:
-                wr = csv.writer(f)
-                wr.writerows(param_names_for_gen)
-            # save param_names_for_plotting to csv
-            with open(os.path.join(self.output_dir, 'param_names_for_plotting.csv'), 'w') as f:
-                for name in self.param_id_info["param_names_for_plotting"]:
-                    f.write(name + '\n')
-        return
-
-    def __get_ground_truth_values(self):
-
-        # _______ First we access data for constant values
-
-        # TODO make all of the below lists instead of arrays? So we can have different sized entries.
-
-        ground_truth_const = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "constant"])
-
-        # _______ Then for time series
-        ground_truth_series = [np.array(self.gt_df.iloc[II]["value"]) for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"]
-
-        # _______ Then for frequency series
-        ground_truth_amp = np.array([self.gt_df.iloc[II]["value"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
-
-        # then for ground truth probability distributions
-        ground_truth_prob_dist_params = np.array([self.gt_df.iloc[II]["prob_dist_params"] for II in range(self.gt_df.shape[0])
-                                            if self.gt_df.iloc[II]["data_type"] == "prob_dist"])
-
-
-        # _______ and the phase of the freq data
-        ground_truth_phase_list = []
-        for II in range(self.gt_df.shape[0]):
-            if self.gt_df.iloc[II]["data_type"] == "frequency":
-                if "phase" not in self.gt_df.iloc[II].keys():
-                    ground_truth_phase_list.append(None)
-                else:
-                    ground_truth_phase_list.append(self.gt_df.iloc[II]["phase"])
-        ground_truth_phase = np.array(ground_truth_phase_list)
-
-        # get the dt for the series data
-        dt_list = []
-        for II in range(self.gt_df.shape[0]):
-            if self.gt_df.iloc[II]["data_type"] == "series":
-                if "obs_dt" not in self.gt_df.iloc[II].keys():
-                    print("dt not found in obs_data.json for series data, exiting")
-                    exit()
-                dt_list.append(self.gt_df.iloc[II]["obs_dt"])
-        
-        self.obs_info["obs_dt"] = np.array(dt_list)
-        
-        if len(self.obs_info["obs_dt"]) > 0:
-            if min(self.obs_info["obs_dt"]) < self.dt:
-                print("one of the dt in obs_data.json is less than the dt in user_inputs.yaml, the output timestep"
-                    "defined in user_inputs.yaml must be less than the smallest dt for your data. Exiting")
-                exit()
-
-        # The std for the different observables
-        self.obs_info["std_const_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                       if self.gt_df.iloc[II]["data_type"] == "constant"])
-
-        self.obs_info["std_series_vec"] = [np.array(self.gt_df.iloc[II]["std"]) for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "series"]
-
-        self.obs_info["std_amp_vec"] = np.array([self.gt_df.iloc[II]["std"] for II in range(self.gt_df.shape[0])
-                                        if self.gt_df.iloc[II]["data_type"] == "frequency"])
-
-        # if len(ground_truth_series) > 0:
-            # TODO what if we have ground truths of different size or sample rate?
-            # ground_truth_series = np.stack(ground_truth_series)
-            # removed because we have data of different sizes
-
-        if len(ground_truth_amp) > 0:
-            ground_truth_amp = np.stack(ground_truth_amp)
-
-        if len(ground_truth_phase) > 0:
-            ground_truth_phase = np.stack(ground_truth_phase)
-
-        if self.rank == 0:
-            np.save(os.path.join(self.output_dir, 'ground_truth_const.npy'), ground_truth_const)
-            if len(ground_truth_series) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_series.npy'), 
-                        np.array(ground_truth_series, dtype=object), allow_pickle=True)
-            if len(ground_truth_amp) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_amp.npy'), ground_truth_amp)
-            if len(ground_truth_phase) > 0:
-                np.save(os.path.join(self.output_dir, 'ground_truth_phase.npy'), ground_truth_phase)
-
-        self.obs_info["ground_truth_const"] = ground_truth_const
-        self.obs_info["ground_truth_prob_dist_params"] = ground_truth_prob_dist_params
-        self.obs_info["ground_truth_series"] = ground_truth_series
-        self.obs_info["ground_truth_amp"] = ground_truth_amp
-        self.obs_info["ground_truth_phase"] = ground_truth_phase
-
-        # create a mapping between const_idx and the obs_idx
-        const_count = 0
-        series_count = 0
-        freq_count = 0
-        prob_dist_count = 0
-        self.obs_info["const_idx_to_obs_idx"] = []
-        self.obs_info["series_idx_to_obs_idx"] = []
-        self.obs_info["freq_idx_to_obs_idx"] = []
-        self.obs_info["prob_dist_idx_to_obs_idx"] = []
-        for obs_idx in range(self.obs_info["num_obs"]):
-            if self.obs_info["data_types"][obs_idx] == "constant":
-                self.obs_info["const_idx_to_obs_idx"].append(obs_idx)
-                const_count += 1
-            elif self.obs_info["data_types"][obs_idx] == "series":
-                self.obs_info["series_idx_to_obs_idx"].append(obs_idx)
-                series_count += 1
-            elif self.obs_info["data_types"][obs_idx] == "frequency":
-                self.obs_info["freq_idx_to_obs_idx"].append(obs_idx)
-                freq_count += 1
-            elif self.obs_info["data_types"][obs_idx] == "prob_dist":
-                self.obs_info["prob_dist_idx_to_obs_idx"].append(obs_idx)
-                prob_dist_count += 1
-
-        return 
+   
     
     def get_best_param_vals(self):
         if self.mcmc_instead:
@@ -1559,34 +1066,6 @@ class CVS0DParamID():
                 param_idxs_to_remove.append(II)
 
         self.remove_params_by_idx(param_idxs_to_remove)
-
-    def __set_prediction_var(self):
-        # TODO make the prediction_variables csv obsolete. Should be in obs_data.json
-        # TODO when done this function will also be obsolete
-
-        if self.prediction_info is not None:
-            # prediction_info has already been parsed from obs_data.json file
-            pass
-        else:
-            self.prediction_info = {}
-            pred_var_path = os.path.join(self.resources_dir, f'{self.file_name_prefix}_prediction_variables.csv')
-            if os.path.exists(pred_var_path):
-                # TODO change this to loading with parser
-                csv_parser = CSVFileParser()
-                pred_var_df = csv_parser.get_data_as_dataframe_multistrings(pred_var_path)
-                self.prediction_info['names'] = [pred_var_df["name"][II].strip()
-                                                for II in range(pred_var_df.shape[0])]
-                self.prediction_info['units'] = [pred_var_df["unit"][II].strip()
-                                                for II in range(pred_var_df.shape[0])]
-                self.prediction_info['names_for_plotting'] = np.array([pred_var_df["name_for_plotting"][II].strip()
-                                                for II in range(pred_var_df.shape[0])])
-            else:
-                self.prediction_info['names'] = None
-                self.prediction_info['units'] = None
-                self.prediction_info['names_for_plotting'] = None
-
-            self.prediction_info['experiment_idxs'] = [0] # only functionality for first experiment 
-                                                          # when using (to be obsolete) csv file
 
     def postprocess_predictions(self):
         # TODO redo this for new prediction_info in obs_data.json 
@@ -1714,8 +1193,8 @@ class OpencorParamID():
     """
     def __init__(self, model_path, param_id_method,
                  obs_info, param_id_info, protocol_info, prediction_info,
-                 dt=0.01, solver_info=None, 
-                 ga_options=None, optimiser_options=None, DEBUG=False, model_type=None):
+                 solver_info, dt=0.01, 
+                 optimiser_options=None, DEBUG=False, model_type=None):
 
         self.model_path = model_path
         self.param_id_method = param_id_method
@@ -1726,26 +1205,35 @@ class OpencorParamID():
         self.obs_info = obs_info
         self.param_id_info = param_id_info
         self.prediction_info = prediction_info # currently not used
-        self.num_params = len(self.param_id_info["param_names"])
+        self.optimiser_options = optimiser_options
+        if self.param_id_info is not None:
+            self.num_params = len(self.param_id_info["param_names"])
+            self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
 
         self.protocol_info = protocol_info
-        self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
 
-        sfp = scriptFunctionParser()
-        self.operation_funcs_dict = sfp.get_operation_funcs_dict()
-        self.cost_funcs_dict = sfp.get_cost_funcs_dict()
+        self.sfp = scriptFunctionParser()
+        self.operation_funcs_dict = self.sfp.get_operation_funcs_dict()
+        self.cost_funcs_dict = self.sfp.get_cost_funcs_dict()
 
         # set up opencor simulation
         self.dt = dt
-        if self.protocol_info['sim_times'][0][0] is not None:
-            self.sim_time = self.protocol_info['sim_times'][0][0]
+        if self.protocol_info is not None:
+            if self.protocol_info['sim_times'][0][0] is not None:
+                self.sim_time = self.protocol_info['sim_times'][0][0]
+            else:
+                # set temporary sim time, just to initialise the sim_helper
+                self.sim_time = 0.001
         else:
-            # set temporary sim time, just to initialise the sim_helper
             self.sim_time = 0.001
-        if self.protocol_info['pre_times'][0] is not None:
-            self.pre_time = self.protocol_info['pre_times'][0]
+
+        if self.protocol_info is not None:
+            if self.protocol_info['pre_times'][0] is not None:
+                self.pre_time = self.protocol_info['pre_times'][0]
+            else:
+                # set temporary pre time, just to initialise the sim_helper
+                self.pre_time = 0.001
         else:
-            # set temporary pre time, just to initialise the sim_helper
             self.pre_time = 0.001
 
         self.sim_helper = self.initialise_sim_helper()
@@ -1773,30 +1261,26 @@ class OpencorParamID():
         self.pred_param_importance = None
         self.pred_collinearity_idx_pairs = None
 
-        # Merge ga_options into optimiser_options for backwards compatibility
-        self.optimiser_options = optimiser_options or {}
-        if ga_options is not None:
-            for key, value in ga_options.items():
-                if key not in self.optimiser_options:
-                    self.optimiser_options[key] = value
         
-        # Set default options if not provided
-        if 'cost_convergence' not in self.optimiser_options:
-            self.optimiser_options['cost_convergence'] = 0.0001
-        if 'max_patience' not in self.optimiser_options:
-            self.optimiser_options['max_patience'] = 10
-        if 'num_calls_to_function' not in self.optimiser_options:
-            self.optimiser_options['num_calls_to_function'] = 10000
-        
-        self.cost_type = self.obs_info["cost_type"]
+        if self.obs_info is not None:
+            self.cost_type = self.obs_info["cost_type"]
+        else:
+            self.cost_type = None
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
         # Get method from solver_info (check both 'solver' and 'method' for backward compatibility)
         solver = self.solver_info.get('solver')
-        helper_cls = get_simulation_helper(solver=solver, model_type=self.model_type, model_path=self.model_path)
-        return helper_cls(self.model_path, self.dt, self.sim_time,
-                          solver_info=self.solver_info, pre_time=self.pre_time)
+        helper_cls = get_simulation_helper(solver=solver, model_type=self.model_type,
+                                           model_path=self.model_path, dt=self.dt, sim_time=self.sim_time,
+                                           solver_info=self.solver_info, pre_time=self.pre_time)
+        return helper_cls
+    
+    def add_user_operation_func(self, func):
+        self.operation_funcs_dict = self.sfp.add_user_operation_func(self.operation_funcs_dict, func)
+    
+    def add_user_cost_func(self, func):
+        self.cost_funcs_dict = self.sfp.add_user_cost_func(self.cost_funcs_dict, func)
     
     def set_best_param_vals(self, best_param_vals):
         self.best_param_vals = best_param_vals
@@ -1804,7 +1288,25 @@ class OpencorParamID():
     def set_param_names(self, param_names):
         self.param_id_info["param_names"] = param_names
         self.num_params = len(self.param_id_info["param_names"])
+    
+    def set_param_id_info(self, param_id_info):
+        self.param_id_info = param_id_info
+        self.num_params = len(self.param_id_info["param_names"])
+        self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
+        
+    def set_prediction_info(self, prediction_info):
+        self.prediction_info = prediction_info
+    
+    def set_obs_info(self, obs_info):
+        self.obs_info = obs_info
+        self.cost_type = self.obs_info["cost_type"]
 
+    def set_optimiser_options(self, optimiser_options):
+        self.optimiser_options = optimiser_options
+
+    def set_param_id_method(self, param_id_method):
+        self.param_id_method = param_id_method
+    
     def remove_params_by_idx(self, param_idxs_to_remove):
         if len(param_idxs_to_remove) > 0:
             self.param_id_info["param_names"] = [self.param_id_info["param_names"][II] for II in range(self.num_params) if II not in param_idxs_to_remove]
@@ -1859,7 +1361,6 @@ class OpencorParamID():
             optimiser = BayesianOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG,
                 acq_func=self.acq_func,
@@ -1876,7 +1377,6 @@ class OpencorParamID():
             optimiser = GeneticAlgorithmOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG
             )
@@ -1889,7 +1389,6 @@ class OpencorParamID():
             optimiser = CMAESOptimiser(
                 self, self.param_id_info, self.param_norm_obj,
                 self.num_params, self.output_dir,
-                ga_options=None,  # Legacy parameter, kept for backwards compatibility
                 optimiser_options=self.optimiser_options,
                 DEBUG=self.DEBUG
             )
@@ -1912,7 +1411,7 @@ class OpencorParamID():
             print('best cost       : {}'.format(self.best_cost))
 
         return
-
+    
     def get_cost_obs_and_pred_from_params(self, param_vals, reset=True, 
                                           only_one_exp=-1, pred_names=None):
 
@@ -2078,7 +1577,6 @@ class OpencorParamID():
         lnlikelihood = self.get_lnlikelihood_from_params(param_vals)
 
         return lnprior + lnlikelihood
-
 
     def get_lnlikelihood_from_params(self, param_vals):
         cost = self.get_cost_from_params(param_vals)
@@ -2511,13 +2009,6 @@ class OpencorParamID():
             # TODO make the printing of the obs_dict more informative
             print(obs_dict['const'])
 
-    def set_genetic_algorithm_parameters(self, n_calls):
-        if not self.param_id_method == 'genetic_algorithm':
-            print('param_id is not set up as a genetic algorithm')
-            exit()
-        self.optimiser_options['num_calls_to_function'] = n_calls
-        # TODO add more of the gen alg constants here so they can be changed by user.
-
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
         if not self.param_id_method == 'bayesian':
             print('param_id is not set up as a bayesian optimization process')
@@ -2552,11 +2043,11 @@ class OpencorMCMC(OpencorParamID):
     """
 
     def __init__(self, model_path,
-                 obs_info, param_id_info, protocol_info, prediction_info,
-                 dt=0.01, solver_info=None, mcmc_options=None, DEBUG=False, model_type=None):
+                 obs_info, param_id_info, protocol_info, prediction_info, solver_info,
+                 dt=0.01, mcmc_options=None, DEBUG=False, model_type=None):
         super().__init__(model_path, "MCMC",
-                obs_info, param_id_info, protocol_info, prediction_info,
-                dt=dt, solver_info=solver_info, DEBUG=DEBUG, model_type=model_type)
+                obs_info, param_id_info, protocol_info, prediction_info, solver_info,
+                dt=dt, DEBUG=DEBUG, model_type=model_type)
 
         # mcmc init stuff
         self.sampler = None
@@ -2692,7 +2183,6 @@ class OpencorMCMC(OpencorParamID):
                     print('cost from mcmc median param vals is {}'.format(mcmc_best_cost))
                     print('Keeping the genetic algorithm best fit as it is lower, ({})'.format(self.best_cost))
 
-
     def calculate_pred_from_posterior_samples(self, flat_samples, n_sims=100):
         # idxs of output are [exp_idx][sim_idx, pred_idx, time_idx]
         
@@ -2725,7 +2215,7 @@ class MCMC_plotter:
                  params_for_id_path=None, num_calls_to_function=1000,
                  param_id_obs_path=None, sim_time=2.0, pre_time=20.0, 
                  solver_info=None, 
-                 dt=0.01, mcmc_options=None, ga_options=None,
+                 dt=0.01, mcmc_options=None, 
                  param_id_output_dir=None, resources_dir=None,
                  DEBUG=False):
 

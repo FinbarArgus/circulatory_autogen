@@ -35,7 +35,7 @@ class Optimiser(ABC):
     """
     
     def __init__(self, param_id_obj, param_id_info, param_norm_obj, 
-                 num_params, output_dir, ga_options=None, optimiser_options=None, DEBUG=False):
+                 num_params, output_dir, optimiser_options=None, DEBUG=False):
         """
         Initialize the optimiser.
         
@@ -45,7 +45,6 @@ class Optimiser(ABC):
             param_norm_obj: Normalise_class object for parameter normalization
             num_params: Number of parameters to optimize
             output_dir: Directory to save optimization results
-            ga_options: Dictionary with optimization options (legacy name, kept for backwards compatibility)
             optimiser_options: Dictionary with optimizer-specific options (preferred)
             DEBUG: Debug flag for reduced population sizes in GA
         """
@@ -56,13 +55,7 @@ class Optimiser(ABC):
         self.output_dir = output_dir
         self.DEBUG = DEBUG
         
-        # Merge ga_options into optimiser_options for backwards compatibility
-        # optimiser_options takes precedence if both are provided
         self.optimiser_options = optimiser_options or {}
-        if ga_options is not None:
-            for key, value in ga_options.items():
-                if key not in self.optimiser_options:
-                    self.optimiser_options[key] = value
         
         # These will be set by the run() method
         self.best_param_vals = None
@@ -366,7 +359,7 @@ class BayesianOptimiser(Optimiser):
     """
     
     def __init__(self, param_id_obj, param_id_info, param_norm_obj, 
-                 num_params, output_dir, ga_options=None, optimiser_options=None, DEBUG=False,
+                 num_params, output_dir, optimiser_options=None, DEBUG=False,
                  acq_func='EI', n_initial_points=5, random_state=1234, acq_func_kwargs=None):
         """
         Initialize the Bayesian optimiser.
@@ -379,7 +372,7 @@ class BayesianOptimiser(Optimiser):
             DEBUG: Debug flag
         """
         super().__init__(param_id_obj, param_id_info, param_norm_obj, 
-                        num_params, output_dir, ga_options, optimiser_options, DEBUG)
+                        num_params, output_dir, optimiser_options, DEBUG)
         self.acq_func = acq_func
         self.n_initial_points = n_initial_points
         self.random_state = random_state
@@ -490,7 +483,7 @@ class CMAESOptimiser(Optimiser):
     """
     
     def __init__(self, param_id_obj, param_id_info, param_norm_obj, 
-                 num_params, output_dir, ga_options=None, optimiser_options=None, DEBUG=False):
+                 num_params, output_dir, optimiser_options=None, DEBUG=False):
         """
         Initialize the CMA-ES optimiser.
         
@@ -507,7 +500,7 @@ class CMAESOptimiser(Optimiser):
             - Initial parameter values (x0) are automatically loaded from the parameters CSV file
         """
         super().__init__(param_id_obj, param_id_info, param_norm_obj, 
-                        num_params, output_dir, ga_options, optimiser_options, DEBUG)
+                        num_params, output_dir, optimiser_options, DEBUG)
         
         if not NEVERGRAD_AVAILABLE:
             raise ImportError("Nevergrad is required for CMA-ES optimiser. Install it with: pip install nevergrad")

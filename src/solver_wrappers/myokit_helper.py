@@ -54,6 +54,13 @@ class SimulationHelper:
         # self._set_cellml_initial_values()
         self.last_log = None
 
+    def get_time(self, include_pre_time=False):
+        print("TODO CHECK MYOKIT FUNCTIONALITY FOR TIME. I THINK IT IS DIFFERENT TO OPENCOR")
+        if include_pre_time:
+            return self.tSim
+        else:
+            return self.tSim - self.pre_time
+
     def _load_model(self, path):
         """
         Load a CellML file via the Myokit CellML importer.

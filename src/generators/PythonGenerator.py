@@ -6,6 +6,7 @@ and emits a ready-to-run Python module.
 """
 import os
 from typing import Optional
+from solver_wrappers.python_solver_helper import SimulationHelper as PythonSimulationHelper
 
 try:
     import libcellml as lc
@@ -15,9 +16,10 @@ except ImportError as e:  # pragma: no cover - runtime environment check
 # Use existing helper utilities for lenient import resolution (CellML 1.1 tolerant)
 try:
     import utilities.libcellml_helper_funcs as cellml_utils
+    import utilities.libcellml_utilities as libcellml_utils
 except ImportError:
     cellml_utils = None
-
+    libcellml_utils = None
 
 class PythonGenerator:
     """
@@ -58,8 +60,14 @@ class PythonGenerator:
     def _analyse(self, flat_model):
         analyser = lc.Analyser()
         analyser.analyseModel(flat_model)
-        # Keep going even if there are analyser issues to match existing generation behaviour.
-        return analyser.model()
+        libcellml_utils.print_issues(analyser)
+        analysed_model = analyser.model()
+        if analysed_model.type() != lc.AnalyserModel.Type.ODE:
+            raise ValueError('Generated model is not a valid ODE model according to'
+                             'libcellml, Model invalid for Python generation. '
+                             'Issues to fix in CellML to get python generation working are \n'
+                             'shown above.')
+        return analysed_model
 
     def generate(self) -> str:
         """Generate Python code and return the output file path."""
@@ -77,5 +85,20 @@ class PythonGenerator:
         output_path = os.path.join(self.output_dir, f"{self.module_name}.py")
         with open(output_path, "w", encoding="utf-8") as fh:
             fh.write(code)
-        return output_path
+
+        if code == '':
+            raise ValueError('Generated Python code is empty. Model invalid')
+
+        sim_helper = PythonSimulationHelper(output_path, dt=0.00001, sim_time=0.00001)
+        sim_helper.set_solve_ivp_method('BDF')
+        success = sim_helper.run()
+
+        if success:
+            print('Model generation has been successful.')
+            return output_path
+        else:
+            print('Model generation has failed. Or the simulation fails when trying to simulate'
+                    'in Python')
+            raise ValueError('Model generation has failed. Or the simulation fails when trying to simulate'
+                    'for 0.00001 seconds in Python')
 
