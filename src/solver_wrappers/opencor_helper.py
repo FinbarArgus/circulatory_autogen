@@ -21,8 +21,7 @@ class SimulationHelper():
         self.n_steps = int(sim_time/dt)  # number of steps for storing data
         self.simulation = oc.open_simulation(cellml_path)
         if not self.simulation.valid():
-            print(f'simulation object opened from {cellml_path} is not valid, exiting')
-            exit()
+            raise ValueError(f'simulation object opened from {cellml_path} is not valid')
         self.data = self.simulation.data()
         if solver_info is None:
             solver_info = {'MaximumNumberOfSteps': 5000, 'MaximumStep': 0.0001}
