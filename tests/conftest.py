@@ -429,7 +429,8 @@ def temp_output_dir():
     Fixture that creates a temporary directory for test outputs.
     Automatically cleans up after the test.
     """
-    temp_dir = tempfile.mkdtemp(prefix='circulatory_autogen_test_')
+    os.makedirs(os.path.join(os.path.dirname(__file__), 'tmp'), exist_ok=True)
+    temp_dir = tempfile.mkdtemp(dir=os.path.join(os.path.dirname(__file__), 'tmp'), prefix='circulatory_autogen_test_')
     yield temp_dir
     # Cleanup
     if os.path.exists(temp_dir):
