@@ -396,7 +396,8 @@ def test_init_states_myokit(base_user_inputs, resources_dir):
 @pytest.fixture(scope="function")
 def temp_model_dir():
     """Create a temporary directory for generated Python models."""
-    temp_dir = tempfile.mkdtemp()
+    os.makedirs(os.path.join(os.path.dirname(__file__), 'tmp'), exist_ok=True)
+    temp_dir = tempfile.mkdtemp(dir=os.path.join(os.path.dirname(__file__), 'tmp'))
     yield temp_dir
     shutil.rmtree(temp_dir, ignore_errors=True)
 
