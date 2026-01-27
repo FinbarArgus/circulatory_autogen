@@ -35,7 +35,7 @@ from parsers.PrimitiveParsers import CSVFileParser
 import pandas as pd
 import json
 import math
-# from scipy.optimize import curve_fit
+from parsers.PrimitiveParsers import YamlFileParser
 import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
 from sensitivity_analysis.sobolSA import sobol_SA
@@ -75,6 +75,9 @@ class SensitivityAnalysis():
 
     @classmethod
     def init_from_dict(cls, inp_data_dict):
+        # parse the user inputs dictionary
+        yaml_parser = YamlFileParser()
+        inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict)
         # Only pass kwargs that exist in inp_data_dict
         arg_options = [
             'model_path', 'model_type', 'file_name_prefix', 'sa_options', 'DEBUG', 'param_id_output_dir',
