@@ -40,7 +40,7 @@ class CVS0DCellMLGenerator(object):
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
         self.file_prefix = inp_data_dict['file_prefix']
-        if inp_data_dict['couple_to_1d']:
+        if 'couple_to_1d' in inp_data_dict.keys() and inp_data_dict['couple_to_1d']:
             self.file_prefix += '_0d'
         self.inp_data_dict = inp_data_dict
 

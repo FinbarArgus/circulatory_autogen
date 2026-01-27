@@ -213,21 +213,22 @@ class CSV0DModelParser(object):
                     elif len(idx1d)==0:
                         idx0d = vessels_df_0d.index[vessels_df_0d["name"]==inp_vess]
                         if len(idx0d)==1:
-                            if (vessels_df_0d.at[idx0d[0],"vessel_type"].startswith(("inlet_flow","inlet_pressure"))
-                                    and vessels_df_0d.at[idx0d[0],"BC_type"].startswith("nn")):
+                            idx0d_int = idx0d[0]
+                            if (vessels_df_0d.at[idx0d_int,"vessel_type"].startswith(("inlet_flow","inlet_pressure"))
+                                    and vessels_df_0d.at[idx0d_int,"BC_type"].startswith("nn")):
 
-                                    if vessels_df_0d.at[idx0d[0],"vessel_type"].startswith("inlet_flow"):
+                                    if vessels_df_0d.at[idx0d_int,"vessel_type"].startswith("inlet_flow"):
                                         vessels_df_1d.at[i,"inp_vessels"] = 'input_flow_BC'
-                                    elif vessels_df_0d.at[idx0d[0],"vessel_type"].startswith("inlet_pressure"):
+                                    elif vessels_df_0d.at[idx0d_int,"vessel_type"].startswith("inlet_pressure"):
                                         vessels_df_1d.at[i,"inp_vessels"] = 'input_pressure_BC'
 
-                                    vessels_df_0d.drop(index=idx0d[0], inplace=True)
+                                    vessels_df_0d.drop(index=idx0d_int, inplace=True)
                                     vessels_df_0d = vessels_df_0d.reset_index(drop=True)
 
                             else:
                                 # inp_vessels_0d = vessels_df_0d.at[idx0d[0],"inp_vessels"].split()
-                                out_vessels_0d = vessels_df_0d.at[idx0d[0],"out_vessels"].split()
-                                BC_type_0d = vessels_df_0d.at[idx0d[0],"BC_type"]
+                                out_vessels_0d = vessels_df_0d.at[idx0d_int,"out_vessels"].split()
+                                BC_type_0d = vessels_df_0d.at[idx0d_int,"BC_type"]
                                 BC_type_1d = vessels_df_1d.at[i,"BC_type"]
                                 if vess1d in out_vessels_0d:
                                     port_0d = -1 
@@ -245,7 +246,7 @@ class CSV0DModelParser(object):
                                         pass
                                     self.conn_1d_0d_info[str(N1d0d+1)] = {"vess1d_idx": i,
                                                                         "vess1d_bc_in0_or_out1": 0,
-                                                                        "vess0d_idx": idx0d[0].item(),
+                                                                        "vess0d_idx": int(idx0d_int),
                                                                         "cellml_idx": -1,
                                                                         "cellml_bc_in0_or_out1": 1,
                                                                         "cellml_bc_flow0_or_press1": bc_0d,
@@ -291,21 +292,22 @@ class CSV0DModelParser(object):
                     elif len(idx1d)==0:
                         idx0d = vessels_df_0d.index[vessels_df_0d["name"]==out_vess]
                         if len(idx0d)==1:
-                            if (vessels_df_0d.at[idx0d[0],"vessel_type"].startswith(("outlet_flow","outlet_pressure"))
-                                    and vessels_df_0d.at[idx0d[0],"BC_type"].startswith("nn")):
+                            idx0d_int = idx0d[0]
+                            if (vessels_df_0d.at[idx0d_int,"vessel_type"].startswith(("outlet_flow","outlet_pressure"))
+                                    and vessels_df_0d.at[idx0d_int,"BC_type"].startswith("nn")):
 
-                                    if vessels_df_0d.at[idx0d[0],"vessel_type"].startswith("outlet_flow"):
+                                    if vessels_df_0d.at[idx0d_int,"vessel_type"].startswith("outlet_flow"):
                                         vessels_df_1d.at[i,"out_vessels"] = 'output_flow_BC'
-                                    elif vessels_df_0d.at[idx0d[0],"vessel_type"].startswith("outlet_pressure"):
+                                    elif vessels_df_0d.at[idx0d_int,"vessel_type"].startswith("outlet_pressure"):
                                         vessels_df_1d.at[i,"out_vessels"] = 'output_pressure_BC'
 
-                                    vessels_df_0d.drop(index=idx0d[0], inplace=True)
+                                    vessels_df_0d.drop(index=idx0d_int, inplace=True)
                                     vessels_df_0d = vessels_df_0d.reset_index(drop=True)
                             
                             else:
-                                inp_vessels_0d = vessels_df_0d.at[idx0d[0],"inp_vessels"].split()
+                                inp_vessels_0d = vessels_df_0d.at[idx0d_int,"inp_vessels"].split()
                                 # out_vessels_0d = vessels_df_0d.at[idx0d[0],"out_vessels"].split()
-                                BC_type_0d = vessels_df_0d.at[idx0d[0],"BC_type"]
+                                BC_type_0d = vessels_df_0d.at[idx0d_int,"BC_type"]
                                 BC_type_1d = vessels_df_1d.at[i,"BC_type"]
                                 if vess1d in inp_vessels_0d:
                                     port_0d = -1
@@ -323,7 +325,7 @@ class CSV0DModelParser(object):
                                         pass
                                     self.conn_1d_0d_info[str(N1d0d+1)] = {"vess1d_idx": i,
                                                                         "vess1d_bc_in0_or_out1": 1,
-                                                                        "vess0d_idx": idx0d[0].item(),
+                                                                        "vess0d_idx": int(idx0d_int),
                                                                         "cellml_idx": -1,
                                                                         "cellml_bc_in0_or_out1": 0,
                                                                         "cellml_bc_flow0_or_press1": bc_0d,

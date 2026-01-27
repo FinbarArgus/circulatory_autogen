@@ -12,19 +12,26 @@ import os
 import sys
 import json
 import csv
+from pathlib import Path
 
 
-def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb, vess_1d_list):
+def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb=None, vess_1d_list=[]):
 
     if len(vess_1d_list) == 0:
         print(f"Warning :: No vessels to convert from 0D to 1D for model {model}. Use fully 0D model input files.")
         return
 
+    folder_0d = Path(folder_0d)
+
+    if folder_hyb is None:
+        folder_hyb = folder_0d
+    
+    folder_hyb = Path(folder_hyb)
     if not os.path.exists(folder_hyb):
         os.makedirs(folder_hyb)
-
-    df_vess = pd.read_csv(folder_0d+model+"_0d_vessel_array.csv")
-    df_params = pd.read_csv(param_file_0d)
+    
+    df_vess = pd.read_csv(folder_0d / f"{model}_0d_vessel_array.csv")
+    df_params = pd.read_csv(folder_0d / param_file_0d)
 
     n1d = len(vess_1d_list)
     nV = df_vess.shape[0]
@@ -52,13 +59,6 @@ def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb, vess_1d_list):
 
     df_vess = df_vess.drop(index=idx_to_drop)
     df_vess.reset_index(drop=True, inplace=True)
-
-
-    #     var u_root: J_per_m3 {pub: in};
-    #     var u_par: J_per_m3 {pub: in};
-    #    var v_svc: m3_per_s {pub: in};
-    #     var v_ivc: m3_per_s {pub: in};
-    #     var v_pvn: m3_per_s {pub: in};
 
     nV = df_vess.shape[0]
     for j in range(nV):
@@ -105,21 +105,23 @@ def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb, vess_1d_list):
                         else:
                             df_params.loc[df_params.shape[0]] = ['v_in_'+vess, 'm3_per_s', 0.0, 'WONT_BE_USED']
 
-    df_vess.to_csv(folder_hyb+model+"_hybrid_vessel_array.csv", index=False, header=True)
-    df_params.to_csv(folder_hyb+model+"_hybrid_parameters.csv", index=False, header=True)
+    df_vess.to_csv(folder_hyb / f"{model}_hybrid_vessel_array.csv", index=False, header=True)
+    df_params.to_csv(folder_hyb / f"{model}_hybrid_parameters.csv", index=False, header=True)
+
+    print(f"Converted {n1d} vessels from 0D to 1D for model {model}.")
+    print(f"Input hybrid model files saved successfully at {folder_hyb}")
 
     return
 
 
 if __name__ == "__main__":
     
-    # model = "cvs_model"
-    model = "cvs_model_with_arm"
+    model = "cvs_model"
+    # model = "cvs_model_with_arm"
     
     folder_0d = "/hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/"+model+"_0d/resources/"
 
-    # param_file_0d = folder_0d+"../generated_models/"+model+"_0d_"+model+"_0d_obs_data/"+model+"_0d_parameters.csv"
-    param_file_0d = folder_0d+model+"_0d_parameters.csv"
+    param_file_0d = model+"_0d_parameters.csv"
 
     folder_hyb = "/hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/"+model+"_hybrid/resources/"
 
