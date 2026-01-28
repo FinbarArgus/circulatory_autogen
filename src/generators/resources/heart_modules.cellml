@@ -2412,51 +2412,12 @@
                     </otherwise>
                 </piecewise>
             </apply>
-            <apply>
-                <eq/>
-                <apply>
-                    <diff/>
-                    <bvar>
-                        <ci>t</ci>
-                    </bvar>
-                    <ci>zeta_aov_pre</ci>
-                </apply>
-                <piecewise>
-                    <piece>
-                        <apply>
-                            <times/>
-                            <apply>
-                                <minus/>
-                                <cn cellml:units="dimensionless">1</cn>
-                                <ci>zeta_aov_pre</ci>
-                            </apply>
-                            <ci>K_vo_aov</ci>
-                            <apply>
-                                <minus/>
-                                <ci>u_lv</ci>
-                                <ci>u_root</ci>
-                            </apply>
-                        </apply>
-                        <apply>
-                            <geq/>
-                            <ci>u_lv</ci>
-                            <ci>u_root</ci>
-                        </apply>
-                    </piece>
-                    <otherwise>
-                        <apply>
-                            <times/>
-                            <ci>zeta_aov_pre</ci>
-                            <ci>K_vc_aov</ci>
-                            <apply>
-                                <minus/>
-                                <ci>u_lv</ci>
-                                <ci>u_root</ci>
-                            </apply>
-                        </apply>
-                    </otherwise>
-                </piecewise>
-            </apply>
+            <!--ode(zeta_aov_pre, t) = sel
+    case u_lv >= u_root:
+        (1{dimensionless}-zeta_aov_pre)*K_vo_aov*(u_lv-u_root);
+    otherwise:
+        zeta_aov_pre*K_vc_aov*(u_lv-u_root);
+endsel; // UNCOMMENT THIS-->
             <!-- The below ensures zeta can't be negative-->
             <apply>
                 <eq/>
@@ -2485,15 +2446,170 @@
                     <cn cellml:units="dimensionless">0</cn>
                 </apply>
             </apply>
+        </math>
+        <!--zeta_aov = max(zeta_aov_pre, 0{dimensionless}); // UNCOMMENT THIS-->
+        <!--START NEW-->
+        <variable name="delta_p" public_interface="out" units="J_per_m3"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>delta_p</ci>
+                <apply>
+                    <minus/>
+                    <ci>u_lv</ci>
+                    <ci>u_root</ci>
+                </apply>
+            </apply>
+        </math>
+        <variable name="k_smooth" public_interface="out" units="m3_per_J"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>k_smooth</ci>
+                <cn cellml:units="m3_per_J">0.05</cn>
+            </apply>
+        </math>
+        <!-- Sigmoid transition (0 to 1)-->
+        <variable name="S" public_interface="out" units="dimensionless"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>S</ci>
+                <apply>
+                    <divide/>
+                    <cn cellml:units="dimensionless">1.0</cn>
+                    <apply>
+                        <plus/>
+                        <cn cellml:units="dimensionless">1.0</cn>
+                        <apply>
+                            <exp/>
+                            <apply>
+                                <times/>
+                                <apply>
+                                    <minus/>
+                                    <ci>k_smooth</ci>
+                                </apply>
+                                <ci>delta_p</ci>
+                            </apply>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+        </math>
+        <!-- Combining the opening and closing logic into one continuous path-->
+        <variable name="dzeta_aov" public_interface="out" units="Hz"/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+                <eq/>
+                <ci>dzeta_aov</ci>
+                <apply>
+                    <plus/>
+                    <apply>
+                        <times/>
+                        <ci>S</ci>
+                        <apply>
+                            <times/>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                                <ci>zeta_aov_pre</ci>
+                            </apply>
+                            <ci>K_vo_aov</ci>
+                            <ci>delta_p</ci>
+                        </apply>
+                    </apply>
+                    <apply>
+                        <times/>
+                        <apply>
+                            <minus/>
+                            <cn cellml:units="dimensionless">1.0</cn>
+                            <ci>S</ci>
+                        </apply>
+                        <apply>
+                            <times/>
+                            <ci>zeta_aov_pre</ci>
+                            <ci>K_vc_aov</ci>
+                            <ci>delta_p</ci>
+                        </apply>
+                    </apply>
+                </apply>
+            </apply>
+            <!-- ode(zeta_aov_pre, t) = S * ((1.0{dimensionless} - zeta_aov_pre) * K_vo_aov * delta_p) + (1.0{dimensionless} - S) * (zeta_aov_pre * K_vc_aov * delta_p);-->
+            <apply>
+                <eq/>
+                <apply>
+                    <diff/>
+                    <bvar>
+                        <ci>t</ci>
+                    </bvar>
+                    <ci>zeta_aov_pre</ci>
+                </apply>
+                <piecewise>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>dzeta_aov</ci>
+                            <apply>
+                                <minus/>
+                                <cn cellml:units="dimensionless">1.0</cn>
+                                <ci>zeta_aov_pre</ci>
+                            </apply>
+                            <cn cellml:units="dimensionless">100.0</cn>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <gt/>
+                                <ci>zeta_aov_pre</ci>
+                                <cn cellml:units="dimensionless">0.99</cn>
+                            </apply>
+                            <apply>
+                                <gt/>
+                                <ci>dzeta_aov</ci>
+                                <cn cellml:units="Hz">0.0</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <piece>
+                        <apply>
+                            <times/>
+                            <ci>dzeta_aov</ci>
+                            <ci>zeta_aov_pre</ci>
+                            <cn cellml:units="dimensionless">100.0</cn>
+                        </apply>
+                        <apply>
+                            <and/>
+                            <apply>
+                                <lt/>
+                                <ci>zeta_aov_pre</ci>
+                                <cn cellml:units="dimensionless">0.01</cn>
+                            </apply>
+                            <apply>
+                                <lt/>
+                                <ci>dzeta_aov</ci>
+                                <cn cellml:units="Hz">0.0</cn>
+                            </apply>
+                        </apply>
+                    </piece>
+                    <otherwise>
+                        <ci>dzeta_aov</ci>
+                    </otherwise>
+                </piecewise>
+            </apply>
             <apply>
                 <eq/>
                 <ci>zeta_aov</ci>
                 <apply>
                     <max/>
-                    <ci>zeta_aov_pre</ci>
+                    <apply>
+                        <min/>
+                        <ci>zeta_aov_pre</ci>
+                        <cn cellml:units="dimensionless">1</cn>
+                    </apply>
                     <cn cellml:units="dimensionless">0</cn>
                 </apply>
             </apply>
+            <!--END NEW-->
             <!-- calculate the flow through the valves-->
             <apply>
                 <eq/>
