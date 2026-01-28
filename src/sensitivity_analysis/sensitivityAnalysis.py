@@ -149,3 +149,63 @@ class SensitivityAnalysis():
             self.SA_manager.plot_sobol_first_order_idx(S1_all, ST_all)
             self.SA_manager.plot_sobol_S2_idx(S2_all)
             self.SA_manager.plot_sobol_heatmap(S1_all, ST_all)
+
+    
+    def choose_most_impactful_params_sobol(self, top_n=5, index_type='ST', criterion='max'):
+        """
+        Ranks and returns parameters based on Sobol indices using a user-defined criterion.
+        
+        Args:
+            top_n (int): Number of parameters to return.
+            index_type (str): 'ST' or 'S1'.
+            criterion (str or func): 
+                'max': Rank by highest value across any output.
+                'mean': Rank by average value across all outputs.
+                lambda: A custom function to process the list of values for each parameter.
+        """
+        comm = MPI.COMM_WORLD
+        if comm.Get_rank() != 0:
+            return None
+
+        # indices_dict structure: { 'S1': {out_name: {param: val}}, 'ST': {...} }
+        indices_dict = self.SA_manager.load_sobol_indices()
+        
+        if not indices_dict or index_type.upper() not in indices_dict:
+            print(f"{RED}ERROR: Index type '{index_type}' not found.{RESET}")
+            return []
+
+        # Get the specific sub-dict for S1 or ST
+        data = indices_dict[index_type.upper()]
+        
+        # Reorganise data to: {param_name: [val_out1, val_out2, ...]}
+        param_scores = {}
+        for out_name, params in data.items():
+            for p_name, val in params.items():
+                if p_name not in param_scores:
+                    param_scores[p_name] = []
+                param_scores[p_name].append(val)
+
+        # Apply selection criterion
+        # We use a dictionary comprehension to map param names to a single scalar score
+        if criterion == 'max':
+            processed_scores = {p: max(vals) for p, vals in param_scores.items()}
+        elif criterion == 'mean':
+            processed_scores = {p: (sum(vals) / len(vals)) for p, vals in param_scores.items()}
+        elif callable(criterion):
+            processed_scores = {p: criterion(vals) for p, vals in param_scores.items()}
+        else:
+            print(f"{RED}ERROR: Invalid criterion '{criterion}'{RESET}")
+            return []
+
+        # Sort by score descending
+        sorted_params = sorted(processed_scores.items(), key=lambda x: x[1], reverse=True)
+        
+        # Take Top N
+        top_params = [p[0] for p in sorted_params[:top_n]]
+
+        print(f"{GREEN}Selected Top {len(top_params)} parameters (Index: {index_type}, Criterion: {criterion}):{RESET}")
+        for i, p in enumerate(top_params):
+            print(f"  {i+1}. {p:<20} (Score: {processed_scores[p]:.4f})")
+
+        return top_params
+
