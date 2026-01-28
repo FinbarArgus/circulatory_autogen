@@ -36,21 +36,9 @@ def generate_with_new_architecture(do_generation_with_fit_parameters=False,
     generated_models_subdir = inp_data_dict['generated_models_subdir']
     vessels_csv_abs_path = inp_data_dict['vessels_csv_abs_path']
     parameters_csv_abs_path = inp_data_dict['parameters_csv_abs_path']
+    file_prefix_0d = inp_data_dict.get('file_prefix_0d')
+    file_prefix_1d = inp_data_dict.get('file_prefix_1d')
 
-    # TODO F2B, move this to parsers.
-    file_prefix_0d = None
-    file_prefix_1d = None
-    if (inp_data_dict['model_type'] == 'cpp' and inp_data_dict['couple_to_1d']):
-        file_prefix_0d = file_prefix + '_0d'
-        file_prefix_1d = file_prefix + '_1d'
-
-        idx_last = vessels_csv_abs_path.rfind(file_prefix)
-        vessel_filename_0d = vessels_csv_abs_path[:idx_last] + file_prefix_0d + vessels_csv_abs_path[idx_last+len(file_prefix):]
-        vessel_filename_1d = vessels_csv_abs_path[:idx_last] + file_prefix_1d + vessels_csv_abs_path[idx_last+len(file_prefix):]
-
-        inp_data_dict['vessels_0d_csv_abs_path'] = vessel_filename_0d # adding this new key to inp_data_dict
-        inp_data_dict['vessels_1d_csv_abs_path'] = vessel_filename_1d # adding this new key to inp_data_dict
-    
     solver_info = inp_data_dict['solver_info']
     # Get solver from solver_info (check both 'solver' and 'method' for backward compatibility)
     solver = solver_info.get('solver') or solver_info.get('method')
@@ -79,33 +67,12 @@ def generate_with_new_architecture(do_generation_with_fit_parameters=False,
             py_gen.generate()
             success = True
     elif inp_data_dict['model_type'] == 'cpp':
-        solver_cpp = inp_data_dict.get('solver')
-        if solver_cpp is None:
-            solver_cpp = 'CVODE' # default solver
-        else:
-            if solver_cpp.startswith('RK4'):
-                solver_cpp = 'RK4'
-            elif solver_cpp.startswith('CVODE'):
-                solver_cpp = 'CVODE'
+        solver_info = inp_data_dict['solver_info']
+        solver_cpp = solver_info.get('solver', 'CVODE')
         print(f"Using Cpp solver: {solver_cpp}")
-
-        if 'dt' in inp_data_dict:
-            dtSample = inp_data_dict['dt']
-        else:
-            dtSample = 1.0e-3
-
-        if 'solver_info' in inp_data_dict:
-            if 'MaximumStep' in inp_data_dict['solver_info']:
-                dtSolver = inp_data_dict['solver_info']['MaximumStep']
-            else:
-                dtSolver = 1.0e-4
-            if 'MaximumNumberOfSteps' in inp_data_dict['solver_info']:
-                nMaxSteps = inp_data_dict['solver_info']['MaximumNumberOfSteps']
-            else:
-                nMaxSteps = 5000
-        else:
-            dtSolver = 1.0e-4
-            nMaxSteps = 5000
+        dtSample = inp_data_dict['dt']
+        dtSolver = solver_info['dt_solver']
+        nMaxSteps = solver_info['MaximumNumberOfSteps']
 
         if inp_data_dict['couple_to_1d']:
             # object from class CVS0DCppGenerator
@@ -160,7 +127,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters=False,
                                                         conn_1d_0d_info=parser.conn_1d_0d_info)
                     elif inp_data_dict['solver_1d_type'].startswith('cpp'):
                         #XXX This would use the class CVS1DCppGenerator() that Finbar was working on.
-                        sys.exit('ERROR :: Class for generating Cpp files for 1D model not yet implemeneted. Please change your 1D solver type.')
+                        sys.exit('ERROR :: Class for generating Cpp files for 1D model not yet implemented. Please change your 1D solver type.')
                 else:
                     sys.exit('ERROR :: solver_1d_type not found in user input yaml file. Please specify your 1D solver type.')
 

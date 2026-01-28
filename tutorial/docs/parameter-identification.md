@@ -134,7 +134,8 @@ Before doing calibration, a solver for the model needs to be chosen
     - CVODE\_myokit: CVODE solver by Sundials, using myokit to wrap around CVODE 
     - solve\_ivp: solver by scipy, using myokit to wrap around CVODE 
 - **solver_info** this defines settings for the solver you have chosen
-    - **MaximumStep**: maximum step size that the adaptive time step solver will use. Equal to dt if a non-adaptive time step solver is used
+    - **dt_solver**: solver time step (for CVODE this sets MaximumStep when provided)
+    - **MaximumStep**: maximum step size for adaptive solvers (if dt_solver is not provided, MaximumStep is used)
     - **MaximumNumberOfSteps**: maximum number of substeps that the adaptive timestep solver will attempt before stepping
     - **method**: any method for solve\_ivp, e.g. RK45, BDF, etc. Not needed for CVODE as that is the solver and the method.
 
@@ -149,8 +150,9 @@ To run the parameter identification we need to set a few entries in the `[CA_dir
     - **bayesian**: Bayesian optimization using scikit-optimize (deprecated, untested)
 - **pre_time**: this is the amount of time the simulation is run to get to steady state before comparing to the observables from `obs_data.json`. IMPORTANT: THis is overwritten by the pre_times within the obs_data.json file, see the next section.
 - **sim_time**: The amount of time used to compare simulation output and observable data. This should be equal to the length of a series observable entry divided by the "sample_rate". If not, only up to the minimum length of observable data and modelled data will be compared. 
-- **maximum_step**: The maximum time step for the CVODE solver
-- **dt**: The output time step (This hasn't been tested well for anything but 0.01 s currently)
+- **dt**: The output (sample) time step for model outputs
+- **solver_info.dt_solver**: The solver time step for CVODE (sets MaximumStep when provided)
+- **solver_info.MaximumStep**: The CVODE maximum step size if dt_solver is not provided
 - **param_id_obs_path**: the path to the `obs_data.json` file described above.
 - **ga_options**: Legacy dictionary (deprecated, use `optimiser_options` instead):
 	- **cost_type**: "AE" or "MSE" for absolute error or mean squared error.
