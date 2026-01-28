@@ -226,13 +226,23 @@ class CVS0DParamID():
         self.param_id.temp_test2()
 
     def run(self):
+        self._check_info_available()
         self.param_id.run()
 
     def run_mcmc(self):
         mcmc_object.run()
-
-    def run_single_sensitivity(self,sensitivity_output_path):
-        self.param_id.run_single_sensitivity(sensitivity_output_path)
+    
+    def _check_info_available(self):
+        if self.gt_df is None:
+            raise ValueError('Ground truth data not set')
+        if self.protocol_info is None:
+            raise ValueError('Protocol info not set')
+        if self.obs_info is None:
+            raise ValueError('Obs info not set')
+        if self.prediction_info is None:
+            raise ValueError('Prediction info not set')
+        if self.param_id_info is None:
+            raise ValueError('Param id info not set')
 
     def simulate_with_best_param_vals(self, reset=True, only_one_exp=-1):
         self.param_id.simulate_once(reset=reset, only_one_exp=only_one_exp)
@@ -295,6 +305,7 @@ class CVS0DParamID():
             dt=self.dt
         )
         self.param_id.set_obs_info(self.obs_info)
+        self.param_id.set_protocol_info(self.protocol_info)
         self.param_id.set_prediction_info(self.prediction_info)
         print(f'Ground truth data set: {self.obs_info}')
     
@@ -1294,6 +1305,9 @@ class OpencorParamID():
         self.num_params = len(self.param_id_info["param_names"])
         self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
         
+    def set_protocol_info(self, protocol_info):
+        self.protocol_info = protocol_info
+
     def set_prediction_info(self, prediction_info):
         self.prediction_info = prediction_info
     
