@@ -109,6 +109,8 @@ Open `[project_dir]/user_run_files/opencor_pythonshell_path.sh` file and change 
 
     Alternatively (**especially for debugging**), you can run the Python scripts directly. Use the OpenCOR Python interpreter (set in `opencor_pythonshell_path.sh`) and execute the matching script in `project_dir/src/scripts/`. The `.sh` files in `user_run_files` show the exact script each command runs.
 
+    Option! For a more python-centric tutorial, see /tutorial/interactive/generate_and_calibrate.ipynb tutorial which shows how to run everything from python without setting up input files.
+
 !!! warning
     Installing **mpi4py** requires mpi to be available. Therefore, the following lines may be required to install the mpi software on your computer.
 
@@ -117,6 +119,7 @@ Open `[project_dir]/user_run_files/opencor_pythonshell_path.sh` file and change 
         sudo apt install libopenmpi-dev
         sudo apt install libffi7
         ```
+:w
 
     === "Mac"
         ```
