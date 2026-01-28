@@ -1,11 +1,60 @@
 #_______ general inputs ________
-DEBUG: False
-# user_inputs_path_override: /home/farg967/Documents/git_projects/lymph_CA_user/lymphatic_user_inputs.yaml
-# user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user/3compartment/3compartment_user_inputs.yaml
-# user_inputs_path_override: /hpc/farg967/git_projects/CA_user_FA_MG/control_parasymp/user_inputs_control_parasymp.yaml
-user_inputs_path_override: /home/farg967/Documents/git_projects/CA_user_FA_MG/control_parasymp/user_inputs_control_parasymp.yaml
-# file_prefix: 3compartment
-file_prefix: 3
+DEBUG: false # TODO change back
+
+# user_inputs_path_override: false
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250318-day01/simple_physiological_nonlinear_visco/simple_physiological_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250320-day03/smc_with_piezo/smc_with_piezo_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/circulatory_autogen_TUTORIAL/trainingschool01/20250321-day04/coupled_CVS_smc/coupled_CVS_smc_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_2_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_new_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_new_calib_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/MVP_CVSmodel_BG-CAcoupling/CA_files/BG_cvs_MVP_model_new_calib_linear_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_0d_v2_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_0d_v2_RK4_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_test_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new2_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new2_RK4_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new2_CVODE_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new2_PETSC_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_new3_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/aortic_bif_hybrid_multi_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_mod_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_mod_0d_sumBV_v2_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_hybrid_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_mod_hybrid_v1_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/1D-0D-coupler-cpp-example/CA_files/3compartment_mod_hybrid_sumBV_v3_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/CVS_Topology_Arborizer/Stage1-VITAL/stage1_model_male_openloop/CA_files/stage1_model_male_art_openloop_FINAL_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/CVS_Topology_Arborizer/Stage1-VITAL/stage1_model_male_openloop/CA_files/stage1_model_male_art_closedloopsimple_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Work/VITALProject/WP2/TASK2.6/ST1_CVSAnatomicalDefinition/CVS_Topology_Arborizer/Stage1-VITAL/stage1_model_male_openloop/CA_files/stage1_model_male_art_closedloopsimple_FINAL_user_inputs.yaml
+
+# user_inputs_path_override: /home/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_0d/cvs_model_0d_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_with_arm_0d/cvs_model_with_arm_0d_user_inputs.yaml
+# user_inputs_path_override: /home/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_with_arm_hybrid/cvs_model_with_arm_hybrid_user_inputs.yaml
+
+# user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_0d/cvs_model_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_0d_cpp/cvs_model_0d_user_inputs.yaml
+user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_hybrid/cvs_model_hybrid_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_with_arm_0d/cvs_model_with_arm_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_with_arm_0d_cpp/cvs_model_with_arm_0d_user_inputs.yaml
+# user_inputs_path_override: /hpc/bghi639/Software/VITAL_TrainingSchool2_Tutorials/cvs_model_with_arm_hybrid/cvs_model_with_arm_hybrid_user_inputs.yaml
+
+file_prefix: 3compartment
+# file_prefix: aortic_bif_0d
+# file_prefix: aortic_bif_0d_super_random_nonlinear
+# file_prefix: generic_junction_test_openloop
+# file_prefix: generic_junction_test_closedloop
+
 # input_param_file must be stored in resources. If first creating a parameters file 
 # set this to parameters_orig.csv and a 
 # parameters file will be generated with spaces for the required parameters
@@ -17,7 +66,7 @@ input_param_file: SN_simple_parameters.csv
 model_type: cellml_only
 
 #__________ parameter identification inputs __________
-# param_id_method can be any of [genetic_algorithm, CMA-ES, bayesian]
+# param_id_method can be any of [genetic_algorithm]
 param_id_method: genetic_algorithm
 # param_id_method: CMA-ES
 
@@ -33,10 +82,9 @@ sim_time: 2
 # and set the pre_time and sim_time accordingly.
 
 # it is recommended that users create their own CA_user directory to store input resources and output generated model files. e.g.
-# resources_dir: /home/farg967/Documents/test/resources
-# generated_models_dir: /home/farg967/Documents/test/generated_models
-# param_id_output_dir: /home/farg967/Documents/test/param_id_output
-# external_modules_dir: /home/farg967/Documents/temp/modules
+# resources_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/resources
+# generated_models_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/generated_models
+# param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/param_id_output
 
 # This is for cpp generation
 # cpp_generated_models_dir: /home/farg967/software/venous_system/lucas_model/fvm
@@ -47,16 +95,21 @@ cpp_1d_model_config_path:
   /home/farg967/software/venous_system/lucas_model/aortic_bif_coupling/run_dir/input1d.dat
 
 # Output time step (sampling) 
-dt: 0.01 # This should be smaller than all of the dt in your obs_data.json file. 
+dt: 0.01 # This should be smaller than all of the dt in your obs_data.json file.
 
-# solver options are: CVODE (uses OpenCOR, default), CVODE_myokit (uses Myokit), or for Python models: solve_ivp
-solver: CVODE
+# OLD: solver options are: RK4, forward_euler, CVODE
+# solver options are: CVODE (uses Myokit, default), CVODE_opencor (uses OpenCOR), or for Python models: solve_ivp
+# I think this should be
+# solver options are: CVODE_myokit (uses Myokit), CVODE (uses OpenCOR, default), RK4_cpp (RK4 in cpp), or for Python models: solve_ivp
 # TODO make this also change the solver in the opencor sims when not generating cpp.
-# solver: RK4
+# solver: RK4_cpp
+solver: CVODE
+# solver: CVODE_myokit
+# solver: CVODE_opencor
 # These are inputs to solver_properties of the solver
 solver_info:
   # Maximum time step for solver
-  MaximumStep: 0.001
+  MaximumStep: 0.0001
   MaximumNumberOfSteps: 5000
   # method: RK45 # any method for solve_ivp
 
@@ -116,4 +169,3 @@ ia_options:
   method: Laplace # profile_likelihood
 
 plot_predictions: true
-

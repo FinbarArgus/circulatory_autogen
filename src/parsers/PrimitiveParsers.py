@@ -123,6 +123,9 @@ class YamlFileParser(object):
         else:
             file_prefix = inp_data_dict['file_prefix']
 
+        if 'couple_to_1d' not in inp_data_dict.keys():
+            inp_data_dict['couple_to_1d'] = False
+
         # overwrite dir paths if set in user_inputs.yaml
         if "resources_dir" in inp_data_dict.keys():
             inp_data_dict['resources_dir'] = os.path.join(user_files_dir, inp_data_dict['resources_dir'])
@@ -212,6 +215,13 @@ class YamlFileParser(object):
 
         # Parse and validate the solver parameter
         # Supported solvers: CVODE (OpenCOR), CVODE_myokit (Myokit), or solve_ivp methods (RK45, RK4, etc.)
+        
+        valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
+        valid_cpp_solvers = ['CVODE', 'RK4', 'PETSC']
+        # Common solve_ivp methods (add more as needed)
+        valid_python_solvers = ['solve_ivp']
+        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
+
         solver_name = inp_data_dict.get('solver_info', {}).get('solver')
         if solver_name is None:
             solver_name = inp_data_dict.get('solver')
@@ -227,7 +237,9 @@ class YamlFileParser(object):
                 print(f'Invalid model type: {inp_data_dict.get("model_type")}')
                 exit()
         else:
-            if solver_name not in ['CVODE', 'CVODE_myokit', 'solve_ivp']:
+            if (solver_name not in valid_cellml_solvers and
+                solver_name not in valid_cpp_solvers and
+                solver_name not in valid_python_solvers):
                 print(f'Invalid solver: {solver_name}')
                 exit()
         
@@ -248,25 +260,42 @@ class YamlFileParser(object):
         if 'method' in inp_data_dict.get('solver_info', {}):
             solver_method = inp_data_dict['solver_info']['method']
         else:
-            if solver_name.startswith('CVODE'):
-                solver_method = 'CVODE'
-                inp_data_dict['solver_info']['method'] = solver_method
+            if inp_data_dict.get('model_type') == 'cpp':
+                if solver_name.startswith('CVODE'):
+                    solver_method = 'CVODE'
+                    inp_data_dict['solver_info']['method'] = solver_method
+                elif solver_name.startswith('RK4'):
+                    solver_method = 'RK4'
+                    inp_data_dict['solver_info']['method'] = solver_method
+                elif solver_name.startswith('PETSC'):
+                    solver_method = 'PETSC'
+                    inp_data_dict['solver_info']['method'] = solver_method # TODO Bea: add specific solver to be used within PETSC (CN / BDF1 / BDF2 / ...)
+                else:
+                    print(f'solver set {solver_name} not compatible with model_type cpp : change this in the user_inputs.yaml file')
             else:
-                print('method not set in solver_options, which should be set for solver solve_ivp,'
-                      'using default method RK45')
-                solver_method = 'RK45'
-                inp_data_dict['solver_info']['method'] = solver_method
+                if solver_name.startswith('CVODE'):
+                    solver_method = 'CVODE'
+                    inp_data_dict['solver_info']['method'] = solver_method
+                else:
+                    print('method not set in solver_options, which should be set for solver solve_ivp,'
+                        'using default method RK45')
+                    solver_method = 'RK45'
+                    inp_data_dict['solver_info']['method'] = solver_method
 
         # Validate solver value
-        valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
-        # Common solve_ivp methods (add more as needed)
-        valid_python_solvers = ['solve_ivp']
-        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
+        # valid_cellml_solvers = ['CVODE', 'CVODE_myokit']
+        # valid_cpp_solvers = ['CVODE', 'RK4', 'PETSC']
+        # # Common solve_ivp methods (add more as needed)
+        # valid_python_solvers = ['solve_ivp']
+        # valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
 
-        if solver_name not in valid_cellml_solvers and solver_name not in valid_python_solvers:
+        if (solver_name not in valid_cellml_solvers 
+            and solver_name not in valid_python_solvers
+            and solver_name not in valid_cpp_solvers):
             print(f'Invalid solver: {solver_name}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
+            print(f'Valid Cpp solvers: {valid_cpp_solvers}')
             exit()
         
         
@@ -282,6 +311,14 @@ class YamlFileParser(object):
             if inp_data_dict.get('model_type') not in ['python', None]:
                 print(f'solve_ivp method {solver_method} requires model_type to be "python"')
                 print('Use CVODE or CVODE_myokit for CellML models')
+                print('Use CVODE or RK4 or PETSC for Cpp models')
+                exit()
+
+        if solver_method in valid_cpp_solvers and solver_method not in valid_cellml_solvers:
+            if inp_data_dict.get('model_type') != 'cpp':
+                print(f'Cpp solver {solver_method} can only be used with Cpp models (model_type="cpp")')
+                print('Use CVODE or CVODE_myokit for CellML models')
+                print('Use a solve_ivp method (RK45, RK4, etc.) for Python models')
                 exit()
 
         if 'DEBUG' in inp_data_dict.keys(): 
