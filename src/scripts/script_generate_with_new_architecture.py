@@ -105,14 +105,15 @@ def generate_with_new_architecture(do_generation_with_fit_parameters=False,
             if DEBUG:
                 print("Check point 1A")
 
-            code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix_0d, #XXX
+            code_generator = CVS0DCppGenerator(model, generated_models_subdir, file_prefix, #XXX
                                             resources_dir=resources_dir, solver=solver_cpp, 
                                             dtSample=dtSample, dtSolver=dtSolver, nMaxSteps=nMaxSteps,
                                             couple_to_1d=inp_data_dict['couple_to_1d'],
                                             cpp_generated_models_dir=cpp_generated_models_dir,
                                             model_1d_config_path=model_1d_config_path,
                                             create_main_0d=create_main_0d,
-                                            conn_1d_0d_info=parser.conn_1d_0d_info)
+                                            conn_1d_0d_info=parser.conn_1d_0d_info,
+                                            DEBUG=DEBUG)
             
             if DEBUG:
                 print("Check point 2A")
