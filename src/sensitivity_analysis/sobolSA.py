@@ -418,7 +418,7 @@ class sobol_SA():
                         # WARNING: using mean biases variance estimates (shrinks variance), underestimates sensitivity
                         # TODO: come up with a better way to impute missing features
                         # Append the mean of the current features (ignoring None) -> reduces variance and bias induces toward zero
-                        features.append(np.mean(features))
+                        features.append(np.mean(local_outputs))
 
                 local_outputs.append(features)
                 pbar.update(1)
@@ -442,7 +442,7 @@ class sobol_SA():
             return None, None, None
         
         outputs = np.array(outputs)
-
+        
         # Ensure outputs are numeric scalars; SALib expects 1D numeric Y per output.
         if outputs.dtype == object:
             def _coerce_scalar(val):
