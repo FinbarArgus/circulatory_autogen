@@ -418,7 +418,7 @@ class sobol_SA():
                         # WARNING: using mean biases variance estimates (shrinks variance), underestimates sensitivity
                         # TODO: come up with a better way to impute missing features
                         # Append the mean of the current features (ignoring None) -> reduces variance and bias induces toward zero
-                        features.append(np.mean(features))
+                        features.append(np.mean(local_outputs))
 
                 local_outputs.append(features)
                 pbar.update(1)
@@ -442,7 +442,7 @@ class sobol_SA():
             return None, None, None
         
         outputs = np.array(outputs)
-
+        
         # Ensure outputs are numeric scalars; SALib expects 1D numeric Y per output.
         if outputs.dtype == object:
             def _coerce_scalar(val):
@@ -716,7 +716,35 @@ class sobol_SA():
         df_S2.index.name = "Parameter"
         file_name_S2 = f"all_outputs_n{self.num_samples}_Sobol_2nd_order_indices.csv"
         df_S2.to_csv(os.path.join(self.output_dir, file_name_S2))
+
+    def load_sobol_indices(self):
+        """
+        Loads S1 and ST indices from the saved CSV file and returns them as a dictionary.
+        Returns:
+            dict: { 'S1': {out_name: {param: val}}, 'ST': {out_name: {param: val}} }
+        """
+        file_name = f"all_outputs_n{self.num_samples}_Sobol_indices.csv"
+        file_path = os.path.join(self.output_dir, file_name)
         
+        # Load the CSV
+        df = pd.read_csv(file_path)
+        
+        # Use the 'Parameter' column as the index for easy dict conversion
+        df.set_index('Parameter', inplace=True)
+        
+        results = {'S1': {}, 'ST': {}}
+        
+        # Iterate through columns to separate S1 and ST by output name
+        for col in df.columns:
+            if col.startswith('S1_'):
+                out_name = col.replace('S1_', '', 1)
+                results['S1'][out_name] = df[col].to_dict()
+            elif col.startswith('ST_'):
+                out_name = col.replace('ST_', '', 1)
+                results['ST'][out_name] = df[col].to_dict()
+                
+        return results
+ 
     def run(self):
         samples = self.generate_samples()
         if self.use_mpi:
