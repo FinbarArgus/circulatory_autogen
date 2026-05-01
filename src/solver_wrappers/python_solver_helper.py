@@ -3,6 +3,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import copy
 import sys
+from .name_resolver import VariableNameResolver
 DEBUG = False
 
 
@@ -66,12 +67,13 @@ class SimulationHelper:
         self.VARIABLE_INFO = module.VARIABLE_INFO
         self.STATE_INFO = module.STATE_INFO
 
-        # maps
-        self.state_name_to_idx = {info["name"]: idx for idx, info in enumerate(self.STATE_INFO)}
-        self.var_name_to_idx = {info["name"]: idx for idx, info in enumerate(self.VARIABLE_INFO)}
-        # inverse maps for lookup once we've resolved indices
-        self.state_idx_to_name = {idx: info["name"] for idx, info in enumerate(self.STATE_INFO)}
-        self.var_idx_to_name = {idx: info["name"] for idx, info in enumerate(self.VARIABLE_INFO)}
+        self._resolver = VariableNameResolver(self.STATE_INFO, self.VARIABLE_INFO)
+
+        # Convenience maps (derived from resolver, kept for compatibility)
+        self.state_name_to_idx = {name: idx for name, (kind, idx) in self._resolver._map.items() if kind == "state"}
+        self.var_name_to_idx   = {name: idx for name, (kind, idx) in self._resolver._map.items() if kind == "var"}
+        self.state_idx_to_name = {idx: name for name, idx in self.state_name_to_idx.items()}
+        self.var_idx_to_name   = {idx: name for name, idx in self.var_name_to_idx.items()}
 
         # identify constants and algebraics
         self.constant_indices = [i for i, info in enumerate(self.VARIABLE_INFO) if info["type"].name in ["CONSTANT", "COMPUTED_CONSTANT"]]
@@ -89,32 +91,10 @@ class SimulationHelper:
         self.default_constants = [self.variables[i] for i in self.constant_indices]
         self.default_state_inits = [s for s in self.states]
 
-    # ---- name resolution helpers ----
+    # ---- name resolution ----
     def _resolve_name(self, name: str):
-        """
-        Resolve parameter/variable names that may contain prefixes (e.g., 'global/').
-        Tries exact, then last path element, then slash-to-underscore form.
-        """
-        name = str(name).strip()
-        candidates = [name]
-        if "/" in name:
-            parts = name.split("/")
-            last = parts[-1]
-            first = parts[0]
-            candidates.append(last)
-            candidates.append(name.replace("/", "_"))
-            candidates.append(f"{first}_{last}")
-            candidates.append(f"{last}_{first}")
-            candidates.append(f"{first}{last}")
-            candidates.append(name.replace("/", ""))  # drop slash
-        # also try stripping any 'global_' prefix
-        candidates += [c.replace("global_", "") for c in list(candidates)]
-        for cand in candidates:
-            if cand in self.state_name_to_idx:
-                return ("state", self.state_name_to_idx[cand])
-            if cand in self.var_name_to_idx:
-                return ("var", self.var_name_to_idx[cand])
-        return (None, None)
+        """Delegate to VariableNameResolver. Returns (kind, index) or (None, None)."""
+        return self._resolver.resolve(name)
 
     # ---- timing helpers ----
     def update_times(self, dt, start_time, sim_time, pre_time):
@@ -179,9 +159,17 @@ class SimulationHelper:
                     resolved_name = self.var_idx_to_name.get(idx_res, "")
                     # If a constant follows the common "<state>_init" naming,
                     # keep the corresponding state/default-init synchronized.
-                    if resolved_name.endswith("_init"):
-                        state_name = resolved_name[:-5]
-                        state_idx = self.state_name_to_idx.get(state_name)
+                    # Use just the variable part (after '/') for the _init lookup.
+                    var_part = resolved_name.split("/")[-1] if "/" in resolved_name else resolved_name
+                    if var_part.endswith("_init"):
+                        state_var = var_part[:-5]
+                        # Try component/state_var first, then bare state_var
+                        state_idx = self.state_name_to_idx.get(state_var)
+                        if state_idx is None:
+                            for qname, sidx in self.state_name_to_idx.items():
+                                if (qname.split("/")[-1] if "/" in qname else qname) == state_var:
+                                    state_idx = sidx
+                                    break
                         if state_idx is not None:
                             self.states[state_idx] = val
                             self.default_state_inits[state_idx] = val

@@ -974,8 +974,8 @@ def test_param_id_lotka_volterra_sp_minimize_gt_vs_calculated_params(base_user_i
 
         gt_results = sim_helper.get_all_results_dict()
 
-        gt_x = np.array(gt_results['x']).flatten()
-        gt_y = np.array(gt_results['y']).flatten()
+        gt_x = np.array(gt_results['Lotka_Volterra/x']).flatten()
+        gt_y = np.array(gt_results['Lotka_Volterra/y']).flatten()
         times = sim_helper.tSim.flatten()
         
         print(f"  x range: [{gt_x.min():.2f}, {gt_x.max():.2f}]")

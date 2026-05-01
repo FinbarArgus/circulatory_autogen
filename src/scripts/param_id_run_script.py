@@ -31,6 +31,14 @@ def run_param_id(inp_data_dict=None):
     sim_time = inp_data_dict['sim_time']
     pre_time = inp_data_dict['pre_time']
     solver_info = inp_data_dict['solver_info']
+    if solver_info.get('solver') == 'casadi_integrator':
+        try:
+            import casadi  # noqa: F401
+        except ImportError as exc:
+            raise ImportError(
+                "The solver is set to casadi_integrator but the casadi package is not installed. "
+                "Install casadi (for example: pip install casadi) or change the solver in your configuration."
+            ) from exc
     dt = inp_data_dict['dt']
     # Get optimiser_options (parser already merged any legacy ga_options/debug_ga_options)
     optimiser_options = inp_data_dict.get('optimiser_options', None)

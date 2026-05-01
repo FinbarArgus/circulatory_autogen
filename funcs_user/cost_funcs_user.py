@@ -1,6 +1,9 @@
 import numpy as np
-import casadi as ca
 import os
+try:
+    import casadi as ca
+except ImportError:
+    ca = None
 import sys
 import sympy
 
