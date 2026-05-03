@@ -38,19 +38,31 @@ from importlib import import_module
 # import tqdm # TODO this needs to be installed for corner plot but doesnt need an import here
 mcmc_lib = 'emcee' # TODO make this a user variable
 if mcmc_lib == 'emcee':
-    import emcee
+    try:
+        import emcee
+    except ImportError:
+        emcee = None
 elif mcmc_lib == 'zeus':
-    import zeus
+    try:
+        import zeus
+    except ImportError:
+        zeus = None
 else:
     print(f'unknown mcmc lib : {mcmc_lib}')
-import corner
+try:
+    import corner
+except ImportError:
+    corner = None
 import csv
 from datetime import date
 # from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser, ObsAndParamDataParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser, SciPyMinimizeOptimiser
 import pandas as pd
-import casadi as ca
+try:
+    import casadi as ca
+except ImportError:
+    ca = None
 import json
 import math
 import scipy.linalg as la
@@ -70,6 +82,14 @@ warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
 # can't be pickled because they are pyqt.
 global mcmc_object
 mcmc_object = None
+
+
+def _require_casadi():
+    if ca is None:
+        raise ImportError(
+            "CasADi is required for symbolic or casadi_python workflows but is not installed. "
+            "Install the casadi package (for example: pip install casadi)."
+        )
 
 
 class CVS0DParamID():
@@ -1746,6 +1766,7 @@ class OpencorParamID():
 
         # TODO: Fix for series, amp, phase, and val_for_prob_dist
         if is_symbolic:
+            _require_casadi()
             cost = ca.SX(0)
             if const is not None:
                 for const_idx in range(const.size1()):
@@ -1897,6 +1918,7 @@ class OpencorParamID():
                 return None
 
         if is_symbolic:
+            _require_casadi()
             # TODO: Test series, amp, phase and prob_dist_vec
             obs_const_vec = ca.SX.zeros(len(self.obs_info["ground_truth_const"]), 1)
             obs_series_list_of_arrays = [None]*len(self.obs_info["ground_truth_series"])
@@ -2070,6 +2092,7 @@ class OpencorParamID():
         return preds_const_vec
     
     def build_casadi_functions(self, param_names, param_vals = None, get_all_series=False):
+        _require_casadi()
         self.sim_helper._create_param_subset(param_names, param_vals)
 
         self.cost_symb, self.obs_dict_symb = self.get_cost_and_obs_from_params(param_vals, do_ad=True)

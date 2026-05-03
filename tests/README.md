@@ -11,7 +11,7 @@ Run all tests using the provided script:
 ```
 
 This script automatically:
-1. Sources the OpenCOR Python shell path from `user_run_files/opencor_pythonshell_path.sh`
+1. Sources the OpenCOR Python shell path from `user_run_files/python_path.sh`
 2. Installs pytest and related packages if needed
 3. Runs pytest with the OpenCOR Python interpreter
 
@@ -22,6 +22,12 @@ You can pass any pytest arguments to the script:
 ```bash
 # Run a specific test file
 ./run_pytest.sh tests/test_example.py
+
+# Run a single test function across all parametrizations
+./run_pytest.sh tests/test_solvers.py::test_all_solvers -v -s
+
+# Run a single parametrized case
+./run_pytest.sh "tests/test_solvers.py::test_all_solvers[3compartment-3compartment_parameters.csv-0.1]" -v -s
 
 # Run tests matching a pattern
 ./run_pytest.sh -k "test_name_pattern"
@@ -57,17 +63,17 @@ If you prefer to run pytest manually, you can:
 
 1. Source the OpenCOR Python path:
    ```bash
-   source user_run_files/opencor_pythonshell_path.sh
+   source user_run_files/python_path.sh
    ```
 
 2. Install pytest in the OpenCOR Python environment:
    ```bash
-   ${opencor_pythonshell_path} -m pip install pytest pytest-cov pytest-mpi pytest-xdist
+   ${python_path} -m pip install pytest pytest-cov pytest-mpi pytest-xdist
    ```
 
 3. Run pytest:
    ```bash
-   ${opencor_pythonshell_path} -m pytest
+   ${python_path} -m pytest
    ```
 
 ## Test Structure
@@ -76,6 +82,7 @@ The test suite includes:
 - `test_autogeneration.py` - Autogeneration tests (marked as `integration` and `slow`)
 - `test_param_id.py` - Parameter identification tests (marked as `integration`, `slow`, and `mpi`)
 - `test_sensitivity_analysis.py` - Sensitivity analysis tests (marked as `integration`, `slow`, and `mpi`)
+- `test_solvers.py` - Solver tests (marked as `integration` and `solver`); includes `test_all_solvers` which runs all supported backends on each model and compares outputs
 - `conftest.py` - Shared fixtures and pytest configuration
 
 All test files follow pytest conventions:

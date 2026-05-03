@@ -6,6 +6,7 @@ from myokit.formats import cellml as cellml_format
 # src_dir = os.path.join(os.path.dirname(__file__), '..')
 # sys.path.append(src_dir)
 import utilities.libcellml_helper_funcs as cellml
+from solver_wrappers.name_resolver import VariableNameResolver
 import xml.etree.ElementTree as ET
 import tempfile
 import re
@@ -538,44 +539,10 @@ class SimulationHelper:
         raise ValueError(f"variable {name} not found")
 
     def _resolve_name(self, name):
-        name = str(name).strip()
-        candidates = [name]
-        if "/" in name:
-            # this for cellml naming convention
-            parts = name.split("/")
-            last = parts[-1]
-            first = parts[0]
-            candidates.append(last)
-            candidates.append(f"{first}.{last}")
-            candidates.append(f"{first}_module.{last}")
-        if "." in name:
-            # this for myokit naming convention
-            parts = name.split(".")
-            last = parts[-1]
-            first = parts[0]
-            candidates.append(last)
-        # try each candidate against qnames
-        for cand in candidates:
-            if cand in self.qname_to_var:
-                var = self.qname_to_var[cand]
-                if var.is_state():
-                    return ("state", var.qname())
-                return ("var", var.qname())
-            # if candidate matches state name only
-            if cand in self.state_qnames:
-                return ("state", cand)
-
-        # For parameters, also try with 'parameters.' prefix (common in flattened models)
-        if not name.startswith('parameters.'):
-            if name.startswith('global'):
-                param_cand = f'parameters_global.{last}'
-            else:
-                param_cand = f'parameters.{last}_{first}'
-            if param_cand in self.qname_to_var:
-                var = self.qname_to_var[param_cand]
-                if var.is_state():
-                    return ("state", var.qname())
-                return ("var", var.qname())
-
-        return (None, None)
+        """Resolve a name to (kind, qname) using the unified VariableNameResolver."""
+        return VariableNameResolver.resolve_key(
+            name,
+            [("state", self.state_index), ("var", self.qname_to_var)],
+            separator=".",
+        )
 

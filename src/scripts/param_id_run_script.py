@@ -31,6 +31,14 @@ def run_param_id(inp_data_dict=None):
     sim_time = inp_data_dict['sim_time']
     pre_time = inp_data_dict['pre_time']
     solver_info = inp_data_dict['solver_info']
+    if solver_info.get('solver') == 'casadi_integrator':
+        try:
+            import casadi  # noqa: F401
+        except ImportError as exc:
+            raise ImportError(
+                "The solver is set to casadi_integrator but the casadi package is not installed. "
+                "Install casadi (for example: pip install casadi) or change the solver in your configuration."
+            ) from exc
     dt = inp_data_dict['dt']
     # Get optimiser_options (parser already merged any legacy ga_options/debug_ga_options)
     optimiser_options = inp_data_dict.get('optimiser_options', None)
@@ -55,6 +63,11 @@ def run_param_id(inp_data_dict=None):
                             optimiser_options=optimiser_options, 
                             do_ad=do_ad, DEBUG=DEBUG,
                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
+
+    if inp_data_dict.get('obs_data_dict') is not None:
+        param_id.set_ground_truth_data(inp_data_dict['obs_data_dict'])
+    if inp_data_dict.get('params_for_id') is not None:
+        param_id.set_params_for_id(inp_data_dict['params_for_id'])
 
     if rank == 0:
         if os.path.exists(os.path.join(param_id.output_dir, 'param_names_to_remove.csv')):

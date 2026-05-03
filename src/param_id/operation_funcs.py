@@ -1,5 +1,8 @@
 import numpy as np
-import casadi as ca
+try:
+    import casadi as ca
+except ImportError:
+    ca = None
 
 OPERATION_FUNCS = {
     "numpy": {},

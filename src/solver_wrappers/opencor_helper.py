@@ -1,6 +1,7 @@
 import warnings
 
 import opencor as oc
+from solver_wrappers.name_resolver import VariableNameResolver
 
 warnings.filterwarnings(
     "ignore",
@@ -78,44 +79,12 @@ class SimulationHelper():
         self.protocol_info = protocol_info
 
     def _resolve_name(self, name):
-        """
-        Resolve parameter names that may include prefixes or separators.
-        Returns ("state"|"const", resolved_name) or (None, None).
-        """
-        name = str(name).strip()
-
-        def _match(candidate):
-            if candidate in self.data.states():
-                return ("state", candidate)
-            if candidate in self.data.constants():
-                return ("const", candidate)
-            return (None, None)
-
-        candidates = [name]
-        if "/" in name:
-            parts = name.split("/")
-            last = parts[-1]
-            first = parts[0]
-            candidates.append(last)
-            candidates.append(name.replace("/", "_"))
-            candidates.append(f"{first}_{last}")
-            candidates.append(f"{last}_{first}")
-            candidates.append(f"{first}{last}")
-            candidates.append(name.replace("/", ""))
-
-        # Strip common global prefixes
-        candidates += [c.replace("global_", "") for c in list(candidates)]
-        candidates += [c.replace("global/", "") for c in list(candidates)]
-
-        # Also try adding a global prefix if needed
-        candidates += [f"global/{c}" for c in list(candidates)]
-        candidates += [f"global_{c}" for c in list(candidates)]
-
-        for candidate in candidates:
-            kind, resolved = _match(candidate)
-            if kind is not None:
-                return (kind, resolved)
-        return (None, None)
+        """Resolve a name to (kind, key) using the unified VariableNameResolver."""
+        return VariableNameResolver.resolve_key(
+            name,
+            [("state", self.data.states()), ("const", self.data.constants())],
+            separator="/",
+        )
 
     # inner psutil function # TODO only needed for memory checking
     def process_memory(self):

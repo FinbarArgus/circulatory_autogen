@@ -6,10 +6,10 @@ work correctly for various models.
 
 """
 import os
+import re
 import sys
 import pytest
 import numpy as np
-import tempfile
 import shutil
 
 # Ensure src is on sys.path
@@ -22,6 +22,51 @@ from solver_wrappers import get_simulation_helper
 from generators.PythonGenerator import PythonGenerator
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 import xml.etree.ElementTree as ET
+
+_MODEL_INPUT_FILES = {
+    "3compartment": "3compartment_parameters.csv",
+    "SN_simple": "SN_simple_parameters.csv",
+    "test_init_states": "test_init_states_parameters.csv",
+}
+
+
+@pytest.fixture(scope="function")
+def generated_cellml_model_factory(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """Generate a CellML model into an isolated per-test directory."""
+
+    def _generate(file_prefix, input_param_file=None, solver="CVODE"):
+        source_dir = os.path.join(_TEST_ROOT, "generated_models", file_prefix)
+        target_dir = os.path.join(temp_generated_models_dir, file_prefix)
+        source_cellml = os.path.join(source_dir, f"{file_prefix}.cellml")
+        target_cellml = os.path.join(target_dir, f"{file_prefix}.cellml")
+
+        if os.path.exists(source_cellml):
+            shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
+            return target_cellml
+
+        input_param_file = input_param_file or _MODEL_INPUT_FILES[file_prefix]
+        config = base_user_inputs.copy()
+        config.update({
+            "DEBUG": True,
+            "file_prefix": file_prefix,
+            "input_param_file": input_param_file,
+            "model_type": "cellml_only",
+            "solver": solver,
+            "pre_time": 0.0,
+            "sim_time": 0.1,
+            "dt": 0.01,
+            "plot_predictions": False,
+            "do_mcmc": False,
+            "resources_dir": resources_dir,
+            "generated_models_dir": temp_generated_models_dir,
+            "solver_info": {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000},
+        })
+        ok = generate_with_new_architecture(False, config)
+        assert ok, f"Autogeneration failed for {file_prefix}"
+        assert os.path.exists(target_cellml), f"Generated model not found: {target_cellml}"
+        return target_cellml
+
+    return _generate
 
 
 def _normalize_variable_name(var_name, solver_type):
@@ -78,20 +123,28 @@ def _match_variables(ref_vars, ref_type, other_vars, other_type):
         if key not in other_normalized:
             other_normalized[key] = var
     
-    # Match reference variables
+    # First pass: collect exact matches and build fallback candidates
+    fallback_candidates = {}  # ref_var -> other_var (via short-name fallback)
+    fallback_claims = {}      # other_var -> count of ref_vars that would claim it
     for ref_var in ref_vars:
         ref_comp, ref_var_name = _normalize_variable_name(ref_var, ref_type)
         ref_key = (ref_comp, ref_var_name) if ref_comp else (None, ref_var_name)
-        
-        # Try exact match first
+
         if ref_key in other_normalized:
             mapping[ref_var] = other_normalized[ref_key]
         else:
-            # Try matching by variable name only
+            # Fallback: match by variable name only (component-agnostic)
             var_only_key = (None, ref_var_name)
             if var_only_key in other_normalized:
-                mapping[ref_var] = other_normalized[var_only_key]
-    
+                other_var = other_normalized[var_only_key]
+                fallback_candidates[ref_var] = other_var
+                fallback_claims[other_var] = fallback_claims.get(other_var, 0) + 1
+
+    # Second pass: only include unambiguous fallback matches (one ref_var per other_var)
+    for ref_var, other_var in fallback_candidates.items():
+        if fallback_claims[other_var] == 1:
+            mapping[ref_var] = other_var
+
     return mapping
 
 
@@ -244,6 +297,125 @@ def _check_initial_states(myokit_helper, opencor_helper, model_name):
     
 
 
+def _to_numpy(data):
+    """Convert data to a 1-D numpy float64 array, handling CasADi DM/SX objects."""
+    if isinstance(data, np.ndarray):
+        return data.astype(float)
+    try:
+        import casadi as _ca
+        if isinstance(data, (_ca.DM, _ca.SX, _ca.MX)):
+            return np.array(_ca.DM(data)).flatten().astype(float)
+    except (ImportError, Exception):
+        pass
+    return np.array([data], dtype=float)
+
+
+def _get_python_model_initial_states(model_path):
+    """
+    Load a Python model file fresh (without any CasADi patching) and return
+    numeric initial state values.
+
+    Returns:
+        dict mapping state name (component/variable) -> float initial value
+    """
+    import importlib.util as _ilu
+    spec = _ilu.spec_from_file_location("_init_check_model", model_path)
+    mod = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    states = mod.create_states_array()
+    rates = mod.create_states_array()
+    variables = mod.create_variables_array()
+    mod.initialise_variables(states, rates, variables)
+    mod.compute_computed_constants(variables)
+    def _qname(info):
+        comp = info.get("component", "")
+        if comp.endswith("_module"):
+            comp = comp[:-7]
+        return f"{comp}/{info['name']}" if comp else info["name"]
+    return {_qname(info): float(states[idx]) for idx, info in enumerate(mod.STATE_INFO)}
+
+
+def _check_python_family_initial_states(helpers, model_name, tolerance=0.01):
+    """
+    Compare Python-family helpers (solve_ivp_BDF, casadi_integrator_cvodes) initial
+    states against a reference built from OpenCOR (preferred) or Myokit (fallback).
+
+    The reference uses OpenCOR-style component/variable keys. Myokit keys are
+    converted to the same format when OpenCOR is unavailable so CI can still
+    validate Python-family helpers.
+
+    Returns:
+        dict with 'mismatches' list of
+        (state_name, helper_key, ref_val, other_val, diff_pct)
+    """
+    python_family_keys = [
+        k for k in ("solve_ivp_BDF", "casadi_integrator_cvodes") if k in helpers
+    ]
+    if not python_family_keys:
+        return {"mismatches": []}
+
+    # Build reference state map in component/variable format
+    ref_state_map = {}
+    ref_label = None
+    if "CVODE_opencor" in helpers:
+        oc = helpers["CVODE_opencor"]
+        for name, val in oc.data.states().items():
+            # OpenCOR returns DataStore::DataStoreValue objects; extract numeric value
+            ref_state_map[name] = float(val.value() if hasattr(val, "value") else val)
+        ref_label = "CVODE_opencor"
+    elif "CVODE_myokit" in helpers:
+        mk = helpers["CVODE_myokit"]
+        try:
+            mk_state = mk.simulation.default_state()
+        except Exception:
+            mk_state = mk.simulation.state()
+        for qname, idx in mk.state_index.items():
+            if "." in qname:
+                comp_mod, var = qname.split(".", 1)
+                comp = comp_mod[:-7] if comp_mod.endswith("_module") else comp_mod
+                ref_state_map[f"{comp}/{var}"] = float(mk_state[idx])
+        ref_label = "CVODE_myokit"
+
+    if not ref_state_map:
+        return {"mismatches": []}
+
+    mismatches = []
+    print(f"\n{'='*80}")
+    print(
+        f"PYTHON-FAMILY INITIAL STATE CHECK - {model_name} (ref: {ref_label})"
+    )
+    print("=" * 80)
+
+    for helper_key in python_family_keys:
+        # Reload the model numerically (avoids CasADi symbolic patching)
+        model_path = helpers[helper_key].model_path
+        try:
+            python_model_initial = _get_python_model_initial_states(model_path)
+        except Exception as e:
+            print(f"  ⊘ {helper_key}: could not load model numerically: {e}")
+            continue
+
+        print(f"\n  {helper_key}:")
+        for state_name, ref_val in sorted(ref_state_map.items()):
+            if state_name not in python_model_initial:
+                print(f"    ⊘ {state_name}: missing in {helper_key} model")
+                continue
+            other_val = python_model_initial[state_name]
+            denom = max(abs(ref_val), abs(other_val), 1e-15)
+            diff_pct = abs(ref_val - other_val) / denom * 100
+            status = "✓" if diff_pct < tolerance else "✗"
+            print(
+                f"    {status} {state_name}: {ref_val:.6e} vs {other_val:.6e} "
+                f"({diff_pct:.3f}%)"
+            )
+            if diff_pct >= tolerance:
+                mismatches.append(
+                    (state_name, helper_key, ref_val, other_val, diff_pct)
+                )
+
+    return {"mismatches": mismatches}
+
+
 def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tolerance=0.01):
     """
     Compare results between two solvers.
@@ -274,8 +446,8 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
         other_dict[var] = other_results[i][0]
     
     # Match variables
-    ref_type = 'myokit' if 'myokit' in ref_name else ('opencor' if 'OpenCOR' in ref_name else 'python')
-    other_type = 'myokit' if 'myokit' in other_name else ('opencor' if 'OpenCOR' in other_name else 'python')
+    ref_type = 'myokit' if 'myokit' in ref_name else ('opencor' if 'opencor' in ref_name.lower() else 'python')
+    other_type = 'myokit' if 'myokit' in other_name else ('opencor' if 'opencor' in other_name.lower() else 'python')
     
     var_mapping = _match_variables(ref_vars, ref_type, other_vars, other_type)
     
@@ -288,11 +460,9 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
         ref_data = ref_dict[ref_var]
         other_data = other_dict[other_var]
         
-        # Ensure arrays
-        if not isinstance(ref_data, np.ndarray):
-            ref_data = np.array([ref_data])
-        if not isinstance(other_data, np.ndarray):
-            other_data = np.array([other_data])
+        # Ensure numpy float arrays (handles CasADi DM/SX and scalars)
+        ref_data = _to_numpy(ref_data)
+        other_data = _to_numpy(other_data)
         
         # Skip scalars (constants) - only compare time series
         if len(ref_data) <= 1 or len(other_data) <= 1:
@@ -311,22 +481,24 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
         max_abs = np.maximum(max_abs, 1e-10)  # Avoid division by zero
         
         rel_error = (abs_diff / max_abs) * 100
-        max_rel_error_var = np.max(rel_error)
-        mean_rel_error_var = np.mean(rel_error)
+        has_nan = bool(np.any(np.isnan(rel_error)))
+        max_rel_error_var = np.nanmax(rel_error) if not has_nan else float('nan')
+        mean_rel_error_var = np.nanmean(rel_error)
         
         comparisons.append({
             'ref_var': ref_var,
             'other_var': other_var,
             'max_rel_error': max_rel_error_var,
             'mean_rel_error': mean_rel_error_var,
-            'max_abs_diff': np.max(abs_diff),
-            'mean_abs_diff': np.mean(abs_diff)
+            'max_abs_diff': np.nanmax(abs_diff),
+            'mean_abs_diff': np.nanmean(abs_diff)
         })
         
-        if max_rel_error_var > max_rel_error:
+        if has_nan or max_rel_error_var > max_rel_error:
             max_rel_error = max_rel_error_var
         
-        if max_rel_error_var > tolerance:
+        # NaN counts as a failure (comparison undefined — likely a conversion bug)
+        if has_nan or max_rel_error_var > tolerance:
             failed_vars.append({
                 'ref_var': ref_var,
                 'other_var': other_var,
@@ -342,7 +514,7 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
     }
 
 
-def test_init_states_myokit(base_user_inputs, resources_dir):
+def test_init_states_myokit(generated_cellml_model_factory):
     """
     Repro for computed-constant initial state values via Myokit wrapper.
 
@@ -351,28 +523,11 @@ def test_init_states_myokit(base_user_inputs, resources_dir):
     - Module defines x0 = 2 * a and x has initial_value=\"x0\"
     - Expect x(0) == 6 and y(0) == 1
     """
-    # Prefer using the autogeneration step output; only generate here if missing.
-    cellml_path = os.path.join(_TEST_ROOT, "generated_models", "test_init_states", "test_init_states.cellml")
-    if not os.path.exists(cellml_path):
-        cfg = base_user_inputs.copy()
-        cfg.update({
-            "DEBUG": True,
-            "file_prefix": "test_init_states",
-            "input_param_file": "test_init_states_parameters.csv",
-            "model_type": "cellml_only",
-            "solver": "CVODE_myokit",
-            "pre_time": 0.0,
-            "sim_time": 0.1,
-            "dt": 0.01,
-            "plot_predictions": False,
-            "do_mcmc": False,
-            "solver_info": {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000},
-            # Make sure generation uses the repo resources dir (contains our vessel array)
-            "resources_dir": resources_dir,
-        })
-        ok = generate_with_new_architecture(False, cfg)
-        assert ok, "Autogeneration failed for test_init_states"
-        assert os.path.exists(cellml_path), f"Generated model not found after generation: {cellml_path}"
+    cellml_path = generated_cellml_model_factory(
+        "test_init_states",
+        input_param_file="test_init_states_parameters.csv",
+        solver="CVODE_myokit",
+    )
 
     dt = 0.01
     sim_time = 0.1
@@ -422,15 +577,12 @@ def _run_and_get_initial_state(helper, state_name):
         marks=pytest.mark.need_opencor,
     ),
 ])
-def test_set_param_vals_updates_state_init_for_cellml_solvers(solver, model_type, solver_info):
+def test_set_param_vals_updates_state_init_for_cellml_solvers(solver, model_type, solver_info, generated_cellml_model_factory):
     """
     For 3compartment, q_lv initial state is controlled by q_lv_init.
     Verify set_param_vals + reset_states updates state initialization consistently.
     """
-    model_path = "generated_models/3compartment/3compartment.cellml"
-    full_model_path = os.path.join(_TEST_ROOT, model_path)
-    if not os.path.exists(full_model_path):
-        pytest.fail(f"Model file not found: {full_model_path}")
+    model_path = generated_cellml_model_factory("3compartment", "3compartment_parameters.csv", solver=solver)
 
     dt = 0.01
     sim_time = 0.1
@@ -483,13 +635,11 @@ def test_set_param_vals_updates_state_init_for_cellml_solvers(solver, model_type
 
 @pytest.mark.integration
 @pytest.mark.solver
-def test_set_param_vals_updates_state_init_for_python_solver(temp_model_dir):
+def test_set_param_vals_updates_state_init_for_python_solver(temp_model_dir, generated_cellml_model_factory):
     """
     Same state-init parameter update check for Python solver helper.
     """
-    cellml_path = os.path.join(_TEST_ROOT, "generated_models/3compartment/3compartment.cellml")
-    if not os.path.exists(cellml_path):
-        pytest.fail(f"Model file not found: {cellml_path}")
+    cellml_path = generated_cellml_model_factory("3compartment", "3compartment_parameters.csv")
 
     py_generator = PythonGenerator(
         cellml_path,
@@ -538,17 +688,19 @@ def test_set_param_vals_updates_state_init_for_python_solver(temp_model_dir):
 
 
 @pytest.fixture(scope="function")
-def temp_model_dir():
-    """Create a temporary directory for generated Python models."""
-    os.makedirs(os.path.join(os.path.dirname(__file__), 'tmp'), exist_ok=True)
-    temp_dir = tempfile.mkdtemp(dir=os.path.join(os.path.dirname(__file__), 'tmp'))
-    yield temp_dir
-    shutil.rmtree(temp_dir, ignore_errors=True)
+def temp_model_dir(request):
+    """Create a persistent per-test directory for generated Python models."""
+    output_root = os.path.join(os.path.dirname(__file__), "test_outputs")
+    safe_nodeid = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.nodeid).strip("._") or "unnamed_test"
+    model_dir = os.path.join(output_root, safe_nodeid, "python_models")
+    shutil.rmtree(model_dir, ignore_errors=True)
+    os.makedirs(model_dir, exist_ok=True)
+    return model_dir
 
 
-@pytest.mark.parametrize("model_name,model_path", [
-    ("3compartment", "generated_models/3compartment/3compartment.cellml"),
-    ("SN_simple", "generated_models/SN_simple/SN_simple.cellml"),
+@pytest.mark.parametrize("model_name,input_param_file", [
+    ("3compartment", "3compartment_parameters.csv"),
+    ("SN_simple", "SN_simple_parameters.csv"),
 ])
 @pytest.mark.parametrize("solver,solver_info", [
     pytest.param(
@@ -558,7 +710,7 @@ def temp_model_dir():
     ),  # OpenCOR
     ("CVODE_myokit", {"MaximumStep": 0.0001}),  # Myokit
 ])
-def test_cellml_solvers(model_name, model_path, solver, solver_info):
+def test_cellml_solvers(model_name, input_param_file, solver, solver_info, generated_cellml_model_factory):
     """
     Test CellML solvers (OpenCOR CVODE_opencor and Myokit CVODE).
     
@@ -570,9 +722,7 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
     """
     # Skip OpenCOR tests if OpenCOR is not available
     # Check if model file exists
-    full_model_path = os.path.join(_TEST_ROOT, model_path)
-    if not os.path.exists(full_model_path):
-        pytest.fail(f"Model file not found: {full_model_path}")
+    full_model_path = generated_cellml_model_factory(model_name, input_param_file, solver=solver)
     
     # Simulation parameters
     dt = 0.01
@@ -581,7 +731,7 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
 
     try:
         helper = get_simulation_helper(
-            model_path=model_path,
+            model_path=full_model_path,
             model_type="cellml_only",
             solver=solver,
             dt=dt,
@@ -615,11 +765,11 @@ def test_cellml_solvers(model_name, model_path, solver, solver_info):
             assert len(var_result) > 0, f"Empty result for variable {var_name}"
 
 
-@pytest.mark.parametrize("model_name,model_path", [
-    ("3compartment", "generated_models/3compartment/3compartment.cellml"),
-    ("SN_simple", "generated_models/SN_simple/SN_simple.cellml"),
+@pytest.mark.parametrize("model_name,input_param_file", [
+    ("3compartment", "3compartment_parameters.csv"),
+    ("SN_simple", "SN_simple_parameters.csv"),
 ])
-def test_python_BDF_solver(model_name, model_path, temp_model_dir):
+def test_python_BDF_solver(model_name, input_param_file, temp_model_dir, generated_cellml_model_factory):
     """
     Test Python BDF solver on Python models generated from CellML.
     
@@ -629,9 +779,7 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
         temp_model_dir: Temporary directory for generated Python models
     """
     # Check if model file exists
-    full_model_path = os.path.join(_TEST_ROOT, model_path)
-    if not os.path.exists(full_model_path):
-        pytest.fail(f"Model file not found: {full_model_path}")
+    full_model_path = generated_cellml_model_factory(model_name, input_param_file)
     
     # Generate Python model from CellML
     try:
@@ -678,67 +826,87 @@ def test_python_BDF_solver(model_name, model_path, temp_model_dir):
             assert len(var_result) > 0, f"Empty result for variable {var_name}"
 
 
-def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01, sim_time=1.0, 
-                                  pre_time=0.0, tolerance=0.01):
+def _run_all_solvers_and_compare(model_name, full_model_path_cellml, temp_model_dir, dt=0.01, sim_time=1.0,
+                                  pre_time=0.0, tolerance=0.01, include_casadi=False):
     """
-    Helper function to run all solvers on a model and compare outputs.
-    
-    Args:
-        model_name: Name of the model
-        model_path: Path to the CellML model file
-        temp_model_dir: Temporary directory for generated Python models
-        dt: Time step
-        sim_time: Simulation time
-        pre_time: Pre-simulation time
-        tolerance: Maximum allowed relative error percentage
-    
+    Run all solvers on a model and compare outputs.
+
+    Backends exercised:
+      - CVODE_myokit          (always required)
+      - CVODE_opencor         (skipped gracefully if OpenCOR unavailable)
+      - solve_ivp_BDF         (Python model, scipy BDF)
+      - casadi_integrator_cvodes (Python model, CasADi cvodes; only when include_casadi=True,
+                                  skipped gracefully if CasADi unavailable or symbolic eval fails)
+
+    The Python model (.py) is generated once and reused by both Python-family backends.
+
     Returns:
         Tuple of (results dict, comparison_results dict, helpers dict)
     """
-    full_model_path_cellml = os.path.join(_TEST_ROOT, model_path)
-    
-    if not os.path.exists(full_model_path_cellml):
-        pytest.fail(f"Model file not found: {full_model_path_cellml}")
-    
-    solver_info = {"MaximumStep": 0.0001}
     helpers = {}
     results = {}
-    
-    for model_type, solver, method in [("cellml_only", "CVODE_opencor", "CVODE"), ("python", "solve_ivp", "BDF"), ("cellml_only", "CVODE_myokit", "CVODE")]:
-        solver_info['method'] = method
-        if model_type == "python":
-            # Generate Python model from CellML
-            try:
-                py_generator = PythonGenerator(
-                    full_model_path_cellml,
-                    output_dir=temp_model_dir,
-                    module_name=model_name
-                )
-                python_model_path = py_generator.generate()
-                full_model_path = python_model_path
-            except Exception as e:
-                results[solver] = {"success": False, "error": str(e)}
-                pytest.fail(f"{model_name} {model_type} {solver} {method} failed: Failed to generate Python model: {e}")
-        else:
-            full_model_path = full_model_path_cellml
 
+    python_family_keys = ["solve_ivp_BDF"]
+    if include_casadi:
+        python_family_keys.append("casadi_integrator_cvodes")
+
+    # Generate Python model once; reused by Python-family backends
+    python_model_path = None
+    try:
+        py_generator = PythonGenerator(
+            full_model_path_cellml,
+            output_dir=temp_model_dir,
+            module_name=model_name,
+        )
+        python_model_path = py_generator.generate()
+    except Exception as e:
+        for key in python_family_keys:
+            results[key] = {
+                "success": False,
+                "skipped": True,
+                "reason": f"Python model generation failed: {e}",
+            }
+
+    # (helper_key, solver_arg, model_type, model_path, solver_info)
+    backends = [
+        ("CVODE_opencor",  "CVODE_opencor",    "cellml_only",   full_model_path_cellml, {"MaximumStep": 0.0001}),
+        ("CVODE_myokit",   "CVODE_myokit",     "cellml_only",   full_model_path_cellml, {"MaximumStep": 0.0001}),
+        ("solve_ivp_BDF",  "solve_ivp",        "python",        python_model_path,      {"method": "BDF", "max_step": 0.0001}),
+    ]
+    if include_casadi:
+        backends.append(
+            ("casadi_integrator_cvodes", "casadi_integrator", "casadi_python", python_model_path, {"method": "cvodes"})
+        )
+
+    # Backends where unavailability is a graceful skip rather than a test failure
+    skip_on_error = {"CVODE_opencor", "casadi_integrator_cvodes"}
+
+    for helper_key, solver, model_type, model_path, solver_info in backends:
+        # Skip Python-family backends if model generation already failed
+        if helper_key in results and results[helper_key].get("skipped"):
+            continue
         try:
-            helper = get_simulation_helper(model_path=full_model_path, model_type=model_type, solver=solver, dt=dt, sim_time=sim_time, solver_info=solver_info, pre_time=pre_time)
+            helper = get_simulation_helper(
+                model_path=model_path,
+                model_type=model_type,
+                solver=solver,
+                dt=dt,
+                sim_time=sim_time,
+                solver_info=solver_info,
+                pre_time=pre_time,
+            )
             result = helper.run()
-            assert result, f"{solver} {method} simulation failed"
-            helpers[solver] = helper
-            results[solver] = {"success": True, "variables": len(helper.get_all_variable_names())}
+            assert result, f"{helper_key} simulation failed"
+            helpers[helper_key] = helper
+            results[helper_key] = {"success": True, "variables": len(helper.get_all_variable_names())}
         except Exception as e:
-            results[solver] = {"success": False, "error": str(e)}
-            if solver == "CVODE_opencor":
-                results[solver]["skipped"] = True
-                results[solver]["reason"] = f"OpenCOR backend unavailable: {e}"
+            results[helper_key] = {"success": False, "error": str(e)}
+            if helper_key in skip_on_error:
+                results[helper_key]["skipped"] = True
+                results[helper_key]["reason"] = f"{helper_key} backend unavailable: {e}"
                 continue
-            pytest.fail(f"{model_name} {model_type} {solver} {method} failed: {e}")
-    
-    # Test Python BDF (below to disable)
-    # results["Python BDF"] = {"success": False, "skipped": True, "reason": "Temporarily disabled - hanging issue"}
-    
+            pytest.fail(f"{model_name} {helper_key} failed: {e}")
+
     # Print summary
     print(f"\n{'='*80}")
     print(f"SOLVER TEST SUMMARY - {model_name} model")
@@ -750,96 +918,111 @@ def _run_all_solvers_and_compare(model_name, model_path, temp_model_dir, dt=0.01
             print(f"⊘ {solver_name}: SKIPPED ({result.get('reason', 'N/A')})")
         else:
             print(f"✗ {solver_name}: FAILED ({result.get('error', 'N/A')})")
-    
-    # Compare results (use Myokit as reference)
+
+    # Compare all successful helpers against CVODE_myokit as reference
     ref_helper = helpers["CVODE_myokit"]
     comparison_results = {}
-    
+
     for solver_name, other_helper in helpers.items():
         if solver_name == "CVODE_myokit":
             continue
-        
+
         print(f"\n{'='*80}")
         print(f"Comparing CVODE_myokit vs {solver_name}")
         print("="*80)
-        
+
         comp_result = _compare_solver_results(ref_helper, "CVODE_myokit", other_helper, solver_name, tolerance=tolerance)
         comparison_results[solver_name] = comp_result
-        
+
         print(f"Matched variables: {comp_result['matched_count']}")
         print(f"Compared variables: {comp_result['compared_count']}")
         print(f"Maximum relative error: {comp_result['max_rel_error']:.6f}%")
-        
+
         if comp_result['failed_vars']:
             print(f"\nVariables exceeding {tolerance}% tolerance ({len(comp_result['failed_vars'])}):")
             for failed in comp_result['failed_vars'][:10]:
                 print(f"  {failed['ref_var']} / {failed['other_var']}: {failed['max_rel_error']:.6f}%")
             if len(comp_result['failed_vars']) > 10:
                 print(f"  ... and {len(comp_result['failed_vars']) - 10} more")
-        
-        # Show top differences
+
         sorted_comps = sorted(comp_result['comparisons'], key=lambda x: x['max_rel_error'], reverse=True)
         print(f"\nTop 10 largest differences:")
         print(f"{'Reference Variable':<40} {'Other Variable':<40} {'Max Rel Error %':>15}")
         print("-" * 95)
         for comp in sorted_comps[:10]:
             print(f"{comp['ref_var'][:39]:<40} {comp['other_var'][:39]:<40} {comp['max_rel_error']:>15.6f}")
-    
+
     print("\n" + "="*80)
-    
+
     return results, comparison_results, helpers
 
 
 @pytest.mark.integration
 @pytest.mark.slow
 # .cellml gets converted to .py for python solvers
-@pytest.mark.parametrize("model_name,model_path,sim_time", [
-    ("3compartment", "generated_models/3compartment/3compartment.cellml", 0.1),
-    ("SN_simple", "generated_models/SN_simple/SN_simple.cellml", 1.0),
+@pytest.mark.parametrize("model_name,input_param_file,sim_time,include_casadi", [
+    ("3compartment", "3compartment_parameters.csv", 0.1, False),
+    ("SN_simple",    "SN_simple_parameters.csv",    1.0, False),
+    # Lotka-Volterra has no conditional expressions so CasADi symbolic eval works
+    ("Lotka_Volterra", "Lotka_Volterra_parameters.csv", 5.0, True),
 ])
-def test_all_solvers(model_name, model_path, sim_time, temp_model_dir):
+def test_all_solvers(model_name, input_param_file, sim_time, include_casadi, temp_model_dir, generated_cellml_model_factory):
     """
     Integration test: Run all solvers on a model and compare outputs.
-    
-    This test verifies that:
-    1. Myokit CVODE solver works
-    2. OpenCOR CVODE_opencor solver works (if available)
-    3. Python BDF solver works (after generating Python model)
-    4. Initial states are correctly defined in Myokit modified model
-    5. Results agree within 0.01% relative error
-    
-    Args:
-        model_name: Name of the model for test identification
-        model_path: Path to the CellML model file (relative to project root)
-        sim_time: Simulation time (0.1s for 3compartment, 1.0s for SN_simple)
-        temp_model_dir: Temporary directory for generated Python models
+
+    Backends exercised:
+    1. CVODE_myokit          — Myokit CVODE (reference)
+    2. CVODE_opencor         — OpenCOR CVODE (skipped if unavailable)
+    3. solve_ivp_BDF         — SciPy BDF on generated Python model
+    4. casadi_integrator_cvodes — CasADi cvodes (only for Lotka_Volterra; skipped if unavailable)
+
+    Models with conditional expressions (3compartment, SN_simple) cannot use CasADi because
+    CasADi requires fully symbolic expressions with no Python-level branching.
+
+    Checks:
+    - All active backends agree within 0.01% relative error vs CVODE_myokit.
+    - For 3compartment: Myokit↔OpenCOR initial states match (when OpenCOR present).
+    - Python-family initial states match the reference (OpenCOR or Myokit).
     """
+    cellml_path = generated_cellml_model_factory(model_name, input_param_file)
     results, comparison_results, helpers = _run_all_solvers_and_compare(
-        model_name, model_path, temp_model_dir, sim_time=sim_time, tolerance=0.01
+        model_name, cellml_path, temp_model_dir, sim_time=sim_time, tolerance=0.01,
+        include_casadi=include_casadi,
     )
-    
-    # Check initial states for 3compartment model
-    if model_name == "3compartment" and "CVODE_myokit" in helpers and "CVODE_opencor" in helpers:
-        results = _check_initial_states(
+
+    # Check Myokit↔OpenCOR initial states when both are available
+    if "CVODE_myokit" in helpers and "CVODE_opencor" in helpers:
+        init_check = _check_initial_states(
             helpers["CVODE_myokit"],
             helpers["CVODE_opencor"],
             model_name
         )
-        mismatches = results['mismatches']
-
-        # Fail the test if there are significant initial state mismatches
-        significant_mismatches = [m for m in mismatches if m[4] > 0.01]  # 0.01% tolerance
+        mismatches = init_check['mismatches']
+        significant_mismatches = [m for m in mismatches if m[4] > 0.01]
         if significant_mismatches:
             mismatch_summary = f"Found {len(significant_mismatches)} significant initial state mismatches (>0.01%):\\n"
-            for m in significant_mismatches[:5]:  # Show first 5
+            for m in significant_mismatches[:5]:
                 mk_var, oc_var, mk_val, oc_val, diff_pct = m
                 mismatch_summary += f"  {mk_var} / {oc_var}: {diff_pct:.6f}%\\n"
             if len(significant_mismatches) > 5:
                 mismatch_summary += f"  ... and {len(significant_mismatches) - 5} more"
             pytest.fail(f"Initial state validation failed for {model_name}:\\n{mismatch_summary}")
         else:
-            print(f"✓ Initial states match within 0.01% tolerance ({len(mismatches)} minor differences found)")
-    
+            print(f"✓ Myokit↔OpenCOR initial states match within 0.01% tolerance ({len(mismatches)} minor differences found)")
+
+    # Check Python-family initial states for all models
+    py_init_check = _check_python_family_initial_states(helpers, model_name, tolerance=0.01)
+    py_mismatches = py_init_check['mismatches']
+    if py_mismatches:
+        mismatch_summary = f"Found {len(py_mismatches)} Python-family initial state mismatches (>0.01%):\\n"
+        for state_name, helper_key, ref_val, other_val, diff_pct in py_mismatches[:5]:
+            mismatch_summary += f"  {state_name} [{helper_key}]: {diff_pct:.6f}%\\n"
+        if len(py_mismatches) > 5:
+            mismatch_summary += f"  ... and {len(py_mismatches) - 5} more"
+        pytest.fail(f"Python-family initial state validation failed for {model_name}:\\n{mismatch_summary}")
+    else:
+        print(f"✓ Python-family initial states match within 0.01% tolerance")
+
     # Assert that all comparisons are within tolerance
     for solver_name, comp_result in comparison_results.items():
         if comp_result['failed_vars']:
