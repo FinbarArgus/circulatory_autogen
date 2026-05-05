@@ -31,12 +31,20 @@ def run_param_id(inp_data_dict=None):
     sim_time = inp_data_dict['sim_time']
     pre_time = inp_data_dict['pre_time']
     solver_info = inp_data_dict['solver_info']
+    if solver_info.get('solver') == 'casadi_integrator':
+        try:
+            import casadi  # noqa: F401
+        except ImportError as exc:
+            raise ImportError(
+                "The solver is set to casadi_integrator but the casadi package is not installed. "
+                "Install casadi (for example: pip install casadi) or change the solver in your configuration."
+            ) from exc
     dt = inp_data_dict['dt']
     # Get optimiser_options (parser already merged any legacy ga_options/debug_ga_options)
     optimiser_options = inp_data_dict.get('optimiser_options', None)
     resources_dir = inp_data_dict['resources_dir']
     param_id_output_dir = inp_data_dict['param_id_output_dir']
-    
+    do_ad = inp_data_dict['do_ad']
 
 
     comm = MPI.COMM_WORLD
@@ -52,7 +60,8 @@ def run_param_id(inp_data_dict=None):
                             param_id_obs_path=param_id_obs_path,
                             sim_time=sim_time, pre_time=pre_time,
                             solver_info=solver_info, dt=dt,
-                            optimiser_options=optimiser_options, DEBUG=DEBUG,
+                            optimiser_options=optimiser_options, 
+                            do_ad=do_ad, DEBUG=DEBUG,
                             param_id_output_dir=param_id_output_dir, resources_dir=resources_dir)
 
     if inp_data_dict.get('obs_data_dict') is not None:
