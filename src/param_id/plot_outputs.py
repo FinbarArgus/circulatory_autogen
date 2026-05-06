@@ -8,6 +8,7 @@ Each figure type produced by ``plot_outputs`` lives in its own method on
 from __future__ import annotations
 
 import os
+import re
 from sys import exit
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -23,8 +24,8 @@ class ParamIDPlotOutputs:
     (:meth:`plot_reconstruction_pages`), vector saves (:meth:`save_error_vectors`),
     percent / std error bar pages (:meth:`plot_percent_error_bar_pages`,
     :meth:`plot_std_error_bar_pages`),     protocol-parameter time courses
-    (:meth:`plot_protocol_params_to_change`: one subplot per
-    ``params_to_change`` entry, time vs applied value), and console error summary
+    (:meth:`plot_protocol_params_to_change`: one figure per ``params_to_change`` key,
+    subplots wrapped **3 per row**), and console error summary
     (:meth:`print_observable_errors`). Orphan reconstruction figures are closed
     with :meth:`finalize_reconstruction_if_unsaved`.
 
@@ -947,15 +948,26 @@ class ParamIDPlotOutputs:
             clip_on=False,
         )
 
+    @staticmethod
+    def _safe_param_fname_token(pname: str) -> str:
+        tok = pname.replace("/", "__").strip()
+        tok = re.sub(r"[^\w.\-]+", "_", tok, flags=re.ASCII)
+        tok = tok.strip("_") or "param"
+        if len(tok) > 128:
+            tok = tok[:128]
+        return tok
+
+    # Experiments wrapped left-to-right, then downward (reading order).
+    _PROTOCOL_PARAM_SUBPLOTS_PER_ROW = 3
+
     def plot_protocol_params_to_change(self) -> None:
         """
-        One subplot per parameter in ``params_to_change``: time on *x*,
-        prescribed parameter value on *y*.
+        One **saved figure file** per ``params_to_change`` key: subplots sit on a grid
+        with **three panels per row** (:math:`3` columns); rows wrap until every
+        experiment has one axes (time vs applied parameter).
 
-        Piecewise constant schedule uses horizontal segments within each phase;
-        numeric values equal for the whole experiment appear as one horizontal line.
-        String entries are treated as keys into ``protocol_info['protocol_traces']``
-        and plotted as ``t`` + phase offset versus ``values`` (matching Myokit).
+        Numeric schedules render as horizontal segments; uniform numeric values yield
+        a single horizontal line. String entries resolve ``protocol_traces`` as before.
         """
         client = self.client
         if client.rank != 0:
@@ -970,56 +982,77 @@ class ParamIDPlotOutputs:
             return
 
         param_keys = list(ptc.keys())
-        n_params = len(param_keys)
         traces_raw = client.protocol_info.get("protocol_traces") or {}
 
         traces: Dict[str, Any] = traces_raw if isinstance(traces_raw, dict) else {}
-        fig, axes = plt.subplots(
-            n_params,
-            1,
-            squeeze=False,
-            figsize=(8.0, max(2.3 * n_params, 3.0)),
-            sharex=False,
-        )
-        axes_col = [axes[i, 0] for i in range(n_params)]
-
         exp_labels = client.protocol_info.get("experiment_labels") or [None] * num_exp
         exp_colors = client.protocol_info.get("experiment_colors") or []
 
-        for irow, pname in enumerate(param_keys):
-            ax = axes_col[irow]
-            ax.set_title(pname.replace("/", " / "), fontsize=10)
+        ncol = min(self._PROTOCOL_PARAM_SUBPLOTS_PER_ROW, num_exp)
+        nrow = max(1, int(np.ceil(num_exp / ncol)))
 
+        for pname in param_keys:
             row_vals = ptc[pname]
+            fname_tok = self._safe_param_fname_token(pname)
+            fig, axes = plt.subplots(
+                nrow,
+                ncol,
+                squeeze=False,
+                figsize=(max(3.7 * ncol, 6.0), max(3.2 * nrow, 2.9)),
+                sharey=False,
+            )
+
+            fig.suptitle(
+                pname.replace("/", " / "),
+                fontsize=11,
+                y=1.06,
+            )
+
+            for k in range(num_exp, nrow * ncol):
+                r, cc = divmod(k, ncol)
+                axes[r, cc].set_visible(False)
+
             if not isinstance(row_vals, (list, tuple)) or len(row_vals) < num_exp:
-                ax.axis("off")
-                ax.text(
-                    0.5,
-                    0.5,
-                    "params_to_change shape mismatch for this parameter",
-                    ha="center",
-                    va="center",
-                    transform=ax.transAxes,
-                    fontsize=9,
+                for exp_idx in range(num_exp):
+                    r, cc = divmod(exp_idx, ncol)
+                    ax = axes[r, cc]
+                    ax.axis("off")
+                    ax.text(
+                        0.5,
+                        0.5,
+                        "params_to_change row length mismatch vs num_experiments",
+                        ha="center",
+                        va="center",
+                        transform=ax.transAxes,
+                        fontsize=9,
+                    )
+                base = os.path.join(
+                    client.plot_dir,
+                    f"protocol_params_to_change_{client.file_name_prefix}_"
+                    f"{client.param_id_obs_file_prefix}_{fname_tok}",
                 )
+                fig.tight_layout(rect=(0.0, 0.04, 1.0, 0.93))
+                for ext in ("eps", "pdf", "png"):
+                    dpi = 150 if ext == "png" else None
+                    if dpi:
+                        fig.savefig(base + "." + ext, dpi=dpi)
+                    else:
+                        fig.savefig(base + "." + ext)
+                plt.close(fig)
                 continue
 
             for exp_idx in range(num_exp):
-                vals = ParamIDPlotOutputs._normalize_sub_vals(row_vals[exp_idx])
-                segments = self._schedule_segments_for_param_experiment(
-                    client.protocol_info, exp_idx, vals
-                )
-
-                lab = None
-                if exp_idx < len(exp_labels):
-                    lab = exp_labels[exp_idx]
-                legend_str = (
-                    f"exp {exp_idx}: {lab}"
-                    if lab is not None
-                    and str(lab).strip() != ""
-                    and str(lab).lower() != "none"
-                    else f"exp {exp_idx}"
-                )
+                r, cc = divmod(exp_idx, ncol)
+                ax = axes[r, cc]
+                elab = exp_labels[exp_idx] if exp_idx < len(exp_labels) else None
+                sub_title = f"Experiment {exp_idx}"
+                if (
+                    elab is not None
+                    and str(elab).strip() != ""
+                    and str(elab).lower() != "none"
+                ):
+                    sub_title = f"{sub_title}\n{elab}"
+                ax.set_title(sub_title, fontsize=9)
 
                 c = (
                     exp_colors[exp_idx]
@@ -1027,47 +1060,59 @@ class ParamIDPlotOutputs:
                     else f"C{exp_idx % 10}"
                 )
 
+                vals = ParamIDPlotOutputs._normalize_sub_vals(row_vals[exp_idx])
+                segments = self._schedule_segments_for_param_experiment(
+                    client.protocol_info, exp_idx, vals
+                )
+
                 if segments is None:
-                    ax.text(
-                        0.5,
-                        0.92 - 0.06 * exp_idx,
-                        f"{legend_str}: sub-count mismatch vs protocol",
+                    ax.axis("off")
+                    ax.annotate(
+                        "Sub-count mismatch vs protocol",
+                        xy=(0.5, 0.5),
+                        xycoords="axes fraction",
                         ha="center",
-                        va="top",
-                        transform=ax.transAxes,
-                        fontsize=8,
+                        va="center",
+                        fontsize=9,
                         color=c,
                         clip_on=False,
                     )
-                    continue
+                else:
+                    for seg_i, (t0, t1, val) in enumerate(segments):
+                        # Label only the first segment (trace vs piecewise cue)
+                        if seg_i != 0:
+                            lbl_tr = None
+                        elif isinstance(val, str):
+                            lbl_tr = f"trace `{val}`"
+                        else:
+                            lbl_tr = None
+                        self._plot_param_segment(
+                            ax, t0, t1, val, traces, c, lbl_tr
+                        )
+                    ax.axhline(
+                        0.0, color="0.82", linewidth=0.8, linestyle="-", zorder=0
+                    )
+                    ax.grid(True, axis="both", linestyle=":", alpha=0.35)
+                    handles, legends = ax.get_legend_handles_labels()
+                    if any(legends):
+                        ax.legend(handles, legends, fontsize=7, loc="best")
 
-                for seg_i, (t0, t1, val) in enumerate(segments):
-                    lbl = legend_str if seg_i == 0 else None
-                    self._plot_param_segment(ax, t0, t1, val, traces, c, lbl)
+                ax.set_xlabel(r"Time [$s$]", fontsize=9)
 
-            ax.axhline(0.0, color="0.82", linewidth=0.8, linestyle="-", zorder=0)
-            ax.set_xlabel(r"Time [$s$]", fontsize=9)
-            ax.set_ylabel(r"Applied value", fontsize=9)
+            for r in range(nrow):
+                if r * ncol < num_exp:
+                    axes[r, 0].set_ylabel(r"Applied value", fontsize=9)
 
-        fig.suptitle(
-            r"Protocol parameters vs time ($\mathrm{params\_to\_change}$)",
-            fontsize=12,
-            y=1.02,
-        )
-        for ax in axes_col:
-            handles, labels = ax.get_legend_handles_labels()
-            if any(labels):
-                ax.legend(handles, labels, fontsize=7, loc="best")
-
-        fig.tight_layout(rect=(0.0, 0.02, 1.0, 0.96))
-        base = os.path.join(
-            client.plot_dir,
-            f"protocol_params_to_change_{client.file_name_prefix}_{client.param_id_obs_file_prefix}",
-        )
-        fig.savefig(base + ".eps")
-        fig.savefig(base + ".pdf")
-        fig.savefig(base + ".png", dpi=150)
-        plt.close(fig)
+            fig.tight_layout(rect=(0.0, 0.04, 1.0, 0.90))
+            base = os.path.join(
+                client.plot_dir,
+                f"protocol_params_to_change_{client.file_name_prefix}_"
+                f"{client.param_id_obs_file_prefix}_{fname_tok}",
+            )
+            fig.savefig(base + ".eps")
+            fig.savefig(base + ".pdf")
+            fig.savefig(base + ".png", dpi=150)
+            plt.close(fig)
 
     def print_observable_errors(
         self,
