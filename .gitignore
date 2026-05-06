@@ -1,5 +1,7 @@
 generated_models
 param_id_output
+sensitivity_outputs
 .vscode
 .idea
+venv
 __pycache__/
