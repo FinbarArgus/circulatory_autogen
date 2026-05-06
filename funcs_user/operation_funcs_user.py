@@ -8,6 +8,26 @@ except ImportError:  # optional dependency
     sympy = None
 from scipy.signal import find_peaks
 
+try:
+    import casadi as ca
+except ImportError:
+    ca = None
+
+OPERATION_FUNCS = {
+    "numpy": {},
+    "casadi": {}
+}
+
+def operation(mode="numpy"):
+    def wrapper(func):
+        if mode == "both":
+            OPERATION_FUNCS["numpy"][func.__name__] = func
+            OPERATION_FUNCS["casadi"][func.__name__] = func
+        else:
+            OPERATION_FUNCS[mode][func.__name__] = func
+        return func
+    return wrapper
+
 # decorator for functions that turn a series into a constant
 # Needed if you want to plot the series ontop of estimated constants
 def series_to_constant(func):

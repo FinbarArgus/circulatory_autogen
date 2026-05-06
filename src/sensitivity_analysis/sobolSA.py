@@ -52,7 +52,7 @@ class sobol_SA():
 
     def __init__(self, model_path, model_out_names, solver_info, SA_info, dt, sa_output_dir, 
                  param_id_path = None, params_for_id_path=None, use_MPI = False, verbose=False, 
-                 sim_time=2.0, pre_time=20.0):
+                 sim_time=2.0, pre_time=20.0, model_type=None):
 
         """
         Initializes the Sensitivity_analysis class.
@@ -66,6 +66,7 @@ class sobol_SA():
             dt (float): Time step for the simulation.
             save_path (str): Directory where results will be saved.
             verbose (bool): If True, prints additional information during execution.
+            model_type (str): Type of the model (e.g., "casadi_python", "numpy").
         """
 
         self.model_path = model_path
@@ -79,11 +80,16 @@ class sobol_SA():
         self.num_params = None
         self.protocol_info = None
         self.dt = dt
-        
+
+        self.model_type = model_type
+        mode = "casadi" if self.model_type == "casadi_python" else "numpy"
         # set up observables functions
         self.sfp = scriptFunctionParser()
         self.operation_funcs_dict = self.sfp.get_operation_funcs_dict()
-        
+        default_user_operation_funcs = self.sfp.get_default_user_operation_funcs(mode)
+        for func_name, func in default_user_operation_funcs.items():
+            self.add_user_operation_func(func)
+
         self.obs_and_param_parser = None
         self.gt_df = None
         self.obs_info = None

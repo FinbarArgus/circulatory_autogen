@@ -1301,6 +1301,9 @@ class OpencorParamID():
 
         mode = "casadi" if self.model_type == "casadi_python" else "numpy"
         self.operation_funcs_dict = self.sfp.get_operation_funcs_dict(mode)
+        default_user_operation_funcs = self.sfp.get_default_user_operation_funcs(mode)
+        for func_name, func in default_user_operation_funcs.items():
+            self.add_user_operation_func(func)
         self.cost_funcs_dict = self.sfp.get_cost_funcs_dict(mode)
 
         # set up opencor simulation
