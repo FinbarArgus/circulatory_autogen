@@ -294,6 +294,137 @@ class SimulationHelper:
                 # leave unset if evaluation fails
                 pass
 
+    def _describe_myokit_log_configuration(self):
+        """Context for debugging empty logs or failed final-state extraction."""
+        logical_lt = np.asarray(self.tSim, dtype=float) - float(self.pre_time)
+        passed_lt = getattr(self, "_last_log_times_passed_to_myokit", None)
+        n_st = getattr(self, "n_steps", None)
+        lines = [
+            "Time grid / logging context:",
+            f"  sim_time={self.sim_time!r}, dt={self.dt!r}, pre_time={self.pre_time!r}",
+            (
+                "  segment_clock start_time="
+                f"{getattr(self, 'start_time', None)!r} (cumulative timeline index for this subexperiment)"
+            ),
+            f"  n_steps = int(sim_time/dt) = {n_st!r}",
+            f"  protocol log schedule linspace(start_time, start_time+sim_time): length={logical_lt.size}"
+            + (
+                f", min={float(logical_lt.min())!r}, max={float(logical_lt.max())!r}"
+                if logical_lt.size
+                else " (empty — no output points requested)"
+            ),
+        ]
+        if passed_lt is not None and np.asarray(passed_lt).size > 0:
+            pl = np.asarray(passed_lt, dtype=float)
+            lines.append(
+                f"  log_times passed to Myokit.run (aligned to sim time after reset+pre): "
+                f"length={pl.size}, min={float(pl.min())!r}, max={float(pl.max())!r}"
+            )
+        lines.append(
+            f"  duration passed to Simulation.run(): {self.sim_time + 1e-12!r} (sim_time + eps)"
+        )
+        if self.last_log is not None:
+            time_key = None
+            try:
+                time_key = self.model.time().qname()
+            except Exception:
+                pass
+            if time_key and time_key in self.last_log:
+                tser = np.asarray(self.last_log[time_key])
+                lines.append(
+                    f"  logged time series ({time_key!r}): length={tser.size}"
+                )
+        return "\n".join(lines)
+
+    def _primary_myokit_log_failure_cause(self):
+        """
+        One explanation derived from actual time settings / intervals (no speculative list).
+
+        Preconditions: reads sim_time, dt, n_steps, tSim, pre_time, optionally
+        _last_integration_interval set immediately before Simulation.run().
+        """
+        st = float(self.sim_time)
+        dt = float(self.dt)
+        n_steps = int(getattr(self, "n_steps", int(st / dt) if dt else 0))
+        pre_t = float(self.pre_time)
+        passed = getattr(self, "_last_log_times_passed_to_myokit", None)
+        if passed is not None and np.asarray(passed).size > 0:
+            lt = np.asarray(passed, dtype=float)
+        else:
+            lt = np.asarray(self.tSim, dtype=float) - pre_t
+        iv = getattr(self, "_last_integration_interval", None)
+        iv_start, iv_end = (iv[0], iv[1]) if iv is not None else (None, None)
+
+        if st == 0:
+            return (
+                "Likely cause: sim_time is 0, so nothing is integrated and state logs have no samples."
+            )
+        if st < 0:
+            return f"Likely cause: sim_time is negative ({st!r}), which is invalid for integration."
+        if dt <= 0:
+            return f"Likely cause: dt is not positive ({dt!r}), so the output time grid is invalid."
+
+        if lt.size == 0:
+            return (
+                "Likely cause: computed log_times is empty (check sim_time and dt producing n_steps)."
+            )
+
+        if n_steps == 0 and st > 0:
+            return (
+                "Likely cause: sim_time is positive but smaller than dt, so "
+                f"n_steps = int(sim_time/dt) is 0 (sim_time={st:g} s, dt={dt:g} s): "
+                "only one output instant exists; Myokit produced no logged points there."
+            )
+
+        if iv_start is not None and iv_end is not None:
+            lt_min = float(np.min(lt))
+            lt_max = float(np.max(lt))
+            tol = max(1e-9 * max(abs(iv_end), abs(iv_start), 1.0), 1e-12)
+            if lt_max < iv_start - tol or lt_min > iv_end + tol:
+                return (
+                    "Likely cause: log_times do not overlap the integration interval "
+                    f"(log_times in [{lt_min:g}, {lt_max:g}] s vs integration "
+                    f"[{iv_start:g}, {iv_end:g}] s)."
+                )
+
+        return (
+            "Likely cause: timing looks self-consistent but Myokit returned no logged samples "
+            "at the requested log_times (solver/model issue — e.g. failure, stiffness, NaNs)."
+        )
+
+    def _validate_myokit_state_logs(self):
+        """
+        After Simulation.run(), every state should have a non-empty series at log_times.
+        Empty series cause index -1 errors when restoring the endpoint state.
+        """
+        if self.last_log is None:
+            raise RuntimeError(
+                "Myokit Simulation.run returned no log (last_log is None).\n"
+                + self._primary_myokit_log_failure_cause()
+                + "\n"
+                + self._describe_myokit_log_configuration()
+            )
+        empty = []
+        missing = []
+        for qname in self.state_qnames:
+            if qname not in self.last_log:
+                missing.append(qname)
+                continue
+            if np.asarray(self.last_log[qname]).size == 0:
+                empty.append(qname)
+        if missing or empty:
+            parts = [
+                "Myokit returned no logged samples for at least one state variable, "
+                "so the final state cannot be read from the log.",
+                self._primary_myokit_log_failure_cause(),
+            ]
+            if missing:
+                parts.append(f"States missing from log: {missing}")
+            if empty:
+                parts.append(f"States with empty log series: {empty}")
+            parts.append(self._describe_myokit_log_configuration())
+            raise RuntimeError("\n".join(parts))
+
     # --------- core API ----------
     def run(self):
         try:
@@ -306,17 +437,46 @@ class SimulationHelper:
             # Use explicit log times so the end-point is included.
             start_time = self.simulation.time()
             eps = 1e-12 # run for eps after the end time to make sure the final requested log point is emitted.
+            # Logical output grid on the cumulative protocol timeline
+            logical_log_times = np.asarray(self.tSim, dtype=float) - float(self.pre_time)
+            if logical_log_times.size == 0:
+                self._last_log_times_passed_to_myokit = None
+                raise RuntimeError(
+                    "Cannot run Myokit simulation: no sampling instants (log_times is empty).\n"
+                    + self._primary_myokit_log_failure_cause()
+                    + "\n"
+                    + self._describe_myokit_log_configuration()
+                )
+            # update_times() calls simulation.reset(), so Myokit's clock starts at t=0 for every
+            # segment. pre() advances to t==pre_time. Requested sampling instants must be
+            # shifted from cumulative protocol times to simulator-absolute times.
+            run_t0 = float(self.simulation.time())
+            log_times = logical_log_times + (run_t0 - float(logical_log_times.flat[0]))
+            self._last_log_times_passed_to_myokit = np.asarray(log_times, dtype=float).copy()
+            duration = float(self.sim_time) + eps
+            self._last_integration_interval = (run_t0, run_t0 + duration)
             self.last_log = self.simulation.run(
                 self.sim_time+eps,
                 log=log,
-                log_times=self.tSim-self.pre_time,
+                log_times=log_times,
             )
+            self._validate_myokit_state_logs()
             # Restore exact endpoint (without epsilon overshoot) for continued runs.
             end_state = [float(np.asarray(self.last_log[qname])[-1]) for qname in self.state_qnames]
             self.simulation.set_state(end_state)
             self.simulation.set_time(start_time + self.sim_time)
         except Exception as e:
-            print(f"Myokit simulation failed: {e}")
+            err = str(e)
+            if "out of bounds" in err and "size 0" in err:
+                print(
+                    "Myokit simulation failed: tried to read the final logged state but a "
+                    f"time series was empty (underlying error: {e}).\n"
+                    + self._primary_myokit_log_failure_cause()
+                    + "\n"
+                    + self._describe_myokit_log_configuration()
+                )
+            else:
+                print(f"Myokit simulation failed: {e}")
             return False
         return True
 

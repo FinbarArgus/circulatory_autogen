@@ -1,21 +1,21 @@
 {
   "protocol_info": {
-    "pre_times": [0.0, 0.0, 0.0, 0.0],
+    "pre_times": [1.0, 0.0, 0.0, 0.0],
     "sim_times": [
-      [5],
+      [0.25, 5.0],
       [5],
       [5],
       [5]
     ],
     "params_to_change": {
       "Lotka_Volterra_module/u_alpha": [
-        ["u_alpha_trace"],
+        [0.0, "u_alpha_trace"],
         [0.0],
         [0.25],
         [0.0]
       ],
       "Lotka_Volterra_module/u_gamma": [
-        [0.0],
+        [0.0, 0.0],
         ["u_gamma_trace"],
         [0.0],
         [0.4]
@@ -23,7 +23,7 @@
     },
     "experiment_colors": ["r", "b", "g", "m"],
     "experiment_labels": [
-      "u_alpha trace, u_gamma = 0",
+      "exp0: pre_time=1 s, two subs — short const then u_alpha trace (5 s trace sub, multi-segment regression)",
       "u_alpha = 0, u_gamma trace",
       "u_alpha constant, u_gamma = 0",
       "u_alpha = 0, u_gamma constant"

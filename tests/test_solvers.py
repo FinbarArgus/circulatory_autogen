@@ -523,14 +523,15 @@ def test_myokit_multi_trace_protocol():
     Uses tests/test_inputs/Lotka_Volterra_forced.cellml (flat CellML 2.0 with u_alpha
     and u_gamma forcing inputs) and resources/Lotka_Volterra_forced_multi_trace_obs_data.json:
 
-      - Experiment 0: u_alpha sinusoidal trace, u_gamma = 0 (constant)
+      - Experiment 0: pre_time=1 s, two subexperiments [0.25 s, 5 s] — constants then
+        u_alpha trace — exercises cumulative protocol times vs Myokit simulation.reset().
       - Experiment 1: u_alpha = 0, u_gamma step trace
       - Experiment 2: u_alpha fixed constant, u_gamma = 0 (both numeric — no trace)
       - Experiment 3: u_alpha = 0, u_gamma fixed constant
 
     This exercises myokit_helper rebinding the 'pace' label when switching which
-    input is driven by TimeSeriesProtocol, and runs where both inputs use plain
-    constants only.
+    input is driven by TimeSeriesProtocol, multi-subexperiment update_times/run loops,
+    and runs where both inputs use plain constants only.
     """
     import json
 
