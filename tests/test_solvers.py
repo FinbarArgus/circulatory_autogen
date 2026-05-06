@@ -514,6 +514,102 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
     }
 
 
+@pytest.mark.integration
+@pytest.mark.solver
+def test_myokit_multi_trace_protocol():
+    """
+    Verify that multiple params_to_change entries with different protocol traces work.
+
+    Uses resources/Lotka_Volterra_forced.cellml (flat CellML 2.0 with u_alpha and
+    u_gamma forcing inputs) and resources/Lotka_Volterra_forced_multi_trace_obs_data.json
+    which defines:
+      - experiment 0: u_alpha driven by a sinusoidal trace; u_gamma = 0
+      - experiment 1: u_gamma driven by a step trace; u_alpha = 0
+
+    The fix in myokit_helper.py rebinds the Myokit 'pace' label between experiments
+    when the required paced variable changes.  Without the fix this would raise a
+    ValueError on experiment 1.
+    """
+    import json
+
+    resources_dir = os.path.join(_TEST_ROOT, "resources")
+    cellml_path = os.path.join(resources_dir, "Lotka_Volterra_forced.cellml")
+    obs_data_path = os.path.join(resources_dir, "Lotka_Volterra_forced_multi_trace_obs_data.json")
+
+    assert os.path.exists(cellml_path), f"CellML model not found: {cellml_path}"
+    assert os.path.exists(obs_data_path), f"obs_data not found: {obs_data_path}"
+
+    with open(obs_data_path, encoding="utf-8-sig") as fh:
+        obs_data = json.load(fh)
+    protocol_info = obs_data["protocol_info"]
+
+    dt = 0.01
+    solver_info = {"MaximumStep": 0.05, "MaximumNumberOfSteps": 50000}
+
+    try:
+        helper = get_simulation_helper(
+            model_path=cellml_path,
+            model_type="cellml_only",
+            solver="CVODE_myokit",
+            dt=dt,
+            sim_time=1.0,   # overridden per-experiment below
+            solver_info=solver_info,
+            pre_time=0.0,
+        )
+    except RuntimeError as exc:
+        pytest.skip(f"Myokit backend not available: {exc}")
+
+    helper.set_protocol_info(protocol_info)
+
+    sim_times = protocol_info["sim_times"]
+    pre_times = protocol_info["pre_times"]
+    params_to_change = protocol_info["params_to_change"]
+    param_keys = list(params_to_change.keys())
+
+    all_results = {}
+
+    for exp_idx in range(len(sim_times)):
+        current_time = 0.0
+        for sub_idx, sim_time in enumerate(sim_times[exp_idx]):
+            if sub_idx == 0:
+                helper.update_times(dt, current_time, sim_time, pre_times[exp_idx])
+                current_time += pre_times[exp_idx]
+            else:
+                helper.update_times(dt, current_time, sim_time, pre_time=0.0)
+
+            param_vals = [params_to_change[k][exp_idx][sub_idx] for k in param_keys]
+            # This is the critical call – should NOT raise for exp_idx=1 after the fix
+            helper.set_param_vals(param_keys, param_vals)
+            ok = helper.run()
+            assert ok, f"Simulation failed for experiment {exp_idx}, sub-experiment {sub_idx}"
+            current_time += sim_time
+
+        # Collect results after last sub-experiment
+        var_names = helper.get_all_variable_names()
+        x_name = next((n for n in var_names if n.endswith(".x")), None)
+        y_name = next((n for n in var_names if n.endswith(".y")), None)
+        assert x_name and y_name, f"Could not find x/y in {var_names[:10]}"
+
+        x_series = np.asarray(helper.get_results([x_name], flatten=True)[0], dtype=float)
+        y_series = np.asarray(helper.get_results([y_name], flatten=True)[0], dtype=float)
+
+        assert np.all(np.isfinite(x_series)), f"x series contains non-finite values in exp {exp_idx}"
+        assert np.all(np.isfinite(y_series)), f"y series contains non-finite values in exp {exp_idx}"
+        assert np.all(x_series >= 0), f"Prey (x) went negative in exp {exp_idx}"
+        assert np.all(y_series >= 0), f"Predator (y) went negative in exp {exp_idx}"
+
+        all_results[exp_idx] = {"x": x_series, "y": y_series}
+        helper.reset_and_clear()
+
+    # Both experiments should produce different dynamics
+    x0 = all_results[0]["x"]
+    x1 = all_results[1]["x"]
+    assert not np.allclose(x0, x1, rtol=1e-3), (
+        "Experiments 0 and 1 produced identical x trajectories; "
+        "the different protocol traces should drive different dynamics."
+    )
+
+
 def test_init_states_myokit(generated_cellml_model_factory):
     """
     Repro for computed-constant initial state values via Myokit wrapper.

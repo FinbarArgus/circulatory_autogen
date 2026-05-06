@@ -421,6 +421,14 @@ class SimulationHelper:
         return param_init
 
     def set_param_vals(self, param_names, param_vals):
+        # Phase 1: Pre-scan for any string trace value and rebind pace if the target
+        # variable differs from the currently bound one.  This ensures set_constant
+        # calls made later in the same invocation are not lost to a mid-loop recreate.
+        new_paced_qname = self._find_required_paced_qname(param_names, param_vals)
+        if new_paced_qname is not None and new_paced_qname != self.paced_parameter_qname:
+            self._rebind_pace_to(new_paced_qname)
+
+        # Phase 2: Apply all parameter values.
         for idx, name_or_list in enumerate(param_names):
             names = name_or_list if isinstance(name_or_list, list) else [name_or_list]
             vals = param_vals[idx]
@@ -429,44 +437,44 @@ class SimulationHelper:
             for name, val in zip(names, vals):
                 kind, qname = self._resolve_name(name)
 
-                
                 if kind == "state":
                     self.simulation.set_state_value(self.state_index[qname], float(val))
                 elif kind == "var":
-                    # Set RHS to constant value
                     if isinstance(val, str):
                         trace_name = val
-                        if self.paced_parameter_qname is None:
+                        # Validate protocol info exists
+                        if self.protocol_info is None or 'protocol_traces' not in self.protocol_info:
                             raise ValueError(
-                                "Found string trace name in params_to_change, but no paced "
-                                "parameter was configured in set_protocol_info."
+                                "params_to_change entry is a string trace key, but protocol_traces "
+                                "not found in protocol_info."
                             )
+                        if trace_name not in self.protocol_info['protocol_traces']:
+                            raise ValueError(
+                                f"Protocol trace '{trace_name}' not found in protocol_traces."
+                            )
+                        trace = self.protocol_info['protocol_traces'][trace_name]
+                        if 'values' not in trace:
+                            raise ValueError(
+                                f"Protocol trace '{trace_name}' is missing 'values' key."
+                            )
+                        # After Phase 1 rebind, paced_parameter_qname must match.
                         if qname != self.paced_parameter_qname:
-                            raise ValueError(
-                                f"Trace name {trace_name} was provided for {qname}, but paced "
-                                f"parameter is {self.paced_parameter_qname}."
+                            raise RuntimeError(
+                                f"Internal error: pace rebind should have set paced_parameter_qname "
+                                f"to {qname}, but it is {self.paced_parameter_qname}."
                             )
-                        # Validate protocol info exists  
-                        if 'protocol_traces' not in self.protocol_info.keys():
-                            raise ValueError("params_to_change entry is set to a string, Protocol traces not found in protocol info")
-                        if trace_name not in self.protocol_info['protocol_traces'].keys():  
-                            raise ValueError(f"params_to_change entry is set to a string, {trace_name}, Protocol trace '{trace_name}' not found")   
-                        if 'values' not in self.protocol_info['protocol_traces'][trace_name].keys():
-                            raise ValueError(f"params_to_change entry is set to a string, {trace_name}, Protocol trace '{trace_name}': values not found")
+                        protocol = myokit.TimeSeriesProtocol(trace['t'], trace['values'])
+                        self.simulation.set_protocol(protocol, label='pace')
 
-                        pace_time = self.protocol_info['protocol_traces'][trace_name]['t']
-                        pace_values = self.protocol_info['protocol_traces'][trace_name]['values']
-
-                        protocol = myokit.TimeSeriesProtocol(pace_time, pace_values)  
-                        self.simulation.set_protocol(protocol, label='pace') 
-                        
                     elif not isinstance(val, (float, np.float64, int)):
-                        raise ValueError(f"Parameter value {val} is not a valid type. {type(val)}" + \
-                                         "must be a float, np.float64, or int.")
+                        raise ValueError(
+                            f"Parameter value {val} is not a valid type ({type(val)}); "
+                            "must be float, np.float64, or int."
+                        )
                     else:
                         if self.paced_parameter_qname is not None and qname == self.paced_parameter_qname:
-                            # If this variable is bound to "pace", set a constant protocol value
-                            # for this segment instead of set_constant (which is invalid for bound vars).
+                            # Variable is bound to "pace": use a flat TimeSeriesProtocol so the
+                            # value is applied correctly rather than calling set_constant.
                             pace_val = float(val)
                             duration = float(max(self.sim_time if self.sim_time is not None else 1.0, self.dt))
                             protocol = myokit.TimeSeriesProtocol(
@@ -480,6 +488,73 @@ class SimulationHelper:
                     raise ValueError(f"parameter {name} not found")
         # Keep state defaults consistent with model-defined initial values.
         self.default_states = list(self._get_simulation_model().initial_values(as_floats=True))
+
+    def _find_required_paced_qname(self, param_names, param_vals):
+        """
+        Scan param_names/param_vals for the first string (trace-key) value and return
+        the resolved Myokit qname of that parameter, or None if none found.
+
+        Only one paced variable per set_param_vals call is supported; if multiple
+        string values are present for *different* variables, a ValueError is raised.
+        """
+        found_qname = None
+        for idx, name_or_list in enumerate(param_names):
+            names = name_or_list if isinstance(name_or_list, list) else [name_or_list]
+            vals = param_vals[idx]
+            if not isinstance(vals, (list, tuple, np.ndarray)):
+                vals = [vals]
+            for name, val in zip(names, vals):
+                if isinstance(val, str):
+                    kind, qname = self._resolve_name(name)
+                    if kind != "var":
+                        raise ValueError(
+                            f"Trace name '{val}' was given for '{name}', but it does not "
+                            "resolve to a non-state variable."
+                        )
+                    if found_qname is not None and qname != found_qname:
+                        raise ValueError(
+                            f"Multiple different parameters have string trace values in the "
+                            f"same set_param_vals call ({found_qname} and {qname}).  Myokit "
+                            "supports only one paced variable per simulation segment."
+                        )
+                    found_qname = qname
+        return found_qname
+
+    def _rebind_pace_to(self, qname):
+        """
+        Dynamically rebind Myokit's 'pace' label to *qname*, preserving the current
+        simulation state and time so that multi-experiment protocols with different
+        paced variables work correctly.
+
+        Steps:
+          1. Save current simulation state and time.
+          2. Unbind the previous 'pace' variable (if any) in the template model.
+          3. Bind the new variable to 'pace' in the template model.
+          4. Recreate the Myokit Simulation (which clones the model with the new binding).
+          5. Restore the saved state and time.
+        """
+        current_state = self.simulation.state()
+        current_time = self.simulation.time()
+
+        # Unbind old pace variable from the template model.
+        old_pace_var = self.model.binding("pace")
+        if old_pace_var is not None:
+            old_pace_var.set_binding(None)
+
+        # Bind new variable.
+        if qname not in self.qname_to_var:
+            raise ValueError(
+                f"Cannot bind pace to '{qname}': variable not found in model."
+            )
+        self.qname_to_var[qname].set_binding("pace")
+        self.paced_parameter_qname = qname
+
+        # Recreate Simulation with updated binding (clones the modified model).
+        self._recreate_simulation()
+
+        # Restore pre-rebind state and time.
+        self.simulation.set_state(current_state)
+        self.simulation.set_time(current_time)
 
     def modify_params_and_run_and_get_results(self, param_names, mod_factors, obs_names, absolute=False):
         if absolute:
