@@ -1387,7 +1387,7 @@ def test_laplace_approximation_hessian_validation(base_user_inputs, resources_di
         'file_prefix': 'Simple_ODE_Benchmark',  # Replace with your model name  
         'input_param_file': 'Simple_ODE_Benchmark_parameters.csv',  # Replace with your CSV  
         'model_type': 'cellml_only',  
-        'solver': 'CVODE_myokit',  
+        'solver': 'CVODE',  
         'param_id_method': 'genetic_algorithm',  
         'pre_time': 0.5,  
         'sim_time': 10.0,  

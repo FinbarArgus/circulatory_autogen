@@ -419,7 +419,7 @@ def extract_hessian_from_samples(samples, losses, plot_dir=None):
     
     # 2. Fit the linear regression: Loss = Coefs * X_poly
     model = LinearRegression(fit_intercept=False)
-    model.fit(X_poly, losses)
+    model.fit(X_poly, losses.ravel())
     coeffs = model.coef_
     
     # 3. Map coefficients back to a Hessian Matrix
