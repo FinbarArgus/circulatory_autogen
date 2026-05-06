@@ -518,23 +518,25 @@ def _compare_solver_results(ref_helper, ref_name, other_helper, other_name, tole
 @pytest.mark.solver
 def test_myokit_multi_trace_protocol():
     """
-    Verify that multiple params_to_change entries with different protocol traces work.
+    Verify multi-experiment forcing: protocol traces vs constants, with pace rebounding.
 
-    Uses resources/Lotka_Volterra_forced.cellml (flat CellML 2.0 with u_alpha and
-    u_gamma forcing inputs) and resources/Lotka_Volterra_forced_multi_trace_obs_data.json
-    which defines:
-      - experiment 0: u_alpha driven by a sinusoidal trace; u_gamma = 0
-      - experiment 1: u_gamma driven by a step trace; u_alpha = 0
+    Uses tests/test_inputs/Lotka_Volterra_forced.cellml (flat CellML 2.0 with u_alpha
+    and u_gamma forcing inputs) and resources/Lotka_Volterra_forced_multi_trace_obs_data.json:
 
-    The fix in myokit_helper.py rebinds the Myokit 'pace' label between experiments
-    when the required paced variable changes.  Without the fix this would raise a
-    ValueError on experiment 1.
+      - Experiment 0: u_alpha sinusoidal trace, u_gamma = 0 (constant)
+      - Experiment 1: u_alpha = 0, u_gamma step trace
+      - Experiment 2: u_alpha fixed constant, u_gamma = 0 (both numeric — no trace)
+      - Experiment 3: u_alpha = 0, u_gamma fixed constant
+
+    This exercises myokit_helper rebinding the 'pace' label when switching which
+    input is driven by TimeSeriesProtocol, and runs where both inputs use plain
+    constants only.
     """
     import json
 
-    resources_dir = os.path.join(_TEST_ROOT, "resources")
-    cellml_path = os.path.join(resources_dir, "Lotka_Volterra_forced.cellml")
-    obs_data_path = os.path.join(resources_dir, "Lotka_Volterra_forced_multi_trace_obs_data.json")
+    tests_dir = os.path.dirname(__file__)
+    cellml_path = os.path.join(tests_dir, "test_inputs", "Lotka_Volterra_forced.cellml")
+    obs_data_path = os.path.join(_TEST_ROOT, "resources", "Lotka_Volterra_forced_multi_trace_obs_data.json")
 
     assert os.path.exists(cellml_path), f"CellML model not found: {cellml_path}"
     assert os.path.exists(obs_data_path), f"obs_data not found: {obs_data_path}"
@@ -578,7 +580,6 @@ def test_myokit_multi_trace_protocol():
                 helper.update_times(dt, current_time, sim_time, pre_time=0.0)
 
             param_vals = [params_to_change[k][exp_idx][sub_idx] for k in param_keys]
-            # This is the critical call – should NOT raise for exp_idx=1 after the fix
             helper.set_param_vals(param_keys, param_vals)
             ok = helper.run()
             assert ok, f"Simulation failed for experiment {exp_idx}, sub-experiment {sub_idx}"
@@ -601,12 +602,17 @@ def test_myokit_multi_trace_protocol():
         all_results[exp_idx] = {"x": x_series, "y": y_series}
         helper.reset_and_clear()
 
-    # Both experiments should produce different dynamics
-    x0 = all_results[0]["x"]
-    x1 = all_results[1]["x"]
-    assert not np.allclose(x0, x1, rtol=1e-3), (
-        "Experiments 0 and 1 produced identical x trajectories; "
-        "the different protocol traces should drive different dynamics."
+    # Distinct regimes: pacing u_alpha vs u_gamma produces different dynamics
+    assert not np.allclose(all_results[0]["x"], all_results[1]["x"], rtol=1e-3), (
+        "Experiments 0 vs 1: x trajectories should differ when different inputs are paced."
+    )
+    # Pure-constant forcings differ between exp 2 (boost u_alpha) and exp 3 (boost u_gamma)
+    assert not np.allclose(all_results[2]["x"], all_results[3]["x"], rtol=1e-3), (
+        "Experiments 2 vs 3: different constant forcings should produce different dynamics."
+    )
+    # Trace on u_alpha (exp 0) should differ from flat constant u_alpha (exp 2)
+    assert not np.allclose(all_results[0]["x"], all_results[2]["x"], rtol=1e-3), (
+        "Experiments 0 vs 2: time-varying u_alpha should differ from constant u_alpha."
     )
 
 

@@ -63,9 +63,21 @@ class SimulationHelper:
             return
 
         kind, qname = self._resolve_name(paced_param_name)
-        if kind != "var":
+        if kind == "state":
             raise ValueError(
                 f"Pacing parameter {paced_param_name} must resolve to a non-state variable"
+            )
+        elif kind in [None, "None"]:
+            raise ValueError(
+                f"Pacing parameter {paced_param_name} must resolve to a valid variable",
+                f"valid variables are: {self.all_qnames}"
+            )
+        elif kind == "var" or kind == "constant":
+            pass
+        else:
+            raise ValueError(
+                f"Pacing parameter {paced_param_name} must resolve to a valid kind, but got {kind}",
+                f"valid kinds are: var, constant"
             )
 
         pace_var = self.model.binding("pace")
@@ -73,7 +85,10 @@ class SimulationHelper:
             pace_var.set_binding(None)
 
         target_var = self.qname_to_var[qname]
-        target_var.set_binding("pace")
+        # Myokit forbids set_binding("pace") when this variable already has the pace
+        # binding (common for CellML imports that map a driving variable to pace).
+        if target_var.binding() != "pace":
+            target_var.set_binding("pace")
         self.paced_parameter_qname = qname
 
         # Myokit Simulation clones the model at construction time, so recreate
