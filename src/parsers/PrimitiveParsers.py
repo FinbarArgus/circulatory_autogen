@@ -48,10 +48,14 @@ class scriptFunctionParser(object):
 
     def get_operation_funcs_dict(self, mode="numpy"):
         import operation_funcs
-        import operation_funcs_user
 
         return operation_funcs.OPERATION_FUNCS[mode]
     
+    def get_default_user_operation_funcs(self, mode="numpy"):
+        import operation_funcs_user
+
+        return operation_funcs_user.OPERATION_FUNCS[mode]
+
     def add_user_operation_func(self, operation_funcs_dict, func):
         operation_funcs_dict[func.__name__] = func
         return operation_funcs_dict
