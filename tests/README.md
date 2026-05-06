@@ -54,6 +54,9 @@ You can pass any pytest arguments to the script:
 
 # Run only the optimiser method comparisons
 ./run_pytest.sh -n 8 tests/test_param_id.py::test_compare_optimisers -v -s
+
+# Or you can run all tests with a local python without the bash script as
+pytest -v -s
 ```
 
 

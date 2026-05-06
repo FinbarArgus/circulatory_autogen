@@ -832,6 +832,7 @@ class ObsAndParamDataParser(object):
                 "experiment_labels": {"types": (list, tuple, np.ndarray), "default": None},
                 "experiment_colors": {"types": (list, tuple, np.ndarray), "default": None},
                 "comment": {"types": (str,), "default": None},
+                "protocol_traces": {"types": (dict,), "default": {}},
             }
 
             unknown_protocol_keys = sorted(set(protocol_info.keys()) - set(protocol_schema.keys()))
