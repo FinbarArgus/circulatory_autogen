@@ -582,6 +582,83 @@ def test_param_id_calibration_outputs_match_rerun(base_user_inputs, resources_di
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.mpi
+def test_param_id_SN_simple_CVODE_myokit_ga_smoke(
+    base_user_inputs,
+    resources_dir,
+    temp_output_dir,
+    temp_generated_models_dir,
+    mpi_comm,
+):
+    """
+    Short GA smoke test for SN_simple using Myokit CVODE (matches SN_full-style calibration).
+
+    Observables exercise `funcs_user/operation_funcs_user.py` (calc_spike_frequency_windowed,
+    first_peak_time, steady_state_avg, steady_state_min, calc_spike_period, calc_min_peak)
+    plus core `max`, mirroring the operation mix in `resources/SN_simple_obs_data.json`
+    (max + windowed spike rate + first_peak_time) on a compact two-subexperiment protocol.
+    DEBUG genetic_algorithm (population 28) with num_calls_to_function=56 (~2 generations max).
+    """
+    pytest.importorskip("myokit")
+
+    rank = mpi_comm.Get_rank()
+    tests_dir = os.path.dirname(__file__)
+    obs_path = os.path.join(tests_dir, "test_inputs", "SN_simple_param_id_fast_obs.json")
+    assert os.path.isfile(obs_path), f"Missing fast obs fixture: {obs_path}"
+
+    config = base_user_inputs.copy()
+    config.update(
+        {
+            "file_prefix": "SN_simple",
+            "input_param_file": "SN_simple_parameters.csv",
+            "params_for_id_file": "SN_simple_params_for_id.csv",
+            "model_type": "cellml_only",
+            "solver": "CVODE_myokit",
+            "param_id_method": "genetic_algorithm",
+            "pre_time": 0.1,
+            "sim_time": 1.3,
+            "dt": 0.005,
+            "DEBUG": True,
+            "do_mcmc": False,
+            "plot_predictions": False,
+            "do_ia": False,
+            "solver_info": {
+                "MaximumStep": 0.02,
+                "MaximumNumberOfSteps": 50000,
+            },
+            "param_id_obs_path": obs_path,
+            "param_id_output_dir": temp_output_dir,
+            "generated_models_dir": temp_generated_models_dir,
+            "optimiser_options": {
+                "num_calls_to_function": 56,
+                "max_patience": 2,
+                "cost_convergence": 1e-12,
+            },
+            "debug_optimiser_options": {
+                "num_calls_to_function": 56,
+                "max_patience": 2,
+                "cost_convergence": 1e-12,
+            },
+        }
+    )
+
+    _ensure_cellml_model_generated(config, mpi_comm)
+    mpi_comm.Barrier()
+
+    run_param_id(config)
+    mpi_comm.Barrier()
+
+    if rank == 0:
+        out_dir = os.path.join(
+            temp_output_dir,
+            "genetic_algorithm_SN_simple_SN_simple_param_id_fast_obs",
+        )
+        assert os.path.isdir(out_dir), f"Missing output dir: {out_dir}"
+        assert os.path.isfile(os.path.join(out_dir, "best_cost.npy")), "missing best_cost.npy"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
 def test_param_id_simple_physiological_succeeds(base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm):
     """
     Test that parameter identification succeeds for simple_physiological model.
