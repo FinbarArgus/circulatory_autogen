@@ -1301,6 +1301,9 @@ class OpencorParamID():
 
         mode = "casadi" if self.model_type == "casadi_python" else "numpy"
         self.operation_funcs_dict = self.sfp.get_operation_funcs_dict(mode)
+        default_user_operation_funcs = self.sfp.get_default_user_operation_funcs(mode)
+        for func_name, func in default_user_operation_funcs.items():
+            self.add_user_operation_func(func)
         self.cost_funcs_dict = self.sfp.get_cost_funcs_dict(mode)
 
         # set up opencor simulation
@@ -1686,7 +1689,8 @@ class OpencorParamID():
 
     def get_lnlikelihood_from_params(self, param_vals):
         cost = self.get_cost_from_params(param_vals)
-        lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
+        # lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
+        lnlikelihood = -cost # TODO check this is correct for all multimodal distributions
 
         return lnlikelihood
     
