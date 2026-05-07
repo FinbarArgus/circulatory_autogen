@@ -830,6 +830,7 @@ class ObsAndParamDataParser(object):
                 "sim_times": {"types": (list, tuple, np.ndarray), "default": [[sim_time]] if sim_time is not None else REQUIRED},
                 "params_to_change": {"types": (dict,), "default": {}},
                 "experiment_labels": {"types": (list, tuple, np.ndarray), "default": None},
+                "experiment_ids": {"types": (list, tuple, np.ndarray), "default": None},
                 "experiment_colors": {"types": (list, tuple, np.ndarray), "default": None},
                 "comment": {"types": (str,), "default": None},
                 "protocol_traces": {"types": (dict,), "default": {}},
@@ -1270,6 +1271,12 @@ class ObsAndParamDataParser(object):
             protocol["experiment_labels"] = [None] * N_exp
         elif len(protocol["experiment_labels"]) != N_exp:
             print('Error: experiment_labels length does not match num_experiments, exiting')
+            exit()
+        
+        if "experiment_ids" not in protocol or protocol["experiment_ids"] is None:
+            protocol["experiment_ids"] = [None] * N_exp
+        elif len(protocol["experiment_ids"]) != N_exp:
+            print('Error: experiment_ids length does not match num_experiments, exiting')
             exit()
 
         # --- Weight Mapping Initialization ---
