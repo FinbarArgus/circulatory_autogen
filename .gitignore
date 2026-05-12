@@ -6,7 +6,6 @@ sensitivity_outputs
 venv
 __pycache__/
 
-# --- currently untracked (local / generated / scratch) ---
 .pytest_autogen_status
 .pytest_param_id_lock
 .pytest_param_id_results
