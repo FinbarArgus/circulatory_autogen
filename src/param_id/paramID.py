@@ -58,6 +58,7 @@ from datetime import date
 # from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser, ObsAndParamDataParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser, SciPyMinimizeOptimiser
+from param_id.differentiable import assert_casadi_differentiable, is_circulatory_differentiable
 import pandas as pd
 try:
     import casadi as ca
@@ -1301,9 +1302,6 @@ class OpencorParamID():
 
         mode = "casadi" if self.model_type == "casadi_python" else "numpy"
         self.operation_funcs_dict = self.sfp.get_operation_funcs_dict(mode)
-        default_user_operation_funcs = self.sfp.get_default_user_operation_funcs(mode)
-        for func_name, func in default_user_operation_funcs.items():
-            self.add_user_operation_func(func)
         self.cost_funcs_dict = self.sfp.get_cost_funcs_dict(mode)
 
         # set up opencor simulation
@@ -1368,6 +1366,10 @@ class OpencorParamID():
             self.cost_type = self.obs_info["cost_type"]
         else:
             self.cost_type = None
+        if mode == "casadi":
+            assert_casadi_differentiable(
+                self.obs_info, self.cost_type, self.operation_funcs_dict, self.cost_funcs_dict
+            )
         self.DEBUG = DEBUG
 
     def initialise_sim_helper(self):
@@ -1379,9 +1381,17 @@ class OpencorParamID():
         return helper_cls
     
     def add_user_operation_func(self, func):
+        if self.model_type == "casadi_python" and not is_circulatory_differentiable(func):
+            raise ValueError(
+                f"User operation {func.__name__!r} must be decorated with @differentiable for casadi_python mode."
+            )
         self.operation_funcs_dict = self.sfp.add_user_operation_func(self.operation_funcs_dict, func)
     
     def add_user_cost_func(self, func):
+        if self.model_type == "casadi_python" and not is_circulatory_differentiable(func):
+            raise ValueError(
+                f"User cost function {func.__name__!r} must be decorated with @differentiable for casadi_python mode."
+            )
         self.cost_funcs_dict = self.sfp.add_user_cost_func(self.cost_funcs_dict, func)
     
     def set_best_param_vals(self, best_param_vals):
