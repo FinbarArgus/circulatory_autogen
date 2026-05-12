@@ -678,7 +678,59 @@ def test_param_id_SN_simple_CVODE_myokit_ga_smoke(
             "genetic_algorithm_SN_simple_SN_simple_param_id_fast_obs",
         )
         assert os.path.isdir(out_dir), f"Missing output dir: {out_dir}"
-        assert os.path.isfile(os.path.join(out_dir, "best_cost.npy")), "missing best_cost.npy"
+        best_cost_path = os.path.join(out_dir, "best_cost.npy")
+        best_param_vals_path = os.path.join(out_dir, "best_param_vals.npy")
+        assert os.path.isfile(best_cost_path), "missing best_cost.npy"
+        assert os.path.isfile(best_param_vals_path), "missing best_param_vals.npy"
+
+        # Plotting must be free of side effects: cost with best params should match the
+        # calibration best cost both before and after generating plots.
+        import matplotlib
+
+        matplotlib.use("Agg", force=True)
+
+        from parsers.PrimitiveParsers import YamlFileParser
+        from param_id.paramID import CVS0DParamID
+
+        saved_best_cost = float(np.load(best_cost_path))
+        saved_best_param_vals = np.load(best_param_vals_path)
+
+        yaml_parser = YamlFileParser()
+        parsed = yaml_parser.parse_user_inputs_file(
+            config, obs_path_needed=True, do_generation_with_fit_parameters=True
+        )
+
+        plotter = CVS0DParamID(
+            parsed["uncalibrated_model_path"],
+            parsed["model_type"],
+            parsed["param_id_method"],
+            False,
+            parsed["file_prefix"],
+            params_for_id_path=parsed["params_for_id_path"],
+            param_id_obs_path=parsed["param_id_obs_path"],
+            sim_time=parsed["sim_time"],
+            pre_time=parsed["pre_time"],
+            solver_info=parsed["solver_info"],
+            optimiser_options=parsed.get("optimiser_options", None),
+            dt=parsed["dt"],
+            param_id_output_dir=parsed["param_id_output_dir"],
+            resources_dir=parsed["resources_dir"],
+            one_rank=True,
+        )
+        plotter.set_best_param_vals(saved_best_param_vals)
+
+        cost_before, _ = plotter.param_id.get_cost_and_obs_from_params(
+            saved_best_param_vals, reset=True
+        )
+        plotter.plot_outputs()
+        cost_after, _ = plotter.param_id.get_cost_and_obs_from_params(
+            saved_best_param_vals, reset=True
+        )
+        plotter.close_simulation()
+
+        assert np.isclose(cost_before, saved_best_cost, rtol=0.0, atol=1e-6)
+        assert np.isclose(cost_after, saved_best_cost, rtol=0.0, atol=1e-6)
+        assert np.isclose(cost_before, cost_after, rtol=0.0, atol=1e-10)
 
 
 @pytest.mark.integration

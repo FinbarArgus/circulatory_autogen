@@ -26,7 +26,7 @@
   "data_items": [
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "V_max_stim",
+      "name_for_plotting": "V_{max}",
       "data_type": "constant",
       "operation": "max",
       "operands": ["soma_SN/V"],
@@ -40,7 +40,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "f_window_pre_stim",
+      "name_for_plotting": "f_{win,pre}",
       "data_type": "constant",
       "operation": "calc_spike_frequency_windowed",
       "operands": ["time", "soma_SN/V"],
@@ -54,7 +54,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "f_window_stim",
+      "name_for_plotting": "f_{win,stim}",
       "data_type": "constant",
       "operation": "calc_spike_frequency_windowed",
       "operands": ["time", "soma_SN/V"],
@@ -68,7 +68,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "t_first_peak",
+      "name_for_plotting": "t_{peak}",
       "data_type": "constant",
       "operation": "first_peak_time",
       "operands": ["time", "soma_SN/V"],
@@ -82,7 +82,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "V_steady_avg_stim",
+      "name_for_plotting": "V_{SS,avg}",
       "data_type": "constant",
       "operation": "steady_state_avg",
       "operands": ["soma_SN/V"],
@@ -96,7 +96,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "V_steady_min_stim",
+      "name_for_plotting": "V_{SS,min}",
       "data_type": "constant",
       "operation": "steady_state_min",
       "operands": ["soma_SN/V"],
@@ -110,7 +110,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "spike_period_stim",
+      "name_for_plotting": "T_{spike}",
       "data_type": "constant",
       "operation": "calc_spike_period",
       "operands": ["time", "soma_SN/V"],
@@ -124,7 +124,7 @@
     },
     {
       "variable": "soma_SN/V",
-      "name_for_plotting": "min_peak_stim",
+      "name_for_plotting": "V_{min,peak}",
       "data_type": "constant",
       "operation": "calc_min_peak",
       "operands": ["time", "soma_SN/V"],
