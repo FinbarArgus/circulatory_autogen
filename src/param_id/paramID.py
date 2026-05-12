@@ -58,7 +58,11 @@ from datetime import date
 # from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser, ObsAndParamDataParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser, SciPyMinimizeOptimiser
-from param_id.differentiable import assert_casadi_differentiable, is_circulatory_differentiable
+from param_id.differentiable import (
+    assert_casadi_differentiable,
+    assert_mle_cost_for_bayesian,
+    is_circulatory_differentiable,
+)
 from param_id.plot_outputs import ParamIDPlotOutputs
 import pandas as pd
 try:
@@ -1197,8 +1201,7 @@ class OpencorParamID():
 
     def get_lnlikelihood_from_params(self, param_vals):
         cost = self.get_cost_from_params(param_vals)
-        # lnlikelihood = -0.5*cost # TODO check this is correct for all multimodal distributions
-        lnlikelihood = -cost # TODO check this is correct for all multimodal distributions
+        lnlikelihood = -cost 
 
         return lnlikelihood
     
@@ -1855,6 +1858,9 @@ class OpencorMCMC(OpencorParamID):
                   'choosing defaults of 5000 and 2*num_params')
 
         self.DEBUG = DEBUG
+        assert_mle_cost_for_bayesian(
+            self.cost_type, self.cost_funcs_dict, "MCMC (log-likelihood uses -cost)"
+        )
 
     def run(self):
         comm = MPI.COMM_WORLD

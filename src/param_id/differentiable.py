@@ -44,3 +44,27 @@ def assert_casadi_differentiable(obs_info, cost_type, operation_funcs_dict, cost
                     f"Cost function {name!r} is used in casadi_python mode but is not marked "
                     f"@differentiable."
                 )
+
+
+def assert_mle_cost_for_bayesian(cost_type, cost_funcs_dict, context):
+    """
+    MCMC and Laplace use ``ln L = -cost`` in paramID; ``cost`` must be an MLE / negative
+    log-likelihood-style objective (functions decorated with ``@is_MLE``).
+
+    Raises:
+        ValueError: if any referenced cost is missing or lacks ``is_MLE``.
+    """
+    if cost_type is None or cost_funcs_dict is None:
+        return
+    raw = cost_type if isinstance(cost_type, (list, tuple)) else [cost_type]
+    for name in dict.fromkeys(raw):
+        if name is None:
+            continue
+        fn = cost_funcs_dict.get(name)
+        if fn is None:
+            raise ValueError(f"Unknown cost function {name!r} in cost_type (needed for {context}).")
+        if not getattr(fn, "is_MLE", False):
+            raise ValueError(
+                f"Cost function {name!r} is not marked @is_MLE but {context} requires an MLE-style "
+                f"cost (e.g. gaussian_MLE) so that ln L = -cost is valid."
+            )

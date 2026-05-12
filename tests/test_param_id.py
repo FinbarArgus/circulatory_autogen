@@ -25,12 +25,24 @@ def test_casadi_differentiability_assert_passes_for_core_ops_and_costs():
     costs = sfp.get_cost_funcs_dict("casadi")
     assert_casadi_differentiable(
         {"operations": ["mean", "max"]},
-        ["gaussian_MLE", "MSE"],
+        ["gaussian_MLE"],
         ops,
         costs,
     )
 
 
+def test_mcmc_and_laplace_require_is_mle_cost():
+    from param_id.differentiable import assert_mle_cost_for_bayesian
+    from parsers.PrimitiveParsers import scriptFunctionParser
+
+    sfp = scriptFunctionParser()
+    costs = sfp.get_cost_funcs_dict("numpy")
+    assert_mle_cost_for_bayesian("gaussian_MLE", costs, "MCMC")
+    assert_mle_cost_for_bayesian(["gaussian_MLE"], costs, "Laplace")
+    with pytest.raises(ValueError, match="is_MLE"):
+        assert_mle_cost_for_bayesian("MSE", costs, "MCMC")
+    with pytest.raises(ValueError, match="is_MLE"):
+        assert_mle_cost_for_bayesian("AE", costs, "Laplace approximation")
 def test_casadi_differentiability_assert_raises_on_plain_operation():
     from param_id.differentiable import assert_casadi_differentiable
 

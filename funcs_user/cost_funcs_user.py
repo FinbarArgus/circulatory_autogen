@@ -10,6 +10,8 @@ use it as the cost.
 When making your own cost function make sure it works for scalars and vectors. Otherwise put an error message so that if it is used
 for the wrong data type it gets called out and stopped.
 
+IMPORTANT FOR BAYESIAN: For MLE estimators the functions below calculate the cost which equals the negative log likelihood.
+
 Backend-dependent costs use the module-level ``mb`` (set to numpy or casadi when the cost dict is built).
 
 All top-level functions defined in this file are registered as costs except private names
@@ -40,15 +42,18 @@ mb = make_math_backend("numpy")
 @differentiable
 @is_MLE
 def gaussian_MLE(output, desired_mean, std, weight):
-    cost = mb.power((output - desired_mean) / std, 2) * weight
-    if mb.numel(output) > 1:
-        cost = 0.5 * mb.sum(cost) / mb.numel(cost)
-    return cost
+    """Gaussian negative log-likelihood contribution (up to constants), averaged over elements.
+
+    Always uses the ``0.5 * mean`` form so scalar outputs match the same NLL scaling as series
+    (avoids a 2x Hessian / 0.5x covariance mismatch under ``ln L = -cost`` in paramID).
+    """
+    per = mb.power((output - desired_mean) / std, 2) * weight
+    return 0.5 * mb.sum(per) / mb.numel(per)
 
 
 @differentiable
 def MSE(*args, **kwargs):
-    return 2.0*gaussian_MLE(*args, **kwargs)
+    return 2.0*gaussian_MLE(*args, **kwargs) # because the MLE cost function is the negative log likelihood, so we need to multiply by 2 to get the MSE
 
 
 @is_MLE
