@@ -48,7 +48,7 @@ def gaussian_MLE(output, desired_mean, std, weight):
 
 @differentiable
 def MSE(*args, **kwargs):
-    return gaussian_MLE(*args, **kwargs)
+    return 2.0*gaussian_MLE(*args, **kwargs)
 
 
 @is_MLE
