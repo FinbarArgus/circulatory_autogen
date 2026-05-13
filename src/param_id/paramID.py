@@ -86,8 +86,41 @@ warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
 # it needs to be global so that it can be used in calculate_lnlikelihood()
 # without having its attributes pickled. opencor simulation objects
 # can't be pickled because they are pyqt.
-global mcmc_object
 mcmc_object = None
+
+
+def ensure_mle_cost_type_for_bayesian_inner(inner, inp_data_dict):
+    """
+    Set ``obs_info['cost_type']`` on an OpencorParamID / OpencorMCMC instance so every
+    observable uses an ``@is_MLE`` cost (required for ``ln L = -cost`` in MCMC / Laplace).
+
+    Chooses the first ``cost_type`` string found in optimiser / mcmc option dicts in
+    ``inp_data_dict`` that names an ``@is_MLE`` cost in ``inner.cost_funcs_dict``;
+    otherwise ``gaussian_MLE``.
+    """
+    if inner is None or getattr(inner, "obs_info", None) is None:
+        return
+    costs = getattr(inner, "cost_funcs_dict", None) or {}
+    chosen = None
+    option_dicts = []
+    if inp_data_dict.get("DEBUG"):
+        option_dicts.append(inp_data_dict.get("debug_optimiser_options") or {})
+        option_dicts.append(inp_data_dict.get("debug_mcmc_options") or {})
+    option_dicts.append(inp_data_dict.get("optimiser_options") or {})
+    option_dicts.append(inp_data_dict.get("mcmc_options") or {})
+    for src in option_dicts:
+        if not isinstance(src, dict):
+            continue
+        ct = src.get("cost_type")
+        fn = costs.get(ct) if ct else None
+        if fn is not None and getattr(fn, "is_MLE", False):
+            chosen = ct
+            break
+    if chosen is None:
+        chosen = "gaussian_MLE"
+    n = inner.obs_info["num_obs"]
+    inner.obs_info["cost_type"] = [chosen] * n
+    inner.cost_type = inner.obs_info["cost_type"]
 
 
 def _require_casadi():
