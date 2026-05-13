@@ -262,7 +262,7 @@ def test_param_id_3compartment_succeeds(base_user_inputs, resources_dir, temp_ou
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
         'generated_models_dir': temp_generated_models_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 500},
+        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 500, 'cost_type': 'gaussian_MLE'},
     })
 
     _ensure_cellml_model_generated(config, mpi_comm)
@@ -447,7 +447,7 @@ def test_param_id_test_fft_cost_is_zero(base_user_inputs, resources_dir, temp_ou
         'param_id_obs_path': os.path.join(resources_dir, 'test_fft_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
         'generated_models_dir': temp_generated_models_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 2000, 'max_patience': 500},  
+        'debug_optimiser_options': {'num_calls_to_function': 2000, 'max_patience': 500, 'cost_type': 'gaussian_MLE'},  
     })
 
     _ensure_cellml_model_generated(config, mpi_comm)
@@ -783,7 +783,7 @@ def test_param_id_simple_physiological_succeeds(base_user_inputs, resources_dir,
         'param_id_obs_path': os.path.join(resources_dir, 'simple_physiological_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
         'generated_models_dir': temp_generated_models_dir,
-        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 50},
+        'debug_optimiser_options': {'num_calls_to_function': 60, 'max_patience': 50, 'cost_type': 'gaussian_MLE'},
     })
 
     _ensure_cellml_model_generated(config, mpi_comm)
@@ -1566,7 +1566,7 @@ def test_laplace_approximation_hessian_validation(base_user_inputs, resources_di
         "params_for_id_file": "Simple_ODE_Benchmark_params_for_id.csv",  # Specify which params to identify
         'param_id_obs_path': os.path.join(resources_dir, 'Simple_ODE_Benchmark_obs_data.json'),  
         'param_id_output_dir': temp_output_dir,  
-        'debug_optimiser_options': {'num_calls_to_function': 20},  
+        'debug_optimiser_options': {'num_calls_to_function': 20, 'cost_type': 'gaussian_MLE'},  
     })  
       
     # Generate model and run parameter identification (rank 0 only for setup)  
