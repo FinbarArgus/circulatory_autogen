@@ -874,6 +874,47 @@ class OpencorParamID():
             )
         self.DEBUG = DEBUG
 
+        # Per (experiment, subexperiment) count of observables with non-zero weight. The sum
+        # over all subs equals the divisor applied in get_cost_obs_and_pred_from_params and
+        # is the exact factor that recovers summed NLL in get_lnlikelihood_from_params.
+        self._num_weighted_obs_by_exp_sub = None
+        self._lnlikelihood_denorm_factor = 1.0
+        self._refresh_num_weighted_obs_tables()
+
+    def _refresh_num_weighted_obs_tables(self):
+        """Rebuild weighted-observable counts from protocol weight maps (call after obs/protocol change).
+
+        ``_lnlikelihood_denorm_factor`` is the total number of weighted observable slots
+        across all experiments and subexperiments; it matches the denominator used when
+        forming the mean cost in ``get_cost_obs_and_pred_from_params`` for a full run.
+        """
+        if self.protocol_info is None:
+            self._num_weighted_obs_by_exp_sub = None
+            self._lnlikelihood_denorm_factor = 1.0
+            return
+        by_exp_sub = []
+        total = 0
+        for exp_idx in range(self.protocol_info["num_experiments"]):
+            row = []
+            for sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
+                wc = self.protocol_info["scaled_weight_const_from_exp_sub"][exp_idx][sub_idx]
+                ws = self.protocol_info["scaled_weight_series_from_exp_sub"][exp_idx][sub_idx]
+                wa = self.protocol_info["scaled_weight_amp_from_exp_sub"][exp_idx][sub_idx]
+                wp = self.protocol_info["scaled_weight_phase_from_exp_sub"][exp_idx][sub_idx]
+                wd = self.protocol_info["scaled_weight_prob_dist_from_exp_sub"][exp_idx][sub_idx]
+                n = int(
+                    np.sum(wc != 0)
+                    + np.sum(ws != 0)
+                    + np.sum(wa != 0)
+                    + np.sum(wp != 0)
+                    + np.sum(wd != 0)
+                )
+                row.append(n)
+                total += n
+            by_exp_sub.append(row)
+        self._num_weighted_obs_by_exp_sub = by_exp_sub
+        self._lnlikelihood_denorm_factor = float(total) if total > 0 else 1.0
+
     def initialise_sim_helper(self):
         # Get method from solver_info (check both 'solver' and 'method' for backward compatibility)
         solver = self.solver_info.get('solver')
@@ -912,6 +953,7 @@ class OpencorParamID():
         self.protocol_info = protocol_info
         # set the protocol_info in the sim_helper so that the protocol traces can be accessed.
         self.sim_helper.set_protocol_info(self.protocol_info)
+        self._refresh_num_weighted_obs_tables()
 
     def set_prediction_info(self, prediction_info):
         self.prediction_info = prediction_info
@@ -919,6 +961,7 @@ class OpencorParamID():
     def set_obs_info(self, obs_info):
         self.obs_info = obs_info
         self.cost_type = self.obs_info["cost_type"]
+        self._refresh_num_weighted_obs_tables()
 
     def set_optimiser_options(self, optimiser_options):
         self.optimiser_options = optimiser_options
@@ -1128,10 +1171,9 @@ class OpencorParamID():
                     return np.inf, [], []
 
 
-        cost = 0
+        cost = 0.0
+        weighted_obs_denominator = 0
         for exp_idx in exp_idxs_to_run:
-            if exp_idx not in exp_idxs_to_run:
-                continue
             for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
                 subexp_count = int(np.sum([num_sub for num_sub in 
                                             self.protocol_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
@@ -1139,9 +1181,26 @@ class OpencorParamID():
                 sub_cost = self.get_cost_from_operands(operands_outputs_list[subexp_count], 
                                                             exp_idx=exp_idx, sub_idx=this_sub_idx)   
                 cost += sub_cost
-        
-        # average cost over all subexperiments so that it is comparable between diff number of subexperiments
-        cost = cost/self.protocol_info["num_sub_total"] 
+                if self._num_weighted_obs_by_exp_sub is not None:
+                    weighted_obs_denominator += self._num_weighted_obs_by_exp_sub[exp_idx][this_sub_idx]
+                else:
+                    wc = self.protocol_info["scaled_weight_const_from_exp_sub"][exp_idx][this_sub_idx]
+                    ws = self.protocol_info["scaled_weight_series_from_exp_sub"][exp_idx][this_sub_idx]
+                    wa = self.protocol_info["scaled_weight_amp_from_exp_sub"][exp_idx][this_sub_idx]
+                    wp = self.protocol_info["scaled_weight_phase_from_exp_sub"][exp_idx][this_sub_idx]
+                    wd = self.protocol_info["scaled_weight_prob_dist_from_exp_sub"][exp_idx][this_sub_idx]
+                    weighted_obs_denominator += int(
+                        np.sum(wc != 0)
+                        + np.sum(ws != 0)
+                        + np.sum(wa != 0)
+                        + np.sum(wp != 0)
+                        + np.sum(wd != 0)
+                    )
+
+        # Mean NLL contribution per weighted observable slot (summed raw sub costs / global count).
+        if weighted_obs_denominator <= 0:
+            weighted_obs_denominator = 1
+        cost = cost / float(weighted_obs_denominator)
 
         return cost, operands_outputs_list, pred_outputs_list
 
@@ -1201,7 +1260,8 @@ class OpencorParamID():
 
     def get_lnlikelihood_from_params(self, param_vals):
         cost = self.get_cost_from_params(param_vals)
-        lnlikelihood = -cost 
+        # cost = (sum of raw per-sub costs) / total weighted observable count; recover summed NLL.
+        lnlikelihood = -cost * self._lnlikelihood_denorm_factor
 
         return lnlikelihood
     
@@ -1263,12 +1323,17 @@ class OpencorParamID():
         updated_weight_phase_vec = self.protocol_info["scaled_weight_phase_from_exp_sub"][exp_idx][sub_idx]
         updated_weight_prob_dist_vec = self.protocol_info["scaled_weight_prob_dist_from_exp_sub"][exp_idx][sub_idx]
         
-        # get number of obs that don't have zero weights
-        num_weighted_obs = np.sum(updated_weight_const_vec != 0) + \
-                            np.sum(updated_weight_series_vec != 0) + \
-                            np.sum(updated_weight_amp_vec != 0) + \
-                            np.sum(updated_weight_phase_vec != 0) + \
-                            np.sum(updated_weight_prob_dist_vec != 0)
+        # get number of obs that don't have zero weights (cached in __init__ / refresh on obs/protocol change)
+        if self._num_weighted_obs_by_exp_sub is not None:
+            num_weighted_obs = self._num_weighted_obs_by_exp_sub[exp_idx][sub_idx]
+        else:
+            num_weighted_obs = int(
+                np.sum(updated_weight_const_vec != 0)
+                + np.sum(updated_weight_series_vec != 0)
+                + np.sum(updated_weight_amp_vec != 0)
+                + np.sum(updated_weight_phase_vec != 0)
+                + np.sum(updated_weight_prob_dist_vec != 0)
+            )
         
         # this subexperiment doesn't have any weighted observables, so no cost
         if num_weighted_obs == 0.0:
@@ -1289,7 +1354,6 @@ class OpencorParamID():
                     if updated_weight_const_vec[const_idx] != 0:
                         cost += self.cost_funcs_dict[self.cost_type[obs_idx]](const[const_idx], self.obs_info["ground_truth_const"][const_idx],
                                                         self.obs_info["std_const_vec"][const_idx], updated_weight_const_vec[const_idx])
-            cost = cost / num_weighted_obs
             return cost
         
         # # TODO change functionality so the cost type is defined in the obs_data.json not the user_inputs.yaml
@@ -1419,11 +1483,7 @@ class OpencorParamID():
                                                                     updated_weight_prob_dist_vec[prob_dist_idx])
             
 
-        cost = (cost + series_cost + amp_cost + phase_cost + prob_dist_cost) / num_weighted_obs
-
-        
-
-        return cost
+        return cost + series_cost + amp_cost + phase_cost + prob_dist_cost
 
     def get_obs_output_dict(self, operands_outputs, get_all_series=False, is_symbolic=False):
         if operands_outputs == None:

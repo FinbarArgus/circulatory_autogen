@@ -6,9 +6,7 @@ sensitivity_outputs
 venv
 __pycache__/
 
-.pytest_autogen_status
-.pytest_param_id_lock
-.pytest_param_id_results
+.pytest*
 claude.md
 log_test.log
 module_config_user/old/

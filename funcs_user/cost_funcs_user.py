@@ -48,12 +48,18 @@ def gaussian_MLE(output, desired_mean, std, weight):
     (avoids a 2x Hessian / 0.5x covariance mismatch under ``ln L = -cost`` in paramID).
     """
     per = mb.power((output - desired_mean) / std, 2) * weight
-    return 0.5 * mb.sum(per) / mb.numel(per)
+    return 0.5 * mb.sum(per) 
 
 
 @differentiable
 def MSE(*args, **kwargs):
-    return 2.0*gaussian_MLE(*args, **kwargs) # because the MLE cost function is the negative log likelihood, so we need to multiply by 2 to get the MSE
+    """MSE cost function, averaged over elements.
+    because the MLE cost function is the negative log likelihood, we need to multiply by 2 to get the MSE
+
+    to normalise by the number of elements in the output, we divide by the number of elements in the output
+
+    """
+    return 2.0*gaussian_MLE(*args, **kwargs)/ mb.numel(args[0]) 
 
 
 @is_MLE

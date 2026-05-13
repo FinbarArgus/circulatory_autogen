@@ -1556,6 +1556,7 @@ def test_laplace_approximation_hessian_validation(base_user_inputs, resources_di
         'param_id_method': 'genetic_algorithm',  
         'pre_time': 0.5,  
         'sim_time': 10.0,  
+        'cost_type': 'gaussian_MLE',
         'dt': 0.1,  
         'DEBUG': False,  
         'do_mcmc': False,  
