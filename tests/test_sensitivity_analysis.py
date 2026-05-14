@@ -94,7 +94,7 @@ def test_sensitivity_analysis_3compartment_succeeds(base_user_inputs, resources_
         assert os.path.exists(output_dir), f"Sensitivity analysis output directory should exist: {output_dir}"
 
 
-def test_sensitivity_analysis_NewSAtest_succeeds(
+def test_sensitivity_analysis_3compartment_extra_ops_succeeds(
     base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
 ):
     """

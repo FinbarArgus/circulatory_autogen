@@ -699,28 +699,24 @@ def register_user_operations(registry, backend):
 
 
 @series_to_constant
-def calculate_delta_predict3(x=None, series_output=False, **kwargs):
+def calculate_two_observable_difference(x=None, series_output=False, **kwargs):
     if "pred1" in kwargs:
         k_value1 = kwargs["pred1"]
-        #print("[debug] k_value1 =", k_value1)
     else:
-        #print("[debug] k not found in kwargs")
-        k_value1 = 0
-    #k = output_key
+        print("predict 1 results did not found in kwargs, please check corresponding experiment's operands/operation!")
+        raise RuntimeError(f"Invalid predict1 results detected: Aborting...")
+    
     if "pred2" in kwargs:
         k_value2 = kwargs["pred2"]
     else:
-        k_value2 = 0
+        print("predict 2 results did not found in kwargs, please check corresponding experiment's operands/operation!")
+        raise RuntimeError(f"Invalid predict2 results detected: Aborting...")
     
-    if k_value1 == 0 or k_value1 == 1e-4: 
-        print("[debug][function][x,k,delta]=",x_new,k_value1,delta_x)
     delta_x = k_value2 - k_value1
     #print("[debug][function][x,k1,k2]=",k_value1,k_value2)
     if series_output:
-        #print("[debug][function]delta=",x-k)
         return (k_value2-k_value1)
     else:
-        #print("[debug][function]delta2=",(np.mean(x)-k))
         return delta_x
 
 
