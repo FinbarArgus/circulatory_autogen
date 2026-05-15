@@ -712,12 +712,10 @@ def calculate_two_observable_difference(x=None, series_output=False, **kwargs):
         print("predict 2 results did not found in kwargs, please check corresponding experiment's operands/operation!")
         raise RuntimeError(f"Invalid predict2 results detected: Aborting...")
     
-    delta_x = k_value2 - k_value1
-    #print("[debug][function][x,k1,k2]=",k_value1,k_value2)
     if series_output:
-        return (k_value2-k_value1)
+        return (k_value2 - k_value1)
     else:
-        return delta_x
+        return (k_value2 - k_value1)
 
 
 
