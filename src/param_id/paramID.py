@@ -8,7 +8,6 @@ import sys
 from sys import exit
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../utilities'))
-# Ensure solver_wrappers is importable for SimulationHelper/opencor_helper
 sys.path.append(os.path.join(os.path.dirname(__file__), '../solver_wrappers'))
 import math as math
 try:
@@ -30,6 +29,7 @@ import traceback
 from utility_funcs import Normalise_class
 paperPlotSetup.Setup_Plot(3)
 from solver_wrappers import get_simulation_helper
+from protocol_runners.protocol_executor import ProtocolExecutor
 from parsers.PrimitiveParsers import scriptFunctionParser
 from mpi4py import MPI
 import re
@@ -885,6 +885,7 @@ class OpencorParamID():
                 self.pre_time = None
 
         self.sim_helper = self.initialise_sim_helper()
+        self._protocol_executor = ProtocolExecutor(self.sim_helper)
 
         if self.sim_time is not None and self.pre_time is not None:
             self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
@@ -1152,86 +1153,70 @@ class OpencorParamID():
     def get_cost_obs_and_pred_from_params(self, param_vals, reset=True, 
                                           only_one_exp=-1, pred_names=None, do_ad=False):
 
-        pred_outputs_list = []
         # loop through subexperiments
         if only_one_exp == -1:
-            # unless the user wants to just to one experiment, reset must be true
+            # unless the user wants to just one experiment, reset must be true
             reset = True
-            exp_idxs_to_run = range(self.protocol_info["num_experiments"])
+            exp_idxs_to_run = list(range(self.protocol_info["num_experiments"]))
         else:
             exp_idxs_to_run = [only_one_exp]
 
         # TODO: Test AD with multiple subexperiments
         if do_ad:
-            reset = False 
-            
+            reset = False
+
+        # Run the protocol loop via the shared ProtocolExecutor.
+        # reset_after_experiment mirrors the original `reset` flag: when do_ad=True
+        # (reset=False) the solver state must be preserved across experiments.
+        sim_success, results_by_sub, extra_by_sub, _ = self._protocol_executor.run_protocol(
+            self.protocol_info,
+            id_param_names=self.param_id_info["param_names"],
+            id_param_vals=param_vals,
+            result_variables=self.obs_info["operands"],
+            extra_result_variables=pred_names,
+            exp_indices=exp_idxs_to_run,
+            continue_on_failure=False,
+            reset_after_experiment=reset,
+        )
+
+        if not sim_success:
+            print('simulation failed with params...')
+            print(param_vals)
+            return np.inf, [], []
+
+        # Rebuild flat operands_outputs_list indexed by cumulative subexp_count,
+        # preserving None entries for skipped experiments (needed by downstream callers).
+        num_experiments = self.protocol_info["num_experiments"]
+        num_sub_per_exp = self.protocol_info["num_sub_per_exp"]
         operands_outputs_list = []
-        for exp_idx in range(self.protocol_info["num_experiments"]):
-            if exp_idx not in exp_idxs_to_run:
-                # Preserve indexing expected by downstream subexp_count lookups.
-                for _ in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
-                    operands_outputs_list.append(None)
-                continue
+        pred_outputs_list = []
+        for exp_idx in range(num_experiments):
+            for sub_idx in range(num_sub_per_exp[exp_idx]):
+                operands_outputs_list.append(
+                    results_by_sub.get((exp_idx, sub_idx))
+                )
+                if pred_names is not None:
+                    pred_outputs_list.append(
+                        extra_by_sub.get((exp_idx, sub_idx))
+                    )
 
-            # set param vals for this iteration of param_id
-            self.sim_helper.set_param_vals(self.param_id_info["param_names"], param_vals)
-            self.sim_helper.reset_states() # this needs to be done to make sure states defined by a constant are set
-            current_time = 0
-            for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
-                subexp_count = int(np.sum([num_sub for num_sub in 
-                                            self.protocol_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
-        
-                self.sim_time = self.protocol_info["sim_times"][exp_idx][this_sub_idx]
-                self.pre_time = self.protocol_info["pre_times"][exp_idx]
-                # resize the experiment and change parameters for this subexperiment
-                if this_sub_idx == 0:
-                    # we need a presim here 
-                    self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
-                    current_time += self.pre_time
-                else:
-                    self.sim_helper.update_times(self.dt, current_time, 
-                                                self.sim_time, 0.0)
-                # change parameters
-                self.sim_helper.set_param_vals(list(self.protocol_info["params_to_change"].keys()), 
-                                        [self.protocol_info["params_to_change"][param_name][exp_idx][this_sub_idx] for \
-                                            param_name in self.protocol_info["params_to_change"].keys()])
-
-                success = self.sim_helper.run()
-                current_time += self.sim_time
-                if success:
-                    # TODO currently we calculate the outputs for all subexperiments, which is inefficient
-                    # TODO we could calculate the outputs for each subexperiment only when needed for the cost
-                    # TODO Fine for now, simulation time is much greater than cost calculation, so no big issue yet.
-                    operands_outputs = self.sim_helper.get_results(self.obs_info["operands"])
-
-                    operands_outputs_list.append(operands_outputs)
-
-                    if pred_names is not None:
-                        pred_outputs = self.sim_helper.get_results(pred_names)
-                        pred_outputs_list.append(pred_outputs)
-                    
-                    # reset params
-                    if reset and this_sub_idx == self.protocol_info["num_sub_per_exp"][exp_idx] - 1:
-                        # reset if we are at the end of this experiment
-                        self.sim_helper.reset_and_clear()
-
-                else:
-                    # simulation set cost to large,
-                    print('simulation failed with params...')
-                    print(param_vals)
-                    print('failed on experiment idx = {} subexperiment idx = {}'.format(exp_idx, this_sub_idx))
-                    return np.inf, [], []
-
+        # Update sim_time / pre_time to the last-run values (preserves existing behaviour).
+        if exp_idxs_to_run:
+            last_exp = exp_idxs_to_run[-1]
+            self.sim_time = self.protocol_info["sim_times"][last_exp][-1]
+            self.pre_time = self.protocol_info["pre_times"][last_exp]
 
         cost = 0.0
         weighted_obs_denominator = 0
         for exp_idx in exp_idxs_to_run:
-            for this_sub_idx in range(self.protocol_info["num_sub_per_exp"][exp_idx]):
-                subexp_count = int(np.sum([num_sub for num_sub in 
-                                            self.protocol_info["num_sub_per_exp"][:exp_idx]]) + this_sub_idx)
+            for this_sub_idx in range(num_sub_per_exp[exp_idx]):
+                subexp_count = int(np.sum([num_sub for num_sub in
+                                           num_sub_per_exp[:exp_idx]]) + this_sub_idx)
 
-                sub_cost = self.get_cost_from_operands(operands_outputs_list[subexp_count], 
-                                                            exp_idx=exp_idx, sub_idx=this_sub_idx)   
+                sub_cost = self.get_cost_from_operands(
+                    operands_outputs_list[subexp_count],
+                    exp_idx=exp_idx, sub_idx=this_sub_idx,
+                )
                 cost += sub_cost
                 if self._num_weighted_obs_by_exp_sub is not None:
                     weighted_obs_denominator += self._num_weighted_obs_by_exp_sub[exp_idx][this_sub_idx]
