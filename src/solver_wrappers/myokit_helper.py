@@ -436,7 +436,7 @@ class SimulationHelper:
             log = self._make_log()
             # Use explicit log times so the end-point is included.
             start_time = self.simulation.time()
-            eps = 1e-12 # run for eps after the end time to make sure the final requested log point is emitted.
+            eps = self.dt * 1e-9 # run for eps after the end time to make sure the final requested log point is emitted.
             # Logical output grid on the cumulative protocol timeline
             logical_log_times = np.asarray(self.tSim, dtype=float) - float(self.pre_time)
             if logical_log_times.size == 0:
