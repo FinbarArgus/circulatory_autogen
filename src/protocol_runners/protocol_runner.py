@@ -102,7 +102,8 @@ class ProtocolRunner:
         """Return a mapping from variable name to index in the result list."""
         return {name: idx for idx, name in enumerate(self.variable_names)}
 
-    def run_protocols(self, model_path, protocol_info=None):
+    def run_protocols(self, model_path, protocol_info=None,
+                      id_param_names=None, id_param_vals=None):
         """
         Run the protocol defined by *protocol_info* and return result arrays.
 
@@ -113,6 +114,10 @@ class ProtocolRunner:
             was loaded at construction time and this argument is not re-used.
         protocol_info : dict, optional
             If None, read from ``inp_data_dict['param_id_obs_path']``.
+        id_param_names : list, optional
+            Parameter names for identification (same format as param_id).
+        id_param_vals : array-like, optional
+            Values to apply before each experiment (e.g. calibrated parameters).
 
         Returns
         -------
@@ -148,6 +153,8 @@ class ProtocolRunner:
         success, results_by_sub, _, t_by_exp = self._executor.run_protocol(
             protocol_info,
             result_variables=None,
+            id_param_names=id_param_names,
+            id_param_vals=id_param_vals,
         )
         if not success:
             raise RuntimeError('Protocol simulation failed.')
