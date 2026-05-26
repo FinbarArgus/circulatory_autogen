@@ -306,24 +306,19 @@ class CVS0DParamID():
                 output_dir = getattr(self.param_id, "output_dir", None)
                 protocol_info = getattr(self.param_id, "protocol_info", None)
                 best_param_vals = getattr(self.param_id, "best_param_vals", None)
-                sim_helper = getattr(self.param_id, "sim_helper", None)
 
-                if output_dir and protocol_info and best_param_vals is not None and sim_helper is not None:
-                    num_experiments = int(protocol_info.get("num_experiments", 0) or 0)
-                    expected0 = os.path.join(output_dir, "all_outputs_with_best_param_vals_exp_0.npz")
-                    if num_experiments > 0 and not os.path.exists(expected0):
+                if output_dir and protocol_info and best_param_vals is not None:
+                    expected0 = os.path.join(
+                        output_dir, "all_outputs_with_best_param_vals_exp_0.npz"
+                    )
+                    if not os.path.exists(expected0):
                         print(
-                            "[param_id] all_outputs_with_best_param_vals_exp_*.npz not found; "
-                            "generating per-experiment output dumps now."
+                            "[param_id] all_outputs_with_best_param_vals_exp_*.npz "
+                            "not found; generating per-experiment output dumps now."
                         )
-                        for exp_idx in range(num_experiments):
-                            # Run a single experiment, then capture all model outputs.
-                            self.param_id.simulate_once(best_param_vals, reset=True, only_one_exp=exp_idx)
-                            all_outputs_dict = sim_helper.get_all_results_dict()
-                            np.savez(
-                                os.path.join(output_dir, f"all_outputs_with_best_param_vals_exp_{exp_idx}.npz"),
-                                **all_outputs_dict,
-                            )
+                        self.param_id.save_all_outputs_per_experiment(
+                            best_param_vals, suffix=""
+                        )
         except Exception as e:
             # Don't fail an otherwise-successful optimisation because of optional artifacts.
             try:
@@ -451,7 +446,34 @@ class CVS0DParamID():
         else:
             self.param_id.set_best_param_vals(best_param_vals)
 
+    def _resolve_best_param_vals_for_outputs(self):
+        """Return best-fit parameters for full-output NPZ dumps (memory or disk)."""
+        if self.mcmc_instead:
+            vals = mcmc_object.best_param_vals
+        else:
+            vals = self.param_id.best_param_vals
+        if vals is not None:
+            return vals
+        if self.output_dir is not None:
+            npy_path = os.path.join(self.output_dir, "best_param_vals.npy")
+            if os.path.isfile(npy_path):
+                vals = np.load(npy_path)
+                self.set_best_param_vals(vals)
+                print("[param_id] loaded best_param_vals.npy for NPZ output dump")
+                return vals
+        print(
+            "[param_id] WARNING: best_param_vals not available; "
+            "skipping _plot.npz dumps"
+        )
+        return None
+
     def plot_outputs(self):
+        if self.rank == 0:
+            param_vals = self._resolve_best_param_vals_for_outputs()
+            if param_vals is not None and not self.mcmc_instead:
+                self.param_id.save_all_outputs_per_experiment(
+                    param_vals, suffix="_plot"
+                )
         ParamIDPlotOutputs(self).plot_outputs()
 
     def get_mcmc_samples(self):
@@ -1067,6 +1089,44 @@ class OpencorParamID():
             self.param_norm_obj = Normalise_class(self.param_id_info["param_mins"], self.param_id_info["param_maxs"])
             self.param_init = None
 
+    def save_all_outputs_per_experiment(self, param_vals, suffix=""):
+        """
+        Simulate each experiment with ``param_vals`` and save all model variables to NPZ.
+
+        Parameters
+        ----------
+        param_vals : array-like
+            Parameter values to apply before each per-experiment simulation.
+        suffix : str
+            Inserted before ``.npz`` (e.g. ``"_plot"`` for plot-time dumps).
+        """
+        if MPI.COMM_WORLD.Get_rank() != 0:
+            return
+        if self.output_dir is None or self.protocol_info is None:
+            print(
+                "[param_id] WARNING: cannot save all-outputs npz "
+                "(output_dir or protocol_info missing)"
+            )
+            return
+        num_experiments = int(self.protocol_info.get("num_experiments", 0) or 0)
+        for exp_idx in range(num_experiments):
+            try:
+                self.simulate_once(
+                    param_vals, reset=True, only_one_exp=exp_idx
+                )
+                all_outputs_dict = self.sim_helper.get_all_results_dict()
+                path = os.path.join(
+                    self.output_dir,
+                    f"all_outputs_with_best_param_vals_exp_{exp_idx}{suffix}.npz",
+                )
+                np.savez(path, **all_outputs_dict)
+                print(f"[param_id] saved {os.path.basename(path)}")
+            except Exception as e:
+                print(
+                    f"[param_id] WARNING: failed to write exp {exp_idx} npz "
+                    f"(suffix={suffix!r}): {e}"
+                )
+
     def run(self):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -1170,12 +1230,7 @@ class OpencorParamID():
             print('best fit params : {}'.format(self.best_param_vals))
             print('best cost       : {}'.format(self.best_cost))
 
-            # running with best_param and saving outputs
-            for exp_idx in range(self.protocol_info["num_experiments"]):
-                self.simulate_once(self.best_param_vals, reset=True, only_one_exp=exp_idx)
-                all_outputs_dict = self.sim_helper.get_all_results_dict()
-                # save as npz
-                np.savez(os.path.join(self.output_dir, f'all_outputs_with_best_param_vals_exp_{exp_idx}.npz'), **all_outputs_dict)
+            self.save_all_outputs_per_experiment(self.best_param_vals, suffix="")
 
             if self.param_id_method == 'sp_minimize':
                 print('init gradients  : {}'.format(self.init_gradient))
