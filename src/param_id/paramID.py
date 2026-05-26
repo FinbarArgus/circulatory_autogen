@@ -298,6 +298,39 @@ class CVS0DParamID():
         self._check_info_available()
         self.param_id.run()
 
+        # Some execution paths (or older optimiser flows) can finish without writing
+        # the per-experiment full output dumps. Ensure they exist for downstream
+        # tooling (e.g. post-processing, debug comparisons, external plotting).
+        try:
+            if getattr(self, "rank", 0) == 0:
+                output_dir = getattr(self.param_id, "output_dir", None)
+                protocol_info = getattr(self.param_id, "protocol_info", None)
+                best_param_vals = getattr(self.param_id, "best_param_vals", None)
+                sim_helper = getattr(self.param_id, "sim_helper", None)
+
+                if output_dir and protocol_info and best_param_vals is not None and sim_helper is not None:
+                    num_experiments = int(protocol_info.get("num_experiments", 0) or 0)
+                    expected0 = os.path.join(output_dir, "all_outputs_with_best_param_vals_exp_0.npz")
+                    if num_experiments > 0 and not os.path.exists(expected0):
+                        print(
+                            "[param_id] all_outputs_with_best_param_vals_exp_*.npz not found; "
+                            "generating per-experiment output dumps now."
+                        )
+                        for exp_idx in range(num_experiments):
+                            # Run a single experiment, then capture all model outputs.
+                            self.param_id.simulate_once(best_param_vals, reset=True, only_one_exp=exp_idx)
+                            all_outputs_dict = sim_helper.get_all_results_dict()
+                            np.savez(
+                                os.path.join(output_dir, f"all_outputs_with_best_param_vals_exp_{exp_idx}.npz"),
+                                **all_outputs_dict,
+                            )
+        except Exception as e:
+            # Don't fail an otherwise-successful optimisation because of optional artifacts.
+            try:
+                print(f"[param_id] WARNING: failed to write all-outputs npz dumps: {e}")
+            except Exception:
+                pass
+
     def run_mcmc(self):
         mcmc_object.run()
     
