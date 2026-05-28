@@ -254,7 +254,10 @@ class SimulationHelper:
         integrator_opts = {"reltol": 1e-8, "abstol": 1e-10}
         integrator_opts.update(self.solver_info.get("options", {}))
         self.F = ca.integrator("F", self.solve_ivp_method, ode, 0, self.dt, integrator_opts)
-        self.F_map = self.F.mapaccum(self.n_steps)
+        # Integrate full pre_time + sim_time horizon so slicing by pre_steps
+        # returns the expected sim-time segment.
+        total_steps = int(max(0, len(self.t_eval) - 1))
+        self.F_map = self.F.mapaccum(total_steps)
 
         # Symbolic trajectory — SX function of (states_symb, variables_symb); required for AD
         res = self.F_map(x0=self.states_symb, p=self.variables_symb)
@@ -264,7 +267,7 @@ class SimulationHelper:
         x0 = np.array(self.states, dtype=float)
         p = self.variables
         traj_func = ca.Function('state_traj', [self.states_symb, self.variables_symb], [self.state_traj_symb])
-        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(p)))  # (n_states, n_steps+1)
+        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(p)))  # (n_states, total_steps+1)
 
         self._has_run = True
         self._post_process()

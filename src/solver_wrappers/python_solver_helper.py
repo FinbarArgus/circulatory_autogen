@@ -311,6 +311,21 @@ class SimulationHelper:
         self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
         success = self.run()
         if not success:
+            # Fallback to a robust explicit method for stiff startup transients.
+            original_method = self.solve_ivp_method
+            original_kwargs = copy.deepcopy(self.solve_ivp_kwargs)
+            try:
+                self.solve_ivp_method = "RK45"
+                fallback_kwargs = copy.deepcopy(original_kwargs)
+                fallback_kwargs["max_step"] = min(float(fallback_kwargs.get("max_step", self.dt)), self.dt)
+                self.solve_ivp_kwargs = fallback_kwargs
+                self._init_state()
+                self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+                success = self.run()
+            finally:
+                self.solve_ivp_method = original_method
+                self.solve_ivp_kwargs = original_kwargs
+        if not success:
             raise RuntimeError("Offline pre-time simulation failed")
         self.default_state_inits = copy.copy(self.states)
         self._has_run = False
