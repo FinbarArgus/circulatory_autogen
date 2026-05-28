@@ -379,6 +379,22 @@ class SimulationHelper:
         self._do_ad = True  # switch get_results to symbolic mode for AD
 
     # ---- reset helpers ----
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self._do_ad = False
+        self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+        success = self.run()
+        if not success:
+            raise RuntimeError("Offline pre-time simulation failed")
+        self.states = list(self.state_traj_dm[:, -1])
+        self.default_state_inits = copy.copy(self.states)
+        self._has_run = False
+        self.states = copy.copy(self.default_state_inits)
+        self.model.compute_computed_constants(self.variables)
+
     def reset_and_clear(self, only_one_exp=-1):
         self._do_ad = False
         self._init_state()

@@ -948,6 +948,18 @@ class OpencorParamID():
         else:
             self.n_steps = None
 
+        offline_pre_time = None
+        if self.protocol_info is not None:
+            offline_pre_time = self.protocol_info.get('offline_pre_time')
+        if offline_pre_time is not None and float(offline_pre_time) > 0:
+            if not hasattr(self.sim_helper, 'run_offline_pre_and_set_default_state'):
+                raise NotImplementedError(
+                    f"Solver {self.solver_info.get('solver')} does not support offline_pre_time"
+                )
+            self.sim_helper.run_offline_pre_and_set_default_state(offline_pre_time)
+            if self.sim_time is not None and self.pre_time is not None:
+                self.sim_helper.update_times(self.dt, 0.0, self.sim_time, self.pre_time)
+
         if self.protocol_info is not None:
             self.sim_helper.set_protocol_info(self.protocol_info)
 

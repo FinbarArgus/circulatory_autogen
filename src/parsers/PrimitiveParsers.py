@@ -763,6 +763,59 @@ class JSONFileParser(object):
         for column in add_on_lists:
             vessel_df[column] = add_on_lists[column]
 
+
+def validate_params_to_change(protocol_info):
+    """
+    Raise ValueError if params_to_change rows are not aligned with sim_times.
+
+    Every key must have one experiment row per entry in sim_times, and each row
+    must have one value per subexperiment (len(sim_times[exp_idx])).
+    """
+    ptc = protocol_info.get("params_to_change") or {}
+    if not ptc:
+        return
+
+    sim_times = protocol_info.get("sim_times")
+    if sim_times is None:
+        raise ValueError("protocol_info missing required key 'sim_times'")
+
+    n_exp = len(sim_times)
+    pre_times = protocol_info.get("pre_times")
+    if pre_times is not None and len(pre_times) != n_exp:
+        raise ValueError(
+            f"pre_times length ({len(pre_times)}) does not match "
+            f"num_experiments ({n_exp})"
+        )
+
+    errors = []
+    for key, rows in sorted(ptc.items()):
+        if not isinstance(rows, (list, tuple)):
+            errors.append(
+                f"  {key}: expected list of experiment rows, got {type(rows).__name__}"
+            )
+            continue
+        if len(rows) != n_exp:
+            errors.append(
+                f"  {key}: {len(rows)} experiment row(s), expected {n_exp}"
+            )
+            continue
+        for exp_idx, pair in enumerate(rows):
+            n_sub = len(sim_times[exp_idx])
+            if not isinstance(pair, (list, tuple)):
+                errors.append(
+                    f"  {key}[{exp_idx}]: expected list, got {type(pair).__name__}"
+                )
+            elif len(pair) != n_sub:
+                errors.append(
+                    f"  {key}[{exp_idx}]: {len(pair)} sub value(s), expected {n_sub}"
+                )
+
+    if errors:
+        raise ValueError(
+            "params_to_change shape mismatch:\n" + "\n".join(errors)
+        )
+
+
 class ObsAndParamDataParser(object):
     def __init__(self):
         pass
@@ -794,6 +847,99 @@ class ObsAndParamDataParser(object):
                 return False
             return isinstance(is_na, (bool, np.bool_)) and bool(is_na)
 
+        def _hydrate_series_data_items(data_items):
+            """
+            Normalise series entries before schema validation.
+
+            Handles three legacy/current formats:
+            1. ``data_type: "timeseries"`` → renamed to ``"series"``.
+            2. Top-level ``t_path`` + ``vm_path`` / ``im_path`` (old format,
+               variable name used to pick which signal is the observable).
+            3. Top-level ``t_path`` + ``value_path`` (current format, no
+               ambiguity — ``value_path`` is always the observable).
+
+            When ``value`` / ``std`` / ``obs_dt`` are missing they are loaded
+            from the .npy files so the item is fully populated before the
+            schema check runs.
+            """
+            if not data_items:
+                return data_items
+            hydrated = []
+            default_std_frac = 0.1
+            for raw in data_items:
+                item = copy.deepcopy(raw)
+                dtype = item.get("data_type")
+                if dtype == "timeseries":
+                    item["data_type"] = "series"
+                    dtype = "series"
+                if item.get("plot_type") == "timeseries":
+                    item["plot_type"] = "series"
+                if dtype != "series":
+                    hydrated.append(item)
+                    continue
+
+                t_path = item.get("t_path")
+                value_path = item.get("value_path")
+
+                # Legacy: top-level vm_path / im_path; pick observable by variable name.
+                if value_path is None:
+                    vm_path = item.pop("vm_path", None)
+                    im_path = item.pop("im_path", None)
+                    if vm_path or im_path:
+                        var = str(item.get("variable", ""))
+                        if "I_tot" in var or var.endswith("/I_tot_pA"):
+                            value_path = im_path or vm_path
+                        else:
+                            value_path = vm_path or im_path
+                        if value_path:
+                            item["value_path"] = value_path
+
+                # Also handle legacy paths buried in source dict.
+                src = item.get("source")
+                if isinstance(src, dict):
+                    if t_path is None:
+                        t_path = src.pop("t_path", None)
+                        if t_path:
+                            item["t_path"] = t_path
+                    if value_path is None:
+                        vp = src.pop("value_path", None)
+                        if vp is None:
+                            vm_p = src.pop("vm_path", None)
+                            im_p = src.pop("im_path", None)
+                            var = str(item.get("variable", ""))
+                            if "I_tot" in var or var.endswith("/I_tot_pA"):
+                                vp = im_p or vm_p
+                            else:
+                                vp = vm_p or im_p
+                        if vp:
+                            value_path = vp
+                            item["value_path"] = value_path
+                    # Flatten description string back to source if dict is now empty
+                    desc = src.get("description")
+                    if desc and len(src) == 1:
+                        item["source"] = desc
+                    elif not src:
+                        item.pop("source", None)
+
+                need_value = (
+                    "value" not in item
+                    or _is_missing_scalar(item.get("value"))
+                )
+                if need_value and t_path and value_path:
+                    t_arr = np.load(t_path)
+                    y_arr = np.load(value_path)
+                    item["value"] = np.asarray(y_arr, dtype=np.float64).tolist()
+                    if "obs_dt" not in item or _is_missing_scalar(item.get("obs_dt")):
+                        item["obs_dt"] = (
+                            float(np.mean(np.diff(t_arr))) if len(t_arr) > 1 else 1.0
+                        )
+                    if "std" not in item or _is_missing_scalar(item.get("std")):
+                        std_arr = np.maximum(default_std_frac * np.abs(y_arr), 1e-6)
+                        item["std"] = std_arr.tolist()
+
+                hydrated.append(item)
+            return hydrated
+
         # --- Case 1: Simple list of data items ---
         if type(json_obj) == list:
             gt_df = pd.DataFrame(json_obj)
@@ -808,6 +954,7 @@ class ObsAndParamDataParser(object):
             # Load Data Items (gt_df)
             if 'data_items' in json_obj.keys() or 'data_item' in json_obj.keys():
                 data_items = json_obj.get('data_items', json_obj.get('data_item', []))
+                data_items = _hydrate_series_data_items(data_items)
                 gt_df = pd.DataFrame(data_items)
             else:
                 print("data_items not found in json object. ",
@@ -828,6 +975,7 @@ class ObsAndParamDataParser(object):
                 "pre_times": {"types": (list, tuple, np.ndarray), "default": [pre_time] if pre_time is not None else REQUIRED},
                 "sim_times": {"types": (list, tuple, np.ndarray), "default": [[sim_time]] if sim_time is not None else REQUIRED},
                 "params_to_change": {"types": (dict,), "default": {}},
+                "offline_pre_time": {"types": (float, int), "default": None},
                 "experiment_labels": {"types": (list, tuple, np.ndarray), "default": None},
                 "experiment_ids": {"types": (list, tuple, np.ndarray), "default": None},
                 "experiment_colors": {"types": (list, tuple, np.ndarray), "default": None},
@@ -854,7 +1002,7 @@ class ObsAndParamDataParser(object):
                         protocol_info[key] = copy.deepcopy(default)
                         continue
 
-                if not isinstance(protocol_info[key], allowed):
+                if protocol_info[key] is not None and not isinstance(protocol_info[key], allowed):
                     protocol_type_errors.append(
                         f"protocol_info['{key}']: expected {allowed}, got {type(protocol_info[key])}"
                     )
@@ -867,6 +1015,8 @@ class ObsAndParamDataParser(object):
                 raise ValueError(
                     "Invalid protocol_info value types:\n" + "\n".join(protocol_type_errors)
                 )
+
+            validate_params_to_change(protocol_info)
 
             # Load Prediction Info
             if 'prediction_items' in json_obj.keys():
@@ -964,7 +1114,9 @@ class ObsAndParamDataParser(object):
                 "sample_rate": {"types": (int, float, np.integer, np.floating), "default": None},
                 "species": {"types": (str,), "default": None},
                 "location": {"types": (str,), "default": None},
-                "source": {"types": (str,), "default": None},
+                "source": {"types": (str, dict), "default": None},
+                "t_path": {"types": (str,), "default": None},
+                "value_path": {"types": (str,), "default": None},
             }
 
             unknown_cols = sorted(set(gt_df.columns) - set(schema.keys()))
@@ -1246,6 +1398,8 @@ class ObsAndParamDataParser(object):
         protocol['num_experiments'] = len(protocol["sim_times"])
         protocol['num_sub_per_exp'] = [len(protocol["sim_times"][exp_idx]) for exp_idx in range(protocol["num_experiments"])]
         protocol['num_sub_total'] = sum(protocol['num_sub_per_exp'])
+
+        validate_params_to_change(protocol)
         
         protocol["total_sim_times_per_exp"] = []
         protocol["tSims_per_exp"] = []

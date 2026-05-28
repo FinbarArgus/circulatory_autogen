@@ -24,6 +24,7 @@ _SRC_DIR = os.path.join(_TEST_ROOT, 'src')
 if _SRC_DIR not in sys.path:
     sys.path.insert(0, _SRC_DIR)
 
+from parsers.PrimitiveParsers import validate_params_to_change
 from solver_wrappers import get_simulation_helper
 from protocol_runners import ProtocolExecutor, ProtocolRunner
 
@@ -338,3 +339,28 @@ def test_protocol_runner_processdata_meta_pattern():
             assert np.all(np.isfinite(np.asarray(v))), (
                 f'Meta {meta_idx}: voltage contains non-finite values'
             )
+
+
+def test_validate_params_to_change_accepts_consistent_protocol():
+    protocol_info = {
+        'pre_times': [0.05, 0.05],
+        'sim_times': [[0.3, 0.5], [0.2, 0.4]],
+        'params_to_change': {
+            'soma_SN/I_in': [[0.0, 0.1], [0.0, 0.2]],
+            'soma_SN/alpha_4AP': [[1.0, 1.0], [1.0, 1.0]],
+        },
+    }
+    validate_params_to_change(protocol_info)
+
+
+def test_validate_params_to_change_rejects_mismatched_lengths():
+    protocol_info = {
+        'pre_times': [0.05, 0.05],
+        'sim_times': [[0.3, 0.5], [0.2, 0.4]],
+        'params_to_change': {
+            'soma_SN/I_in': [[0.0, 0.1], [0.0, 0.2]],
+            'soma_SN/alpha_4AP': [[1.0, 1.0]],
+        },
+    }
+    with pytest.raises(ValueError, match='params_to_change shape mismatch'):
+        validate_params_to_change(protocol_info)

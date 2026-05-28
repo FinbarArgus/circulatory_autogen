@@ -303,6 +303,20 @@ class SimulationHelper:
         return {name: np.asarray(val) for name, val in zip(variable_names, values)}
 
     # ---- reset helpers ----
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+        success = self.run()
+        if not success:
+            raise RuntimeError("Offline pre-time simulation failed")
+        self.default_state_inits = copy.copy(self.states)
+        self._has_run = False
+        self.states = copy.copy(self.default_state_inits)
+        self.model.compute_computed_constants(self.variables)
+
     def reset_and_clear(self, only_one_exp=-1):
         if self._has_run:
             self._last_results_dict = self._collect_all_results_dict()

@@ -283,6 +283,8 @@ class SimulationHelper:
         self.qname_to_var = {v.qname(): v for v in self.all_vars}
 
     def _init_defaults(self):
+        self._offline_default_state = None
+        self._state_overrides = {}
         # default states
         self.default_states = list(self.simulation.state())
         # capture default values for all variables (best-effort)
@@ -480,23 +482,46 @@ class SimulationHelper:
             return False
         return True
 
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self.simulation.reset()
+        self.simulation.pre(offline_pre_time)
+        new_state = list(self.simulation.state())
+        self._offline_default_state = new_state
+        self.simulation.set_default_state(new_state)
+        self.default_states = list(new_state)
+        self.simulation.set_state(new_state)
+        self.simulation.set_time(0.0)
+        self.last_log = None
+
     def reset_and_clear(self, only_one_exp=-1):
         # Fully reset to baseline default state (before any pre-simulation).
         if self.last_log is not None:
             self._last_results_dict = self._collect_all_results_dict_from_log()
         self.simulation.set_default_state(self.original_state)
         self.simulation.reset()
+        self._state_overrides = {}
         self.last_log = None
 
     def reset_states(self):
-        # Reset to current default, then update state/default to reflect constants.
+        # Reset to offline pre-time state when configured, otherwise model ICs.
         if self.last_log is not None:
             self._last_results_dict = self._collect_all_results_dict_from_log()
         self.simulation.reset()
-        updated_initial_state = self._get_simulation_model().initial_values(as_floats=True)
-        self.simulation.set_state(updated_initial_state)
-        self.simulation.set_default_state(updated_initial_state)
-        self.default_states = list(updated_initial_state)
+        if self._offline_default_state is not None:
+            self.simulation.set_state(self._offline_default_state)
+        else:
+            updated_initial_state = self._get_simulation_model().initial_values(as_floats=True)
+            self.simulation.set_state(updated_initial_state)
+        for qname, val in self._state_overrides.items():
+            if qname in self.state_index:
+                self.simulation.set_state_value(self.state_index[qname], float(val))
+        state = list(self.simulation.state())
+        self.simulation.set_default_state(state)
+        self.default_states = state
         self.last_log = None
 
     def get_all_variable_names(self):
@@ -613,6 +638,7 @@ class SimulationHelper:
                 kind, qname = self._resolve_name(name)
 
                 if kind == "state":
+                    self._state_overrides[qname] = float(val)
                     self.simulation.set_state_value(self.state_index[qname], float(val))
                 elif kind == "var":
                     if isinstance(val, str):
