@@ -194,6 +194,8 @@ def _run_sim_outputs_from_obs_path(config, obs_path, mpi_comm, param_val_strateg
     """Run one experiment with midpoint ID params; return operand time-series outputs."""
     rank = mpi_comm.Get_rank()
     if rank == 0:
+        config = config.copy()
+        config["param_id_obs_path"] = obs_path
         parsed = YamlFileParser().parse_user_inputs_file(
             config, obs_path_needed=True, do_generation_with_fit_parameters=False
         )
@@ -1827,6 +1829,7 @@ def test_offline_pre_time_lotka_volterra_outputs_match(
         "model_type": "cellml_only",
         "solver": "CVODE_myokit",
         "param_id_method": "genetic_algorithm",
+        "param_id_obs_path": base_obs_path,
         "pre_time": 0.5,
         "sim_time": 0.3,
         "dt": 0.01,
@@ -1877,6 +1880,8 @@ def test_offline_pre_time_3compartment_outputs_match(
 
     rank = mpi_comm.Get_rank()
 
+    base_obs_path = os.path.join(resources_dir, "3compartment_obs_data.json")
+
     config = base_user_inputs.copy()
     config.update({
         "file_prefix": "3compartment",
@@ -1885,6 +1890,7 @@ def test_offline_pre_time_3compartment_outputs_match(
         "model_type": "cellml_only",
         "solver": "CVODE_myokit",
         "param_id_method": "genetic_algorithm",
+        "param_id_obs_path": base_obs_path,
         "pre_time": 2.0,
         "sim_time": 2.0,
         "dt": 0.01,
@@ -1900,7 +1906,6 @@ def test_offline_pre_time_3compartment_outputs_match(
 
     _ensure_cellml_model_generated(config, mpi_comm)
 
-    base_obs_path = os.path.join(resources_dir, "3compartment_obs_data.json")
     obs_no_offline_path = os.path.join(temp_output_dir, "3compartment_offline_pre_no.json")
     obs_with_offline_path = os.path.join(temp_output_dir, "3compartment_offline_pre_yes.json")
 
@@ -2006,6 +2011,7 @@ def test_offline_pre_time_lotka_volterra_casadi_outputs_match(
         "model_type": "casadi_python",
         "solver": "casadi_integrator",
         "param_id_method": "genetic_algorithm",
+        "param_id_obs_path": base_obs_path,
         "pre_time": 2.0,
         "sim_time": 2.0,
         "dt": 0.01,
@@ -2049,6 +2055,7 @@ def test_offline_pre_time_3compartment_python_outputs_match(
     import json
 
     rank = mpi_comm.Get_rank()
+    base_obs_path = os.path.join(resources_dir, "3compartment_obs_data.json")
     config = base_user_inputs.copy()
     config.update({
         "file_prefix": "3compartment",
@@ -2057,6 +2064,7 @@ def test_offline_pre_time_3compartment_python_outputs_match(
         "model_type": "python",
         "solver": "solve_ivp",
         "param_id_method": "genetic_algorithm",
+        "param_id_obs_path": base_obs_path,
         "pre_time": 2.0,
         "sim_time": 2.0,
         "dt": 0.01,
@@ -2077,7 +2085,6 @@ def test_offline_pre_time_3compartment_python_outputs_match(
 
     mpi_comm.Barrier()
 
-    base_obs_path = os.path.join(resources_dir, "3compartment_obs_data.json")
     obs_no_offline_path = os.path.join(temp_output_dir, "3compartment_python_offline_pre_no.json")
     obs_with_offline_path = os.path.join(temp_output_dir, "3compartment_python_offline_pre_yes.json")
 
