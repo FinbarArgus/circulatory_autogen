@@ -188,7 +188,6 @@ def _sanitize_generation_and_calibration_test(source: str) -> str:
         ),
     )
 
-    source = _replace_once(source, "pre_times = [[20]]\n", "pre_times = [20]\n")
     source = _replace_once(
         source,
         'sa_agent = SensitivityAnalysis.from_dict(inp_data_dict)\n',

@@ -135,7 +135,7 @@ def _load_base_inputs(user_inputs_dir):
 
     # Remove user_input entries so they aren't passed to the generation script,
     # this ensures the default dirs are used
-    for key in ['user_inputs_path_override', 'resources_dir', 'generated_models_dir', 'param_id_output_dir']:
+    for key in ['user_inputs_path_override', 'resources_dir', 'generated_models_dir', 'param_id_output_dir', 'param_id_obs_path']:
         if key in inp_data_dict:
             del inp_data_dict[key]
 

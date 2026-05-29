@@ -16,7 +16,8 @@ class ObsDataCreator:
         self.obs_data_dict['prediction_items'] = []
         self.obs_data_dict['data_items'] = []
 
-    def add_protocol_info(self, pre_times, sim_times, params_to_change, experiment_labels=None):
+    def add_protocol_info(self, pre_times, sim_times, params_to_change,
+                          experiment_labels=None, offline_pre_time=None):
         """
         Add protocol information to the dictionary.
         pre_times: list of pre-simulation times for each experiment
@@ -24,6 +25,7 @@ class ObsDataCreator:
         params_to_change: dictionary with parameter names as keys and list of lists of values Each parameter should have a value
         entry the same shape as sim_times.
         experiment_labels: list of labels for each experiment
+        offline_pre_time: optional scalar; unlogged warmup before experiments (see parameter-identification docs)
         """
         # check pre_times is list and sim_times 2D list of lists
         if not isinstance(pre_times, list):
@@ -57,6 +59,8 @@ class ObsDataCreator:
         self.obs_data_dict['protocol_info']['sim_times'] = sim_times
         self.obs_data_dict['protocol_info']['params_to_change'] = params_to_change
         self.obs_data_dict['protocol_info']['experiment_labels'] = experiment_labels
+        if offline_pre_time is not None:
+            self.obs_data_dict['protocol_info']['offline_pre_time'] = float(offline_pre_time)
 
     def add_prediction_item(self, variable, unit, experiment_idx):
         """

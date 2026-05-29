@@ -104,6 +104,23 @@ class SimulationHelper():
         self._has_run = True
         return True
 
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self.update_times(self.dt, 0.0, self.dt, offline_pre_time)
+        success = self.run()
+        if not success:
+            raise RuntimeError("Offline pre-time simulation failed")
+        for state_name in self.data.states():
+            series = self.simulation.results().states()[state_name].values()
+            if len(series) > 0:
+                self.data.states()[state_name] = float(series[-1])
+        self.simulation.reset(False)
+        self.simulation.clear_results()
+        self._has_run = False
+
     def reset_and_clear(self, only_one_exp=-1):
         if self._has_run:
             self._last_results_dict = self._collect_all_results_dict()

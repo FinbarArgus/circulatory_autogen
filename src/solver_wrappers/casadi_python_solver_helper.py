@@ -254,7 +254,10 @@ class SimulationHelper:
         integrator_opts = {"reltol": 1e-8, "abstol": 1e-10}
         integrator_opts.update(self.solver_info.get("options", {}))
         self.F = ca.integrator("F", self.solve_ivp_method, ode, 0, self.dt, integrator_opts)
-        self.F_map = self.F.mapaccum(self.n_steps)
+        # Integrate full pre_time + sim_time horizon so slicing by pre_steps
+        # returns the expected sim-time segment.
+        total_steps = int(max(0, len(self.t_eval) - 1))
+        self.F_map = self.F.mapaccum(total_steps)
 
         # Symbolic trajectory — SX function of (states_symb, variables_symb); required for AD
         res = self.F_map(x0=self.states_symb, p=self.variables_symb)
@@ -264,7 +267,7 @@ class SimulationHelper:
         x0 = np.array(self.states, dtype=float)
         p = self.variables
         traj_func = ca.Function('state_traj', [self.states_symb, self.variables_symb], [self.state_traj_symb])
-        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(p)))  # (n_states, n_steps+1)
+        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(p)))  # (n_states, total_steps+1)
 
         self._has_run = True
         self._post_process()
@@ -379,6 +382,22 @@ class SimulationHelper:
         self._do_ad = True  # switch get_results to symbolic mode for AD
 
     # ---- reset helpers ----
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self._do_ad = False
+        self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+        success = self.run()
+        if not success:
+            raise RuntimeError("Offline pre-time simulation failed")
+        self.states = list(self.state_traj_dm[:, -1])
+        self.default_state_inits = copy.copy(self.states)
+        self._has_run = False
+        self.states = copy.copy(self.default_state_inits)
+        self.model.compute_computed_constants(self.variables)
+
     def reset_and_clear(self, only_one_exp=-1):
         self._do_ad = False
         self._init_state()

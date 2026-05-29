@@ -303,6 +303,35 @@ class SimulationHelper:
         return {name: np.asarray(val) for name, val in zip(variable_names, values)}
 
     # ---- reset helpers ----
+    def run_offline_pre_and_set_default_state(self, offline_pre_time):
+        """Run unlogged warmup once; use end state as default for reset_states()."""
+        offline_pre_time = float(offline_pre_time)
+        if offline_pre_time <= 0:
+            return
+        self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+        success = self.run()
+        if not success:
+            # Fallback to a robust explicit method for stiff startup transients.
+            original_method = self.solve_ivp_method
+            original_kwargs = copy.deepcopy(self.solve_ivp_kwargs)
+            try:
+                self.solve_ivp_method = "RK45"
+                fallback_kwargs = copy.deepcopy(original_kwargs)
+                fallback_kwargs["max_step"] = min(float(fallback_kwargs.get("max_step", self.dt)), self.dt)
+                self.solve_ivp_kwargs = fallback_kwargs
+                self._init_state()
+                self.update_times(self.dt, 0.0, offline_pre_time, 0.0)
+                success = self.run()
+            finally:
+                self.solve_ivp_method = original_method
+                self.solve_ivp_kwargs = original_kwargs
+        if not success:
+            raise RuntimeError("Offline pre-time simulation failed")
+        self.default_state_inits = copy.copy(self.states)
+        self._has_run = False
+        self.states = copy.copy(self.default_state_inits)
+        self.model.compute_computed_constants(self.variables)
+
     def reset_and_clear(self, only_one_exp=-1):
         if self._has_run:
             self._last_results_dict = self._collect_all_results_dict()

@@ -59,6 +59,7 @@ calibration have a change in value (e.g. change in drug concentration, change in
 
 - **pre_times**: The amount of simulation that is done before you want to compare to observables or plot (this part of the simulation is thrown away. This
 is mainly used to simulate for an amout of time to reach steady state or periodic state. shape = (number of experiments)
+- **offline_pre_time** (optional): A single scalar, in seconds. Before any experiment runs, the solver performs one **unlogged** warmup integration for this duration, then stores the end state as the default state used when `reset_states()` is called at the start of each experiment. Use this to separate a long steady-state or periodic warmup from the logged **pre_times** phase. Supported for `CVODE_myokit`, `casadi_python`, and `python` (`solve_ivp`) backends; not available for OpenCOR. Example: `offline_pre_time: 19.0` with `pre_times: [1.0]` gives 20 s of total warmup before the first logged segment, equivalent to `pre_times: [20.0]` without `offline_pre_time`.
 - **sim_times**: The length in time of each subexperiment. shape=(number of experiments, number of subexperiments) -- Note: the shape isn't completely correct here, the number of subexperiments can be different for each experiment
 - **params_to_change**: A dictionary where the key is a parameter name and the entry is the assigned value of that parameter in each (experiment_idx, subexperiment_idx).
 - **experiment_colors**: The line color for the plots of each experiment. 
@@ -82,6 +83,34 @@ The entries in the data_item list in the `obs_data.json` file are:
 - **std**: The standard deviation which is used in the cost function. The cost function is the relative absolute error (AE) or mean squared error (MRE), each normalised by the std.
 - **value**: The value of the ground truth, either a scalar for constant data_type, or a list of values for series or frequency data_types.
 - **obs_dt**: required for *series* data types and not needed for constant or frequency. It defines the timestep for the observable series values.
+
+### Series ground truth from `.npy` files (`t_path` and `value_path`)
+
+For large time-series observables you can store arrays in NumPy files instead of embedding long lists in the JSON. On load, Circulatory Autogen reads the files and fills in any missing `value`, `std`, and `obs_dt` fields before calibration runs.
+
+- **t_path**: Path to a `.npy` file containing the time vector (seconds).
+- **value_path**: Path to a `.npy` file containing the observable values. This is always the quantity that will be compared to the model .
+
+Paths may be absolute or relative to the process working directory when parameter identification is started. If `value` is already present in the JSON, the file path should not be set;
+
+Example `data_item` entry:
+
+```json
+{
+  "variable": "P aortic root",
+  "data_type": "series",
+  "operands": ["aortic_root/u"],
+  "operation": null,
+  "unit": "Pa",
+  "weight": 1.0,
+  "t_path": "/path/to/pressure_time.npy",
+  "value_path": "/path/to/pressure_values.npy",
+  "experiment_idx": 0,
+  "subexperiment_idx": 0
+}
+```
+
+If `obs_dt` is omitted, it is estimated from the mean step in `t_path`. If `std` is omitted, a default of 10% of `|value|` is used per sample.
 
 !!! warning
     The `dt` or `sample_rate` fields are deprecated for series data. Use `obs_dt` instead.
