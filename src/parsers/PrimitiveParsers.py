@@ -861,9 +861,23 @@ class ObsAndParamDataParser(object):
             When ``value`` / ``std`` / ``obs_dt`` are missing they are loaded
             from the .npy files so the item is fully populated before the
             schema check runs.
+
+            Raises ValueError if a series item specifies embedded ``value`` and
+            ``t_path`` / ``value_path`` at the same time.
             """
             if not data_items:
                 return data_items
+
+            def _has_embedded_series_value(item):
+                if "value" not in item:
+                    return False
+                val = item.get("value")
+                if _is_missing_scalar(val):
+                    return False
+                if isinstance(val, (list, tuple, np.ndarray)):
+                    return len(val) > 0
+                return True
+
             hydrated = []
             default_std_frac = 0.1
             for raw in data_items:
@@ -920,6 +934,15 @@ class ObsAndParamDataParser(object):
                         item["source"] = desc
                     elif not src:
                         item.pop("source", None)
+
+                if _has_embedded_series_value(item) and (t_path or value_path):
+                    var = item.get("variable", "<unknown>")
+                    raise ValueError(
+                        f"Series data item {var!r} specifies both embedded 'value' "
+                        f"and 't_path'/'value_path' (.npy files). Use one source only: "
+                        f"either embed 'value' in the JSON or provide 't_path' and "
+                        f"'value_path', not both."
+                    )
 
                 need_value = (
                     "value" not in item
