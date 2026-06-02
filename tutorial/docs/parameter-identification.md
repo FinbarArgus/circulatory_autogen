@@ -86,7 +86,7 @@ The entries in the data_item list in the `obs_data.json` file are:
 
 ### Series ground truth from `.npy` files (`t_path` and `value_path`)
 
-For large time-series observables you can store arrays in NumPy files instead of embedding long lists in the JSON. On load, Circulatory Autogen reads the files and fills in any missing `value`, `std`, and `obs_dt` fields before calibration runs.
+For large time-series observables you can store arrays in NumPy files instead of embedding long lists in the JSON. On load, Circulatory Autogen reads the files and fills in any missing `value` and `obs_dt` fields before calibration runs. You must still set `std` in the JSON (see below).
 
 - **t_path**: Path to a `.npy` file containing the time vector (seconds).
 - **value_path**: Path to a `.npy` file containing the observable values. This is always the quantity that will be compared to the model .
@@ -103,6 +103,7 @@ Example `data_item` entry:
   "operation": null,
   "unit": "Pa",
   "weight": 1.0,
+  "std": 500.0,
   "t_path": "/path/to/pressure_time.npy",
   "value_path": "/path/to/pressure_values.npy",
   "experiment_idx": 0,
@@ -110,7 +111,7 @@ Example `data_item` entry:
 }
 ```
 
-If `obs_dt` is omitted, it is estimated from the mean step in `t_path`. If `std` is omitted, a default of 10% of `|value|` is used per sample.
+If `obs_dt` is omitted, it is estimated from the mean step in `t_path`. For `std`, provide either one positive number (applied to every sample in the series) or a list with one entry per sample (same length as `value` after load).
 
 !!! warning
     The `dt` or `sample_rate` fields are deprecated for series data. Use `obs_dt` instead.

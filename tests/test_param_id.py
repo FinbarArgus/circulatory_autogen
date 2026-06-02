@@ -2177,3 +2177,75 @@ def test_parse_obs_data_json_rejects_value_and_npy_paths(tmp_path):
     with pytest.raises(ValueError, match="both embedded 'value'"):
         parser.parse_obs_data_json(obs_data_dict=obs_data_dict, pre_time=0.0, sim_time=1.0)
 
+
+def test_parse_obs_data_json_series_std_scalar_from_npy_paths(tmp_path):
+    """Scalar std in JSON is expanded to match series length loaded from .npy."""
+    from parsers.PrimitiveParsers import ObsAndParamDataParser
+
+    t_path = tmp_path / "t.npy"
+    v_path = tmp_path / "y.npy"
+    np.save(t_path, np.array([0.0, 0.1, 0.2]))
+    np.save(v_path, np.array([1.0, 2.0, 3.0]))
+
+    obs_data_dict = {
+        "protocol_info": {
+            "pre_times": [0.0],
+            "sim_times": [[1.0]],
+            "params_to_change": {},
+        },
+        "prediction_items": [],
+        "data_items": [
+            {
+                "variable": "test_var",
+                "data_type": "series",
+                "operands": ["model/x"],
+                "unit": "1",
+                "weight": 1.0,
+                "std": 0.5,
+                "obs_dt": 0.1,
+                "t_path": str(t_path),
+                "value_path": str(v_path),
+            }
+        ],
+    }
+
+    parser = ObsAndParamDataParser()
+    parsed = parser.parse_obs_data_json(
+        obs_data_dict=obs_data_dict, pre_time=0.0, sim_time=1.0,
+    )
+    assert list(parsed["gt_df"].iloc[0]["std"]) == [0.5, 0.5, 0.5]
+
+
+def test_parse_obs_data_json_series_std_required_for_npy_paths(tmp_path):
+    """Series items loaded from .npy must specify std in the JSON."""
+    from parsers.PrimitiveParsers import ObsAndParamDataParser
+
+    t_path = tmp_path / "t.npy"
+    v_path = tmp_path / "y.npy"
+    np.save(t_path, np.array([0.0, 0.1]))
+    np.save(v_path, np.array([1.0, 2.0]))
+
+    obs_data_dict = {
+        "protocol_info": {
+            "pre_times": [0.0],
+            "sim_times": [[1.0]],
+            "params_to_change": {},
+        },
+        "prediction_items": [],
+        "data_items": [
+            {
+                "variable": "soma_SN/V_sensed",
+                "data_type": "series",
+                "operands": ["model/x"],
+                "unit": "1",
+                "weight": 1.0,
+                "t_path": str(t_path),
+                "value_path": str(v_path),
+            }
+        ],
+    }
+
+    parser = ObsAndParamDataParser()
+    with pytest.raises(ValueError, match="requires 'std'"):
+        parser.parse_obs_data_json(obs_data_dict=obs_data_dict, pre_time=0.0, sim_time=1.0)
+

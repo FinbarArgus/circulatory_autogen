@@ -858,15 +858,79 @@ class ObsAndParamDataParser(object):
             3. Top-level ``t_path`` + ``value_path`` (current format, no
                ambiguity — ``value_path`` is always the observable).
 
-            When ``value`` / ``std`` / ``obs_dt`` are missing they are loaded
-            from the .npy files so the item is fully populated before the
-            schema check runs.
+            When ``value`` is missing it is loaded from ``value_path`` (and
+            ``obs_dt`` from ``t_path`` if omitted). ``std`` must always be set
+            in the JSON: either one positive scalar (applied to every sample)
+            or a vector with the same length as the series.
 
             Raises ValueError if a series item specifies embedded ``value`` and
             ``t_path`` / ``value_path`` at the same time.
             """
             if not data_items:
                 return data_items
+
+            def _series_length(item, y_arr=None):
+                if y_arr is not None:
+                    return len(y_arr)
+                val = item.get("value")
+                if isinstance(val, (list, tuple, np.ndarray)):
+                    return len(val)
+                return 0
+
+            def _normalize_series_std(item, y_arr=None):
+                var = item.get("variable", "<unknown>")
+                if "std" not in item or _is_missing_scalar(item.get("std")):
+                    raise ValueError(
+                        f"Series data item {var!r} requires 'std' in the JSON "
+                        f"(one positive scalar applied to all samples, or a "
+                        f"vector with the same length as the series)."
+                    )
+                n = _series_length(item, y_arr)
+                if n < 1:
+                    raise ValueError(
+                        f"Series data item {var!r}: cannot set 'std' without "
+                        f"series 'value' or loaded .npy data."
+                    )
+                std_raw = item["std"]
+                if isinstance(std_raw, (int, float, np.integer, np.floating)):
+                    std_scalar = float(std_raw)
+                    if std_scalar <= 0.0 or not np.isfinite(std_scalar):
+                        raise ValueError(
+                            f"Series data item {var!r}: scalar 'std' must be "
+                            f"finite and > 0, got {std_raw!r}."
+                        )
+                    item["std"] = [std_scalar] * n
+                    return
+
+                if isinstance(std_raw, (list, tuple, np.ndarray)):
+                    std_arr = np.asarray(std_raw, dtype=np.float64).ravel()
+                    if std_arr.size == 1:
+                        std_scalar = float(std_arr[0])
+                        if std_scalar <= 0.0 or not np.isfinite(std_scalar):
+                            raise ValueError(
+                                f"Series data item {var!r}: scalar 'std' must "
+                                f"be finite and > 0, got {std_scalar!r}."
+                            )
+                        item["std"] = [std_scalar] * n
+                        return
+                    if std_arr.size != n:
+                        raise ValueError(
+                            f"Series data item {var!r}: 'std' length "
+                            f"({std_arr.size}) does not match series length "
+                            f"({n})."
+                        )
+                    if np.any(std_arr <= 0.0) or not np.all(np.isfinite(std_arr)):
+                        raise ValueError(
+                            f"Series data item {var!r}: every 'std' entry must "
+                            f"be finite and > 0."
+                        )
+                    item["std"] = std_arr.tolist()
+                    return
+
+                raise ValueError(
+                    f"Series data item {var!r}: 'std' must be a scalar or list, "
+                    f"got {type(std_raw).__name__}."
+                )
 
             def _has_embedded_series_value(item):
                 if "value" not in item:
@@ -879,7 +943,6 @@ class ObsAndParamDataParser(object):
                 return True
 
             hydrated = []
-            default_std_frac = 0.1
             for raw in data_items:
                 item = copy.deepcopy(raw)
                 dtype = item.get("data_type")
@@ -948,17 +1011,19 @@ class ObsAndParamDataParser(object):
                     "value" not in item
                     or _is_missing_scalar(item.get("value"))
                 )
+                y_arr = None
                 if need_value and t_path and value_path:
                     t_arr = np.load(t_path)
-                    y_arr = np.load(value_path)
-                    item["value"] = np.asarray(y_arr, dtype=np.float64).tolist()
+                    y_arr = np.asarray(np.load(value_path), dtype=np.float64)
+                    item["value"] = y_arr.tolist()
                     if "obs_dt" not in item or _is_missing_scalar(item.get("obs_dt")):
                         item["obs_dt"] = (
                             float(np.mean(np.diff(t_arr))) if len(t_arr) > 1 else 1.0
                         )
-                    if "std" not in item or _is_missing_scalar(item.get("std")):
-                        std_arr = np.maximum(default_std_frac * np.abs(y_arr), 1e-6)
-                        item["std"] = std_arr.tolist()
+                elif _has_embedded_series_value(item):
+                    y_arr = np.asarray(item["value"], dtype=np.float64)
+
+                _normalize_series_std(item, y_arr)
 
                 hydrated.append(item)
             return hydrated
