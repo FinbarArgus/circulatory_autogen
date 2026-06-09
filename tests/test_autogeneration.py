@@ -281,6 +281,19 @@ def test_casadi_if_else_transform_replaces_ternaries():
     assert transformed.count("ca.if_else") == 3
 
 
+def test_casadi_division_guard_wraps_denominators():
+    """Unit test: divisions become guarded with ca.fmax(fabs(denom), 1e-300) in casadi_compat mode."""
+    from generators.PythonGenerator import PythonGenerator
+
+    source = (
+        "def compute_rates(voi, states, rates, variables):\n"
+        "    rate.x = numerator / denominator\n"
+    )
+    transformed = PythonGenerator._apply_casadi_if_else_transform(source)
+    assert "ca.fmax" in transformed
+    assert "fabs(denominator)" in transformed
+
+
 def test_casadi_compat_utilities_use_if_else_helpers():
     """Unit test: casadi_compat utilities emit ca.if_else comparison helpers."""
     from generators.PythonGenerator import PythonGenerator

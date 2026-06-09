@@ -24,8 +24,8 @@ except ImportError:
     libcellml_utils = None
 
 
-class _IfExpToCasadiTransformer(ast.NodeTransformer):
-    """Replace Python ternary expressions with ca.if_else() for CasADi symbolic AD."""
+class _CasadiCompatTransformer(ast.NodeTransformer):
+    """CasADi codegen transforms: ternaries -> ca.if_else, divisions -> guarded denominators."""
 
     def visit_IfExp(self, node):
         self.generic_visit(node)
@@ -38,6 +38,28 @@ class _IfExpToCasadiTransformer(ast.NodeTransformer):
             args=[node.test, node.body, node.orelse],
             keywords=[],
         )
+
+    def visit_BinOp(self, node):
+        self.generic_visit(node)
+        if not isinstance(node.op, ast.Div):
+            return node
+        guarded_denom = ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id="ca", ctx=ast.Load()),
+                attr="fmax",
+                ctx=ast.Load(),
+            ),
+            args=[
+                ast.Call(
+                    func=ast.Name(id="fabs", ctx=ast.Load()),
+                    args=[node.right],
+                    keywords=[],
+                ),
+                ast.Constant(value=1e-300),
+            ],
+            keywords=[],
+        )
+        return ast.BinOp(left=node.left, op=ast.Div(), right=guarded_denom)
 
 
 class PythonGenerator:
@@ -145,9 +167,9 @@ class PythonGenerator:
 
     @staticmethod
     def _apply_casadi_if_else_transform(function_block: str) -> str:
-        """Convert Python ternary expressions in a function block to ca.if_else calls."""
+        """Apply CasADi-compat AST transforms (if_else, guarded division) to a function block."""
         tree = ast.parse(function_block)
-        transformed = _IfExpToCasadiTransformer().visit(tree)
+        transformed = _CasadiCompatTransformer().visit(tree)
         ast.fix_missing_locations(transformed)
         return ast.unparse(transformed) + "\n"
 

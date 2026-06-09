@@ -100,6 +100,8 @@ class SimulationHelper:
             [self._numeric_variables_all[i] for i in self.constant_indices],
             dtype=float,
         )
+        # Full-length array for model function calls (compute_computed_constants, etc.)
+        self.variables_model = list(self._numeric_variables_all)
 
     def _compute_states_symb(self):
         states = self.states.copy()
@@ -130,6 +132,7 @@ class SimulationHelper:
             "sqrt": ca.sqrt,
             "floor": ca.floor,
             "pow": ca.power,
+            "fabs": ca.fabs,
         }
         for name, func in cellml_math_map.items():
             setattr(self.model, name, func)
@@ -198,6 +201,7 @@ class SimulationHelper:
                     self.states[idx_res] = val
                 elif kind == "var":
                     self.variables[self._var_idx_to_const_pos(idx_res)] = val
+                    self.variables_model[idx_res] = val
                     # Sync state initial condition if this is an _init parameter
                     var_name = self.var_idx_to_name.get(idx_res, "")
                     var_part = var_name.split("/")[-1] if "/" in var_name else var_name
@@ -209,7 +213,7 @@ class SimulationHelper:
                             self.default_state_inits[state_idx] = val
                 else:
                     raise ValueError(f"parameter name {name} not found in states or variables")
-        self.model.compute_computed_constants(self.variables)
+        self.model.compute_computed_constants(self.variables_model)
 
     def _post_process(self):
         # --- Symbolic pass (preserved for AD) ---
@@ -293,12 +297,13 @@ class SimulationHelper:
             return self.state_traj_dm[idx, self.pre_steps:]
         if name in self.var_name_to_idx:
             idx = self.var_name_to_idx[name]
-            return self.var_traj_dm[idx, self.pre_steps:]
+            # var_traj_dm columns are already sim-time only (built from tSim in _post_process)
+            return self.var_traj_dm[idx, :]
         kind, idx_res = self._resolve_name(name)
         if kind == "state":
             return self.state_traj_dm[idx_res, self.pre_steps:]
         if kind == "var":
-            return self.var_traj_dm[idx_res, self.pre_steps:]
+            return self.var_traj_dm[idx_res, :]
         raise ValueError(f"variable {name} not found")
 
     def _extract_symb(self, name):
@@ -308,12 +313,13 @@ class SimulationHelper:
             return self.state_traj_symb[idx, self.pre_steps:]
         if name in self.var_name_to_idx:
             idx = self.var_name_to_idx[name]
-            return self.var_traj_symb[idx, self.pre_steps:]
+            # var_traj_symb columns are already sim-time only (built from tSim in _post_process)
+            return self.var_traj_symb[idx, :]
         kind, idx_res = self._resolve_name(name)
         if kind == "state":
             return self.state_traj_symb[idx_res, self.pre_steps:]
         if kind == "var":
-            return self.var_traj_symb[idx_res, self.pre_steps:]
+            return self.var_traj_symb[idx_res, :]
         raise ValueError(f"variable {name} not found (symbolic)")
 
     def get_results(self, variables_list_of_lists, flatten=False):
@@ -373,6 +379,8 @@ class SimulationHelper:
             param_vals = np.asarray(param_vals, dtype=float)
             for const_pos, val in zip(const_positions, param_vals):
                 self.variables[const_pos] = val
+            for var_idx, val in zip(var_indices, param_vals):
+                self.variables_model[var_idx] = val
             self.variables_subset = param_vals
         else:
             self.variables_subset = np.array(
@@ -396,7 +404,7 @@ class SimulationHelper:
         self.default_state_inits = copy.copy(self.states)
         self._has_run = False
         self.states = copy.copy(self.default_state_inits)
-        self.model.compute_computed_constants(self.variables)
+        self.model.compute_computed_constants(self.variables_model)
 
     def reset_and_clear(self, only_one_exp=-1):
         self._do_ad = False
@@ -404,7 +412,7 @@ class SimulationHelper:
 
     def reset_states(self):
         self.states = copy.copy(self.default_state_inits)
-        self.model.compute_computed_constants(self.variables)
+        self.model.compute_computed_constants(self.variables_model)
 
     def close_simulation(self):
         # no-op for scipy solver

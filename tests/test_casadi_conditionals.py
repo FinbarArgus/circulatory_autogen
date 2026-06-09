@@ -136,3 +136,34 @@ def test_pid_control_casadi_succeeds_with_if_else_codegen(base_user_inputs, reso
 
     variables = _symbolic_compute_variables(model_path)
     assert variables is not None
+
+
+@pytest.mark.integration
+def test_casadi_solver_uses_full_variables_model_array(
+    base_user_inputs, resources_dir, temp_generated_models_dir
+):
+    """
+    CasADi helper keeps a full-length variables_model for model callbacks while
+    self.variables remains the constants-only parameter vector for the integrator.
+    """
+    from solver_wrappers.casadi_python_solver_helper import SimulationHelper
+
+    config = base_user_inputs.copy()
+    config.update(_pid_control_generation_config("casadi_python", temp_generated_models_dir))
+    param_file_path = os.path.join(resources_dir, config["input_param_file"])
+    assert os.path.exists(param_file_path), f"Parameter file not found: {param_file_path}"
+
+    success = generate_with_new_architecture(False, config)
+    assert success, "pid_control CasADi Python model generation should succeed"
+
+    model_path = os.path.join(temp_generated_models_dir, "pid_control", "pid_control.py")
+    helper = SimulationHelper(model_path, dt=0.01, sim_time=0.1, solver_info={"method": "cvodes"})
+
+    assert len(helper.variables) == len(helper.constant_indices)
+    assert len(helper.variables_model) == helper.model.VARIABLE_COUNT
+    assert len(helper.variables) < len(helper.variables_model)
+
+    helper.reset_states()
+    param_name = "parameters/K_p_pid_control"
+    helper.set_param_vals([[param_name]], [[2.0]])
+    assert helper.variables_model[helper.var_name_to_idx[param_name]] == 2.0
