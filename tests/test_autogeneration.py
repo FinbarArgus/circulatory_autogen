@@ -72,6 +72,7 @@ def test_generate_cellml_model_succeeds(file_prefix, input_param_file, model_typ
         ('SN_simple', 'SN_simple_parameters.csv', 'python', 'solve_ivp'),
         ('pid_control', 'pid_control_parameters.csv', 'python', 'solve_ivp'),
         ('Lotka_Volterra', 'Lotka_Volterra_parameters.csv', 'casadi_python', 'casadi_integrator'),
+        ('3compartment', '3compartment_parameters.csv', 'casadi_python', 'casadi_integrator'),
     ],
 )
 def test_generate_python_model_succeeds(file_prefix, input_param_file, model_type, solver, base_user_inputs, resources_dir, temp_generated_models_dir):
@@ -263,4 +264,30 @@ def test_generate_model_with_invalid_parameters_fails(base_user_inputs, resource
     # The function doesn't catch exceptions, so missing files will raise an error
     with pytest.raises(FileNotFoundError, match="No such file or directory"):
         generate_with_new_architecture(False, config)
+
+
+def test_casadi_if_else_transform_replaces_ternaries():
+    """Unit test: Python ternary expressions become ca.if_else in casadi_compat mode."""
+    from generators.PythonGenerator import PythonGenerator
+
+    source = (
+        "def compute_rates(voi, states, rates, variables):\n"
+        "    rate.x = 1.0 if a > b else 2.0\n"
+        "    rate.y = 3.0 if c > d else 4.0 if e > f else 5.0\n"
+    )
+    transformed = PythonGenerator._apply_casadi_if_else_transform(source)
+    assert "if " not in transformed.split("def compute_rates")[1]
+    assert "ca.if_else" in transformed
+    assert transformed.count("ca.if_else") == 3
+
+
+def test_casadi_compat_utilities_use_if_else_helpers():
+    """Unit test: casadi_compat utilities emit ca.if_else comparison helpers."""
+    from generators.PythonGenerator import PythonGenerator
+
+    lines = PythonGenerator._comparison_helper_lines(casadi_compat=True)
+    code = "\n".join(lines)
+    assert "import casadi" not in code
+    assert "ca.if_else" in code
+    assert "bool(x)" not in code
 

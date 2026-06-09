@@ -118,6 +118,7 @@ def generate_with_new_architecture(do_generation_with_fit_parameters=False,
                 output_dir=generated_models_subdir,
                 module_name=file_prefix,
                 human_readable=inp_data_dict.get('human_readable', True),
+                casadi_compat=(inp_data_dict['model_type'] == 'casadi_python'),
             )
             py_gen.generate()
             success = True

@@ -1437,24 +1437,21 @@ def test_param_id_lotka_volterra_sp_minimize_gt_vs_calculated_params(base_user_i
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.mpi
-def test_param_id_3compartment_sp_minimize_fails_with_conditionals(base_user_inputs, resources_dir, temp_output_dir, mpi_comm):
+def test_param_id_3compartment_casadi_succeeds(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
+):
     """
-    Test that parameter identification with sp_minimize using automatic differentiation (AD)
-    fails for 3compartment model due to conditional statements in the generated Python code.
+    Test that parameter identification succeeds for 3compartment model using CasADi Python
+    with casadi_integrator and sp_minimize (automatic differentiation).
 
-    The 3compartment model contains conditional statements (if-else blocks) that CasADi
-    cannot handle when computing symbolic derivatives. This test verifies that attempting
-    parameter identification with AD results in a clear, informative error message.
-
-    Expected behavior:
-    - Parameter ID should fail during optimization when CasADi tries to evaluate conditionals
-    - Error message should contain: "Cannot compute the truth value of a CasADi SXElem symbolic expression"
-    - This demonstrates the known limitation: CasADi AD works best with smooth, differentiable functions
+    The 3compartment model contains piecewise/conditional expressions in the heart module.
+    Generated casadi_python code must use ca.if_else() so symbolic AD works.
 
     Args:
         base_user_inputs: Base user inputs configuration fixture
         resources_dir: Resources directory fixture
         temp_output_dir: Temporary output directory fixture
+        temp_generated_models_dir: Temporary generated models directory fixture
         mpi_comm: MPI communicator fixture
     """
     rank = mpi_comm.Get_rank()
@@ -1463,6 +1460,7 @@ def test_param_id_3compartment_sp_minimize_fails_with_conditionals(base_user_inp
     config.update({
         'file_prefix': '3compartment',
         'input_param_file': '3compartment_parameters.csv',
+        'params_for_id_file': '3compartment_params_for_id.csv',
         'model_type': 'casadi_python',
         'solver': 'casadi_integrator',
         'param_id_method': 'sp_minimize',
@@ -1481,30 +1479,43 @@ def test_param_id_3compartment_sp_minimize_fails_with_conditionals(base_user_inp
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
+        'generated_models_dir': temp_generated_models_dir,
         'optimiser_options': {
             'num_calls_to_function': 40,
             'cost_convergence': 1e-3,
         },
     })
 
-    # Generate CasADi Python model
     if rank == 0:
         success = generate_with_new_architecture(False, config)
-        assert success, "CasADi Python model generation should succeed"
+        assert success, "CasADi Python model generation should succeed for 3compartment"
+
     mpi_comm.Barrier()
 
-    # Attempt parameter identification - this should fail due to conditionals
-    with pytest.raises(RuntimeError) as excinfo:
-        run_param_id(config)
+    run_param_id(config)
 
-    # Verify the specific CasADi error message
-    error_msg = str(excinfo.value)
-    expected_error = "Cannot compute the truth value of a CasADi SXElem symbolic expression"
+    if rank == 0:
+        output_dir = os.path.join(
+            temp_output_dir,
+            f"{config['param_id_method']}_3compartment_3compartment_obs_data"
+        )
+        assert os.path.exists(output_dir), f"Output directory should exist: {output_dir}"
 
-    assert expected_error in error_msg, (
-        f"Expected CasADi error about truth value of symbolic expression. "
-        f"Got: {error_msg}"
-    )
+        cost_file = os.path.join(output_dir, 'best_cost.npy')
+        assert os.path.exists(cost_file), f"Cost file should exist: {cost_file}"
+
+        cost = np.load(cost_file)
+        assert np.isfinite(cost), f"Cost should be finite, got {cost}"
+        assert cost >= 0, f"Cost should be non-negative, got {cost}"
+
+        params_file = os.path.join(output_dir, 'best_param_vals.npy')
+        assert os.path.exists(params_file), f"Parameters file should exist: {params_file}"
+
+        params = np.load(params_file)
+        assert params.shape[0] > 0, "Should have at least one parameter"
+        assert np.all(np.isfinite(params)), "All parameter values should be finite"
+
+    mpi_comm.Barrier()
 
 
 @pytest.mark.integration
