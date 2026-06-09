@@ -73,6 +73,7 @@ def test_generate_cellml_model_succeeds(file_prefix, input_param_file, model_typ
         ('pid_control', 'pid_control_parameters.csv', 'python', 'solve_ivp'),
         ('Lotka_Volterra', 'Lotka_Volterra_parameters.csv', 'casadi_python', 'casadi_integrator'),
         ('3compartment', '3compartment_parameters.csv', 'casadi_python', 'casadi_integrator'),
+        ('3compartment_nonstiff', '3compartment_nonstiff_parameters.csv', 'casadi_python', 'casadi_integrator'),
     ],
 )
 def test_generate_python_model_succeeds(file_prefix, input_param_file, model_type, solver, base_user_inputs, resources_dir, temp_generated_models_dir):
@@ -87,12 +88,35 @@ def test_generate_python_model_succeeds(file_prefix, input_param_file, model_typ
         'solver': solver,
         'generated_models_dir': temp_generated_models_dir,
     })
+    if model_type == 'casadi_python':
+        config['solver_info'] = {
+            'method': 'cvodes',
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
+        }
+    elif model_type == 'python':
+        config['solver_info'] = {
+            'method': 'RK45',
+            'max_step': 0.001,
+            'rtol': 1e-8,
+            'atol': 1e-8,
+        }
 
     param_file_path = os.path.join(resources_dir, input_param_file)
     assert os.path.exists(param_file_path), f"Parameter file not found: {param_file_path}"
 
     success = generate_with_new_architecture(False, config)
     assert success, f"Python model generation failed for {file_prefix} with {input_param_file}"
+
+    if file_prefix == '3compartment_nonstiff':
+        model_path = os.path.join(
+            temp_generated_models_dir, file_prefix, f'{file_prefix}.py'
+        )
+        with open(model_path) as f:
+            source = f.read()
+        assert 'heart_module_r_lin_trv' in source, "heart_nonstiff linear valve resistance should be in generated model"
+        assert 'heart_module_r_lin_trv * state.heart_module_v_trv' in source
+        assert 'heart_module_b_trv * state.heart_module_v_trv * fabs(state.heart_module_v_trv)' not in source
 
 
 @pytest.mark.integration
@@ -108,6 +132,12 @@ def test_generate_python_model_is_human_readable_by_default(base_user_inputs, re
         'model_type': 'python',
         'solver': 'solve_ivp',
         'generated_models_dir': temp_generated_models_dir,
+        'solver_info': {
+            'method': 'RK45',
+            'max_step': 0.001,
+            'rtol': 1e-8,
+            'atol': 1e-8,
+        },
     })
 
     param_file_path = os.path.join(resources_dir, '3compartment_parameters.csv')
@@ -181,6 +211,12 @@ def test_generate_python_model_uses_original_code_when_human_readable_disabled(
         'solver': 'solve_ivp',
         'generated_models_dir': temp_generated_models_dir,
         'human_readable': False,
+        'solver_info': {
+            'method': 'RK45',
+            'max_step': 0.001,
+            'rtol': 1e-8,
+            'atol': 1e-8,
+        },
     })
 
     param_file_path = os.path.join(resources_dir, '3compartment_parameters.csv')

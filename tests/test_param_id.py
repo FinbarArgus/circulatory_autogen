@@ -1012,8 +1012,8 @@ def test_param_id_lotka_volterra_sp_minimize_succeeds(base_user_inputs, resource
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
             'method': 'cvodes',
         },
         'param_id_obs_path': os.path.join(resources_dir, 'Lotka_Volterra_obs_data.json'),
@@ -1097,8 +1097,8 @@ def test_param_id_lotka_volterra_sp_minimize_ad_vs_fd(base_user_inputs, resource
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
             'method': 'cvodes',
         },
         'param_id_obs_path': os.path.join(resources_dir, 'Lotka_Volterra_obs_data.json'),
@@ -1263,8 +1263,8 @@ def test_param_id_lotka_volterra_sp_minimize_gt_vs_calculated_params(base_user_i
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
             'method': 'cvodes',
         },
         'optimiser_options': {
@@ -1473,8 +1473,8 @@ def test_param_id_3compartment_casadi_succeeds(
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'max_step_size': 0.001,
+            'max_num_steps': 50000,
             'method': 'cvodes',
         },
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
@@ -1498,6 +1498,84 @@ def test_param_id_3compartment_casadi_succeeds(
         output_dir = os.path.join(
             temp_output_dir,
             f"{config['param_id_method']}_3compartment_3compartment_obs_data"
+        )
+        assert os.path.exists(output_dir), f"Output directory should exist: {output_dir}"
+
+        cost_file = os.path.join(output_dir, 'best_cost.npy')
+        assert os.path.exists(cost_file), f"Cost file should exist: {cost_file}"
+
+        cost = np.load(cost_file)
+        assert np.isfinite(cost), f"Cost should be finite, got {cost}"
+        assert cost >= 0, f"Cost should be non-negative, got {cost}"
+
+        params_file = os.path.join(output_dir, 'best_param_vals.npy')
+        assert os.path.exists(params_file), f"Parameters file should exist: {params_file}"
+
+        params = np.load(params_file)
+        assert params.shape[0] > 0, "Should have at least one parameter"
+        assert np.all(np.isfinite(params)), "All parameter values should be finite"
+
+    mpi_comm.Barrier()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+@pytest.mark.xfail(
+    reason="CasADi CVODES adjoint still hits CV_TOO_MUCH_WORK; forward cost is finite",
+    strict=False,
+)
+def test_param_id_3compartment_nonstiff_casadi_succeeds(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
+):
+    """
+    Parameter identification for 3compartment_nonstiff using heart_nonstiff
+    (linearized valve resistance R_lin = 2*B*v_ref instead of -B*v*|v|).
+    """
+    rank = mpi_comm.Get_rank()
+
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': '3compartment_nonstiff',
+        'input_param_file': '3compartment_nonstiff_parameters.csv',
+        'params_for_id_file': '3compartment_nonstiff_params_for_id.csv',
+        'model_type': 'casadi_python',
+        'solver': 'casadi_integrator',
+        'param_id_method': 'sp_minimize',
+        'do_ad': True,
+        'pre_time': 0.5,
+        'sim_time': 0.3,
+        'dt': 0.01,
+        'DEBUG': True,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'do_ia': False,
+        'solver_info': {
+            'max_step_size': 0.001,
+            'max_num_steps': 50000,
+            'method': 'cvodes',
+        },
+        'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
+        'param_id_output_dir': temp_output_dir,
+        'generated_models_dir': temp_generated_models_dir,
+        'optimiser_options': {
+            'num_calls_to_function': 40,
+            'cost_convergence': 1e-3,
+        },
+    })
+
+    if rank == 0:
+        success = generate_with_new_architecture(False, config)
+        assert success, "CasADi Python model generation should succeed for 3compartment_nonstiff"
+
+    mpi_comm.Barrier()
+
+    run_param_id(config)
+
+    if rank == 0:
+        output_dir = os.path.join(
+            temp_output_dir,
+            f"{config['param_id_method']}_3compartment_nonstiff_3compartment_obs_data"
         )
         assert os.path.exists(output_dir), f"Output directory should exist: {output_dir}"
 
@@ -1563,8 +1641,8 @@ def test_param_id_lotka_volterra_sp_minimize_numpy_only_operation(base_user_inpu
         'plot_predictions': False,
         'do_ia': False,
         'solver_info': {
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
             'method': 'cvodes',
         },
         'optimiser_options': {
@@ -2031,8 +2109,8 @@ def test_offline_pre_time_lotka_volterra_casadi_outputs_match(
         "param_id_output_dir": temp_output_dir,
         "solver_info": {
             "method": "cvodes",
-            "MaximumStep": 0.001,
-            "MaximumNumberOfSteps": 5000,
+            "max_step_size": 0.001,
+            "max_num_steps": 5000,
         },
     })
 

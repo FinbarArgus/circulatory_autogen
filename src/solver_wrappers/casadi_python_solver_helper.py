@@ -39,6 +39,18 @@ class SimulationHelper:
         """Store protocol metadata for a common helper API."""
         self.protocol_info = protocol_info
 
+    def _build_integrator_opts(self):
+        """Build CasADi integrator options from validated solver_info."""
+        integrator_opts = {
+            'reltol': self.solver_info.get('reltol', self.solver_info.get('rtol', 1e-8)),
+            'abstol': self.solver_info.get('abstol', self.solver_info.get('atol', 1e-10)),
+        }
+        for key in ('max_num_steps', 'max_step_size'):
+            if key in self.solver_info:
+                integrator_opts[key] = self.solver_info[key]
+        integrator_opts.update(self.solver_info.get('options', {}))
+        return integrator_opts
+
     # ---- setup helpers ----
     def _load_model(self):
         spec = importlib.util.spec_from_file_location("generated_model", self.model_path)
@@ -62,6 +74,13 @@ class SimulationHelper:
         self.constant_indices = [i for i, info in enumerate(self.VARIABLE_INFO) if info["type"].name in ["CONSTANT", "COMPUTED_CONSTANT"]]
         self.algebraic_indices = [i for i, info in enumerate(self.VARIABLE_INFO) if info["type"].name == "ALGEBRAIC"]
 
+    @staticmethod
+    def _as_float(value):
+        """Cast numeric or CasADi DM values to Python float for numpy arrays."""
+        if isinstance(value, (int, float, np.floating)):
+            return float(value)
+        return float(ca.DM(value))
+
     def _init_state(self):
         # Save numeric initial values before symbolic patching
         _s0 = self.model.create_states_array()
@@ -69,8 +88,10 @@ class SimulationHelper:
         _v0 = self.model.create_variables_array()
         self.model.initialise_variables(_s0, _r0, _v0)
         self.model.compute_computed_constants(_v0)
-        self._numeric_x0 = np.array(_s0, dtype=float)
-        self._numeric_variables_all = np.array(_v0, dtype=float)
+        self._numeric_x0 = np.array([self._as_float(v) for v in _s0], dtype=float)
+        self._numeric_variables_all = np.array(
+            [self._as_float(v) for v in _v0], dtype=float
+        )
 
         self.states = self.model.create_states_array()
         self.rates = self.model.create_states_array()
@@ -254,9 +275,7 @@ class SimulationHelper:
             "ode": self.rates_symb,
         }
 
-        # Allow caller to pass extra integrator options (e.g. tolerances) via solver_info["options"]
-        integrator_opts = {"reltol": 1e-8, "abstol": 1e-10}
-        integrator_opts.update(self.solver_info.get("options", {}))
+        integrator_opts = self._build_integrator_opts()
         self.F = ca.integrator("F", self.solve_ivp_method, ode, 0, self.dt, integrator_opts)
         # Integrate full pre_time + sim_time horizon so slicing by pre_steps
         # returns the expected sim-time segment.

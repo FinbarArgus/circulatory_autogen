@@ -17,13 +17,32 @@ CASADI_TRUTH_VALUE_ERROR = (
 
 
 def _pid_control_generation_config(model_type, temp_generated_models_dir):
-    return {
+    config = {
         "file_prefix": "pid_control",
         "input_param_file": "pid_control_parameters.csv",
         "model_type": model_type,
-        "solver": "casadi_integrator" if model_type == "casadi_python" else "solve_ivp",
         "generated_models_dir": temp_generated_models_dir,
     }
+    if model_type == "casadi_python":
+        config.update({
+            "solver": "casadi_integrator",
+            "solver_info": {
+                "method": "cvodes",
+                "max_step_size": 0.001,
+                "max_num_steps": 5000,
+            },
+        })
+    else:
+        config.update({
+            "solver": "solve_ivp",
+            "solver_info": {
+                "method": "RK45",
+                "max_step": 0.001,
+                "rtol": 1e-8,
+                "atol": 1e-10,
+            },
+        })
+    return config
 
 
 def _load_generated_model(model_path):
@@ -157,7 +176,16 @@ def test_casadi_solver_uses_full_variables_model_array(
     assert success, "pid_control CasADi Python model generation should succeed"
 
     model_path = os.path.join(temp_generated_models_dir, "pid_control", "pid_control.py")
-    helper = SimulationHelper(model_path, dt=0.01, sim_time=0.1, solver_info={"method": "cvodes"})
+    helper = SimulationHelper(
+        model_path,
+        dt=0.01,
+        sim_time=0.1,
+        solver_info={
+            "method": "cvodes",
+            "max_step_size": 0.001,
+            "max_num_steps": 5000,
+        },
+    )
 
     assert len(helper.variables) == len(helper.constant_indices)
     assert len(helper.variables_model) == helper.model.VARIABLE_COUNT
