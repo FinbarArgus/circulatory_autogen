@@ -199,8 +199,6 @@ def build_runtime_state():
     inp_data_dict["model_path"] = str(cellml_path)
     inp_data_dict["one_rank"] = MPI.COMM_WORLD.Get_size() == 1
     inp_data_dict["solver_info"] = dict(inp_data_dict["solver_info"])
-    inp_data_dict["solver_info"]["sim_time"] = float(sim_time)
-    inp_data_dict["solver_info"]["pre_time"] = float(inp_data_dict["pre_time"])
     if inp_data_dict["model_type"] == "cellml_only" and not OPENCOR_AVAILABLE and MYOKIT_AVAILABLE:
         inp_data_dict["solver_info"]["solver"] = "CVODE_myokit"
     return parser, inp_data_dict, obs_data_dict, PARAMS_FOR_ID
