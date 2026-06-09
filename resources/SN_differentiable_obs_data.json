@@ -1,0 +1,146 @@
+{
+  "protocol_info": {
+    "pre_times": [
+      0.1
+    ],
+    "sim_times": [
+      [
+        0.35,
+        0.85
+      ]
+    ],
+    "params_to_change": {
+      "soma_SN/I_in": [
+        [
+          0.0,
+          -0.12
+        ]
+      ]
+    },
+    "experiment_colors": [
+      "r"
+    ],
+    "experiment_labels": [
+      "SN_differentiable_casadi"
+    ],
+    "protocol_traces": {}
+  },
+  "prediction_items": [
+    {
+      "variable": "soma_SN/V",
+      "unit": "milliV",
+      "name_for_plotting": "V",
+      "experiment_idx": 0
+    },
+    {
+      "variable": "var_SN/Cai",
+      "unit": "millimolar",
+      "name_for_plotting": "Ca_{ter}",
+      "experiment_idx": 0
+    }
+  ],
+  "data_items": [
+    {
+      "variable": "soma_SN/V",
+      "name_for_plotting": "V_{max}",
+      "data_type": "constant",
+      "operation": "max",
+      "operands": [
+        "soma_SN/V"
+      ],
+      "unit": "milliV",
+      "weight": 1.0,
+      "value": 15.0,
+      "std": 80.0,
+      "experiment_idx": 0,
+      "subexperiment_idx": 1,
+      "plot_type": "horizontal",
+      "cost_type": "gaussian_MLE"
+    },
+    {
+      "variable": "soma_SN/V",
+      "name_for_plotting": "V_{mean,pre}",
+      "data_type": "constant",
+      "operation": "mean",
+      "operands": [
+        "soma_SN/V"
+      ],
+      "unit": "milliV",
+      "weight": 0.5,
+      "value": -62.0,
+      "std": 40.0,
+      "experiment_idx": 0,
+      "subexperiment_idx": 0,
+      "plot_type": "horizontal",
+      "cost_type": "gaussian_MLE"
+    },
+    {
+      "variable": "soma_SN/V",
+      "name_for_plotting": "V_{SS,avg}",
+      "data_type": "constant",
+      "operation": "steady_state_avg",
+      "operands": [
+        "soma_SN/V"
+      ],
+      "unit": "milliV",
+      "weight": 0.5,
+      "value": -62.0,
+      "std": 40.0,
+      "experiment_idx": 0,
+      "subexperiment_idx": 1,
+      "plot_type": "horizontal",
+      "cost_type": "gaussian_MLE"
+    },
+    {
+      "variable": "soma_SN/V",
+      "name_for_plotting": "V_{SS,min}",
+      "data_type": "constant",
+      "operation": "steady_state_min",
+      "operands": [
+        "soma_SN/V"
+      ],
+      "unit": "milliV",
+      "weight": 0.5,
+      "value": -75.0,
+      "std": 40.0,
+      "experiment_idx": 0,
+      "subexperiment_idx": 1,
+      "plot_type": "horizontal",
+      "cost_type": "gaussian_MLE"
+    },
+    {
+      "variable": "soma_SN/V",
+      "name_for_plotting": "V_{amp}",
+      "data_type": "constant",
+      "operation": "max_minus_min",
+      "operands": [
+        "soma_SN/V"
+      ],
+      "unit": "milliV",
+      "weight": 0.5,
+      "value": 90.0,
+      "std": 50.0,
+      "experiment_idx": 0,
+      "subexperiment_idx": 1,
+      "plot_type": "horizontal_from_min",
+      "cost_type": "gaussian_MLE"
+    },
+    {
+      "variable": "var_SN/Cai",
+      "name_for_plotting": "Ca_{max}",
+      "data_type": "constant",
+      "operation": "max",
+      "operands": [
+        "var_SN/Cai"
+      ],
+      "unit": "millimolar",
+      "weight": 0.25,
+      "value": 0.0005,
+      "std": 0.0002,
+      "experiment_idx": 0,
+      "subexperiment_idx": 1,
+      "plot_type": "horizontal",
+      "cost_type": "gaussian_MLE"
+    }
+  ]
+}
