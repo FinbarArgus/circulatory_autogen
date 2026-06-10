@@ -101,7 +101,10 @@ class SimulationHelper:
 
         self.states_symb = self._compute_states_symb()
         self.variables_all_symb = self._compute_all_variables_symb()
+        self._init_var_idx_to_state_idx = {}
+        self._discover_init_var_state_links()
         self.variables_all_symb, self.rates_symb = self._compute_rates_symb()
+        self._build_integrator_symbols()
 
         self.model.initialise_variables(self.states, self.rates, self.variables)
         self.model.compute_computed_constants(self.variables)
@@ -141,6 +144,60 @@ class SimulationHelper:
     def _compute_rates_symb(self):
         self.model.compute_rates(self.start_time, self.states, self.rates, self.variables)
         return ca.vertcat(*self.variables), ca.vertcat(*self.rates)
+
+    def _discover_init_var_state_links(self):
+        """Map *_init parameters to the state they initialise (see initialise_variables)."""
+        constant_types = {"CONSTANT", "COMPUTED_CONSTANT"}
+        for var_idx, info in enumerate(self.model.VARIABLE_INFO):
+            vtype = info["type"]
+            type_name = vtype.name if hasattr(vtype, "name") else str(vtype)
+            if type_name not in constant_types:
+                continue
+            if not info["name"].endswith("_init"):
+                continue
+            state_kind, state_idx = self._resolver.resolve(info["name"][:-5])
+            if state_kind != "state":
+                continue
+            self._init_var_idx_to_state_idx[var_idx] = state_idx
+
+    def _build_integrator_symbols(self):
+        """Build x0 and integrator parameter vectors with disjoint CasADi symbols.
+
+        *_init parameters set state ICs only. They must appear in x0 but not also in the
+        integrator p vector, otherwise CasADi reports non-independent inputs.
+        """
+        state_idx_to_var_idx = {s: v for v, s in self._init_var_idx_to_state_idx.items()}
+        x0_parts = []
+        for state_idx, state_sym in enumerate(self.states):
+            init_var_idx = state_idx_to_var_idx.get(state_idx)
+            if init_var_idx is not None:
+                x0_parts.append(self.variables_all_symb[init_var_idx])
+            else:
+                x0_parts.append(state_sym)
+        self.x0_symb = ca.vertcat(*x0_parts)
+
+        self._integrator_const_indices = [
+            i for i in self.constant_indices if i not in self._init_var_idx_to_state_idx
+        ]
+        self.variables_symb_integrator = ca.vertcat(
+            *[self.variables_all_symb[i] for i in self._integrator_const_indices]
+        )
+
+    def _x0_numeric(self):
+        return np.array([self._as_float(v) for v in self.states], dtype=float)
+
+    def _integrator_p_numeric(self):
+        return np.array(
+            [self._as_float(self.variables_model[i]) for i in self._integrator_const_indices],
+            dtype=float,
+        )
+
+    def _sync_numeric_state_for_init_var(self, var_idx, val):
+        """Keep numeric state ICs aligned with *_init parameter values for AD evaluation."""
+        state_idx = self._init_var_idx_to_state_idx.get(var_idx)
+        if state_idx is not None:
+            self.states[state_idx] = float(val)
+            self.default_state_inits[state_idx] = float(val)
     
     # Patch math functions to use CasADi versions for symbolic compatibility. Add more functions as needed.
     def _patch_math_functions(self):
@@ -223,15 +280,7 @@ class SimulationHelper:
                 elif kind == "var":
                     self.variables[self._var_idx_to_const_pos(idx_res)] = val
                     self.variables_model[idx_res] = val
-                    # Sync state initial condition if this is an _init parameter
-                    var_name = self.var_idx_to_name.get(idx_res, "")
-                    var_part = var_name.split("/")[-1] if "/" in var_name else var_name
-                    if var_part.endswith("_init"):
-                        state_var = var_part[:-5]
-                        state_kind, state_idx = self._resolver.resolve(state_var)
-                        if state_kind == "state":
-                            self.states[state_idx] = val
-                            self.default_state_inits[state_idx] = val
+                    self._sync_numeric_state_for_init_var(idx_res, val)
                 else:
                     raise ValueError(f"parameter name {name} not found in states or variables")
         self.model.compute_computed_constants(self.variables_model)
@@ -262,16 +311,15 @@ class SimulationHelper:
 
         # --- Numeric pass (for get_results / get_all_results) ---
         # Evaluate the symbolic trajectories at current numeric param values
-        x0 = np.array(self.states, dtype=float)
-        p = self.variables
+        x0 = self._x0_numeric()
         var_func = ca.Function('var_traj', [self.states_symb, self.variables_symb], [self.var_traj_symb])
-        self.var_traj_dm = np.array(var_func(ca.DM(x0), ca.DM(p)))  # (n_vars, n_times)
+        self.var_traj_dm = np.array(var_func(ca.DM(x0), ca.DM(self.variables)))  # (n_vars, n_times)
 
     # ---- simulation ----
     def run(self):
         ode = {
             "x": self.states_symb,
-            "p": self.variables_symb,
+            "p": self.variables_symb_integrator,
             "ode": self.rates_symb,
         }
 
@@ -283,14 +331,14 @@ class SimulationHelper:
         self.F_map = self.F.mapaccum(total_steps)
 
         # Symbolic trajectory — SX function of (states_symb, variables_symb); required for AD
-        res = self.F_map(x0=self.states_symb, p=self.variables_symb)
-        self.state_traj_symb = ca.horzcat(self.states_symb, res["xf"])
+        res = self.F_map(x0=self.x0_symb, p=self.variables_symb_integrator)
+        self.state_traj_symb = ca.horzcat(self.x0_symb, res["xf"])
 
         # Numeric trajectory — evaluate symbolic graph at current param values for get_results()
-        x0 = np.array(self.states, dtype=float)
-        p = self.variables
+        x0 = self._x0_numeric()
+        p_int = self._integrator_p_numeric()
         traj_func = ca.Function('state_traj', [self.states_symb, self.variables_symb], [self.state_traj_symb])
-        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(p)))  # (n_states, total_steps+1)
+        self.state_traj_dm = np.array(traj_func(ca.DM(x0), ca.DM(self.variables)))  # (n_states, total_steps+1)
 
         self._has_run = True
         self._post_process()
@@ -400,6 +448,7 @@ class SimulationHelper:
                 self.variables[const_pos] = val
             for var_idx, val in zip(var_indices, param_vals):
                 self.variables_model[var_idx] = val
+                self._sync_numeric_state_for_init_var(var_idx, val)
             self.variables_subset = param_vals
         else:
             self.variables_subset = np.array(

@@ -831,11 +831,14 @@ class SciPyMinimizeOptimiser(Optimiser):
                     gradient_func = lambda q: approx_fprime(q, cost_fun, epsilon=1e-4)
 
                 step_counter = [0]
+                last_iterate = {"x_norm": None, "cost": None}
 
                 def lbfgsb_callback(x_norm):
                     step_counter[0] += 1
+                    last_iterate["x_norm"] = np.asarray(x_norm, dtype=float).copy()
                     param_vals = self.param_norm_obj.unnormalise(x_norm)
                     cost_val = float(self.param_id_obj.get_cost_ca(param_vals))
+                    last_iterate["cost"] = cost_val
                     if self.DEBUG:
                         print(f'[sp_minimize] step {step_counter[0]}: cost = {cost_val:.6e}')
                         for i, names in enumerate(self.param_id_info["param_names"]):
@@ -847,15 +850,30 @@ class SciPyMinimizeOptimiser(Optimiser):
                     if cost_val <= self.optimiser_options['cost_convergence']:
                         raise StopIteration(f"Cost converged: {cost_val}")
 
+                res = None
                 try:
                     res = minimize(cost_fun, self.param_norm_obj.normalise(init_param_vals), method='L-BFGS-B',
                             bounds=param_ranges_norm, jac=gradient_func, callback=lbfgsb_callback)
                 except StopIteration as e:
                     print(str(e))
 
-                best_param_vals = self.param_norm_obj.unnormalise(res.x)
-                best_gradient_vals = res.jac/self.param_ranges
-                best_cost_array = np.array([res.fun])
+                if res is not None:
+                    best_param_vals = self.param_norm_obj.unnormalise(res.x)
+                    best_gradient_vals = res.jac / self.param_ranges
+                    best_cost_array = np.array([res.fun])
+                elif last_iterate["x_norm"] is not None:
+                    best_param_vals = self.param_norm_obj.unnormalise(last_iterate["x_norm"])
+                    best_cost_array = np.array([last_iterate["cost"]])
+                    if self.do_ad:
+                        best_gradient_vals = np.asarray(
+                            self.param_id_obj.get_jac_cost_ca(best_param_vals), dtype=float
+                        ).flatten()
+                    else:
+                        best_gradient_vals = approx_fprime(
+                            last_iterate["x_norm"], cost_fun, epsilon=1e-4
+                        ) / self.param_ranges
+                else:
+                    raise RuntimeError("L-BFGS-B finished without a result or callback iterate")
 
             except (Exception) as e:
                 error_flag = True

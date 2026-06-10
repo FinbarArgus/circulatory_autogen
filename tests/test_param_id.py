@@ -1540,6 +1540,31 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
     assert gradient.shape[0] == 3, f"Gradient should have 3 elements, got {gradient.shape}"
     assert np.all(np.isfinite(gradient)), f"Gradient should be finite, got {gradient}"
     assert not np.all(gradient == 0), "Gradient should not be identically zero"
+    # q_lv_init sets the LV volume IC; AD must see it (not a disconnected state symbol).
+    assert abs(gradient[0]) > 1e-6, (
+        f"q_lv_init AD gradient should be nonzero, got {gradient[0]}"
+    )
+
+    eps_rel = 1e-4
+    fd_grad = np.zeros(3)
+    baseline_arr = np.asarray(baseline_vals, dtype=float)
+    for i in range(3):
+        dp = max(abs(baseline_arr[i]) * eps_rel, 1e-12)
+        p_plus = baseline_arr.copy()
+        p_minus = baseline_arr.copy()
+        p_plus[i] += dp
+        p_minus[i] -= dp
+        fd_grad[i] = (
+            float(runner.param_id.get_cost_ca(p_plus))
+            - float(runner.param_id.get_cost_ca(p_minus))
+        ) / (2 * dp)
+    for i, label in enumerate(["q_lv_init", "E_lv_A", "E_lv_B"]):
+        if abs(fd_grad[i]) > 1e-6:
+            rel_err = abs(gradient[i] - fd_grad[i]) / abs(fd_grad[i])
+            assert rel_err < 0.05, (
+                f"{label}: AD gradient {gradient[i]:.6e} differs from FD {fd_grad[i]:.6e} "
+                f"(rel err {rel_err:.3g})"
+            )
 
     print(f"\n3compartment_nonstiff CasADi forward/gradient check:")
     print(f"  Cost at baseline: {cost_float:.6g}")
@@ -1561,7 +1586,7 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
     optimization can recover ground-truth parameters from noiseless synthetic data:
     1. Simulate with ground-truth baseline parameters to obtain observable values
     2. Perturb parameters by 3 % to create the optimizer starting point
-    3. Run sp_minimize with AD; check recovered parameters are within 20 % of GT
+    3. Run sp_minimize with AD; check recovered parameters are within 10 % of GT
     """
     pytest.importorskip("casadi")
     import json
@@ -1725,7 +1750,7 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
         assert cal_vals.shape[0] == len(gt_vals), "Parameter count mismatch"
         assert np.all(np.isfinite(cal_vals)), "Calibrated parameters should be finite"
 
-        threshold_pct = 20.0
+        threshold_pct = 10.0
         print(f"\n3compartment_nonstiff CasADi GT recovery (threshold {threshold_pct}%):")
         print(f"{'Parameter':<25} {'GT':>14} {'Calibrated':>14} {'Error%':>8}")
         for name, gt, cal in zip(param_names_flat, gt_vals, cal_vals):
