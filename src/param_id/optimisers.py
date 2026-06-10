@@ -816,6 +816,12 @@ class SciPyMinimizeOptimiser(Optimiser):
                 print(f'Cost before gradient-based optimisation: {init_cost}')
                 init_gradient = self.param_id_obj.get_jac_cost_ca(init_param_vals)
 
+                if self.DEBUG:
+                    print('[sp_minimize] initial parameters and gradient:')
+                    for i, names in enumerate(self.param_id_info["param_names"]):
+                        label = names[0] if isinstance(names, (list, tuple)) else str(names)
+                        print(f'    {label:<30} p={init_param_vals[i]:.6g}  dJ/dp={init_gradient[i]:.6e}')
+
                 if (self.do_ad):
                     def gradient_func(q):
                         p = self.param_norm_obj.unnormalise(q)
@@ -824,14 +830,26 @@ class SciPyMinimizeOptimiser(Optimiser):
                 else:
                     gradient_func = lambda q: approx_fprime(q, cost_fun, epsilon=1e-4)
 
-                def stop_if_converge(x):
-                    best_cost = self.param_id_obj.get_cost_ca(self.param_norm_obj.unnormalise(x))
-                    if best_cost <= self.optimiser_options['cost_convergence']:
-                        raise StopIteration(f"Cost converged: {best_cost}")
-                    
-                try: 
-                    res = minimize(cost_fun, self.param_norm_obj.normalise(init_param_vals), method='L-BFGS-B', 
-                            bounds=param_ranges_norm, jac=gradient_func, callback=stop_if_converge)
+                step_counter = [0]
+
+                def lbfgsb_callback(x_norm):
+                    step_counter[0] += 1
+                    param_vals = self.param_norm_obj.unnormalise(x_norm)
+                    cost_val = float(self.param_id_obj.get_cost_ca(param_vals))
+                    if self.DEBUG:
+                        print(f'[sp_minimize] step {step_counter[0]}: cost = {cost_val:.6e}')
+                        for i, names in enumerate(self.param_id_info["param_names"]):
+                            label = names[0] if isinstance(names, (list, tuple)) else str(names)
+                            print(f'    {label:<30} {param_vals[i]:.6g}')
+                        if self.do_ad:
+                            grad = np.asarray(self.param_id_obj.get_jac_cost_ca(param_vals)).flatten()
+                            print(f'    |grad|_inf = {np.max(np.abs(grad)):.6e}')
+                    if cost_val <= self.optimiser_options['cost_convergence']:
+                        raise StopIteration(f"Cost converged: {cost_val}")
+
+                try:
+                    res = minimize(cost_fun, self.param_norm_obj.normalise(init_param_vals), method='L-BFGS-B',
+                            bounds=param_ranges_norm, jac=gradient_func, callback=lbfgsb_callback)
                 except StopIteration as e:
                     print(str(e))
 

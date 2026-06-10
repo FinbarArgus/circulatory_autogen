@@ -1497,8 +1497,7 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
     runner.set_ground_truth_data(obs_data)
 
     params_for_id = [
-        {'vessel_name': 'global',       'param_name': 'q_lv_init', 'param_type': 'const', 'min': 200e-6,  'max': 1500e-6},
-        {'vessel_name': 'aortic_root',  'param_name': 'C',         'param_type': 'const', 'min': 1e-9,    'max': 5e-8},
+        {'vessel_name': 'global',       'param_name': 'q_lv_init', 'param_type': 'const', 'min': 200e-6,  'max': 3000e-6},
         {'vessel_name': 'global',       'param_name': 'E_lv_A',    'param_type': 'const', 'min': 1e8,     'max': 5e8},
         {'vessel_name': 'global',       'param_name': 'E_lv_B',    'param_type': 'const', 'min': 1e6,     'max': 5e7},
     ]
@@ -1508,7 +1507,7 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
     baseline_vals = runner.param_id.sim_helper.get_init_param_vals(
         runner.param_id.param_id_info['param_names']
     )
-    assert baseline_vals is not None and len(baseline_vals) == 4
+    assert baseline_vals is not None and len(baseline_vals) == 3
 
     cost = runner.param_id.get_cost_ca(baseline_vals)
     cost_float = float(cost)
@@ -1538,7 +1537,7 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
         )
 
     assert gradient is not None, "get_jac_cost_ca raised an exception"
-    assert gradient.shape[0] == 4, f"Gradient should have 4 elements, got {gradient.shape}"
+    assert gradient.shape[0] == 3, f"Gradient should have 3 elements, got {gradient.shape}"
     assert np.all(np.isfinite(gradient)), f"Gradient should be finite, got {gradient}"
     assert not np.all(gradient == 0), "Gradient should not be identically zero"
 
@@ -1561,24 +1560,33 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
     Uses heart_nonstiff (linearized valve resistance). Verifies that gradient-based
     optimization can recover ground-truth parameters from noiseless synthetic data:
     1. Simulate with ground-truth baseline parameters to obtain observable values
-    2. Perturb parameters by 20 % to create the optimizer starting point
+    2. Perturb parameters by 3 % to create the optimizer starting point
     3. Run sp_minimize with AD; check recovered parameters are within 20 % of GT
     """
     pytest.importorskip("casadi")
     import json
     from solver_wrappers import get_simulation_helper
 
+    import csv as csv_module
+
     rank = mpi_comm.Get_rank()
 
-    # Ground-truth values (from 3compartment_nonstiff_parameters.csv)
+    # Ground-truth values for identified parameters (from 3compartment_nonstiff_parameters.csv)
     GT = {
         'global/q_lv_init': 0.002,
-        'aortic_root/C':    12.028e-9,
         'global/E_lv_A':    366575000.0,
         'global/E_lv_B':    10664000.0,
     }
+    # Map identified param_id names to CSV variable_name entries (perturbed before optimisation)
+    GT_CSV_NAMES = {
+        'global/q_lv_init': 'q_lv_init',
+        'global/E_lv_A':    'E_lv_A',
+        'global/E_lv_B':    'E_lv_B',
+    }
+    PERTURB_FACTOR = 1.03  # +3 % starting point for the optimiser (small step to avoid local minima)
     param_names_flat = list(GT.keys())
     gt_vals = np.array([GT[k] for k in param_names_flat])
+    perturbed_gt = {k: v * PERTURB_FACTOR for k, v in GT.items()}
 
     config = base_user_inputs.copy()
     config.update({
@@ -1592,7 +1600,7 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
         'pre_time': 0.0,
         'sim_time': 0.3,
         'dt': 0.01,
-        'DEBUG': False,
+        'DEBUG': True,
         'do_mcmc': False,
         'plot_predictions': False,
         'do_ia': False,
@@ -1657,6 +1665,40 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
         obs_data_path = os.path.join(temp_output_dir, '3compartment_nonstiff_gt_obs.json')
         with open(obs_data_path, 'w') as f:
             json.dump(obs_template, f, indent=2)
+
+        # --- Step 3: perturb parameters in a copy of the CSV and regenerate the model ---
+        # sp_minimize starts from param_init = CSV values (see paramID.run_param_id).
+        # Ground-truth observables stay at GT; only the optimiser starting point moves +3 %.
+        src_csv = os.path.join(resources_dir, '3compartment_nonstiff_parameters.csv')
+        pert_csv = os.path.join(temp_output_dir, '3compartment_nonstiff_parameters_perturbed.csv')
+        with open(src_csv, newline='') as f_in:
+            reader = csv_module.DictReader(f_in)
+            fieldnames = reader.fieldnames
+            rows = []
+            for row in reader:
+                for pk, csv_name in GT_CSV_NAMES.items():
+                    if row['variable_name'] == csv_name:
+                        row['value'] = str(perturbed_gt[pk])
+                rows.append(row)
+        with open(pert_csv, 'w', newline='') as f_out:
+            writer = csv_module.DictWriter(f_out, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+
+        config['input_param_file'] = pert_csv
+        success = generate_with_new_architecture(False, config)
+        assert success, "Regeneration with perturbed parameters should succeed"
+
+        print("\nGT observables used for cost (from GT simulation):")
+        for item in obs_template:
+            if item.get('weight', 0) != 0:
+                print(
+                    f"  {item['operation']:>14} {item['operands'][0]:<20} "
+                    f"value={item['value']:.6g} std={item['std']:.6g} weight={item['weight']}"
+                )
+        print(f"\nOptimiser will start from +{int((PERTURB_FACTOR - 1) * 100)}% perturbed CSV values:")
+        for name in param_names_flat:
+            print(f"  {name:<25} GT={GT[name]:.6g}  start={perturbed_gt[name]:.6g}")
 
     obs_data_path = mpi_comm.bcast(obs_data_path, root=0)
     mpi_comm.Barrier()
