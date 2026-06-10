@@ -70,6 +70,7 @@ r_0_aortic_root,metre,0.014865,Mynard&Smolich_2015_NOT_USED
 l_aortic_root,metre,0.01,Mynard&Smolich_2015_NOT_USED
 R_T_systemic_T,Js_per_m6,110000000,calculated_from_mean_P_and_v
 C_T_systemic_T,m6_per_J,0.0000001,calculated_from_approx_P_and_q
+I_T_systemic_T,Js2_per_m6,0.1,former_hardcoded_default
 u_ext_systemic_T,J_per_m3,0,user_defined
 q_us_systemic_T,m3,0.00245,user_defined_70%Of3.5LVenousTotBloodVolume
 q_init_systemic_T,m3,0.00245,user_defined_70%Of3.5LVenousTotBloodVolume

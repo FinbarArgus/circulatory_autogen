@@ -1515,7 +1515,29 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
     assert np.isfinite(cost_float), f"Forward cost should be finite, got {cost_float}"
     assert cost_float >= 0, f"Forward cost should be non-negative, got {cost_float}"
 
-    gradient = runner.param_id.get_jac_cost_ca(baseline_vals)
+    if config.get('DEBUG', False):
+        from utilities.casadi_solver_diagnostics import (
+            diagnose_casadi_solver_after_forward,
+            log_casadi_gradient_diagnostic,
+        )
+        debug_log_path = os.path.join(temp_output_dir, 'casadi_solver_diagnostics.jsonl')
+        diagnose_casadi_solver_after_forward(
+            runner, baseline_vals, log_path=debug_log_path,
+        )
+
+    grad_error = None
+    try:
+        gradient = runner.param_id.get_jac_cost_ca(baseline_vals)
+    except Exception as exc:
+        gradient = None
+        grad_error = exc
+
+    if config.get('DEBUG', False):
+        log_casadi_gradient_diagnostic(
+            gradient, grad_error, log_path=debug_log_path,
+        )
+
+    assert gradient is not None, "get_jac_cost_ca raised an exception"
     assert gradient.shape[0] == 4, f"Gradient should have 4 elements, got {gradient.shape}"
     assert np.all(np.isfinite(gradient)), f"Gradient should be finite, got {gradient}"
     assert not np.all(gradient == 0), "Gradient should not be identically zero"

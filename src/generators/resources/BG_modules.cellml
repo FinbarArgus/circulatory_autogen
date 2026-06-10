@@ -2436,7 +2436,7 @@
     <component name="pp_T_fixed_I_type">
         <variable name="t" public_interface="in" units="second"/>
         <!-- Constitutive parameters-->
-        <variable name="I_T" public_interface="out" units="Js2_per_m6"/>
+        <variable name="I_T" public_interface="in" units="Js2_per_m6"/>
         <variable name="R_v" public_interface="out" units="Js_per_m6"/>
         <variable name="R_T" public_interface="in" units="Js_per_m6"/>
         <variable name="C_T" public_interface="in" units="m6_per_J"/>
@@ -2462,11 +2462,6 @@
                     <cn cellml:units="second">0.01</cn>
                     <ci>C_T</ci>
                 </apply>
-            </apply>
-            <apply>
-                <eq/>
-                <ci>I_T</ci>
-                <cn cellml:units="Js2_per_m6" type="e-notation">1<sep/>-6</cn>
             </apply>
             <!-- Conservation Laws-->
             <!-- For now terminals don't have a gravity effect, change this for leg terminals-->
