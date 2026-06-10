@@ -4,6 +4,7 @@ Concise Python code generator for CellML models using libCellML.
 This class parses a CellML file, resolves imports, analyses the model,
 and emits a ready-to-run Python module.
 """
+import ast
 import os
 import re
 from typing import Optional
@@ -23,6 +24,44 @@ except ImportError:
     libcellml_utils = None
 
 
+class _CasadiCompatTransformer(ast.NodeTransformer):
+    """CasADi codegen transforms: ternaries -> ca.if_else, divisions -> guarded denominators."""
+
+    def visit_IfExp(self, node):
+        self.generic_visit(node)
+        return ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id="ca", ctx=ast.Load()),
+                attr="if_else",
+                ctx=ast.Load(),
+            ),
+            args=[node.test, node.body, node.orelse],
+            keywords=[],
+        )
+
+    def visit_BinOp(self, node):
+        self.generic_visit(node)
+        if not isinstance(node.op, ast.Div):
+            return node
+        guarded_denom = ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id="ca", ctx=ast.Load()),
+                attr="fmax",
+                ctx=ast.Load(),
+            ),
+            args=[
+                ast.Call(
+                    func=ast.Name(id="fabs", ctx=ast.Load()),
+                    args=[node.right],
+                    keywords=[],
+                ),
+                ast.Constant(value=1e-300),
+            ],
+            keywords=[],
+        )
+        return ast.BinOp(left=node.left, op=ast.Div(), right=guarded_denom)
+
+
 class PythonGenerator:
     """
     Generate a Python module from a CellML file.
@@ -38,11 +77,13 @@ class PythonGenerator:
         output_dir: Optional[str] = None,
         module_name: Optional[str] = None,
         human_readable: bool = True,
+        casadi_compat: bool = False,
     ):
         self.cellml_path = cellml_path
         self.output_dir = output_dir or os.path.dirname(os.path.abspath(cellml_path))
         self.module_name = module_name or os.path.splitext(os.path.basename(cellml_path))[0]
         self.human_readable = human_readable
+        self.casadi_compat = casadi_compat
 
     @staticmethod
     def _make_identifier(text: str) -> str:
@@ -125,6 +166,58 @@ class PythonGenerator:
         return def_line + "\n" + body.rstrip() + "\n"
 
     @staticmethod
+    def _apply_casadi_if_else_transform(function_block: str) -> str:
+        """Apply CasADi-compat AST transforms (if_else, guarded division) to a function block."""
+        tree = ast.parse(function_block)
+        transformed = _CasadiCompatTransformer().visit(tree)
+        ast.fix_missing_locations(transformed)
+        return ast.unparse(transformed) + "\n"
+
+    @staticmethod
+    def _comparison_helper_lines(casadi_compat: bool) -> list:
+        if casadi_compat:
+            return [
+                "def lt_func(x, y):",
+                "    return ca.if_else(x < y, 1.0, 0.0)",
+                "",
+                "def leq_func(x, y):",
+                "    return ca.if_else(x <= y, 1.0, 0.0)",
+                "",
+                "def gt_func(x, y):",
+                "    return ca.if_else(x > y, 1.0, 0.0)",
+                "",
+                "def geq_func(x, y):",
+                "    return ca.if_else(x >= y, 1.0, 0.0)",
+                "",
+                "def and_func(x, y):",
+                "    return ca.if_else(x > 0, ca.if_else(y > 0, 1.0, 0.0), 0.0)",
+                "",
+                "def max(x, y):",
+                "    return ca.if_else(x > y, x, y)",
+                "",
+            ]
+        return [
+            "def lt_func(x, y):",
+            "    return 1.0 if x < y else 0.0",
+            "",
+            "def leq_func(x, y):",
+            "    return 1.0 if x <= y else 0.0",
+            "",
+            "def gt_func(x, y):",
+            "    return 1.0 if x > y else 0.0",
+            "",
+            "def geq_func(x, y):",
+            "    return 1.0 if x >= y else 0.0",
+            "",
+            "def and_func(x, y):",
+            "    return 1.0 if bool(x) & bool(y) else 0.0",
+            "",
+            "def max(x, y):",
+            "    return x if x > y else y",
+            "",
+        ]
+
+    @staticmethod
     def _format_info_dict(name: str, info: dict) -> str:
         return (
             f'{name} = {{"name": {info["name"]!r}, "units": {info["units"]!r}, '
@@ -172,6 +265,13 @@ class PythonGenerator:
             "",
             "from enum import Enum",
             "from math import *",
+        ]
+        if self.casadi_compat:
+            utility_parts.extend([
+                "import casadi as ca",
+                "",
+            ])
+        utility_parts.extend([
             "",
             f"__version__ = {version!r}",
             f"LIBCELLML_VERSION = {libcellml_version!r}",
@@ -257,25 +357,8 @@ class PythonGenerator:
             "def describe_variables(variables):",
             "    return VarView(variables).as_dict()",
             "",
-            "def lt_func(x, y):",
-            "    return 1.0 if x < y else 0.0",
-            "",
-            "def leq_func(x, y):",
-            "    return 1.0 if x <= y else 0.0",
-            "",
-            "def gt_func(x, y):",
-            "    return 1.0 if x > y else 0.0",
-            "",
-            "def geq_func(x, y):",
-            "    return 1.0 if x >= y else 0.0",
-            "",
-            "def and_func(x, y):",
-            "    return 1.0 if bool(x) & bool(y) else 0.0",
-            "",
-            "def max(x, y):",
-            "    return x if x > y else y",
-            "",
-        ]
+        ])
+        utility_parts.extend(self._comparison_helper_lines(self.casadi_compat))
 
         return "\n".join(utility_parts) + "\n"
 
@@ -317,6 +400,14 @@ class PythonGenerator:
             ],
         )
 
+        if self.casadi_compat:
+            initialise_variables = self._apply_casadi_if_else_transform(initialise_variables)
+            compute_computed_constants = self._apply_casadi_if_else_transform(
+                compute_computed_constants
+            )
+            compute_rates = self._apply_casadi_if_else_transform(compute_rates)
+            compute_variables = self._apply_casadi_if_else_transform(compute_variables)
+
         export_names = [
             "__version__",
             "LIBCELLML_VERSION",
@@ -356,6 +447,13 @@ class PythonGenerator:
             "from math import *",
             "from pathlib import Path",
             "import importlib.util as _importlib_util",
+        ]
+        if self.casadi_compat:
+            main_parts.extend([
+                "import casadi as ca",
+                "",
+            ])
+        main_parts.extend([
             "",
             f"_UTILITIES_PATH = Path(__file__).with_name({utility_filename!r})",
             '_UTILITIES_SPEC = _importlib_util.spec_from_file_location(f"{__name__}_utilities", _UTILITIES_PATH)',
@@ -378,7 +476,7 @@ class PythonGenerator:
             "",
             compute_variables.rstrip(),
             "",
-        ]
+        ])
 
         return "\n".join(main_parts) + "\n"
 
@@ -474,6 +572,14 @@ class PythonGenerator:
                 fh.write(utilities_code)
         with open(output_path, "w", encoding="utf-8") as fh:
             fh.write(code)
+
+        if self.casadi_compat:
+            compile(code, output_path, "exec")
+            if utilities_code is not None:
+                utilities_path = os.path.join(self.output_dir, utilities_filename)
+                compile(utilities_code, utilities_path, "exec")
+            print("CasADi model generation successful (compile check passed).")
+            return output_path
 
         sim_helper = PythonSimulationHelper(output_path, dt=0.00001, sim_time=0.00001)
         sim_helper.set_solve_ivp_method("BDF")

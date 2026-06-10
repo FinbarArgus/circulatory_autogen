@@ -223,12 +223,21 @@ class SimulationHelper:
             except Exception:
                 pass
 
-        sol = solve_ivp(
-            self._rhs,
-            (self.t_eval[0], self.t_eval[-1]),
-            y0=self.states,
-            **solve_kwargs,
-        )
+        try:
+            sol = solve_ivp(
+                self._rhs,
+                (self.t_eval[0], self.t_eval[-1]),
+                y0=self.states,
+                **solve_kwargs,
+            )
+        except (OverflowError, FloatingPointError, ValueError, ArithmeticError):
+            if DEBUG:
+                try:
+                    sys_stdout.write("[PY_SOLVE] fail integration raised in RHS\n")
+                    sys_stdout.flush()
+                except Exception:
+                    pass
+            return False
         if not sol.success:
             if DEBUG:
                 try:
@@ -237,7 +246,16 @@ class SimulationHelper:
                 except Exception:
                     pass
             return False
-        self._post_process(sol)
+        try:
+            self._post_process(sol)
+        except (OverflowError, FloatingPointError, ValueError, ArithmeticError):
+            if DEBUG:
+                try:
+                    sys_stdout.write("[PY_SOLVE] fail post-process raised\n")
+                    sys_stdout.flush()
+                except Exception:
+                    pass
+            return False
         self._has_run = True
         # update current state to final
         self.states = list(sol.y[:, -1])

@@ -11,6 +11,7 @@ import sys
 import csv
 import json
 import copy
+import warnings
 import yaml
 try:
     from ruamel.yaml.scalarfloat import ScalarFloat
@@ -28,6 +29,39 @@ except:
 
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
+
+
+def warn_if_casadi_nonzero_pre_time(
+    model_type,
+    pre_time=None,
+    pre_times=None,
+    offline_pre_time=None,
+):
+    """Warn when CasADi AD is configured with nonzero warmup times (unsupported for adjoint)."""
+    if model_type != 'casadi_python':
+        return
+
+    issues = []
+    if pre_time is not None and float(pre_time) != 0.0:
+        issues.append(f'pre_time={pre_time}')
+    if pre_times is not None:
+        nonzero = [float(t) for t in pre_times if float(t) != 0.0]
+        if nonzero:
+            issues.append(f'protocol_info pre_times contains nonzero value(s): {nonzero}')
+    if offline_pre_time is not None and float(offline_pre_time) != 0.0:
+        issues.append(f'offline_pre_time={offline_pre_time}')
+
+    if issues:
+        warnings.warn(
+            'CasADi automatic differentiation (model_type="casadi_python", '
+            'solver="casadi_integrator") does not support nonzero pre_time or pre_times: '
+            'adjoint sensitivity integration typically fails with CV_TOO_MUCH_WORK. '
+            'Set pre_time and protocol pre_times to 0.0 (use offline_pre_time only with '
+            'non-CasADi solvers for warmup). '
+            f'Affected: {", ".join(issues)}.',
+            UserWarning,
+            stacklevel=3,
+        )
 user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 param_id_dir = os.path.join(src_dir, 'param_id')
@@ -248,11 +282,23 @@ class YamlFileParser(object):
                 exit()
         
 
+        if 'solver_info' in inp_data_dict:
+            inp_data_dict['solver_info'] = migrate_legacy_solver_info_keys(
+                solver_name, inp_data_dict['solver_info']
+            )
+
         if 'solver_info' not in inp_data_dict.keys(): 
             inp_data_dict['solver_info'] = get_solver_info_default(inp_data_dict['model_type'])
         else:
-            if 'MaximumNumberOfSteps' not in inp_data_dict['solver_info'].keys():
-                inp_data_dict['solver_info']['MaximumNumberOfSteps'] = get_solver_info_default(inp_data_dict['model_type'])['MaximumNumberOfSteps']
+            defaults = get_solver_info_default(inp_data_dict['model_type'])
+            if inp_data_dict.get('model_type') == 'casadi_python':
+                if 'max_num_steps' not in inp_data_dict['solver_info']:
+                    inp_data_dict['solver_info']['max_num_steps'] = defaults.get('max_num_steps', 5000)
+            elif inp_data_dict.get('model_type') == 'python':
+                if 'max_step' not in inp_data_dict['solver_info']:
+                    inp_data_dict['solver_info']['max_step'] = defaults.get('max_step', 0.001)
+            elif 'MaximumNumberOfSteps' not in inp_data_dict['solver_info']:
+                inp_data_dict['solver_info']['MaximumNumberOfSteps'] = defaults['MaximumNumberOfSteps']
         if 'solver' not in inp_data_dict['solver_info'].keys():
             inp_data_dict['solver_info']['solver'] = solver_name
         elif inp_data_dict.get('model_type') == 'cpp':
@@ -266,14 +312,17 @@ class YamlFileParser(object):
                 inp_data_dict['solver_info']['solver'] = 'PETSC'
                 solver_name = 'PETSC'
 
-        solver_info = get_solver_info_default(inp_data_dict['model_type'])
-        # overwrite with user-provided solver_info
-        for key, value in inp_data_dict['solver_info'].items():
-            solver_info[key] = value
-        
+        solver_info = dict(inp_data_dict['solver_info'])
+        if 'solver' not in solver_info:
+            solver_info['solver'] = solver_name
+
         dt_solver = solver_info.get('dt_solver')
         if dt_solver is None:
             dt_solver = solver_info.get('MaximumStep')
+        if dt_solver is None:
+            dt_solver = solver_info.get('max_step_size')
+        if dt_solver is None:
+            dt_solver = solver_info.get('max_step')
         if dt_solver is not None:
             solver_info['dt_solver'] = dt_solver
         if solver_info.get('solver', '').startswith('CVODE') and dt_solver is not None:
@@ -365,6 +414,17 @@ class YamlFileParser(object):
                 print('Use CVODE_opencor (or legacy CVODE) or CVODE_myokit for CellML models')
                 print('Use CVODE or RK4 or PETSC for Cpp models')
                 exit()
+
+        try:
+            validate_solver_info(solver_name, inp_data_dict['solver_info'])
+        except ValueError as exc:
+            print(exc)
+            exit()
+
+        warn_if_casadi_nonzero_pre_time(
+            inp_data_dict.get('model_type'),
+            pre_time=inp_data_dict.get('pre_time'),
+        )
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
@@ -512,6 +572,103 @@ class YamlFileParser(object):
 
         return inp_data_dict
 
+
+# Keys always allowed in solver_info (framework metadata, not passed to integrators).
+_FRAMEWORK_SOLVER_INFO_KEYS = frozenset({'solver', 'method', 'dt_solver'})
+
+# Integrator-specific keys that may appear in solver_info for each backend.
+_SOLVER_INTEGRATOR_KEYS = {
+    'CVODE_opencor': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'CVODE_myokit': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'CVODE': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'RK4': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'PETSC': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'solve_ivp': frozenset({'rtol', 'atol', 'max_step', 'vectorized', 'dense_output', 'jac'}),
+    'casadi_integrator': frozenset({
+        'reltol', 'abstol', 'rtol', 'atol', 'max_num_steps', 'max_step_size', 'options',
+    }),
+}
+
+
+def migrate_legacy_solver_info_keys(solver_name, solver_info):
+    """
+    Map legacy CVODE-style solver_info keys to backend-specific names and drop
+    keys that the selected integrator does not accept.
+    """
+    solver_info = dict(solver_info)
+
+    if solver_name == 'solve_ivp':
+        if 'max_step' not in solver_info:
+            if 'MaximumStep' in solver_info:
+                solver_info['max_step'] = solver_info['MaximumStep']
+            elif 'dt_solver' in solver_info:
+                solver_info['max_step'] = solver_info['dt_solver']
+        solver_info.pop('MaximumStep', None)
+        solver_info.pop('MaximumNumberOfSteps', None)
+    elif solver_name == 'casadi_integrator':
+        if 'max_step_size' not in solver_info:
+            if 'MaximumStep' in solver_info:
+                solver_info['max_step_size'] = solver_info['MaximumStep']
+            elif 'dt_solver' in solver_info:
+                solver_info['max_step_size'] = solver_info['dt_solver']
+        if 'max_num_steps' not in solver_info and 'MaximumNumberOfSteps' in solver_info:
+            solver_info['max_num_steps'] = solver_info['MaximumNumberOfSteps']
+        solver_info.pop('MaximumStep', None)
+        solver_info.pop('MaximumNumberOfSteps', None)
+
+    return solver_info
+
+
+def validate_solver_info(solver_name, solver_info):
+    """
+    Validate solver_info keys against the selected solver backend.
+
+    Raises ValueError listing unsupported keys and the allowed keys for that solver.
+    """
+    if solver_name not in _SOLVER_INTEGRATOR_KEYS:
+        raise ValueError(
+            f'Cannot validate solver_info for unknown solver {solver_name!r}. '
+            f'Known solvers: {sorted(_SOLVER_INTEGRATOR_KEYS)}'
+        )
+
+    allowed = _FRAMEWORK_SOLVER_INFO_KEYS | _SOLVER_INTEGRATOR_KEYS[solver_name]
+    unsupported = sorted(
+        key for key in solver_info.keys()
+        if key not in allowed
+    )
+    if not unsupported:
+        return
+
+    integrator_keys = sorted(_SOLVER_INTEGRATOR_KEYS[solver_name])
+    framework_keys = sorted(_FRAMEWORK_SOLVER_INFO_KEYS)
+    hints = []
+    if solver_name == 'casadi_integrator':
+        if 'MaximumStep' in unsupported:
+            hints.append(
+                f'for solver {solver_name!r}, use max_step_size instead of MaximumStep'
+            )
+        if 'MaximumNumberOfSteps' in unsupported:
+            hints.append(
+                f'for solver {solver_name!r}, use max_num_steps instead of MaximumNumberOfSteps'
+            )
+    elif solver_name == 'solve_ivp':
+        if 'MaximumStep' in unsupported:
+            hints.append(
+                f'for solver {solver_name!r}, use max_step instead of MaximumStep'
+            )
+        if 'MaximumNumberOfSteps' in unsupported:
+            hints.append(
+                f'for solver {solver_name!r}, MaximumNumberOfSteps is not supported'
+            )
+
+    hint_text = f' Hint: {"; ".join(hints)}.' if hints else ''
+    raise ValueError(
+        f'solver_info contains key(s) not supported by solver {solver_name!r}: {unsupported}. '
+        f'Allowed framework keys: {framework_keys}. '
+        f'Allowed integrator keys for {solver_name}: {integrator_keys}.{hint_text}'
+    )
+
+
 def get_solver_info_default(model_type):
     if model_type == 'cellml_only':
         return {
@@ -524,24 +681,27 @@ def get_solver_info_default(model_type):
     if model_type == 'python':
         return {
             'solver': 'solve_ivp',
-            'MaximumStep': 0.001,
-            'MaximumNumberOfSteps': 5000,
+            'method': 'RK45',
+            'max_step': 0.001,
             'rtol': 1e-8,
-            'atol': 1e-8
+            'atol': 1e-8,
         }
     if model_type == 'cpp':
         return {
             'solver': 'CVODE',
             'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 5000,
             'rtol': 1e-8,
             'atol': 1e-8
         }
     if model_type == 'casadi_python':
         return {
-            'solver': 'cvodes',
-            'MaximumStep': 0.001,
-            'rtol': 1e-8,
-            'atol': 1e-8
+            'solver': 'casadi_integrator',
+            'method': 'cvodes',
+            'max_step_size': 0.001,
+            'max_num_steps': 5000,
+            'reltol': 1e-8,
+            'abstol': 1e-10,
         }
     raise ValueError(f'Invalid model type: {model_type}')
 
@@ -820,7 +980,14 @@ class ObsAndParamDataParser(object):
     def __init__(self):
         pass
 
-    def parse_obs_data_json(self, param_id_obs_path=None, obs_data_dict=None, pre_time=None, sim_time=None):
+    def parse_obs_data_json(
+        self,
+        param_id_obs_path=None,
+        obs_data_dict=None,
+        pre_time=None,
+        sim_time=None,
+        model_type=None,
+    ):
         """
         Loads the ground truth observation data from the JSON file and returns 
         the core data structures: gt_df, protocol_info, and prediction_info.
@@ -1254,7 +1421,14 @@ class ObsAndParamDataParser(object):
                 raise ValueError(
                     "Invalid data_item value types:\n" + "\n".join(type_errors)
                 )
-        
+
+        warn_if_casadi_nonzero_pre_time(
+            model_type,
+            pre_time=pre_time,
+            pre_times=protocol_info.get('pre_times') if protocol_info is not None else None,
+            offline_pre_time=protocol_info.get('offline_pre_time') if protocol_info is not None else None,
+        )
+
         return {
             "gt_df": gt_df, 
             "protocol_info": protocol_info, 
