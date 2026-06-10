@@ -43,6 +43,15 @@ def test_cellml_solver_accepts_maximum_step_keys():
     })
 
 
+def test_cpp_rk4_accepts_maximum_number_of_steps():
+    validate_solver_info('RK4', {
+        'solver': 'RK4',
+        'method': 'RK4',
+        'MaximumStep': 0.001,
+        'MaximumNumberOfSteps': 5000,
+    })
+
+
 def test_solve_ivp_rejects_maximum_step_keys():
     with pytest.raises(ValueError, match="MaximumStep"):
         validate_solver_info('solve_ivp', {

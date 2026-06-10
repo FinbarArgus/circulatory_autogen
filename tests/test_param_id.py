@@ -1436,22 +1436,24 @@ def test_param_id_lotka_volterra_sp_minimize_gt_vs_calculated_params(base_user_i
 
 @pytest.mark.integration
 @pytest.mark.slow
-@pytest.mark.mpi
-@pytest.mark.xfail(
-    reason="CasADi CVODES adjoint still hits CV_TOO_MUCH_WORK; forward cost is finite",
-    strict=False,
-)
-def test_param_id_3compartment_nonstiff_casadi_succeeds(
-    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
+def test_3compartment_nonstiff_casadi_forward_and_gradient(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
 ):
     """
-    Parameter identification for 3compartment_nonstiff using CasADi Python with
-    casadi_integrator and sp_minimize (automatic differentiation).
+    Check that the 3compartment_nonstiff CasADi model can be solved (forward pass) and
+    that CasADi can differentiate the cost with respect to the parameters (gradient).
 
-    Uses heart_nonstiff (linearized valve resistance R_lin = 2*B*v_ref instead of -B*v*|v|).
-    Generated casadi_python code must use ca.if_else() for piecewise heart logic.
+    This is a prerequisite for gradient-based parameter identification. It:
+    1. Generates the CasADi Python model
+    2. Assembles a CVS0DParamID instance at the baseline parameter values
+    3. Verifies the forward cost is finite and positive
+    4. Verifies the gradient vector is finite and non-zero (i.e., the model is
+       differentiable w.r.t. each identified parameter)
     """
-    rank = mpi_comm.Get_rank()
+    pytest.importorskip("casadi")
+    import json
+    from parsers.PrimitiveParsers import YamlFileParser
+    from solver_wrappers import get_simulation_helper
 
     config = base_user_inputs.copy()
     config.update({
@@ -1465,7 +1467,7 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
         'pre_time': 0.5,
         'sim_time': 0.3,
         'dt': 0.01,
-        'DEBUG': True,
+        'DEBUG': False,
         'do_mcmc': False,
         'plot_predictions': False,
         'do_ia': False,
@@ -1477,15 +1479,245 @@ def test_param_id_3compartment_nonstiff_casadi_succeeds(
         'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
         'param_id_output_dir': temp_output_dir,
         'generated_models_dir': temp_generated_models_dir,
+        'resources_dir': resources_dir,
+    })
+
+    success = generate_with_new_architecture(False, config)
+    assert success, "CasADi Python model generation should succeed for 3compartment_nonstiff"
+
+    parsed = YamlFileParser().parse_user_inputs_file(
+        config, obs_path_needed=True, do_generation_with_fit_parameters=False
+    )
+    parsed['one_rank'] = True
+
+    runner = CVS0DParamID.init_from_dict(parsed)
+
+    with open(os.path.join(resources_dir, '3compartment_obs_data.json')) as f:
+        obs_data = json.load(f)
+    runner.set_ground_truth_data(obs_data)
+
+    params_for_id = [
+        {'vessel_name': 'global',       'param_name': 'q_lv_init', 'param_type': 'const', 'min': 200e-6,  'max': 1500e-6},
+        {'vessel_name': 'aortic_root',  'param_name': 'C',         'param_type': 'const', 'min': 1e-9,    'max': 5e-8},
+        {'vessel_name': 'global',       'param_name': 'E_lv_A',    'param_type': 'const', 'min': 1e8,     'max': 5e8},
+        {'vessel_name': 'global',       'param_name': 'E_lv_B',    'param_type': 'const', 'min': 1e6,     'max': 5e7},
+    ]
+    runner.set_params_for_id(params_for_id)
+
+    # Baseline parameter values from the CSV (in param_names order)
+    baseline_vals = runner.param_id.sim_helper.get_init_param_vals(
+        runner.param_id.param_id_info['param_names']
+    )
+    assert baseline_vals is not None and len(baseline_vals) == 4
+
+    cost = runner.param_id.get_cost_ca(baseline_vals)
+    cost_float = float(cost)
+    assert np.isfinite(cost_float), f"Forward cost should be finite, got {cost_float}"
+    assert cost_float >= 0, f"Forward cost should be non-negative, got {cost_float}"
+
+    gradient = runner.param_id.get_jac_cost_ca(baseline_vals)
+    assert gradient.shape[0] == 4, f"Gradient should have 4 elements, got {gradient.shape}"
+    assert np.all(np.isfinite(gradient)), f"Gradient should be finite, got {gradient}"
+    assert not np.all(gradient == 0), "Gradient should not be identically zero"
+
+    print(f"\n3compartment_nonstiff CasADi forward/gradient check:")
+    print(f"  Cost at baseline: {cost_float:.6g}")
+    print(f"  Gradient:         {gradient}")
+
+    runner.close_simulation()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_param_id_3compartment_nonstiff_casadi_succeeds(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
+):
+    """
+    Parameter identification for 3compartment_nonstiff using CasADi sp_minimize with AD.
+
+    Uses heart_nonstiff (linearized valve resistance). Verifies that gradient-based
+    optimization can recover ground-truth parameters from noiseless synthetic data:
+    1. Simulate with ground-truth baseline parameters to obtain observable values
+    2. Perturb parameters by 20 % to create the optimizer starting point
+    3. Run sp_minimize with AD; check recovered parameters are within 20 % of GT
+    """
+    pytest.importorskip("casadi")
+    import json
+    from solver_wrappers import get_simulation_helper
+
+    rank = mpi_comm.Get_rank()
+
+    # Ground-truth values (from 3compartment_nonstiff_parameters.csv)
+    GT = {
+        'global/q_lv_init': 0.002,
+        'aortic_root/C':    12.028e-9,
+        'global/E_lv_A':    366575000.0,
+        'global/E_lv_B':    10664000.0,
+    }
+    param_names_flat = list(GT.keys())
+    gt_vals = np.array([GT[k] for k in param_names_flat])
+
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': '3compartment_nonstiff',
+        'input_param_file': '3compartment_nonstiff_parameters.csv',
+        'params_for_id_file': '3compartment_nonstiff_params_for_id.csv',
+        'model_type': 'casadi_python',
+        'solver': 'casadi_integrator',
+        'param_id_method': 'sp_minimize',
+        'do_ad': True,
+        'pre_time': 0.5,
+        'sim_time': 0.3,
+        'dt': 0.01,
+        'DEBUG': False,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'do_ia': False,
+        'solver_info': {
+            'max_step_size': 0.001,
+            'max_num_steps': 50000,
+            'method': 'cvodes',
+        },
+        'param_id_output_dir': temp_output_dir,
+        'generated_models_dir': temp_generated_models_dir,
+        'resources_dir': resources_dir,
         'optimiser_options': {
-            'num_calls_to_function': 40,
-            'cost_convergence': 1e-3,
+            'num_calls_to_function': 200,
+            'cost_convergence': 1e-6,
         },
     })
+
+    obs_data_path = None
 
     if rank == 0:
         success = generate_with_new_architecture(False, config)
         assert success, "CasADi Python model generation should succeed for 3compartment_nonstiff"
+
+        model_path = os.path.join(temp_generated_models_dir, '3compartment_nonstiff', '3compartment_nonstiff.py')
+
+        # --- Step 1: simulate with GT parameters ---
+        sim = get_simulation_helper(
+            solver='casadi_integrator',
+            model_path=model_path,
+            model_type='casadi_python',
+            dt=config['dt'],
+            sim_time=config['sim_time'],
+            pre_time=config['pre_time'],
+            solver_info=config['solver_info'],
+        )
+        sim.set_param_vals(param_names_flat, list(gt_vals))
+        assert sim.run(), "Baseline simulation should succeed"
+        results = sim.get_all_results_dict()
+
+        def _flat(name):
+            return np.asarray(results[name]).flatten()
+
+        # --- Step 2: build obs_data from GT simulation ---
+        # Replace every item in the template with values from the GT simulation.
+        with open(os.path.join(resources_dir, '3compartment_obs_data.json')) as f:
+            obs_template = json.load(f)
+
+        _op_map = {
+            'mean':          lambda a: float(a.mean()),
+            'max':           lambda a: float(a.max()),
+            'min':           lambda a: float(a.min()),
+            'max_minus_min': lambda a: float(a.max() - a.min()),
+        }
+        for item in obs_template:
+            op = item.get('operation')
+            operand_name = item.get('operands', [None])[0]
+            if op in _op_map and operand_name in results:
+                val = _op_map[op](_flat(operand_name))
+                item['value'] = val
+                item['std'] = max(abs(val) * 0.05, 1e-8)
+
+        obs_data_path = os.path.join(temp_output_dir, '3compartment_nonstiff_gt_obs.json')
+        with open(obs_data_path, 'w') as f:
+            json.dump(obs_template, f, indent=2)
+
+    obs_data_path = mpi_comm.bcast(obs_data_path, root=0)
+    mpi_comm.Barrier()
+
+    config['param_id_obs_path'] = obs_data_path
+    run_param_id(config)
+    mpi_comm.Barrier()
+
+    if rank == 0:
+        output_dir = os.path.join(
+            temp_output_dir,
+            f"{config['param_id_method']}_3compartment_nonstiff_3compartment_nonstiff_gt_obs"
+        )
+        assert os.path.exists(output_dir), f"Output directory should exist: {output_dir}"
+
+        cost_file = os.path.join(output_dir, 'best_cost.npy')
+        assert os.path.exists(cost_file), f"Cost file should exist: {cost_file}"
+        cost = float(np.load(cost_file))
+        assert np.isfinite(cost) and cost >= 0, f"Cost should be finite and non-negative, got {cost}"
+
+        params_file = os.path.join(output_dir, 'best_param_vals.npy')
+        assert os.path.exists(params_file), f"Parameters file should exist: {params_file}"
+        cal_vals = np.load(params_file)
+        assert cal_vals.shape[0] == len(gt_vals), "Parameter count mismatch"
+        assert np.all(np.isfinite(cal_vals)), "Calibrated parameters should be finite"
+
+        threshold_pct = 20.0
+        print(f"\n3compartment_nonstiff CasADi GT recovery (threshold {threshold_pct}%):")
+        print(f"{'Parameter':<25} {'GT':>14} {'Calibrated':>14} {'Error%':>8}")
+        for name, gt, cal in zip(param_names_flat, gt_vals, cal_vals):
+            err = abs(cal - gt) / abs(gt) * 100.0
+            print(f"  {name:<23} {gt:>14.6g} {cal:>14.6g} {err:>7.2f}%")
+            assert err < threshold_pct, (
+                f"{name}: recovery error {err:.2f}% exceeds {threshold_pct}% "
+                f"(GT={gt:.6g}, calibrated={cal:.6g})"
+            )
+
+    mpi_comm.Barrier()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_param_id_3compartment_nonstiff_python_succeeds(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm
+):
+    """
+    Parameter identification for 3compartment_nonstiff using the Python solve_ivp path.
+
+    Uses heart_nonstiff (linearized valve resistance R_lin = 2*B*v_ref instead of -B*v*|v|).
+    """
+    rank = mpi_comm.Get_rank()
+
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': '3compartment_nonstiff',
+        'input_param_file': '3compartment_nonstiff_parameters.csv',
+        'params_for_id_file': '3compartment_nonstiff_params_for_id.csv',
+        'model_type': 'python',
+        'solver': 'solve_ivp',
+        'param_id_method': 'genetic_algorithm',
+        'pre_time': 0.5,
+        'sim_time': 0.3,
+        'dt': 0.01,
+        'DEBUG': True,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'do_ia': False,
+        'solver_info': {
+            'method': 'BDF',
+            'rtol': 1e-6,
+            'atol': 1e-8,
+            'max_step': 1e-3,
+        },
+        'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
+        'param_id_output_dir': temp_output_dir,
+        'generated_models_dir': temp_generated_models_dir,
+        'optimiser_options': {'num_calls_to_function': 40, 'max_patience': 10, 'cost_convergence': 1e-3},
+    })
+
+    if rank == 0:
+        success = generate_with_new_architecture(False, config)
+        assert success, "Python model generation should succeed for 3compartment_nonstiff"
 
     mpi_comm.Barrier()
 

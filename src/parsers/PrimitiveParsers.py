@@ -541,9 +541,9 @@ _FRAMEWORK_SOLVER_INFO_KEYS = frozenset({'solver', 'method', 'dt_solver'})
 _SOLVER_INTEGRATOR_KEYS = {
     'CVODE_opencor': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
     'CVODE_myokit': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
-    'CVODE': frozenset({'MaximumStep', 'rtol', 'atol'}),
-    'RK4': frozenset({'MaximumStep', 'rtol', 'atol'}),
-    'PETSC': frozenset({'MaximumStep', 'rtol', 'atol'}),
+    'CVODE': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'RK4': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
+    'PETSC': frozenset({'MaximumStep', 'MaximumNumberOfSteps', 'rtol', 'atol'}),
     'solve_ivp': frozenset({'rtol', 'atol', 'max_step', 'vectorized', 'dense_output', 'jac'}),
     'casadi_integrator': frozenset({
         'reltol', 'abstol', 'rtol', 'atol', 'max_num_steps', 'max_step_size', 'options',
@@ -651,6 +651,7 @@ def get_solver_info_default(model_type):
         return {
             'solver': 'CVODE',
             'MaximumStep': 0.001,
+            'MaximumNumberOfSteps': 5000,
             'rtol': 1e-8,
             'atol': 1e-8
         }
