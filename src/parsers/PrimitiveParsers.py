@@ -11,6 +11,7 @@ import sys
 import csv
 import json
 import copy
+import warnings
 import yaml
 try:
     from ruamel.yaml.scalarfloat import ScalarFloat
@@ -28,6 +29,39 @@ except:
 
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
+
+
+def warn_if_casadi_nonzero_pre_time(
+    model_type,
+    pre_time=None,
+    pre_times=None,
+    offline_pre_time=None,
+):
+    """Warn when CasADi AD is configured with nonzero warmup times (unsupported for adjoint)."""
+    if model_type != 'casadi_python':
+        return
+
+    issues = []
+    if pre_time is not None and float(pre_time) != 0.0:
+        issues.append(f'pre_time={pre_time}')
+    if pre_times is not None:
+        nonzero = [float(t) for t in pre_times if float(t) != 0.0]
+        if nonzero:
+            issues.append(f'protocol_info pre_times contains nonzero value(s): {nonzero}')
+    if offline_pre_time is not None and float(offline_pre_time) != 0.0:
+        issues.append(f'offline_pre_time={offline_pre_time}')
+
+    if issues:
+        warnings.warn(
+            'CasADi automatic differentiation (model_type="casadi_python", '
+            'solver="casadi_integrator") does not support nonzero pre_time or pre_times: '
+            'adjoint sensitivity integration typically fails with CV_TOO_MUCH_WORK. '
+            'Set pre_time and protocol pre_times to 0.0 (use offline_pre_time only with '
+            'non-CasADi solvers for warmup). '
+            f'Affected: {", ".join(issues)}.',
+            UserWarning,
+            stacklevel=3,
+        )
 user_inputs_dir = os.path.join(root_dir, 'user_run_files')
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 param_id_dir = os.path.join(src_dir, 'param_id')
@@ -386,6 +420,11 @@ class YamlFileParser(object):
         except ValueError as exc:
             print(exc)
             exit()
+
+        warn_if_casadi_nonzero_pre_time(
+            inp_data_dict.get('model_type'),
+            pre_time=inp_data_dict.get('pre_time'),
+        )
 
         if 'DEBUG' in inp_data_dict.keys(): 
             if inp_data_dict['DEBUG']:
@@ -941,7 +980,14 @@ class ObsAndParamDataParser(object):
     def __init__(self):
         pass
 
-    def parse_obs_data_json(self, param_id_obs_path=None, obs_data_dict=None, pre_time=None, sim_time=None):
+    def parse_obs_data_json(
+        self,
+        param_id_obs_path=None,
+        obs_data_dict=None,
+        pre_time=None,
+        sim_time=None,
+        model_type=None,
+    ):
         """
         Loads the ground truth observation data from the JSON file and returns 
         the core data structures: gt_df, protocol_info, and prediction_info.
@@ -1375,7 +1421,14 @@ class ObsAndParamDataParser(object):
                 raise ValueError(
                     "Invalid data_item value types:\n" + "\n".join(type_errors)
                 )
-        
+
+        warn_if_casadi_nonzero_pre_time(
+            model_type,
+            pre_time=pre_time,
+            pre_times=protocol_info.get('pre_times') if protocol_info is not None else None,
+            offline_pre_time=protocol_info.get('offline_pre_time') if protocol_info is not None else None,
+        )
+
         return {
             "gt_df": gt_df, 
             "protocol_info": protocol_info, 

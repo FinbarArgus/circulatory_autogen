@@ -211,7 +211,8 @@ class CVS0DParamID():
             parsed_data = self.obs_and_param_parser.parse_obs_data_json(
                 param_id_obs_path=param_id_obs_path,
                 pre_time=pre_time,
-                sim_time=sim_time
+                sim_time=sim_time,
+                model_type=model_type,
             )
             self.gt_df = parsed_data["gt_df"]
             self.protocol_info = parsed_data["protocol_info"]
@@ -413,7 +414,8 @@ class CVS0DParamID():
         parsed_data = self.obs_and_param_parser.parse_obs_data_json(
             obs_data_dict=obs_data_dict,
             pre_time=self.pre_time,
-            sim_time=self.sim_time
+            sim_time=self.sim_time,
+            model_type=self.model_type,
         )
         self.gt_df = parsed_data["gt_df"]
         self.protocol_info = parsed_data["protocol_info"]

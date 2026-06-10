@@ -1,9 +1,12 @@
+import warnings
+
 import pytest
 
 from parsers.PrimitiveParsers import (
     YamlFileParser,
     migrate_legacy_solver_info_keys,
     validate_solver_info,
+    warn_if_casadi_nonzero_pre_time,
 )
 
 
@@ -103,3 +106,24 @@ def test_parse_user_inputs_migrates_legacy_keys_for_python_model():
     assert parsed['solver_info']['max_step'] == 0.0001
     assert 'MaximumStep' not in parsed['solver_info']
     assert 'MaximumNumberOfSteps' not in parsed['solver_info']
+
+
+def test_parse_user_inputs_warns_for_casadi_nonzero_pre_time():
+    with pytest.warns(UserWarning, match='does not support nonzero pre_time'):
+        YamlFileParser().parse_user_inputs_file({
+            'file_prefix': '3compartment_nonstiff',
+            'input_param_file': '3compartment_nonstiff_parameters.csv',
+            'model_type': 'casadi_python',
+            'solver': 'casadi_integrator',
+            'solver_info': {'method': 'cvodes', 'max_num_steps': 50000},
+            'dt': 0.01,
+            'pre_time': 0.5,
+            'sim_time': 0.3,
+        }, obs_path_needed=False)
+
+
+def test_warn_if_casadi_nonzero_pre_time_ignores_other_model_types():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        warn_if_casadi_nonzero_pre_time('python', pre_time=0.5)
+    assert len(caught) == 0
