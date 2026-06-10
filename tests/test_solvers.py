@@ -1096,7 +1096,7 @@ def _run_all_solvers_and_compare(model_name, full_model_path_cellml, temp_model_
     backends = [
         ("CVODE_opencor",  "CVODE_opencor",    "cellml_only",   full_model_path_cellml, {"MaximumStep": 0.0001}),
         ("CVODE_myokit",   "CVODE_myokit",     "cellml_only",   full_model_path_cellml, {"MaximumStep": 0.0001}),
-        ("solve_ivp_BDF",  "solve_ivp",        "python",        python_model_path,      {"method": "BDF", "max_step": 0.0001}),
+        ("solve_ivp_BDF",  "solve_ivp",        "python",        python_model_path,      {"method": "BDF", "max_step": 0.0001, "rtol": 1e-8, "atol": 1e-10}),
     ]
     if include_casadi:
         backends.append(
