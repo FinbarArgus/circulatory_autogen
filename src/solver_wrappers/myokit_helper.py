@@ -47,7 +47,10 @@ class SimulationHelper:
         self._last_results_dict = None
 
     def get_time(self, include_pre_time=False):
-        print("TODO CHECK MYOKIT FUNCTIONALITY FOR TIME. I THINK IT IS DIFFERENT TO OPENCOR")
+        # Canonical cumulative time axis (see _extract("time")). tSim is built in
+        # _setup_time as linspace(start_time + pre_time, stop_time); subtracting
+        # pre_time gives the logged (post-pre) cumulative protocol time, matching
+        # the OpenCOR backend.
         if include_pre_time:
             return self.tSim
         else:
@@ -788,9 +791,17 @@ class SimulationHelper:
         return pred_obs_new
 
     def update_times(self, dt, start_time, sim_time, pre_time):
+        # Preserve the current state across reset() so multi-sub-experiment
+        # protocols continue from the previous sub-experiment's end state, matching
+        # the OpenCOR and solve_ivp backends. Myokit's reset() reverts to the
+        # *default* (initial) state; run() only set_state()s the end state, not the
+        # default state, so without this restore every sub-experiment after the
+        # first would restart from the model initial conditions.
+        current_state = list(self.simulation.state())
         self._setup_time(dt, sim_time, pre_time, start_time=start_time)
         # Reset to ensure time/step changes are honored
         self.simulation.reset()
+        self.simulation.set_state(current_state)
 
     def close_simulation(self):
         # Myokit doesn't require explicit close
@@ -811,12 +822,15 @@ class SimulationHelper:
         if name == "time":
             if self.last_log is None:
                 raise RuntimeError("No log available")
-            time_key = self.model.time().qname()
-            times = np.asarray(self.last_log[time_key])
-            # Remove pre_time portion if present
-            if self.pre_time > 0:
-                times = times - self.pre_time
-            return times
+            # Return the canonical cumulative time axis (tSim), not Myokit's logged
+            # clock. Myokit's clock restarts at each sub-experiment's run_t0
+            # (update_times -> reset), so the raw log is a per-segment local time and
+            # corrupts time-based observables (e.g. first_peak_time) in multi-sub-
+            # experiment protocols. tSim is built from start_time/pre_time in
+            # _setup_time and is the same length as the logged state/var series, so it
+            # stays aligned with the values get_results returns. This is identical to
+            # get_time() and to the OpenCOR backend's time axis.
+            return self.tSim - self.pre_time
         kind, qname = self._resolve_name(name)
         if self.last_log and kind in ("state", "var"):
             data = np.asarray(self.last_log[qname])

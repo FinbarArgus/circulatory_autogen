@@ -74,10 +74,12 @@ class ProtocolRunner:
         self.MaximumStep = solver_info.get('MaximumStep', 0.001)
         self.MaximumNumberOfSteps = solver_info.get('MaximumNumberOfSteps', 5000)
 
-        full_solver_info = {
-            'MaximumNumberOfSteps': self.MaximumNumberOfSteps,
-            'MaximumStep': self.MaximumStep,
-        }
+        # Preserve all solver_info keys (e.g. rtol/atol/method) and only fill in
+        # MaximumStep / MaximumNumberOfSteps defaults — previously the extra keys
+        # were silently dropped, so tight tolerances passed by callers were ignored.
+        full_solver_info = dict(solver_info)
+        full_solver_info.setdefault('MaximumNumberOfSteps', self.MaximumNumberOfSteps)
+        full_solver_info.setdefault('MaximumStep', self.MaximumStep)
         # sim_time=1.0 is a placeholder — overridden per protocol_info in run_protocols
         self.sim_helper = get_simulation_helper(
             model_path=model_path,

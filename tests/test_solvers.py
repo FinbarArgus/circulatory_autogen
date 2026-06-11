@@ -23,50 +23,8 @@ from generators.PythonGenerator import PythonGenerator
 from scripts.script_generate_with_new_architecture import generate_with_new_architecture
 import xml.etree.ElementTree as ET
 
-_MODEL_INPUT_FILES = {
-    "3compartment": "3compartment_parameters.csv",
-    "SN_simple": "SN_simple_parameters.csv",
-    "test_init_states": "test_init_states_parameters.csv",
-}
-
-
-@pytest.fixture(scope="function")
-def generated_cellml_model_factory(base_user_inputs, resources_dir, temp_generated_models_dir):
-    """Generate a CellML model into an isolated per-test directory."""
-
-    def _generate(file_prefix, input_param_file=None, solver="CVODE"):
-        source_dir = os.path.join(_TEST_ROOT, "generated_models", file_prefix)
-        target_dir = os.path.join(temp_generated_models_dir, file_prefix)
-        source_cellml = os.path.join(source_dir, f"{file_prefix}.cellml")
-        target_cellml = os.path.join(target_dir, f"{file_prefix}.cellml")
-
-        if os.path.exists(source_cellml):
-            shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
-            return target_cellml
-
-        input_param_file = input_param_file or _MODEL_INPUT_FILES[file_prefix]
-        config = base_user_inputs.copy()
-        config.update({
-            "DEBUG": True,
-            "file_prefix": file_prefix,
-            "input_param_file": input_param_file,
-            "model_type": "cellml_only",
-            "solver": solver,
-            "pre_time": 0.0,
-            "sim_time": 0.1,
-            "dt": 0.01,
-            "plot_predictions": False,
-            "do_mcmc": False,
-            "resources_dir": resources_dir,
-            "generated_models_dir": temp_generated_models_dir,
-            "solver_info": {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000},
-        })
-        ok = generate_with_new_architecture(False, config)
-        assert ok, f"Autogeneration failed for {file_prefix}"
-        assert os.path.exists(target_cellml), f"Generated model not found: {target_cellml}"
-        return target_cellml
-
-    return _generate
+# _MODEL_INPUT_FILES and the generated_cellml_model_factory fixture now live in
+# tests/conftest.py so they are shared with test_protocol_state_continuity.py.
 
 
 def _normalize_variable_name(var_name, solver_type):
