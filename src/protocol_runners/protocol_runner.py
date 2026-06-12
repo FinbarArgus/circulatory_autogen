@@ -48,7 +48,7 @@ class ProtocolRunner:
         E.g. ``'CVODE_myokit'``, ``'CVODE_opencor'``.
     """
 
-    def __init__(self, model_path, inp_data_dict=None, solver='CVODE_myokit'):
+    def __init__(self, model_path, inp_data_dict=None, solver='CVODE_myokit', model_type=None):
         if inp_data_dict is None:
             import yaml
             with open(os.path.join(_USER_INPUTS_DIR, 'user_inputs.yaml'), 'r') as fh:
@@ -68,6 +68,9 @@ class ProtocolRunner:
 
         self.inp_data_dict = inp_data_dict
         self.solver = solver
+        # model_type selects the backend family (cellml_only / python / casadi_python).
+        # Falls back to inp_data_dict['model_type'] when not passed explicitly.
+        self.model_type = model_type if model_type is not None else inp_data_dict.get('model_type')
 
         self.dt = inp_data_dict['dt']
         solver_info = inp_data_dict.get('solver_info', {})
@@ -84,6 +87,7 @@ class ProtocolRunner:
         self.sim_helper = get_simulation_helper(
             model_path=model_path,
             solver=solver,
+            model_type=self.model_type,
             dt=self.dt,
             sim_time=1.0,
             solver_info=full_solver_info,

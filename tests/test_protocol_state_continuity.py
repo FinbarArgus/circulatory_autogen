@@ -16,8 +16,11 @@ metabolism model run with multi-meal protocols, where Myokit diverged from
 OpenCOR by 30-100%.
 
 Backends:
-- Myokit self-consistency (always runs; this is the CI-visible check):
-  a ``[T/2, T/2]`` two-sub-experiment run must equal a ``[T]`` single segment.
+- Myokit self-consistency (always runs): a ``[T/2, T/2]`` two-sub-experiment run
+  must equal a ``[T]`` single segment.
+- Myokit vs Python/solve_ivp (always runs; cross-backend check that works in CI,
+  since the Python backend ships with circulatory_autogen and carries state forward
+  correctly).
 - Myokit vs OpenCOR (skipped when OpenCOR is unavailable, e.g. in CI).
 """
 import os
@@ -41,6 +44,9 @@ _DT = 0.1
 # BDF order/step at the segment boundary). At these tolerances a correct backend
 # matches to ~0%, while the state-reset bug still diverges by tens of percent.
 _SOLVER_INFO = {"MaximumStep": 0.01, "MaximumNumberOfSteps": 50000, "rtol": 1e-8, "atol": 1e-10}
+# Python (solve_ivp) backend uses a stiff method with matching tight tolerances so
+# its trajectory tracks the Myokit/OpenCOR CVODE solution to ~0%.
+_PY_SOLVER_INFO = {"method": "BDF", "rtol": 1e-10, "atol": 1e-12, "max_step": 0.01}
 # Lotka-Volterra oscillates, so the state at t=T/2 is far from the initial
 # condition; a backend that resets at the sub-experiment boundary diverges hard.
 _STATE_BASES = ["x", "y"]
@@ -58,7 +64,20 @@ def lotka_volterra_cellml(generated_cellml_model_factory):
     return generated_cellml_model_factory("Lotka_Volterra", "Lotka_Volterra_parameters.csv")
 
 
-def _run_segments(model_path, solver, sim_times):
+@pytest.fixture(scope="function")
+def lotka_volterra_python(lotka_volterra_cellml, temp_generated_models_dir):
+    """Lotka-Volterra Python model (.py) generated from the CellML for the solve_ivp backend."""
+    from generators.PythonGenerator import PythonGenerator
+
+    generator = PythonGenerator(
+        lotka_volterra_cellml,
+        output_dir=os.path.join(temp_generated_models_dir, "Lotka_Volterra_py"),
+        module_name="Lotka_Volterra",
+    )
+    return generator.generate()
+
+
+def _run_segments(model_path, solver, sim_times, solver_info=_SOLVER_INFO, model_type=None):
     """Run a single-experiment protocol with the given sub-experiment durations.
 
     Uses ProtocolRunner, which already concatenates the sub-experiment segments
@@ -67,8 +86,9 @@ def _run_segments(model_path, solver, sim_times):
     """
     runner = ProtocolRunner(
         model_path,
-        inp_data_dict={"dt": _DT, "solver_info": _SOLVER_INFO},
+        inp_data_dict={"dt": _DT, "solver_info": solver_info},
         solver=solver,
+        model_type=model_type,
     )
     protocol_info = {
         "pre_times": [0.0],
@@ -79,14 +99,11 @@ def _run_segments(model_path, solver, sim_times):
     var2idx = runner.get_var2idx_dict()
 
     def idx(base):
-        # Myokit uses 'Component_module.var'; OpenCOR uses 'Component/var'.
-        for full in (
-            f"Lotka_Volterra_module.{base}",
-            f"Lotka_Volterra/{base}",
-            f"Lotka_Volterra_module/{base}",
-        ):
-            if full in var2idx:
-                return var2idx[full]
+        # Backend-agnostic: Myokit uses 'Component_module.var', OpenCOR/Python use
+        # 'Component/var'. Match the trailing variable name either way.
+        for name, i in var2idx.items():
+            if name.endswith(f".{base}") or name.endswith(f"/{base}"):
+                return i
         raise KeyError(f"{base} not found in {solver} variables: {list(var2idx)[:6]}...")
 
     return {base: np.asarray(res_all[0][idx(base)], dtype=float) for base in _STATE_BASES}
@@ -124,6 +141,28 @@ def test_myokit_state_continuity_across_subexperiments(lotka_volterra_cellml):
         single, split, _SELF_TOL_PCT,
         "Myokit loses state across sub-experiment boundaries — a split protocol diverges "
         "from the equivalent single segment (update_times resets state).",
+    )
+
+
+@pytest.mark.integration
+@pytest.mark.solver
+def test_myokit_vs_python_state_continuity(lotka_volterra_cellml, lotka_volterra_python):
+    """Myokit (CVODE) and Python (solve_ivp) must agree on a multi-sub-experiment protocol.
+
+    Cross-backend check that runs in circulatory_autogen CI (no OpenCOR needed): the
+    Python backend carries state across sub-experiment boundaries correctly, so it is
+    an independent reference for the Myokit fix. Catches the case where Myokit is
+    internally self-consistent but still wrong.
+    """
+    split = [_SIM_TIME / 2, _SIM_TIME / 2]
+    myokit = _run_segments(lotka_volterra_cellml, "CVODE_myokit", split)
+    python = _run_segments(
+        lotka_volterra_python, "solve_ivp", split,
+        solver_info=_PY_SOLVER_INFO, model_type="python",
+    )
+    _assert_agreement(
+        myokit, python, _CROSS_TOL_PCT,
+        "Myokit and Python/solve_ivp disagree on a multi-sub-experiment protocol.",
     )
 
 
