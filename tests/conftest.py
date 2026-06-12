@@ -512,6 +512,59 @@ def temp_generated_models_dir(request, temp_output_dir):
     return generated_dir
 
 
+# Default parameters CSV per model prefix, used by generated_cellml_model_factory
+# when the caller doesn't pass input_param_file explicitly.
+_MODEL_INPUT_FILES = {
+    "3compartment": "3compartment_parameters.csv",
+    "SN_simple": "SN_simple_parameters.csv",
+    "test_init_states": "test_init_states_parameters.csv",
+}
+
+
+@pytest.fixture(scope="function")
+def generated_cellml_model_factory(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """Generate (or copy a committed) CellML model into an isolated per-test directory.
+
+    Shared by test_solvers.py and test_protocol_state_continuity.py. Copies from
+    tests/generated_models/<prefix> when a committed model exists, otherwise runs
+    autogeneration.
+    """
+
+    def _generate(file_prefix, input_param_file=None, solver="CVODE"):
+        source_dir = os.path.join(_TEST_ROOT, "generated_models", file_prefix)
+        target_dir = os.path.join(temp_generated_models_dir, file_prefix)
+        source_cellml = os.path.join(source_dir, f"{file_prefix}.cellml")
+        target_cellml = os.path.join(target_dir, f"{file_prefix}.cellml")
+
+        if os.path.exists(source_cellml):
+            shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
+            return target_cellml
+
+        input_param_file = input_param_file or _MODEL_INPUT_FILES[file_prefix]
+        config = base_user_inputs.copy()
+        config.update({
+            "DEBUG": True,
+            "file_prefix": file_prefix,
+            "input_param_file": input_param_file,
+            "model_type": "cellml_only",
+            "solver": solver,
+            "pre_time": 0.0,
+            "sim_time": 0.1,
+            "dt": 0.01,
+            "plot_predictions": False,
+            "do_mcmc": False,
+            "resources_dir": resources_dir,
+            "generated_models_dir": temp_generated_models_dir,
+            "solver_info": {"MaximumStep": 0.001, "MaximumNumberOfSteps": 5000},
+        })
+        ok = generate_with_new_architecture(False, config)
+        assert ok, f"Autogeneration failed for {file_prefix}"
+        assert os.path.exists(target_cellml), f"Generated model not found: {target_cellml}"
+        return target_cellml
+
+    return _generate
+
+
 @pytest.fixture(scope="function", autouse=True)
 def set_random_seed():
     """
