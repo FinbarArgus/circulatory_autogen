@@ -2578,3 +2578,47 @@ def test_parse_obs_data_json_series_std_required_for_npy_paths(tmp_path):
     with pytest.raises(ValueError, match="requires 'std'"):
         parser.parse_obs_data_json(obs_data_dict=obs_data_dict, pre_time=0.0, sim_time=1.0)
 
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_param_id_archives_input_files(resources_dir, temp_output_dir,
+                                       generated_cellml_model_factory, mpi_comm):
+    """CVS0DParamID archives the params_for_id and obs_data inputs into the run
+    output_dir with a _yymmdd_HHMMSS timestamp, so a user can see exactly which
+    inputs produced a run (issue #233)."""
+    import re
+
+    rank = mpi_comm.Get_rank()
+    model_path = generated_cellml_model_factory('3compartment', '3compartment_parameters.csv')
+    params_for_id_path = os.path.join(resources_dir, '3compartment_params_for_id.csv')
+    obs_path = os.path.join(resources_dir, '3compartment_obs_data.json')
+
+    runner = CVS0DParamID.init_from_dict({
+        'model_path': model_path,
+        'model_type': 'cellml_only',
+        'param_id_method': 'genetic_algorithm',
+        'file_name_prefix': '3compartment',
+        'params_for_id_path': params_for_id_path,
+        'param_id_obs_path': obs_path,
+        'resources_dir': resources_dir,
+        'param_id_output_dir': temp_output_dir,
+        'solver_info': {'solver': 'CVODE_myokit', 'MaximumStep': 0.001, 'MaximumNumberOfSteps': 5000},
+        'dt': 0.01, 'sim_time': 2.0, 'pre_time': 20.0, 'DEBUG': False,
+    })
+
+    if rank == 0:
+        out = runner.output_dir
+        files = os.listdir(out)
+        params_copies = [f for f in files
+                         if re.fullmatch(r'3compartment_params_for_id_\d{6}_\d{6}\.csv', f)]
+        obs_copies = [f for f in files
+                      if re.fullmatch(r'3compartment_obs_data_\d{6}_\d{6}\.json', f)]
+        assert params_copies, f"no timestamped params_for_id copy in {out}: {files}"
+        assert obs_copies, f"no timestamped obs_data copy in {out}: {files}"
+        # Archived copies must match the source inputs byte-for-byte.
+        with open(os.path.join(out, params_copies[0])) as fa, open(params_for_id_path) as fb:
+            assert fa.read() == fb.read()
+        with open(os.path.join(out, obs_copies[0])) as fa, open(obs_path) as fb:
+            assert fa.read() == fb.read()
