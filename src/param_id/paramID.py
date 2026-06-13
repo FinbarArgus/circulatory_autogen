@@ -54,7 +54,8 @@ try:
 except ImportError:
     corner = None
 import csv
-from datetime import date
+import shutil
+from datetime import date, datetime
 # from skopt import gp_minimize, Optimizer
 from parsers.PrimitiveParsers import CSVFileParser, ObsAndParamDataParser
 from param_id.optimisers import GeneticAlgorithmOptimiser, BayesianOptimiser, CMAESOptimiser, SciPyMinimizeOptimiser
@@ -180,6 +181,9 @@ class CVS0DParamID():
             self.plot_dir = os.path.join(self.output_dir, 'plots_param_id')
             if not os.path.exists(self.plot_dir):
                 os.mkdir(self.plot_dir)
+            # Archive the input files (timestamped) used for this run so the user can
+            # later check exactly what params_for_id / obs_data produced these outputs.
+            self._archive_input_files(params_for_id_path, param_id_obs_path)
         else:
             self.output_dir = None
         
@@ -264,6 +268,27 @@ class CVS0DParamID():
         
         self.best_output_calculated = False
         self.sensitivity_calculated = False
+
+    def _archive_input_files(self, params_for_id_path, param_id_obs_path):
+        """Copy the params_for_id and obs_data input files into the run output_dir.
+
+        A ``_<yymmdd>_<HHMMSS>`` timestamp is inserted before the extension (a single
+        timestamp shared by both files), so a user inspecting ``param_id_output/<case>/``
+        can see exactly which inputs were used for that run. Missing/None paths are
+        skipped; multiple runs into the same case dir accumulate timestamped copies.
+        """
+        if self.output_dir is None:
+            return
+        timestamp = datetime.now().strftime("%y%m%d_%H%M%S")
+        for src in (params_for_id_path, param_id_obs_path):
+            if not src or not os.path.isfile(src):
+                continue
+            base, ext = os.path.splitext(os.path.basename(src))
+            dst = os.path.join(self.output_dir, f"{base}_{timestamp}{ext}")
+            try:
+                shutil.copy2(src, dst)
+            except OSError as e:
+                print(f"Warning: could not archive input file {src} -> {dst}: {e}")
 
     @classmethod
     def init_from_dict(cls, inp_data_dict):
