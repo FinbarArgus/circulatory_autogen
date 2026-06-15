@@ -9,6 +9,40 @@ import os, sys
 import re
 root_dir = os.path.join(os.path.dirname(__file__), '../..')
 
+# ---------------------------------------------------------------------------
+# obs_data.json schema vocabularies
+#
+# Single source of truth for the value sets used by obs_data data_items, exposed
+# via accessor functions so external tools (e.g. GUI editors) can populate their
+# dropdowns by introspecting circulatory_autogen instead of hardcoding the lists
+# — keeping them in sync as CA evolves. See get_valid_data_types() /
+# get_valid_plot_types().
+# ---------------------------------------------------------------------------
+
+# Recognised data_item ``data_type`` values. ``timeseries`` is a deprecated
+# alias for ``series`` and is intentionally not advertised here.
+VALID_DATA_TYPES = ("constant", "series", "frequency", "prob_dist")
+
+# Recognised ``plot_type`` values. ``None`` / ``""`` means "draw no marker".
+VALID_PLOT_TYPES = (
+    "horizontal",
+    "vertical",
+    "horizontal_from_min",
+    "series",
+    "frequency",
+)
+
+
+def get_valid_data_types():
+    """Return the recognised obs_data ``data_type`` values (excluding deprecated aliases)."""
+    return list(VALID_DATA_TYPES)
+
+
+def get_valid_plot_types():
+    """Return the recognised obs_data ``plot_type`` values (excluding ``None``)."""
+    return list(VALID_PLOT_TYPES)
+
+
 class ObsDataCreator:
     def __init__(self):
         self.obs_data_dict = {}
