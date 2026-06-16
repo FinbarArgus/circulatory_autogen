@@ -1573,6 +1573,177 @@ def test_3compartment_nonstiff_casadi_forward_and_gradient(
     runner.close_simulation()
 
 
+def _build_3compartment_casadi_runner(
+    method, base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
+):
+    """Generate the (stiff) 3compartment CasADi model and build a CVS0DParamID at baseline.
+
+    Shared by the stiff-3compartment CasADi tests. ``method`` selects the CasADi
+    integrator method ('cvodes' or the damped 'semi_implicit_euler').
+    """
+    import json
+
+    config = base_user_inputs.copy()
+    config.update({
+        'file_prefix': '3compartment',
+        'input_param_file': '3compartment_parameters.csv',
+        'params_for_id_file': '3compartment_params_for_id.csv',
+        'model_type': 'casadi_python',
+        'solver': 'casadi_integrator',
+        'param_id_method': 'sp_minimize',
+        'do_ad': True,
+        'pre_time': 0.0,
+        'sim_time': 0.3,
+        'dt': 0.01,
+        'DEBUG': False,
+        'do_mcmc': False,
+        'plot_predictions': False,
+        'do_ia': False,
+        'solver_info': {
+            'max_step_size': 0.001,
+            'max_num_steps': 50000,
+            'method': method,
+        },
+        'param_id_obs_path': os.path.join(resources_dir, '3compartment_obs_data.json'),
+        'param_id_output_dir': temp_output_dir,
+        'generated_models_dir': temp_generated_models_dir,
+        'resources_dir': resources_dir,
+    })
+
+    success = generate_with_new_architecture(False, config)
+    assert success, "CasADi Python model generation should succeed for 3compartment"
+
+    parsed = YamlFileParser().parse_user_inputs_file(
+        config, obs_path_needed=True, do_generation_with_fit_parameters=False
+    )
+    parsed['one_rank'] = True
+
+    runner = CVS0DParamID.init_from_dict(parsed)
+    with open(os.path.join(resources_dir, '3compartment_obs_data.json')) as f:
+        obs_data = json.load(f)
+    runner.set_ground_truth_data(obs_data)
+
+    params_for_id = [
+        {'vessel_name': 'global',      'param_name': 'q_lv_init', 'param_type': 'const', 'min': 200e-6, 'max': 1500e-6},
+        {'vessel_name': 'aortic_root', 'param_name': 'C',         'param_type': 'const', 'min': 1e-9,   'max': 5e-8},
+        {'vessel_name': 'global',      'param_name': 'E_lv_A',    'param_type': 'const', 'min': 1e8,    'max': 5e8},
+        {'vessel_name': 'global',      'param_name': 'E_lv_B',    'param_type': 'const', 'min': 1e6,    'max': 5e7},
+    ]
+    runner.set_params_for_id(params_for_id)
+
+    baseline_vals = runner.param_id.sim_helper.get_init_param_vals(
+        runner.param_id.param_id_info['param_names']
+    )
+    assert baseline_vals is not None and len(baseline_vals) == 4
+    return runner, baseline_vals
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_3compartment_stiff_casadi_cvodes_gradient_fails(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
+):
+    """Document why the damped solver is needed: the *stiff* 3compartment forward-solves
+    under CasADi cvodes, but the cvodes adjoint-sensitivity GRADIENT fails
+    (CVodeF -> CV_ERR_FAILURE) on the stiff, discontinuous valve dynamics.
+
+    This is why gradient-based parameter identification cannot use cvodes on the stiff
+    model (the suite otherwise relies on a linearised 3compartment_nonstiff variant), and
+    why test_3compartment_stiff_casadi_semi_implicit_forward_and_gradient exists.
+    """
+    pytest.importorskip("casadi")
+
+    runner, baseline_vals = _build_3compartment_casadi_runner(
+        'cvodes', base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
+    )
+
+    # Forward solve succeeds.
+    cost = float(runner.param_id.get_cost_ca(baseline_vals))
+    assert np.isfinite(cost) and cost >= 0
+
+    # Gradient via cvodes adjoint sensitivity fails on the stiff dynamics.
+    try:
+        gradient = np.asarray(runner.param_id.get_jac_cost_ca(baseline_vals)).ravel()
+    except RuntimeError as exc:
+        assert "CV_" in str(exc) or "cvodes" in str(exc).lower(), (
+            f"Expected a cvodes failure, got: {exc}"
+        )
+        runner.close_simulation()
+        return
+
+    # If cvodes ever stops failing here, the damped solver is no longer strictly
+    # required for this model — flag it rather than silently passing.
+    if np.all(np.isfinite(gradient)):
+        runner.close_simulation()
+        pytest.skip(
+            "cvodes gradient now succeeds on the stiff 3compartment; the "
+            "semi_implicit_euler workaround may no longer be required."
+        )
+    runner.close_simulation()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_3compartment_stiff_casadi_semi_implicit_forward_and_gradient(
+    base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
+):
+    """The stiff 3compartment is solvable AND differentiable with the damped
+    'semi_implicit_euler' CasADi solver, where cvodes adjoint sensitivity fails
+    (see test_3compartment_stiff_casadi_cvodes_gradient_fails).
+
+    The scheme is a fixed-step semi-implicit Euler with diagonal-Jacobian damping,
+    built as a single symbolic mapaccum graph so CasADi differentiates it by plain
+    reverse-mode AD. Verifies the forward cost is finite/positive, the gradient is
+    finite/non-zero, and the AD gradient matches central finite differences.
+    """
+    pytest.importorskip("casadi")
+
+    runner, baseline_vals = _build_3compartment_casadi_runner(
+        'semi_implicit_euler', base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir
+    )
+
+    cost = float(runner.param_id.get_cost_ca(baseline_vals))
+    assert np.isfinite(cost), f"Forward cost should be finite, got {cost}"
+    assert cost >= 0, f"Forward cost should be non-negative, got {cost}"
+
+    gradient = np.asarray(runner.param_id.get_jac_cost_ca(baseline_vals)).ravel()
+    assert gradient.shape[0] == 4, f"Gradient should have 4 elements, got {gradient.shape}"
+    assert np.all(np.isfinite(gradient)), f"Gradient should be finite, got {gradient}"
+    assert not np.all(gradient == 0), "Gradient should not be identically zero"
+    # q_lv_init sets the LV volume IC; AD must see it (not a disconnected state symbol).
+    assert abs(gradient[0]) > 1e-6, (
+        f"q_lv_init AD gradient should be nonzero, got {gradient[0]}"
+    )
+
+    # AD gradient must match central finite differences of the same (damped) forward cost.
+    eps_rel = 1e-4
+    baseline_arr = np.asarray(baseline_vals, dtype=float)
+    fd_grad = np.zeros(4)
+    for i in range(4):
+        dp = max(abs(baseline_arr[i]) * eps_rel, 1e-12)
+        p_plus = baseline_arr.copy()
+        p_minus = baseline_arr.copy()
+        p_plus[i] += dp
+        p_minus[i] -= dp
+        fd_grad[i] = (
+            float(runner.param_id.get_cost_ca(p_plus))
+            - float(runner.param_id.get_cost_ca(p_minus))
+        ) / (2 * dp)
+    for i, label in enumerate(["q_lv_init", "C_aortic", "E_lv_A", "E_lv_B"]):
+        if abs(fd_grad[i]) > 1e-6:
+            rel_err = abs(gradient[i] - fd_grad[i]) / abs(fd_grad[i])
+            assert rel_err < 0.05, (
+                f"{label}: AD gradient {gradient[i]:.6e} differs from FD {fd_grad[i]:.6e} "
+                f"(rel err {rel_err:.3g})"
+            )
+
+    print(f"\n3compartment (stiff) CasADi semi_implicit_euler forward/gradient check:")
+    print(f"  Cost at baseline: {cost:.6g}")
+    print(f"  Gradient:         {gradient}")
+
+    runner.close_simulation()
+
+
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.mpi

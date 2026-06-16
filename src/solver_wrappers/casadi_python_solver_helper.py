@@ -316,23 +316,49 @@ class SimulationHelper:
         self.var_traj_dm = np.array(var_func(ca.DM(x0), ca.DM(self.variables)))  # (n_vars, n_times)
 
     # ---- simulation ----
-    def run(self):
-        ode = {
-            "x": self.states_symb,
-            "p": self.variables_symb_integrator,
-            "ode": self.rates_symb,
-        }
+    def _run_semi_implicit_euler(self, total_steps):
+        """Fixed-step semi-implicit (linearly-implicit) Euler with diagonal damping.
 
-        integrator_opts = self._build_integrator_opts()
-        self.F = ca.integrator("F", self.solve_ivp_method, ode, 0, self.dt, integrator_opts)
+            x_{n+1} = x_n + dt * f(x_n, p) / (1 - dt * d f_i/d x_i)
+
+        The damping term ``d f_i/d x_i`` (diagonal of the rates Jacobian) is the
+        automatic generalisation of the hand-coded ``lam`` damping used for the
+        standalone cardiovascular model: for a stable/stiff state it is negative,
+        so the denominator ``1 - dt*J_ii = 1 + dt*|J_ii|`` damps the stiff mode and
+        keeps the explicit-looking update stable at the model dt.
+
+        Unlike ``cvodes``, the whole integrator is one symbolic ``mapaccum`` graph,
+        so CasADi differentiates the cost by ordinary reverse-mode AD. This avoids
+        the adjoint-sensitivity solver (``CVodeF -> CV_ERR_FAILURE``) that fails on
+        stiff, discontinuous models such as 3compartment.
+        """
+        jac_diag = ca.diag(ca.jacobian(self.rates_symb, self.states_symb))
+        x_next = self.states_symb + self.dt * self.rates_symb / (1.0 - self.dt * jac_diag)
+        step = ca.Function("step", [self.states_symb, self.variables_symb_integrator], [x_next])
+        self.F_map = step.mapaccum(total_steps)
+        # Constant integrator params are broadcast across all steps (single column).
+        return self.F_map(self.x0_symb, self.variables_symb_integrator)
+
+    def run(self):
         # Integrate full pre_time + sim_time horizon so slicing by pre_steps
         # returns the expected sim-time segment.
         total_steps = int(max(0, len(self.t_eval) - 1))
-        self.F_map = self.F.mapaccum(total_steps)
+
+        if self.solve_ivp_method == 'semi_implicit_euler':
+            res_xf = self._run_semi_implicit_euler(total_steps)
+        else:
+            ode = {
+                "x": self.states_symb,
+                "p": self.variables_symb_integrator,
+                "ode": self.rates_symb,
+            }
+            integrator_opts = self._build_integrator_opts()
+            self.F = ca.integrator("F", self.solve_ivp_method, ode, 0, self.dt, integrator_opts)
+            self.F_map = self.F.mapaccum(total_steps)
+            res_xf = self.F_map(x0=self.x0_symb, p=self.variables_symb_integrator)["xf"]
 
         # Symbolic trajectory — SX function of (states_symb, variables_symb); required for AD
-        res = self.F_map(x0=self.x0_symb, p=self.variables_symb_integrator)
-        self.state_traj_symb = ca.horzcat(self.x0_symb, res["xf"])
+        self.state_traj_symb = ca.horzcat(self.x0_symb, res_xf)
 
         # Numeric trajectory — evaluate symbolic graph at current param values for get_results()
         x0 = self._x0_numeric()

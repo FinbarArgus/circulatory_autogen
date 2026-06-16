@@ -251,7 +251,10 @@ class YamlFileParser(object):
         valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
         # CasADi integrator available plugins
         valid_casadi_solvers = ['casadi_integrator']
-        valid_casadi_solver_plugins = ['cvodes', 'idas', 'collocation', 'rk']
+        # 'semi_implicit_euler' is a fixed-step damped scheme implemented in the
+        # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
+        # adjoint-sensitivity gradient fails (e.g. 3compartment).
+        valid_casadi_solver_plugins = ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler']
 
         solver_name = inp_data_dict.get('solver_info', {}).get('solver')
         if solver_name is None:
