@@ -46,8 +46,28 @@ import warnings
 warnings.filterwarnings( "ignore", module = "matplotlib/..*" )
 
 class IdentifiabilityAnalysis():
-    """
-    Class for doing identifiability analysis on a 0D model
+    """Identifiability analysis for a 0D model.
+
+    Quantifies how well calibrated parameters can be identified around a best
+    fit. Currently the Laplace approximation is implemented (computing a
+    covariance matrix from the Hessian of the cost); profile likelihood is
+    planned. Requires an existing inner ``param_id`` object (typically
+    ``CVS0DParamID.param_id``); build conveniently with
+    [`init_from_dict`][identifiabilty_analysis.identifiabilityAnalysis.IdentifiabilityAnalysis.init_from_dict].
+
+    Args:
+        model_path: Path to the generated model file.
+        model_type: ``'cellml_only'``, ``'python'`` or ``'casadi_python'``.
+        file_name_prefix: Model name prefix (names the saved result files).
+        DEBUG: Enable debug behaviour.
+        param_id_output_dir: Root output directory.
+        resources_dir: Directory holding input resources.
+        param_id: The inner param-id engine to analyse (required).
+
+    Attributes:
+        mean_Lapalace: Mean (best-fit) parameter vector after Laplace approximation.
+        covariance_matrix_Laplace: Posterior covariance matrix from the Laplace
+            approximation.
     """
     def __init__(self, model_path, model_type, file_name_prefix, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, param_id=None):
@@ -72,9 +92,14 @@ class IdentifiabilityAnalysis():
 
     @classmethod
     def init_from_dict(cls, inp_data_dict, param_id):
-        """
-        Build IdentifiabilityAnalysis from an inp_data_dict (e.g. user_inputs) plus
-        the inner param_id object from CVS0DParamID.param_id.
+        """Build an `IdentifiabilityAnalysis` from a config dict and a param-id object.
+
+        Args:
+            inp_data_dict: Configuration dict (e.g. user inputs).
+            param_id: The inner param-id engine, e.g. ``CVS0DParamID.param_id``.
+
+        Returns:
+            IdentifiabilityAnalysis: A configured instance.
         """
         arg_options = [
             "model_path", "model_type", "DEBUG", "param_id_output_dir", "resources_dir",
@@ -88,12 +113,20 @@ class IdentifiabilityAnalysis():
         return cls(**kwargs)
 
     def set_best_param_vals(self, best_param_vals):
+        """Supply the best-fit parameter vector to analyse around.
+
+        Args:
+            best_param_vals: Array of best-fit parameter values.
+        """
         self.param_id.set_best_param_vals(best_param_vals)
         self.best_param_vals = best_param_vals
 
     def run(self, ia_options):
-        """
-        Run the identifiability analysis based on the chosen method
+        """Run the identifiability analysis using the chosen method.
+
+        Args:
+            ia_options: Options dict; ``method`` selects ``'Laplace'`` or
+                ``'profile_likelihood'`` (the latter is not yet implemented).
         """
         if ia_options['method'] == 'profile_likelihood':
             self.run_profile_likelihood(ia_options)
@@ -104,12 +137,23 @@ class IdentifiabilityAnalysis():
         return
 
     def run_profile_likelihood(self, ia_options):
+        """Profile-likelihood identifiability analysis (not yet implemented)."""
         # TODO
         print("Profile Likelihood method not yet implemented")
         exit()
         pass
 
     def run_laplace_approximation(self, ia_options):
+        """Run the Laplace approximation around the best fit.
+
+        Computes the Hessian of the cost, inverts it to a covariance matrix
+        (falling back to a regularised/pseudo-inverse if singular), and saves
+        ``{prefix}_laplace_mean.npy`` and ``{prefix}_laplace_covariance.npy``.
+
+        Args:
+            ia_options: Options dict; ``sub_method`` selects the Hessian method
+                (default ``'parabola_fit'``).
+        """
         from param_id.differentiable import assert_mle_cost_for_bayesian
 
         assert_mle_cost_for_bayesian(

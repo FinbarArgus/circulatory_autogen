@@ -30,13 +30,35 @@ except Exception:
 def get_simulation_helper(model_path: str = None, solver: str = None, 
                           model_type: str = None, dt: float = None, sim_time: float = None, 
                           solver_info: dict = None, pre_time: float = 0.0):
-    """
-    Return the appropriate SimulationHelper class based on solver parameter.
+    """Create a `SimulationHelper` for the requested solver.
 
-    - CVODE_opencor: Use OpenCOR solver CVODE for CellML models (default)
-    - CVODE_myokit: Use Myokit CVODE solver for CellML models
-    - solve_ivp: methods (RK45, BDF, etc.): Use Python/SciPy solver for Python models
-    - casadi_integrator: methods (cvodes, idas, collocation, rk): Use CasADi integrator for CasADi Python models
+    Returns the appropriate backend (OpenCOR, Myokit, SciPy, or CasADi) based on
+    ``solver`` and ``model_type``. All backends share the common
+    [`SimulationHelper`][solver_wrappers.python_solver_helper.SimulationHelper]
+    method surface.
+
+    Args:
+        model_path: Path to the generated model file.
+        solver: Solver identifier. One of:
+
+            - ``'CVODE_opencor'``: OpenCOR CVODE for CellML models (default).
+            - ``'CVODE_myokit'``: Myokit CVODE for CellML models.
+            - ``'solve_ivp'``: Python/SciPy solver for ``model_type='python'``
+              (method set via ``solver_info``, e.g. RK45, BDF).
+            - ``'casadi_integrator'``: CasADi integrator for
+              ``model_type='casadi_python'`` (cvodes, idas, collocation, rk).
+        model_type: ``'cellml_only'``, ``'python'`` or ``'casadi_python'``.
+        dt: Output sampling step (s).
+        sim_time: Logged simulation duration (s).
+        solver_info: Solver config dict (e.g. ``MaximumStep``, ``method``).
+        pre_time: Unlogged steady-state spin-up duration (s).
+
+    Returns:
+        SimulationHelper: The backend instance for the requested solver.
+
+    Raises:
+        ValueError: If the solver is unknown or incompatible with ``model_type``.
+        RuntimeError: If the requested backend is not installed.
     """
     # Define valid solver types
     cellml_solvers = ['CVODE_opencor', 'CVODE_myokit']
@@ -87,6 +109,20 @@ def get_simulation_helper(model_path: str = None, solver: str = None,
     return OpenCORSimulationHelper(model_path, dt, sim_time, solver_info, pre_time=pre_time)
 
 def get_simulation_helper_from_inp_data_dict(inp_data_dict):
+    """Create a `SimulationHelper` from a configuration dict.
+
+    Convenience wrapper around
+    [`get_simulation_helper`][solver_wrappers.get_simulation_helper] that reads
+    ``model_path``, ``solver_info`` (and its ``solver``), ``model_type``, ``dt``,
+    ``sim_time`` and ``pre_time`` from the dict.
+
+    Args:
+        inp_data_dict: Configuration dict (see
+            [`get_default_inp_data_dict`][utilities.utility_funcs.get_default_inp_data_dict]).
+
+    Returns:
+        SimulationHelper: The backend instance for the configured solver.
+    """
     return get_simulation_helper(model_path=inp_data_dict["model_path"], solver=inp_data_dict["solver_info"]["solver"], model_type=inp_data_dict["model_type"], dt=inp_data_dict["dt"], sim_time=inp_data_dict["sim_time"], solver_info=inp_data_dict["solver_info"], pre_time=inp_data_dict["pre_time"])
 
 __all__ = [

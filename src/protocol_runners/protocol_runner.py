@@ -29,23 +29,24 @@ from protocol_runners.protocol_executor import ProtocolExecutor
 
 
 class ProtocolRunner:
-    """
-    Standalone user-facing class for running CellML model protocols.
+    """Standalone, user-facing runner for model protocols.
 
-    Creates its own SimulationHelper (defaulting to myokit / CVODE) and
-    wraps ProtocolExecutor for the simulation loop.
+    Creates its own [`SimulationHelper`][solver_wrappers.python_solver_helper.SimulationHelper]
+    (defaulting to Myokit / CVODE) and wraps ``ProtocolExecutor`` for the
+    multi-experiment / sub-experiment simulation loop. Useful for re-simulating
+    a model with calibrated parameters outside the param-id loop.
 
-    Parameters
-    ----------
-    model_path : str
-        Path to the CellML model file.
-    inp_data_dict : dict, optional
-        Configuration dict containing at least ``dt`` and ``solver_info``.
-        If None, loaded from ``user_run_files/user_inputs.yaml`` (respecting
-        ``user_inputs_path_override`` if set).
-    solver : str, default 'CVODE_myokit'
-        Solver identifier passed to get_simulation_helper.
-        E.g. ``'CVODE_myokit'``, ``'CVODE_opencor'``.
+    Args:
+        model_path: Path to the model file.
+        inp_data_dict: Configuration dict containing at least ``dt`` and
+            ``solver_info``. If None, loaded from
+            ``user_run_files/user_inputs.yaml`` (respecting
+            ``user_inputs_path_override`` if set).
+        solver: Solver identifier passed to
+            [`get_simulation_helper`][solver_wrappers.get_simulation_helper],
+            e.g. ``'CVODE_myokit'`` or ``'CVODE_opencor'``.
+        model_type: Backend family (``'cellml_only'`` / ``'python'`` /
+            ``'casadi_python'``); falls back to ``inp_data_dict['model_type']``.
     """
 
     def __init__(self, model_path, inp_data_dict=None, solver='CVODE_myokit', model_type=None):
@@ -110,31 +111,23 @@ class ProtocolRunner:
 
     def run_protocols(self, model_path, protocol_info=None,
                       id_param_names=None, id_param_vals=None):
-        """
-        Run the protocol defined by *protocol_info* and return result arrays.
+        """Run the protocol defined by ``protocol_info`` and return result arrays.
 
-        Parameters
-        ----------
-        model_path : str
-            Path to the CellML model.  Kept for API compatibility; the model
-            was loaded at construction time and this argument is not re-used.
-        protocol_info : dict, optional
-            If None, read from ``inp_data_dict['param_id_obs_path']``.
-        id_param_names : list, optional
-            Parameter names for identification (same format as param_id).
-        id_param_vals : array-like, optional
-            Values to apply before each experiment (e.g. calibrated parameters).
+        Args:
+            model_path: Path to the model. Kept for API compatibility; the model
+                was loaded at construction time and this argument is not re-used.
+            protocol_info: Protocol descriptor. If None, read from
+                ``inp_data_dict['param_id_obs_path']``.
+            id_param_names: Parameter names to set (same format as param_id).
+            id_param_vals: Values to apply before each experiment (e.g.
+                calibrated parameters).
 
-        Returns
-        -------
-        t_list : list[np.ndarray]
-            Time vector per experiment with pre_time removed.
-        res_list : list[list[np.ndarray]]
-            Result arrays per experiment.  ``res_list[exp_idx][var_idx]``
-            is the full time-series for that variable, concatenated across
-            all sub-experiments.
-        sim_times : list[list[float]]
-            The sim_times from protocol_info.
+        Returns:
+            tuple: ``(t_list, res_list, sim_times)`` where ``t_list`` is the time
+            vector per experiment (pre_time removed); ``res_list[exp][var]`` is
+            the full time-series for that variable concatenated across
+            sub-experiments; and ``sim_times`` is the ``sim_times`` from
+            ``protocol_info``.
         """
         if protocol_info is None:
             obs_path = self.inp_data_dict['param_id_obs_path']

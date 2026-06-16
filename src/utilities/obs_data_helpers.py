@@ -44,6 +44,24 @@ def get_valid_plot_types():
 
 
 class ObsDataCreator:
+    """Builder for the observation-data structure used by calibration and SA.
+
+    Produces the same structure as an ``obs_data.json`` file, in memory. Add the
+    protocol info first, then one data item per observable, then retrieve the
+    dict with [`get_obs_data_dict`][utilities.obs_data_helpers.ObsDataCreator.get_obs_data_dict]
+    (or write it to disk with ``dump_to_path``)::
+
+        obs = ObsDataCreator()
+        obs.add_protocol_info(pre_times, sim_times, params_to_change)
+        obs.add_data_item(entry)
+        obs_data_dict = obs.get_obs_data_dict()
+
+    The result is consumed by
+    [`CVS0DParamID.set_ground_truth_data`][param_id.paramID.CVS0DParamID.set_ground_truth_data]
+    and
+    [`SensitivityAnalysis.set_ground_truth_data`][sensitivity_analysis.sensitivityAnalysis.SensitivityAnalysis.set_ground_truth_data].
+    """
+
     def __init__(self):
         self.obs_data_dict = {}
         self.obs_data_dict['protocol_info'] = {}

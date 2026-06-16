@@ -75,7 +75,7 @@ This file has the structure as shown below.
 | variable_name  | Parameter name                                    |
 | units          | Unit in the defined units in CellML's unit file   |
 | value          | Value of parameter                                |
-| data_reference | Reference of the parameter value. Typically in [last_name][date][first_word_of_paper] format for papers.  |
+| data_reference | Reference of the parameter value. Typically in `[last_name][date][first_word_of_paper]` format for papers.  |
 
 The following is an example of a parameter file.
 

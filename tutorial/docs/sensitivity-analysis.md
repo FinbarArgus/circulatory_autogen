@@ -101,8 +101,14 @@ important notice: this experimental unit must be placed after the unit from whic
 
 ![Example of operation file](images/SensitivityAnalysis_Operationexample.png)
 
--Notice: sometimes will report error similar like ‘obs_series_array_all[JJ] = self.operation_funcs_dict[
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: operation_funcs.mean() argument after ** must be a mapping, not float’, please just change ‘**self.obs_info["operation_kwargs"][JJ]’ to ‘**kwargs’.
+-Notice: sometimes will report an error similar to the following:
+
+```
+obs_series_array_all[JJ] = self.operation_funcs_dict[
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: operation_funcs.mean() argument after ** must be a mapping, not float
+```
+
+please just change `**self.obs_info["operation_kwargs"][JJ]` to `**kwargs`.
 
 If there is any other issue, please contact Changqing Dong, email: cdon822@aucklanduni.ac.nz. 

@@ -349,6 +349,22 @@ def hessian_gauss_newton(residual, theta, eps=1e-6):
     return H_gn
 
 def get_default_inp_data_dict(file_prefix, input_param_file, resources_dir):
+    """Build the default configuration dict (equivalent to ``user_inputs.yaml``).
+
+    This is the starting point for driving the pipeline from Python: it returns a
+    config dict pre-populated with the defaults, which you then mutate in code
+    (e.g. ``inp["sim_time"] = 2``) before passing to the generate/simulate/
+    calibrate stages.
+
+    Args:
+        file_prefix: Model name prefix; ties together the ``{prefix}_*`` resource
+            files in ``resources_dir``.
+        input_param_file: Name of the parameters CSV file.
+        resources_dir: Directory holding the input resources.
+
+    Returns:
+        dict: The configuration dict with default values filled in.
+    """
     inp_data_dict = {}
     inp_data_dict['file_prefix'] = file_prefix
     inp_data_dict['input_param_file'] = input_param_file
