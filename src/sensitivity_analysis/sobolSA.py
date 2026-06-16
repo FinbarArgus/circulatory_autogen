@@ -590,6 +590,30 @@ class sobol_SA():
         create_heatmap(S1_heatmap_data, 'First-Order ($S_1$)')
         create_heatmap(ST_heatmap_data, 'Total-Order ($S_T$)')
 
+    @staticmethod
+    def _uniquify_output_names(labels, ops):
+        """Return labels guaranteed unique so each Sobol output keeps its own
+        column. pandas assigns DataFrame columns by label, so a repeated label
+        would let a later data_item silently overwrite an earlier one and the
+        outputs would collapse to one-per-name (issue #240). Repeated labels are
+        first distinguished by their operation, then by a ' #k' suffix."""
+        counts = {}
+        for lab in labels:
+            counts[lab] = counts.get(lab, 0) + 1
+        stage1 = [
+            f"{lab} [{ops[i]}]" if counts[lab] > 1 and ops[i] else lab
+            for i, lab in enumerate(labels)
+        ]
+        seen, out = {}, []
+        for lab in stage1:
+            if lab in seen:
+                seen[lab] += 1
+                out.append(f"{lab} #{seen[lab]}")
+            else:
+                seen[lab] = 1
+                out.append(lab)
+        return out
+
     def save_sobol_indices(self, S1_all, ST_all, S2_all):
         if self.rank != 0:
             return
@@ -605,18 +629,27 @@ class sobol_SA():
         n_outputs = S1_all.shape[0]
         param_names = self.SA_info["param_names"]
 
-        # Prepare output/feature names
-        if n_outputs <= len(self.obs_info['names_for_plotting']):
-            output_names = [
-                f"{self.obs_info['names_for_plotting'][i]} (Exp{self.obs_info['experiment_idxs'][i]}, Sub{self.obs_info['subexperiment_idxs'][i]})"
-                for i in range(n_outputs)
-            ]
-        else:
-            output_names = [
-                f"{self.obs_info['names_for_plotting'][i]} (Exp{self.obs_info['experiment_idxs'][i]}, Sub{self.obs_info['subexperiment_idxs'][i]})"
-                for i in range(n_outputs-1)
-            ]
-            output_names.append("Cost")
+        # Prepare output/feature names. Two data_items that resolve to the same
+        # (name_for_plotting, experiment, subexperiment) produce identical column
+        # labels; since pandas assigns DataFrame columns by label, the later one
+        # would silently overwrite the earlier and the Sobol output would collapse
+        # to one-per-name (issue #240). Build the labels, then disambiguate any
+        # collisions so every data_item keeps its own column.
+        names = self.obs_info['names_for_plotting']
+        exps = self.obs_info['experiment_idxs']
+        subs = self.obs_info['subexperiment_idxs']
+        ops = self.obs_info.get('operations', [])
+
+        n_named = n_outputs if n_outputs <= len(names) else n_outputs - 1
+        base_labels, base_ops = [], []
+        for i in range(n_named):
+            base_labels.append(f"{names[i]} (Exp{exps[i]}, Sub{subs[i]})")
+            base_ops.append(ops[i] if i < len(ops) else None)
+        if n_outputs > len(names):
+            base_labels.append("Cost")
+            base_ops.append(None)
+
+        output_names = self._uniquify_output_names(base_labels, base_ops)
 
         # --- Save S1/ST indices ---
         df_Sobol = pd.DataFrame({'Parameter': param_names})
