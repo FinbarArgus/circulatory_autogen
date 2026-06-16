@@ -181,13 +181,47 @@ Before doing calibration, a solver for the model needs to be chosen
 - **solver** defines the solver family. Options depend on `model_type`:
     - CellML (`model_type: cellml_only`): `CVODE` defaults to `CVODE_myokit` (Myokit). Use `CVODE_opencor` explicitly if you want the OpenCOR backend instead.
     - Python (`model_type: python`): `solve_ivp` with `solver_info.method` set to `RK45`, `BDF`, etc.
-    - CasADi Python (`model_type: casadi_python`): `casadi_integrator` with `solver_info.method` set to `cvodes`, `idas`, `collocation`, or `rk`.
+    - CasADi Python (`model_type: casadi_python`): `casadi_integrator` with `solver_info.method` set to `cvodes`, `idas`, `collocation`, `rk`, or `semi_implicit_euler`.
     - C++ (`model_type: cpp`): `CVODE`, `RK4`, or `PETSC`.
 - **solver_info** defines settings for the chosen solver:
     - **dt_solver**: solver time step (for CVODE this sets `MaximumStep` when provided)
     - **MaximumStep**: maximum step size for adaptive solvers
     - **MaximumNumberOfSteps**: maximum number of substeps before stepping
     - **method**: any method for `solve_ivp` or `casadi_integrator`, e.g. `RK45`, `BDF`, `cvodes`, etc.
+
+!!! tip "CasADi `semi_implicit_euler` — for automatic differentiation on really stiff models"
+    When using gradient-based parameter identification (`param_id_method: sp_minimize` with
+    `do_ad: true`) on a **very stiff** model, the adaptive `cvodes` integrator can solve the
+    forward problem but its **adjoint-sensitivity gradient fails** (e.g. CasADi raises
+    `CVodeF returned "CV_ERR_FAILURE"`). The full 3compartment cardiovascular model — whose
+    valve dynamics are extremely stiff and contain discontinuous (`floor`-driven) heart
+    activation — is a typical case.
+
+    For these models set `solver_info.method: semi_implicit_euler`. This is a fixed-step,
+    **linearly-implicit (semi-implicit) Euler** scheme with diagonal-Jacobian damping:
+
+    ```
+    x_{n+1} = x_n + dt * f(x_n) / (1 - dt * d f_i / d x_i)
+    ```
+
+    The damping term stabilises the stiff modes at the model `dt`, and because the whole
+    integrator is built as a single symbolic graph, CasADi differentiates the cost by ordinary
+    reverse-mode AD — there is **no adjoint ODE solver to fail**. This makes exact gradients
+    (and gradient-based optimisation) available for stiff models where `cvodes` cannot produce
+    a gradient.
+
+    ```yaml
+    model_type: casadi_python
+    solver_info:
+      solver: casadi_integrator
+      method: semi_implicit_euler
+      max_step_size: 0.001
+    ```
+
+    Trade-offs: it is **fixed-step** (uses your `dt`, so choose a small enough `dt` for
+    accuracy) and damps using only the **diagonal** of the Jacobian, so for non-stiff models
+    `cvodes` is usually more accurate and remains the better default. Use `semi_implicit_euler`
+    specifically when you need AD gradients on a stiff model.
 
 
 ## Parameter Identification Settings
