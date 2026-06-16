@@ -8,14 +8,20 @@ DEBUG = False
 
 
 class SimulationHelper:
-    """
-    SciPy-based solver for libCellML-generated Python modules.
+    """SciPy-based solver for libCellML-generated Python modules.
 
-    Matches the key interface of the OpenCOR SimulationHelper:
-    - run()
-    - update_times(dt, start_time, sim_time, pre_time)
-    - get_results / get_all_results / get_all_variable_names
-    - get_init_param_vals / set_param_vals
+    This implements the common `SimulationHelper` interface that every backend
+    (OpenCOR, Myokit, SciPy, CasADi) shares. Obtain an instance via
+    [`get_simulation_helper`][solver_wrappers.get_simulation_helper] rather than
+    constructing a backend directly. The methods documented here are available on
+    all backends.
+
+    Typical usage::
+
+        sim = get_simulation_helper_from_inp_data_dict(inp)
+        sim.run()
+        t = sim.get_time()
+        y = sim.get_results(["component/var"], flatten=True)
     """
 
     def __init__(self, model_path, dt, sim_time, solver_info=None, pre_time=0.0):
@@ -41,6 +47,15 @@ class SimulationHelper:
         self._last_results_dict = None
 
     def get_time(self, include_pre_time=False):
+        """Return the output time vector.
+
+        Args:
+            include_pre_time: If True, include the unlogged pre-time portion;
+                otherwise return time relative to the end of pre-time.
+
+        Returns:
+            numpy.ndarray: The sampled time points.
+        """
         if include_pre_time:
             return self.tSim
         else:
@@ -98,6 +113,14 @@ class SimulationHelper:
 
     # ---- timing helpers ----
     def update_times(self, dt, start_time, sim_time, pre_time):
+        """Reconfigure the simulation timing.
+
+        Args:
+            dt: Output sampling step (s).
+            start_time: Start time of the simulation (s).
+            sim_time: Logged simulation duration (s).
+            pre_time: Unlogged steady-state spin-up duration (s).
+        """
         self.dt = dt
         self.pre_time = pre_time
         self.sim_time = sim_time
@@ -111,6 +134,15 @@ class SimulationHelper:
 
     # ---- parameter helpers ----
     def get_init_param_vals(self, param_names):
+        """Read the initial values of the named parameters.
+
+        Args:
+            param_names: List of variable names (each entry may itself be a list
+                of names sharing a value).
+
+        Returns:
+            list: Initial value(s) for each requested parameter.
+        """
         vals = []
         for name_or_list in param_names:
             if not isinstance(name_or_list, list):
@@ -128,6 +160,13 @@ class SimulationHelper:
         return vals
 
     def set_param_vals(self, param_names, param_vals):
+        """Set the values of the named parameters.
+
+        Args:
+            param_names: List of variable names (each entry may be a list of
+                names sharing a value).
+            param_vals: Matching list of values to assign.
+        """
         for idx, name_or_list in enumerate(param_names):
             vals = param_vals[idx]
 
@@ -208,6 +247,11 @@ class SimulationHelper:
             self.var_traj[name] = np.asarray(self.var_traj[name])
 
     def run(self):
+        """Run the simulation over the configured time window.
+
+        Returns:
+            bool: True on success, False if integration failed.
+        """
         # integrate
         solve_kwargs = dict(
             method=self.solve_ivp_method,
@@ -270,6 +314,7 @@ class SimulationHelper:
 
     # ---- results ----
     def get_all_variable_names(self):
+        """Return the names of all state and algebraic/constant variables in the model."""
         return list(self.state_name_to_idx.keys()) + list(self.var_name_to_idx.keys())
 
     def _extract(self, name):
@@ -294,6 +339,17 @@ class SimulationHelper:
         raise ValueError(f"variable {name} not found")
 
     def get_results(self, variables_list_of_lists, flatten=False):
+        """Return time-series results for the requested variables.
+
+        Args:
+            variables_list_of_lists: Variable names. Either a flat list of names,
+                or a list of lists to group variables.
+            flatten: If True, flatten the grouped result into a single list.
+
+        Returns:
+            list: One numpy array per requested variable (nested unless
+            ``flatten=True``). Use ``'time'`` to request the time vector.
+        """
         if type(variables_list_of_lists[0]) is not list:
             variables_list_of_lists = [[entry] for entry in variables_list_of_lists]
         results = []
@@ -305,9 +361,18 @@ class SimulationHelper:
         return results
 
     def get_all_results(self, flatten=False):
+        """Return time-series results for every variable in the model."""
         return self.get_results(self.get_all_variable_names(), flatten=flatten)
 
     def get_all_results_dict(self):
+        """Return all results as a dict keyed by variable name.
+
+        Returns:
+            dict: ``{variable_name: numpy.ndarray}`` for every variable.
+
+        Raises:
+            RuntimeError: If the simulation has not been run yet.
+        """
         if self._has_run:
             self._last_results_dict = self._collect_all_results_dict()
             return {name: np.asarray(val).copy() for name, val in self._last_results_dict.items()}
@@ -351,16 +416,19 @@ class SimulationHelper:
         self.model.compute_computed_constants(self.variables)
 
     def reset_and_clear(self, only_one_exp=-1):
+        """Reset the model state to initial conditions, caching the last results."""
         if self._has_run:
             self._last_results_dict = self._collect_all_results_dict()
         self._init_state()
         self._has_run = False
 
     def reset_states(self):
+        """Reset the state variables to their default initial values."""
         self.states = copy.copy(self.default_state_inits)
         self.model.compute_computed_constants(self.variables)
 
     def close_simulation(self):
+        """Release simulation resources (no-op for the SciPy backend)."""
         # no-op for scipy solver
         pass
 

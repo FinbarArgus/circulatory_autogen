@@ -51,7 +51,22 @@ def _is_cellml2_model_with_libcellml(model_path):
 
 def generate_with_new_architecture(do_generation_with_fit_parameters=False,
                                    inp_data_dict=None):
+    """Generate a model from the vessel and parameter CSV arrays.
 
+    Reads the vessel/module and parameter CSV arrays referenced by the config
+    and emits a flat model in the configured ``model_type`` (CellML, Python, C++
+    or CasADi) into the generated-models directory.
+
+    Args:
+        do_generation_with_fit_parameters: If True, regenerate using previously
+            fitted parameters instead of the defaults in the parameters CSV.
+        inp_data_dict: Configuration dict (see
+            [`get_default_inp_data_dict`][utilities.utility_funcs.get_default_inp_data_dict]).
+            If None, the values are loaded from ``user_inputs.yaml``.
+
+    Returns:
+        bool: True if generation succeeded, False otherwise.
+    """
     yaml_parser = YamlFileParser()
     inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict, obs_path_needed=False, 
                                                        do_generation_with_fit_parameters=do_generation_with_fit_parameters)

@@ -6,6 +6,7 @@ on:
     paths:
       - 'tutorial/**'
       - '!tutorial/README.md'
+      - 'src/**'
   workflow_dispatch:
 permissions:
   contents: write
@@ -28,5 +29,5 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install mkdocs-material 
+      - run: pip install ".[docs]"
       - run: cd tutorial && mkdocs gh-deploy -b tutorial-gh-pages --force

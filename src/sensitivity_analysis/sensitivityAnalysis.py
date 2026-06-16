@@ -47,8 +47,36 @@ RED = '\033[31m'
 RESET = '\033[0m'
 
 class SensitivityAnalysis():
-    """
-    Class for doing sensitivity analysis on a 0D model
+    """Variance-based (Sobol) global sensitivity analysis for a 0D model.
+
+    Wraps the Sobol SA manager and coordinates loading observation data,
+    selecting parameters, running the analysis, and ranking the most impactful
+    parameters. Construct from a config dict with
+    [`init_from_dict`][sensitivity_analysis.sensitivityAnalysis.SensitivityAnalysis.init_from_dict].
+
+    Typical flow::
+
+        sa = SensitivityAnalysis.init_from_dict(inp)
+        sa.set_ground_truth_data(obs_data_dict)
+        sa.set_params_for_id(params_for_id_dict)
+        sa.run_sensitivity_analysis(sa_options)
+        top = sa.choose_most_impactful_params_sobol(top_n=5, index_type='ST')
+
+    Args:
+        model_path: Path to the generated model file.
+        model_type: ``'cellml_only'``, ``'python'`` or ``'casadi_python'``.
+        file_name_prefix: Model name prefix.
+        sa_options: SA options dict (``method``, ``sample_type``,
+            ``num_samples``, ``output_dir``).
+        DEBUG: Enable debug behaviour.
+        param_id_output_dir: Root output directory.
+        resources_dir: Directory holding input resources.
+        model_out_names: Optional explicit list of model output variable names.
+        solver_info: Solver config dict.
+        dt: Output sampling step (s).
+        optimiser_options: Options dict (used if a nominal calibration is run).
+        param_id_obs_path: Optional path to an ``obs_data.json``.
+        params_for_id_path: Optional path to a ``{prefix}_params_for_id.csv``.
     """
     def __init__(self, model_path, model_type, file_name_prefix, sa_options, DEBUG=False,
                  param_id_output_dir=None, resources_dir=None, model_out_names=[], 
@@ -75,6 +103,17 @@ class SensitivityAnalysis():
 
     @classmethod
     def init_from_dict(cls, inp_data_dict):
+        """Build a `SensitivityAnalysis` from a configuration dict.
+
+        ``file_prefix`` is accepted as an alias for ``file_name_prefix``.
+
+        Args:
+            inp_data_dict: Configuration dict (see
+                [`get_default_inp_data_dict`][utilities.utility_funcs.get_default_inp_data_dict]).
+
+        Returns:
+            SensitivityAnalysis: A configured instance.
+        """
         # parse the user inputs dictionary
         yaml_parser = YamlFileParser()
         inp_data_dict = yaml_parser.parse_user_inputs_file(inp_data_dict)
@@ -100,18 +139,39 @@ class SensitivityAnalysis():
         return sa
 
     def add_user_operation_func(self, func):
+        """Register a custom feature-extraction function (see
+        [`CVS0DParamID.add_user_operation_func`][param_id.paramID.CVS0DParamID.add_user_operation_func])."""
         self.SA_manager.add_user_operation_func(func)
 
     def set_sa_options(self, sa_options):
+        """Set/update the sensitivity-analysis options dict.
+
+        Args:
+            sa_options: e.g. ``method`` (``'sobol'``/``'naive'``),
+                ``sample_type``, ``num_samples``, ``output_dir``.
+        """
         self.SA_manager.set_sa_options(sa_options)
 
     def set_ground_truth_data(self, obs_data_dict):
+        """Set the observation data defining the outputs of interest.
+
+        Args:
+            obs_data_dict: Observation data dict (see
+                [`ObsDataCreator`][utilities.obs_data_helpers.ObsDataCreator]).
+        """
         self.SA_manager.set_ground_truth_data(obs_data_dict)
-        
+
     def set_params_for_id(self, params_for_id_dict):
+        """Set which parameters to vary and their bounds.
+
+        Args:
+            params_for_id_dict: List of parameter entries (see
+                [`CVS0DParamID.set_params_for_id`][param_id.paramID.CVS0DParamID.set_params_for_id]).
+        """
         self.SA_manager.set_params_for_id(params_for_id_dict)
-    
+
     def set_model_out_names(self, obs_data_dict):
+        """Derive and store the model output variable names from the obs data."""
         # TODO fix for arbitrary number of operands
         # mohammad must have done this already.
         self.model_out_names = []
@@ -122,6 +182,13 @@ class SensitivityAnalysis():
             self.model_out_names.append(item["operands"][0])
 
     def run_sensitivity_analysis(self, sa_options=None):
+        """Run the sensitivity analysis, dispatching by ``method``.
+
+        Args:
+            sa_options: Optional options dict; if omitted, the options set at
+                construction (or via ``set_sa_options``) are used. ``method``
+                may be ``'sobol'`` or ``'naive'``.
+        """
         if sa_options is None:
             sa_options = self.sa_options
         else:
@@ -136,7 +203,14 @@ class SensitivityAnalysis():
             exit()
 
     def run_sobol_sensitivity(self, sa_options=None):
+        """Run Sobol SA and (on rank 0) save indices and plots.
 
+        Computes first-order (S1), total (ST) and second-order (S2) Sobol
+        indices. Ground-truth data and parameters for id must be set first.
+
+        Args:
+            sa_options: Optional options dict (see ``set_sa_options``).
+        """
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         output_dir = self.SA_manager.output_dir

@@ -133,8 +133,60 @@ def _require_casadi():
 
 
 class CVS0DParamID():
-    """
-    Class for doing parameter identification on a 0D cvs model
+    """Parameter identification (calibration) for a 0D CVS model.
+
+    This is the main user-facing entry point for calibration. It wraps an inner
+    optimisation engine ([`OpencorParamID`][param_id.paramID.OpencorParamID], or
+    [`OpencorMCMC`][param_id.paramID.OpencorMCMC] when ``mcmc_instead=True``) and
+    coordinates loading observation data, selecting parameters, running the
+    optimiser, and writing/plotting results. It is MPI-aware: rank 0 handles all
+    file I/O and output directory creation.
+
+    Construct it either directly, or from a config dict with
+    [`init_from_dict`][param_id.paramID.CVS0DParamID.init_from_dict]. A typical
+    flow is::
+
+        pid = CVS0DParamID.init_from_dict(inp)
+        pid.set_ground_truth_data(obs_data_dict)
+        pid.set_params_for_id(params_for_id_dict)
+        pid.set_param_id_method("genetic_algorithm")
+        pid.run()
+        pid.simulate_with_best_param_vals()
+        pid.plot_outputs()
+
+    Args:
+        model_path: Path to the generated model file (CellML/Python/CasADi).
+        model_type: One of ``'cellml_only'``, ``'python'``, ``'casadi_python'``.
+        param_id_method: Optimiser to use, e.g. ``'genetic_algorithm'``,
+            ``'CMA-ES'``, ``'bayesian'``, ``'sp_minimize'``.
+        mcmc_instead: If True, build an MCMC sampler instead of an optimiser.
+        file_name_prefix: Model name prefix; ties together the resource files
+            and names the output case directory.
+        params_for_id_path: Optional path to a ``{prefix}_params_for_id.csv``.
+            Alternatively call
+            [`set_params_for_id`][param_id.paramID.CVS0DParamID.set_params_for_id].
+        param_id_obs_path: Optional path to an ``obs_data.json``. Alternatively
+            call
+            [`set_ground_truth_data`][param_id.paramID.CVS0DParamID.set_ground_truth_data].
+        sim_time: Logged simulation duration (s).
+        pre_time: Unlogged steady-state spin-up duration (s).
+        dt: Output sampling step (s); must be <= every dt in the obs data.
+        solver_info: Solver config dict (defaults to ``{"solver": "CVODE_myokit"}``).
+        mcmc_options: Options dict for MCMC (used when ``mcmc_instead=True``).
+        optimiser_options: Options dict for the optimiser (e.g. ``cost_convergence``,
+            ``max_patience``, ``num_calls_to_function``, ``cost_type``). Sensible
+            defaults are used if omitted.
+        do_ad: Enable automatic differentiation (CasADi backend).
+        DEBUG: Enable debug behaviour and the debug optimiser options.
+        param_id_output_dir: Root directory for results; defaults to
+            ``param_id_output/`` in the repo.
+        resources_dir: Directory holding input resources; defaults to
+            ``resources/`` in the repo.
+        one_rank: If True, skip the MPI barrier (single-rank usage).
+
+    Attributes:
+        output_dir: Directory (under ``param_id_output_dir``) where results and
+            plots for this case are written (rank 0 only).
     """
     def __init__(self, model_path, model_type, param_id_method, mcmc_instead=False, file_name_prefix='no_name',
                  params_for_id_path=None,
@@ -292,6 +344,20 @@ class CVS0DParamID():
 
     @classmethod
     def init_from_dict(cls, inp_data_dict):
+        """Build a `CVS0DParamID` from a configuration dict.
+
+        Only the keys relevant to the constructor are consumed. ``file_prefix``
+        is accepted as an alias for ``file_name_prefix``.
+
+        Args:
+            inp_data_dict: Config dict, e.g. as returned by
+                [`get_default_inp_data_dict`][utilities.utility_funcs.get_default_inp_data_dict]
+                and then mutated in code.
+
+        Returns:
+            CVS0DParamID: A configured instance (observation data and parameters
+            still need to be set unless their paths were in the dict).
+        """
         # Only pass kwargs that exist in inp_data_dict
         arg_options = [
             'model_path', 'model_type', 'param_id_method', 'mcmc_instead',
@@ -310,6 +376,22 @@ class CVS0DParamID():
 
     @classmethod
     def init_from_all_dicts(cls, inp_data_dict, obs_data_dict, params_for_id_dict):
+        """Build a fully configured `CVS0DParamID` in one call.
+
+        Convenience constructor that calls
+        [`init_from_dict`][param_id.paramID.CVS0DParamID.init_from_dict] then sets
+        the ground-truth data and the parameters to identify.
+
+        Args:
+            inp_data_dict: Configuration dict (see `init_from_dict`).
+            obs_data_dict: Observation data dict (see
+                [`ObsDataCreator`][utilities.obs_data_helpers.ObsDataCreator]).
+            params_for_id_dict: List of parameter entries to calibrate (see
+                [`set_params_for_id`][param_id.paramID.CVS0DParamID.set_params_for_id]).
+
+        Returns:
+            CVS0DParamID: A ready-to-run instance.
+        """
         new_object = cls.init_from_dict(inp_data_dict)
         new_object.set_ground_truth_data(obs_data_dict)
         new_object.set_params_for_id(params_for_id_dict)
@@ -321,6 +403,17 @@ class CVS0DParamID():
         self.param_id.temp_test2()
 
     def run(self):
+        """Run the parameter identification.
+
+        Executes the configured optimiser. Ground-truth data and parameters to
+        identify must be set first. On rank 0 the best parameters are written to
+        ``best_param_vals.npy`` and per-experiment full-output dumps
+        (``all_outputs_with_best_param_vals_exp_*.npz``) are written under
+        [`output_dir`][param_id.paramID.CVS0DParamID].
+
+        Raises:
+            ValueError: If observation data or parameters for id are not set.
+        """
         self._check_info_available()
         self.param_id.run()
 
@@ -353,6 +446,7 @@ class CVS0DParamID():
                 pass
 
     def run_mcmc(self):
+        """Run MCMC sampling (requires the instance was built with ``mcmc_instead=True``)."""
         mcmc_object.run()
     
     def _check_info_available(self):
@@ -385,6 +479,19 @@ class CVS0DParamID():
             raise ValueError('Param id info not set')
 
     def simulate_with_best_param_vals(self, reset=True, only_one_exp=-1, return_series=False):
+        """Simulate the model using the best-fit parameters.
+
+        Args:
+            reset: Reset the simulation state before running.
+            only_one_exp: If >= 0, only simulate that experiment index;
+                ``-1`` simulates all experiments.
+            return_series: If True, also return the full time-series arrays.
+
+        Returns:
+            If ``return_series`` is False, the observation dict of computed
+            feature values. If True, a tuple ``(obs_dicts, obs_arrays)`` where
+            ``obs_arrays`` holds the time-series for plotting.
+        """
         if return_series:
             obs_dicts, obs_arrays = self.param_id.simulate_once(reset=reset, only_one_exp=only_one_exp, return_series=return_series)
             self.best_output_calculated = True
@@ -395,6 +502,14 @@ class CVS0DParamID():
             return obs_dict
 
     def update_param_range(self, params_to_update_list_of_lists, mins, maxs):
+        """Update the min/max bounds of a subset of parameters after construction.
+
+        Args:
+            params_to_update_list_of_lists: List of parameter-name groups to
+                update; each must match an existing entry in the param-id info.
+            mins: New lower bound for each group.
+            maxs: New upper bound for each group.
+        """
         for params_to_update_list, min, max in zip(params_to_update_list_of_lists, mins, maxs):
             for JJ, param_name_list in enumerate(self.param_id_info["param_names"]):
                 if param_name_list == params_to_update_list:
@@ -402,6 +517,7 @@ class CVS0DParamID():
                     self.param_id_info["param_maxs"][JJ] = max
 
     def set_output_dir(self, path):
+        """Override the directory where results and plots are written (rank 0 only)."""
         if self.rank != 0:
             return
         self.output_dir = path
@@ -414,26 +530,60 @@ class CVS0DParamID():
     
 
     def add_user_operation_func(self, func):
+        """Register a custom feature-extraction function.
+
+        The function can then be referenced by name in a data item's
+        ``operation`` (its operands map to the function args). Set
+        ``func.series_to_constant = True`` for series->scalar features so that
+        auto-plotting works.
+
+        Args:
+            func: The Python callable to register.
+        """
         self.param_id.add_user_operation_func(func)
-    
+
     def add_user_cost_func(self, func):
+        """Register a custom cost function (referenced via ``cost_type``)."""
         self.param_id.add_user_cost_func(func)
-    
+
     def set_param_names(self, param_names):
+        """Override the list of parameter names."""
         if self.mcmc_instead:
             mcmc_object.set_param_names(param_names)
         else:
             self.param_id.set_param_names(param_names)
-    
+
     def set_optimiser_options(self, optimiser_options):
+        """Set/update the optimiser options dict.
+
+        Args:
+            optimiser_options: e.g. ``cost_convergence``, ``max_patience``,
+                ``num_calls_to_function``, ``cost_type``.
+        """
         self.optimiser_options = optimiser_options
         self.param_id.set_optimiser_options(optimiser_options)
 
     def set_param_id_method(self, param_id_method):
+        """Change the optimiser method.
+
+        Args:
+            param_id_method: e.g. ``'genetic_algorithm'``, ``'CMA-ES'``,
+                ``'bayesian'``, ``'sp_minimize'``.
+        """
         self.param_id_method = param_id_method
         self.param_id.set_param_id_method(param_id_method)
 
     def set_ground_truth_data(self, obs_data_dict):
+        """Set the observation (ground-truth) data to calibrate against.
+
+        Parses the obs-data structure into the internal ground-truth dataframe,
+        protocol info, observation info and prediction info.
+
+        Args:
+            obs_data_dict: Observation data dict, e.g. built with
+                [`ObsDataCreator`][utilities.obs_data_helpers.ObsDataCreator] or
+                loaded from an ``obs_data.json`` file.
+        """
         if self.rank == 0:
             print(f'Setting ground truth data: {obs_data_dict}')
         parsed_data = self.obs_and_param_parser.parse_obs_data_json(
@@ -459,6 +609,15 @@ class CVS0DParamID():
             print(f'Ground truth data set: {self.obs_info}')
     
     def set_params_for_id(self, params_for_id_dict):
+        """Set which parameters to identify and their bounds.
+
+        Args:
+            params_for_id_dict: List of entries of the form
+                ``{vessel_name, param_name, min, max, name_for_plotting}`` (the
+                in-memory equivalent of ``{prefix}_params_for_id.csv``).
+                ``vessel_name`` may be a single name or a list of names to share
+                one calibrated parameter across many vessels.
+        """
         if self.rank == 0:
             print(f'Setting params for id: {params_for_id_dict}')
         self.param_id_info = self.obs_and_param_parser.get_param_id_info_from_entries(params_for_id_dict)
@@ -468,6 +627,12 @@ class CVS0DParamID():
             print(f'Params for id set: {self.param_id_info["param_names"]}')
 
     def set_best_param_vals(self, best_param_vals):
+        """Manually supply the best-fit parameter vector (e.g. from a previous run).
+
+        Args:
+            best_param_vals: Array of parameter values, ordered as
+                [`get_param_names`][param_id.paramID.CVS0DParamID.get_param_names].
+        """
         if self.mcmc_instead:
             mcmc_object.set_best_param_vals(best_param_vals)
         else:
@@ -495,6 +660,7 @@ class CVS0DParamID():
         return None
 
     def plot_outputs(self):
+        """Generate and save calibration result plots (under ``output_dir/plots_param_id``)."""
         if self.rank == 0:
             param_vals = self._resolve_best_param_vals_for_outputs()
             if param_vals is not None and not self.mcmc_instead:
@@ -504,6 +670,12 @@ class CVS0DParamID():
         ParamIDPlotOutputs(self).plot_outputs()
 
     def get_mcmc_samples(self):
+        """Load and post-process the MCMC chain (burn-in + stuck-walker removal).
+
+        Returns:
+            tuple: ``(flat_samples, samples, num_params)``, or None if no chain
+            has been written.
+        """
         mcmc_chain_path = os.path.join(self.output_dir, 'mcmc_chain.npy')
 
         if not os.path.exists(mcmc_chain_path):
@@ -550,7 +722,7 @@ class CVS0DParamID():
         return flat_samples, samples, num_params
 
     def plot_mcmc(self):
-
+        """Generate MCMC trace and corner plots from the saved chain (rank 0)."""
         flat_samples, samples, num_params = self.get_mcmc_samples()
         if self.rank != 0:
             return
@@ -730,45 +902,63 @@ class CVS0DParamID():
         return
 
     def set_bayesian_parameters(self, n_calls, n_initial_points, acq_func, random_state, acq_func_kwargs={}):
+        """Configure the Bayesian optimiser.
+
+        Args:
+            n_calls: Total number of objective evaluations.
+            n_initial_points: Number of random initial points before fitting.
+            acq_func: Acquisition function name (e.g. ``'EI'``, ``'LCB'``).
+            random_state: Seed for reproducibility.
+            acq_func_kwargs: Extra keyword args for the acquisition function.
+        """
         self.param_id.set_bayesian_parameters(n_calls, n_initial_points, acq_func, random_state,
                                               acq_func_kwargs=acq_func_kwargs)
 
     def close_simulation(self):
+        """Release the underlying simulation resources."""
         if self.mcmc_instead:
             mcmc_object.close_simulation()
         else:
             self.param_id.close_simulation()
 
-   
-    
+
+
     def get_best_param_vals(self):
+        """Return the best-fit parameter vector (ndarray), or None if not yet run."""
         if self.mcmc_instead:
             return mcmc_object.best_param_vals
         else:
             return self.param_id.best_param_vals
 
     def get_param_names(self):
+        """Return the list of identified parameter names (order matches the param vector)."""
         if self.mcmc_instead:
             return mcmc_object.param_id_info["param_names"]
         else:
             return self.param_id.param_id_info["param_names"]
 
     def get_param_importance(self):
+        """Return per-parameter importance scores (computed during sensitivity step)."""
         return self.param_id.param_importance
 
     def get_collinearity_idx(self):
+        """Return the collinearity index of the identified parameter set."""
         return self.param_id.collinearity_idx
 
     def get_collinearity_idx_pairs(self):
+        """Return pairwise collinearity indices for the identified parameters."""
         return self.param_id.collinearity_idx_pairs
 
     def get_pred_param_importance(self):
+        """Return parameter importance scores for the prediction quantities."""
         return self.param_id.pred_param_importance
 
     def get_pred_collinearity_idx_pairs(self):
+        """Return pairwise collinearity indices for the prediction quantities."""
         return self.param_id.pred_collinearity_idx_pairs
 
     def remove_params_by_idx(self, param_idxs_to_remove):
+        """Drop parameters from the identification set by index."""
         self.__set_and_save_param_names(idxs_to_ignore=param_idxs_to_remove)
         if self.mcmc_instead:
             mcmc_object.remove_params_by_idx(param_idxs_to_remove)
@@ -776,6 +966,7 @@ class CVS0DParamID():
             self.param_id.remove_params_by_idx(param_idxs_to_remove)
 
     def remove_params_by_name(self, param_names_to_remove):
+        """Drop parameters from the identification set by name."""
         param_idxs_to_remove = []
         if self.mcmc_instead:
             num_params = mcmc_object.num_params

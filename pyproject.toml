@@ -62,6 +62,11 @@ dev = [
     "flake8>=4.0.0",
     "mypy>=0.950",
 ]
+docs = [
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+    "black>=22.0.0",  # used by mkdocstrings to format rendered signatures
+]
 
 [tool.pytest.ini_options]
 # Pytest configuration
