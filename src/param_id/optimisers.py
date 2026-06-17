@@ -830,15 +830,36 @@ class SciPyMinimizeOptimiser(Optimiser):
                 else:
                     gradient_func = lambda q: approx_fprime(q, cost_fun, epsilon=1e-4)
 
+                cost_history_path = os.path.join(self.output_dir, 'best_cost_history.csv')
+                param_history_path = os.path.join(self.output_dir, 'best_param_vals_history.csv')
+
+                def _append_history(cost_val, x_norm):
+                    # Append one row per L-BFGS-B iteration so the cost / parameter
+                    # progress plots update live during the run (same CSV format the
+                    # population-based optimisers use). x_norm is already in
+                    # normalised parameter space, matching best_param_vals_history.
+                    with open(cost_history_path, 'a') as file:
+                        np.savetxt(file, np.array([[float(cost_val)]]), fmt='%1.9f', delimiter=', ')
+                    with open(param_history_path, 'a') as file:
+                        np.savetxt(file, np.asarray(x_norm, dtype=float).reshape(1, -1),
+                                   fmt='%.5e', delimiter=', ')
+
+                # Record the starting point so the progress curve begins at the
+                # pre-optimisation cost.
+                _append_history(init_cost, self.param_norm_obj.normalise(init_param_vals))
+
                 step_counter = [0]
                 last_iterate = {"x_norm": None, "cost": None}
 
                 def lbfgsb_callback(x_norm):
                     step_counter[0] += 1
-                    last_iterate["x_norm"] = np.asarray(x_norm, dtype=float).copy()
+                    x_norm = np.asarray(x_norm, dtype=float).copy()
+                    last_iterate["x_norm"] = x_norm
                     param_vals = self.param_norm_obj.unnormalise(x_norm)
                     cost_val = float(self.param_id_obj.get_cost_ca(param_vals))
                     last_iterate["cost"] = cost_val
+                    # Live progress: one history row per accepted iteration.
+                    _append_history(cost_val, x_norm)
                     if self.DEBUG:
                         print(f'[sp_minimize] step {step_counter[0]}: cost = {cost_val:.6e}')
                         for i, names in enumerate(self.param_id_info["param_names"]):
@@ -906,12 +927,16 @@ class SciPyMinimizeOptimiser(Optimiser):
         self.best_gradient = best_gradient_vals
 
         if rank == 0:
-            costs = np.array([float(init_cost), float(best_cost_array[0])])
-            with open(os.path.join(self.output_dir, 'best_cost_history.csv'), 'a') as file:
-                np.savetxt(file, costs.reshape(-1, 1), fmt='%1.9f', delimiter=',')
+            # The per-iteration callback already streamed the cost / parameter
+            # history during the run. Record the final best as the last point, but
+            # only when L-BFGS-B refined past the last callback iterate (otherwise
+            # it would duplicate the last streamed row).
+            if last_iterate["cost"] is None or float(best_cost_array[0]) < float(last_iterate["cost"]):
+                with open(os.path.join(self.output_dir, 'best_cost_history.csv'), 'a') as file:
+                    np.savetxt(file, np.array([[float(best_cost_array[0])]]), fmt='%1.9f', delimiter=', ')
+                with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
+                    param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals)
+                    np.savetxt(file, np.asarray(param_vals_norm, dtype=float).reshape(1, -1),
+                               fmt='%.5e', delimiter=', ')
 
-            with open(os.path.join(self.output_dir, 'best_param_vals_history.csv'), 'a') as file:
-                param_vals_norm = self.param_norm_obj.normalise(self.best_param_vals.reshape(-1, 1))
-                np.savetxt(file, param_vals_norm.reshape(1,-1), fmt='%.5e', delimiter=', ')
-            
             self._save_best_params()
