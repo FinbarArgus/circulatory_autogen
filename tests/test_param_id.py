@@ -2793,3 +2793,62 @@ def test_param_id_archives_input_files(resources_dir, temp_output_dir,
             assert fa.read() == fb.read()
         with open(os.path.join(out, obs_copies[0])) as fa, open(obs_path) as fb:
             assert fa.read() == fb.read()
+
+
+def test_sp_minimize_streams_cost_history_per_iteration(temp_output_dir):
+    """SciPyMinimizeOptimiser appends a cost / parameter history row per L-BFGS-B
+    iteration (not just a start + end pair), so the live progress plots update
+    during a gradient-based calibration. Uses a Rosenbrock cost so L-BFGS-B takes
+    several iterations; no model/casadi needed."""
+    from param_id.optimisers import SciPyMinimizeOptimiser
+
+    mins = np.array([-10.0, -10.0])
+    maxs = np.array([10.0, 10.0])
+
+    class _Norm:
+        def normalise(self, p):
+            return (np.asarray(p, dtype=float) - mins) / (maxs - mins)
+
+        def unnormalise(self, q):
+            return mins + np.asarray(q, dtype=float) * (maxs - mins)
+
+    class _ParamId:
+        param_init = np.array([-1.2, 1.0])  # classic Rosenbrock start
+
+        def __init__(self):
+            self.best = None
+
+        def get_cost_ca(self, p):
+            p = np.asarray(p, dtype=float)
+            return 100.0 * (p[1] - p[0] ** 2) ** 2 + (1.0 - p[0]) ** 2
+
+        def get_jac_cost_ca(self, p):
+            p = np.asarray(p, dtype=float)
+            return np.array([
+                -400.0 * p[0] * (p[1] - p[0] ** 2) - 2.0 * (1.0 - p[0]),
+                200.0 * (p[1] - p[0] ** 2),
+            ])
+
+        def set_best_param_vals(self, p):
+            self.best = np.asarray(p, dtype=float)
+
+    param_id_info = {"param_names": [["a"], ["b"]], "param_mins": mins, "param_maxs": maxs}
+    opt = SciPyMinimizeOptimiser(
+        param_id_obj=_ParamId(), param_id_info=param_id_info, param_norm_obj=_Norm(),
+        num_params=2, output_dir=temp_output_dir,
+        optimiser_options={"cost_convergence": 1e-15}, do_ad=True, DEBUG=False,
+    )
+    opt.run()
+
+    cost_path = os.path.join(temp_output_dir, "best_cost_history.csv")
+    param_path = os.path.join(temp_output_dir, "best_param_vals_history.csv")
+    assert os.path.exists(cost_path)
+    cost_rows = [ln for ln in open(cost_path).read().splitlines() if ln.strip()]
+    costs = [float(ln.split(",")[0]) for ln in cost_rows]
+    # init row + one per L-BFGS-B iteration => clearly more than the old start+end pair.
+    assert len(costs) > 2, f"expected per-iteration history, got {len(costs)} rows"
+    # Progress was made: the final recorded cost is well below the starting cost.
+    assert costs[-1] < costs[0]
+    # Parameter history is written in lockstep with the cost history.
+    param_rows = [ln for ln in open(param_path).read().splitlines() if ln.strip()]
+    assert len(param_rows) == len(costs)
