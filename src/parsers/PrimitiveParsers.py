@@ -31,6 +31,45 @@ root_dir = os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.join(root_dir, 'src'))
 
 
+# ---------------------------------------------------------------------------
+# Backend solver schema
+# ---------------------------------------------------------------------------
+# Single source of truth for which generated model_types exist, which solvers are
+# valid for each, and which methods/plugins are valid for each solver. Used for
+# input validation here AND surfaced to downstream tools (e.g. the CUFLynx
+# settings UI) so they don't hardcode these lists. Keep this in sync with
+# solver_wrappers.get_simulation_helper.
+SOLVER_SCHEMA = {
+    'model_types': ['cellml_only', 'python', 'cpp', 'casadi_python'],
+    'solvers_by_model_type': {
+        'cellml_only': ['CVODE_opencor', 'CVODE_myokit'],
+        'python': ['solve_ivp'],
+        'cpp': ['CVODE', 'RK4', 'PETSC'],
+        'casadi_python': ['casadi_integrator'],
+    },
+    # Methods/plugins valid for each solver.
+    'methods_by_solver': {
+        'CVODE_opencor': ['CVODE'],
+        'CVODE_myokit': ['CVODE'],
+        'solve_ivp': ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler'],
+        'CVODE': ['CVODE'],
+        'RK4': ['RK4'],
+        'PETSC': ['PETSC'],
+        # 'semi_implicit_euler' is a fixed-step damped scheme implemented in the
+        # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
+        # adjoint-sensitivity gradient fails (e.g. 3compartment).
+        'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler'],
+    },
+    # Default solver for each model_type (used when none is specified).
+    'default_solver_by_model_type': {
+        'cellml_only': 'CVODE_opencor',
+        'python': 'solve_ivp',
+        'cpp': 'CVODE',
+        'casadi_python': 'casadi_integrator',
+    },
+}
+
+
 def warn_if_casadi_nonzero_pre_time(
     model_type,
     pre_time=None,
@@ -242,19 +281,17 @@ class YamlFileParser(object):
         # Parse and validate the solver parameter
         # Supported solvers: CVODE_opencor (OpenCOR), CVODE_myokit (Myokit), solve_ivp (Python), or casadi_integrator (CasADi)
         
-        valid_cellml_solvers = ['CVODE_opencor', 'CVODE_myokit']
-        valid_cellml_methods = ['CVODE']
-        valid_cpp_solvers = ['CVODE', 'RK4', 'PETSC'] # TODO should this be different to methods?
-        valid_cpp_methods = ['CVODE', 'RK4', 'PETSC']
-        # Common solve_ivp methods (add more as needed)
-        valid_python_solvers = ['solve_ivp']
-        valid_solve_ivp_methods = ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler']
-        # CasADi integrator available plugins
-        valid_casadi_solvers = ['casadi_integrator']
-        # 'semi_implicit_euler' is a fixed-step damped scheme implemented in the
-        # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
-        # adjoint-sensitivity gradient fails (e.g. 3compartment).
-        valid_casadi_solver_plugins = ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler']
+        # Sourced from the module-level SOLVER_SCHEMA (single source of truth).
+        _solvers = SOLVER_SCHEMA['solvers_by_model_type']
+        _methods = SOLVER_SCHEMA['methods_by_solver']
+        valid_cellml_solvers = _solvers['cellml_only']
+        valid_cellml_methods = _methods['CVODE_myokit']
+        valid_cpp_solvers = _solvers['cpp']  # TODO should this be different to methods?
+        valid_cpp_methods = _solvers['cpp']
+        valid_python_solvers = _solvers['python']
+        valid_solve_ivp_methods = _methods['solve_ivp']
+        valid_casadi_solvers = _solvers['casadi_python']
+        valid_casadi_solver_plugins = _methods['casadi_integrator']
 
         solver_name = inp_data_dict.get('solver_info', {}).get('solver')
         if solver_name is None:
