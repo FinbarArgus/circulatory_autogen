@@ -226,10 +226,15 @@ class sobol_SA():
         solver = None
         if isinstance(self.solver_info, dict):
             solver = self.solver_info.get("solver")
+        # Honour the configured model_type (e.g. casadi_python); only fall back to
+        # inferring it from the file extension when it wasn't supplied.
+        model_type = self.model_type
+        if model_type is None:
+            model_type = "python" if str(self.model_path).endswith(".py") else "cellml_only"
         return get_simulation_helper(
             model_path=self.model_path,
             solver=solver,
-            model_type="python" if str(self.model_path).endswith(".py") else "cellml_only",
+            model_type=model_type,
             dt=self.dt,
             sim_time=self.sim_time,
             solver_info=self.solver_info,
