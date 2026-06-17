@@ -1319,3 +1319,53 @@ def test_cvode_myokit_vs_casadi_semi_implicit_euler(
         f"{model_name}: {worst_var} differs by {worst_pct:.3f}% (relative L2) "
         f"(> {tolerance}%) between CVODE_myokit and casadi semi_implicit_euler"
     )
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_van_der_pol_stiff_semi_implicit_euler_convergence(
+    temp_model_dir, generated_cellml_model_factory
+):
+    """Van der Pol (mu=100) — a classic stiff benchmark.
+
+    casadi_python semi_implicit_euler is a first-order, fixed-step damped scheme:
+    at a coarse dt it is wildly inaccurate on this stiff system, but it *converges*
+    to the cellml CVODE_myokit reference as dt is refined. This is exactly why a
+    convergence study is required before trusting semi_implicit_euler on stiff
+    models (see the note in tutorial/docs/parameter-identification.md)."""
+    pytest.importorskip("casadi")
+
+    cellml_path = generated_cellml_model_factory("VanDerPol", "VanDerPol_parameters.csv")
+    casadi_model_path = PythonGenerator(
+        cellml_path, output_dir=temp_model_dir,
+        module_name="VanDerPol_casadi", casadi_compat=True,
+    ).generate()
+
+    sim_time = 1.0
+    dts = (1e-3, 5e-4, 2.5e-4)
+    errors = []
+    for dt in dts:
+        ref = get_simulation_helper(
+            model_path=cellml_path, model_type="cellml_only", solver="CVODE_myokit",
+            dt=dt, sim_time=sim_time, pre_time=0.0,
+            solver_info={"MaximumStep": 1e-4, "rtol": 1e-9, "atol": 1e-11},
+        )
+        assert ref.run(), "CVODE_myokit reference simulation failed"
+        sie = get_simulation_helper(
+            model_path=casadi_model_path, model_type="casadi_python", solver="casadi_integrator",
+            dt=dt, sim_time=sim_time, pre_time=0.0,
+            solver_info={"method": "semi_implicit_euler"},
+        )
+        assert sie.run(), "casadi_python semi_implicit_euler simulation failed"
+        a = np.array(ref.get_results(["VanDerPol/x"], flatten=True)[0], dtype=float)
+        b = np.array(sie.get_results(["VanDerPol/x"], flatten=True)[0], dtype=float)
+        n = min(len(a), len(b))
+        a, b = a[:n], b[:n]
+        errors.append(100.0 * np.linalg.norm(a - b) / np.linalg.norm(a))
+
+    print(f"\nVan der Pol (mu=100) semi_implicit_euler vs CVODE_myokit, x relative-L2 "
+          f"error by dt {list(dts)}: {[round(e, 3) for e in errors]}%")
+
+    # First-order convergence: each dt refinement reduces the error.
+    assert errors[0] > errors[1] > errors[2], f"not converging with dt: {errors}"
+    # And the finest dt is well-converged (so the scheme is correct, just dt-sensitive).
+    assert errors[-1] < 2.0, f"finest-dt error {errors[-1]:.3f}% too high"

@@ -189,7 +189,7 @@ Before doing calibration, a solver for the model needs to be chosen
     - **MaximumNumberOfSteps**: maximum number of substeps before stepping
     - **method**: any method for `solve_ivp` or `casadi_integrator`, e.g. `RK45`, `BDF`, `cvodes`, etc.
 
-!!! tip "CasADi `semi_implicit_euler` — for automatic differentiation on really stiff models"
+!!! note "CasADi `semi_implicit_euler` — enables automatic differentiation on stiff models (verify with a convergence study)"
     When using gradient-based parameter identification (`param_id_method: sp_minimize` with
     `do_ad: true`) on a **very stiff** model, the adaptive `cvodes` integrator can solve the
     forward problem but its **adjoint-sensitivity gradient fails** (e.g. CasADi raises
@@ -218,10 +218,18 @@ Before doing calibration, a solver for the model needs to be chosen
       max_step_size: 0.001
     ```
 
-    Trade-offs: it is **fixed-step** (uses your `dt`, so choose a small enough `dt` for
-    accuracy) and damps using only the **diagonal** of the Jacobian, so for non-stiff models
-    `cvodes` is usually more accurate and remains the better default. Use `semi_implicit_euler`
-    specifically when you need AD gradients on a stiff model.
+    !!! warning "Less accurate than `cvodes` — do a convergence study"
+        `semi_implicit_euler` is a **first-order, fixed-step** scheme that damps using only
+        the **diagonal** of the Jacobian, so it is **less accurate than the adaptive `cvodes`
+        integrator** and, on a stiff model, can noticeably differ from the true (CVODE)
+        trajectory at a practical `dt`. It is provided so that AD gradients are *available*
+        on stiff models where `cvodes` cannot produce one — not because it is the accurate
+        choice.
+
+        **Do not trust the results at a single `dt`.** Perform a convergence study: rerun
+        with progressively smaller `dt` (e.g. halve it) and confirm the trajectories and the
+        identified parameters stop changing meaningfully before relying on them. Where
+        `cvodes` works, it remains the more accurate default.
 
 
 ## Parameter Identification Settings
