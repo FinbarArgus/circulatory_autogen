@@ -1217,3 +1217,105 @@ def test_all_solvers(model_name, input_param_file, sim_time, include_casadi, tem
             failed_msg += f"Maximum error: {comp_result['max_rel_error']:.6f}%"
             pytest.fail(failed_msg)
 
+
+def _max_rel_l2_error(ref_helper, other_helper, only_other_vars=None):
+    """Max over matched time-series variables of the relative L2 error
+    ‖ref-other‖ / ‖ref‖, as a percentage. The whole-trajectory L2 norm is robust
+    both to variables that pass through zero (which break pointwise relative
+    error) and to near-constant variables with a small offset (which break
+    range-normalized error). Skips ~zero variables.
+
+    ``only_other_vars`` (optional) restricts the comparison to those "other"-side
+    variable names — e.g. the ODE state variables. Auxiliary/algebraic valve
+    quantities (e.g. switching valve inductances) are model-representation
+    details that legitimately differ between the myokit and casadi backends; the
+    integrated states are what the solver actually computes. Returns
+    (max_pct, worst_var, compared_count)."""
+    ref_vars = ref_helper.get_all_variable_names()
+    other_vars = other_helper.get_all_variable_names()
+    ref_results = ref_helper.get_all_results(flatten=False)
+    other_results = other_helper.get_all_results(flatten=False)
+    ref_dict = {v: ref_results[i][0] for i, v in enumerate(ref_vars)}
+    other_dict = {v: other_results[i][0] for i, v in enumerate(other_vars)}
+    mapping = _match_variables(ref_vars, "myokit", other_vars, "python")
+
+    worst_pct, worst_var, compared = 0.0, None, 0
+    for ref_var, other_var in mapping.items():
+        if only_other_vars is not None and other_var not in only_other_vars:
+            continue
+        a = _to_numpy(ref_dict[ref_var])
+        b = _to_numpy(other_dict[other_var])
+        if len(a) <= 1 or len(b) <= 1:
+            continue  # constant / scalar
+        n = min(len(a), len(b))
+        a, b = a[:n], b[:n]
+        ref_norm = float(np.linalg.norm(a))
+        if ref_norm <= 1e-12:
+            continue  # ~zero variable throughout
+        pct = float(np.linalg.norm(a - b) / ref_norm) * 100.0
+        compared += 1
+        if pct > worst_pct:
+            worst_pct, worst_var = pct, ref_var
+    return worst_pct, worst_var, compared
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.parametrize("model_name,input_param_file,sim_time,dt,tolerance", [
+    # casadi_python semi_implicit_euler is a first-order scheme, so it converges to
+    # the cellml CVODE_myokit reference as dt -> 0. Lotka_Volterra (smooth) matches
+    # tightly at a modest dt; 3compartment_nonstiff has a fast flow state (par/v)
+    # that needs a smaller dt — its state error shrinks ~first-order with dt
+    # (≈25%/14%/7% at dt=1e-4/3e-5/1e-5), so a small dt + looser bound is used.
+    # (The *stiff* 3compartment is excluded: there the diagonal damping trades
+    # transient accuracy for stability — see test_param_id
+    # .test_3compartment_stiff_casadi_semi_implicit_forward_and_gradient.)
+    ("Lotka_Volterra", "Lotka_Volterra_parameters.csv", 2.0, 1e-4, 1.0),
+    ("3compartment_nonstiff", "3compartment_nonstiff_parameters.csv", 0.05, 1e-5, 10.0),
+])
+def test_cvode_myokit_vs_casadi_semi_implicit_euler(
+    model_name, input_param_file, sim_time, dt, tolerance,
+    temp_model_dir, generated_cellml_model_factory,
+):
+    """cellml CVODE_myokit and casadi_python semi_implicit_euler integrate the same
+    ODE-state trajectories on non-stiff models. Compared with a relative L2
+    (whole-trajectory) error so states that pass through zero or are near-constant
+    don't spuriously dominate. Only the integrated ODE states are compared —
+    auxiliary/algebraic valve quantities differ by model representation between
+    the myokit and casadi backends, not by the integration."""
+    pytest.importorskip("casadi")
+
+    cellml_path = generated_cellml_model_factory(model_name, input_param_file)
+    # CasADi-compatible python model (conditionals rewritten for symbolic exec).
+    casadi_model_path = PythonGenerator(
+        cellml_path, output_dir=temp_model_dir,
+        module_name=f"{model_name}_casadi", casadi_compat=True,
+    ).generate()
+
+    ref = get_simulation_helper(
+        model_path=cellml_path, model_type="cellml_only", solver="CVODE_myokit",
+        dt=dt, sim_time=sim_time, pre_time=0.0,
+        solver_info={"MaximumStep": 1e-4, "rtol": 1e-8, "atol": 1e-10},
+    )
+    assert ref.run(), "CVODE_myokit reference simulation failed"
+
+    sie = get_simulation_helper(
+        model_path=casadi_model_path, model_type="casadi_python", solver="casadi_integrator",
+        dt=dt, sim_time=sim_time, pre_time=0.0,
+        solver_info={"method": "semi_implicit_euler"},
+    )
+    assert sie.run(), "casadi_python semi_implicit_euler simulation failed"
+
+    # The ODE states are the first len(STATE_INFO) entries of get_all_variable_names
+    # (states are listed before algebraic/constant variables).
+    state_names = set(sie.get_all_variable_names()[: len(sie.STATE_INFO)])
+    worst_pct, worst_var, compared = _max_rel_l2_error(ref, sie, only_other_vars=state_names)
+    print(f"\n{model_name}: CVODE_myokit vs casadi semi_implicit_euler (dt={dt}, "
+          f"sim_time={sim_time}): {compared} states compared, "
+          f"worst {worst_var}={worst_pct:.3f}% (tol {tolerance}%)")
+
+    assert compared > 0, "no state variables were compared"
+    assert worst_pct < tolerance, (
+        f"{model_name}: {worst_var} differs by {worst_pct:.3f}% (relative L2) "
+        f"(> {tolerance}%) between CVODE_myokit and casadi semi_implicit_euler"
+    )

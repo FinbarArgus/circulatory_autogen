@@ -97,9 +97,9 @@ class SensitivityAnalysis():
         self.sa_options = sa_options
         sa_output_dir = sa_options['output_dir']
         
-        self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, sa_options, self.dt, 
+        self.SA_manager = sobol_SA(self.model_path, self.model_out_names, self.solver_info, sa_options, self.dt,
                             sa_output_dir, param_id_path=self.param_id_obs_path, params_for_id_path=self.params_for_id_path,
-                            verbose=False, use_MPI=True)
+                            verbose=False, use_MPI=True, model_type=self.model_type)
 
     @classmethod
     def init_from_dict(cls, inp_data_dict):
