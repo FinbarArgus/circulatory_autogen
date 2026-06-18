@@ -18,6 +18,7 @@ try:
 except Exception:
     ScalarFloat = None
 import re
+from datetime import date
 
 try:
     from mpi4py import MPI
@@ -68,6 +69,34 @@ SOLVER_SCHEMA = {
         'casadi_python': 'casadi_integrator',
     },
 }
+
+
+def save_dated_user_inputs(inp_data_dict):
+    """Best-effort: archive the resolved run config as ``user_inputs_<yymmdd>.yaml``
+    in ``resources_dir``, so every run keeps a dated, reproducible record of what
+    was run (mirrors the params_for_id / obs_data archival). Never raises — a
+    failure here must not abort a run. Only rank 0 writes (avoids MPI clobber)."""
+    if rank != 0:
+        return
+    try:
+        resources_dir = inp_data_dict.get('resources_dir')
+        if not resources_dir or not os.path.isdir(resources_dir):
+            return
+        # Keep only yaml-serialisable entries so a stray object never breaks a run.
+        safe = {}
+        for key, value in inp_data_dict.items():
+            try:
+                yaml.safe_dump({key: value})
+            except Exception:
+                continue
+            safe[key] = value
+        out_path = os.path.join(
+            resources_dir, f"user_inputs_{date.today().strftime('%y%m%d')}.yaml"
+        )
+        with open(out_path, 'w') as f:
+            yaml.safe_dump(safe, f, default_flow_style=False, sort_keys=False)
+    except Exception:
+        pass
 
 
 def warn_if_casadi_nonzero_pre_time(
@@ -609,6 +638,9 @@ class YamlFileParser(object):
             inp_data_dict['file_prefix_1d'] = file_prefix_1d
             inp_data_dict['vessels_0d_csv_abs_path'] = vessel_filename_0d
             inp_data_dict['vessels_1d_csv_abs_path'] = vessel_filename_1d
+
+        # Archive a dated copy of the resolved config for reproducibility.
+        save_dated_user_inputs(inp_data_dict)
 
         return inp_data_dict
 
