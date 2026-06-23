@@ -1,16 +1,16 @@
 """
 AADC-based solver backend for circulatory_autogen.
 
-Drop-in replacement for casadi_python_solver_helper.py.
-Implements the same SimulationHelper interface so it plugs into
-paramID, HMC, sensitivity analysis, and the entire 12 LABOURS platform.
+Peer to casadi_python_solver_helper.py. Implements the same SimulationHelper
+interface so it plugs into paramID, sensitivity analysis, etc.
 
-Usage in circulatory_autogen:
-  1. Copy this file to src/solver_wrappers/aadc_solver_helper.py
-  2. Add to src/solver_wrappers/__init__.py:
-       from solver_wrappers.aadc_solver_helper import SimulationHelper as AadcSimulationHelper
-  3. Add 'aadc' to get_simulation_helper() factory
-  4. Set solver: aadc_semi_implicit in your config
+This backend is already wired in: it is imported and selected by
+src/solver_wrappers/__init__.py for solver 'aadc_semi_implicit', registered in
+parsers/PrimitiveParsers.py (model_type 'aadc_python'), and dispatched by
+scripts/script_generate_with_new_architecture.py. To use it, set in your config:
+  model_type: aadc_python
+  solver: aadc_semi_implicit
+Requires: pip install aadc
 
 Key differences from CasADI backend:
   - No symbolic graph — AADC records actual execution on idouble tape
@@ -251,7 +251,6 @@ class SimulationHelper:
                         if 'zeta' in info.get('name', '').lower()]
 
         traj = [x.copy()]
-        t_out = np.linspace(0, total_steps * dt, total_steps + 1)
 
         for step in range(total_steps):
             t = step * dt
@@ -278,8 +277,12 @@ class SimulationHelper:
 
             traj.append(x.copy())
 
-        self.tSim = t_out
-        return traj
+        # Drop the pre_time spin-up region and align with self.tSim (the post-pre
+        # output grid), matching the adaptive-RK45 path. The uniform grid here uses
+        # the same dt as update_times, so traj[pre_steps:] lines up with self.tSim.
+        # Do NOT overwrite self.tSim — that would re-introduce the pre-time region
+        # and produce a different output length/origin than the RK45 integrator.
+        return traj[self.pre_steps:]
 
     def _integrate(self, states, variables_all, total_steps, dt):
         """
@@ -675,7 +678,7 @@ class SimulationHelper:
             idx0 = self._ad_param_var_indices[0]
             id_vi[idx0] = aadc.idouble(float(variables_all[idx0]))
             a_pi = id_vi[idx0].mark_as_input()
-        id_ri = [aadc.idouble(0.0)] * n
+        id_ri = [aadc.idouble(0.0) for _ in range(n)]
         self.model.compute_rates(0.0, id_si, id_ri, list(id_vi))
         r_rates = []
         for i in range(n):
@@ -756,7 +759,7 @@ class SimulationHelper:
                 # Record semi-implicit Euler with per-step AADC Jacobian damping
                 for step in range(total_steps):
                     # Rates on outer tape
-                    rates_id = [aadc.idouble(0.0)] * n
+                    rates_id = [aadc.idouble(0.0) for _ in range(n)]
                     self.model.compute_rates(step * dt, st, rates_id, list(vars_rec))
 
                     # Jacobian diagonal via pre-recorded inner kernel
@@ -780,16 +783,16 @@ class SimulationHelper:
                 # RK4 on tape (for non-stiff models)
                 for step in range(total_steps):
                     t = aadc.idouble(step * dt)
-                    k1 = [aadc.idouble(0.0)] * n
+                    k1 = [aadc.idouble(0.0) for _ in range(n)]
                     self.model.compute_rates(t, st, k1, list(vars_rec))
                     st2 = [st[i] + 0.5 * dt * k1[i] for i in range(n)]
-                    k2 = [aadc.idouble(0.0)] * n
+                    k2 = [aadc.idouble(0.0) for _ in range(n)]
                     self.model.compute_rates(t + 0.5 * dt, st2, k2, list(vars_rec))
                     st3 = [st[i] + 0.5 * dt * k2[i] for i in range(n)]
-                    k3 = [aadc.idouble(0.0)] * n
+                    k3 = [aadc.idouble(0.0) for _ in range(n)]
                     self.model.compute_rates(t + 0.5 * dt, st3, k3, list(vars_rec))
                     st4 = [st[i] + dt * k3[i] for i in range(n)]
-                    k4 = [aadc.idouble(0.0)] * n
+                    k4 = [aadc.idouble(0.0) for _ in range(n)]
                     self.model.compute_rates(t + dt, st4, k4, list(vars_rec))
                     for i in range(n):
                         st[i] = st[i] + dt / 6.0 * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i])
@@ -928,19 +931,17 @@ class SimulationHelper:
         if method == 'tape':
             # Fast path: record full ODE on tape
             n = self.STATE_COUNT
-            def cost_idouble(st, p):
-                x_np = [st[i] for i in range(n)]
-                # Use same cost_func but wrap for idouble
-                # Cost as sum of squares of final state (generic)
-                result = st[0] * st[0]
-                for i in range(1, n):
-                    result = result + st[i] * st[i]
-                return result
-            # If user provided cost_func, wrap it for tape
             if cost_func is not None:
+                # Wrap the user cost for tape recording (end-point cost of final state).
                 def cost_idouble(st, p, _cf=cost_func):
-                    # For simple end-point cost, record on tape
                     return _cf(st)
+            else:
+                # Generic fallback: sum of squares of the final state.
+                def cost_idouble(st, p):
+                    result = st[0] * st[0]
+                    for i in range(1, n):
+                        result = result + st[i] * st[i]
+                    return result
             return self.compute_gradient_tape(cost_idouble)
 
         # Discrete adjoint path
