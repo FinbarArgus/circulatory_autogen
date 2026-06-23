@@ -704,31 +704,61 @@ class SimulationHelper:
             # Initial state
             st = [aadc.idouble(float(self.states[i])) for i in range(n)]
 
-            # Integrate with RK4 (all on tape)
-            for step in range(total_steps):
-                t = aadc.idouble(step * dt)
+            # Choose tape integrator
+            tape_method = self.solver_info.get('method', 'adaptive_rk45')
 
-                # k1
-                k1 = [aadc.idouble(0.0)] * n
-                self.model.compute_rates(t, st, k1, list(vars_rec))
+            if tape_method == 'semi_implicit':
+                # Pre-compute damping trajectory with plain floats
+                eps_fd = 1e-8
+                states_d = [float(self.states[i]) for i in range(n)]
+                vars_d = [float(v) if not isinstance(v, str) else 0.0 for v in variables_all]
+                all_lam = []
+                zeta_idx = [i for i, info in enumerate(self.model.STATE_INFO)
+                            if 'zeta' in info.get('name', '').lower()]
+                for step in range(total_steps):
+                    rates_d = [0.0] * n
+                    self.model.compute_rates(step * dt, list(states_d), rates_d, list(vars_d))
+                    lam = [0.0] * n
+                    for i in range(n):
+                        sb = list(states_d)
+                        h_i = max(abs(states_d[i]) * eps_fd, eps_fd)
+                        sb[i] += h_i
+                        rb = [0.0] * n
+                        self.model.compute_rates(step * dt, sb, rb, list(vars_d))
+                        lam[i] = abs((rb[i] - rates_d[i]) / h_i)
+                    all_lam.append(lam)
+                    for i in range(n):
+                        states_d[i] += dt * rates_d[i] / (1.0 + dt * lam[i])
+                    for z in zeta_idx:
+                        states_d[z] = max(0.0, min(1.0, states_d[z]))
 
-                # k2
-                st2 = [st[i] + 0.5 * dt * k1[i] for i in range(n)]
-                k2 = [aadc.idouble(0.0)] * n
-                self.model.compute_rates(t + 0.5 * dt, st2, k2, list(vars_rec))
-
-                # k3
-                st3 = [st[i] + 0.5 * dt * k2[i] for i in range(n)]
-                k3 = [aadc.idouble(0.0)] * n
-                self.model.compute_rates(t + 0.5 * dt, st3, k3, list(vars_rec))
-
-                # k4
-                st4 = [st[i] + dt * k3[i] for i in range(n)]
-                k4 = [aadc.idouble(0.0)] * n
-                self.model.compute_rates(t + dt, st4, k4, list(vars_rec))
-
-                for i in range(n):
-                    st[i] = st[i] + dt / 6.0 * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i])
+                # Record semi-implicit Euler on tape with pre-computed damping
+                for step in range(total_steps):
+                    rates_id = [aadc.idouble(0.0)] * n
+                    self.model.compute_rates(step * dt, st, rates_id, list(vars_rec))
+                    lam = all_lam[step]  # constants on tape
+                    for i in range(n):
+                        st[i] = st[i] + dt * rates_id[i] / (1.0 + dt * lam[i])
+                    for z in zeta_idx:
+                        st[z] = aadc.iif(st[z] >= 0.0, st[z], aadc.idouble(0.0))
+                        st[z] = aadc.iif(st[z] <= 1.0, st[z], aadc.idouble(1.0))
+            else:
+                # RK4 on tape (for non-stiff models)
+                for step in range(total_steps):
+                    t = aadc.idouble(step * dt)
+                    k1 = [aadc.idouble(0.0)] * n
+                    self.model.compute_rates(t, st, k1, list(vars_rec))
+                    st2 = [st[i] + 0.5 * dt * k1[i] for i in range(n)]
+                    k2 = [aadc.idouble(0.0)] * n
+                    self.model.compute_rates(t + 0.5 * dt, st2, k2, list(vars_rec))
+                    st3 = [st[i] + 0.5 * dt * k2[i] for i in range(n)]
+                    k3 = [aadc.idouble(0.0)] * n
+                    self.model.compute_rates(t + 0.5 * dt, st3, k3, list(vars_rec))
+                    st4 = [st[i] + dt * k3[i] for i in range(n)]
+                    k4 = [aadc.idouble(0.0)] * n
+                    self.model.compute_rates(t + dt, st4, k4, list(vars_rec))
+                    for i in range(n):
+                        st[i] = st[i] + dt / 6.0 * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i])
 
             # Cost
             cost = cost_func_idouble(st, id_p)
