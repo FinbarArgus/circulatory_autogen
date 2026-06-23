@@ -233,6 +233,71 @@ class SimulationHelper:
                     raise ValueError(f"parameter name {name} not found")
 
     # ---- ODE integration ----
+    def _integrate_bdf(self, states, variables_all, total_steps, dt):
+        """BDF (implicit, adaptive) via scipy + AADC Jacobian.
+
+        Uses VectorFunctionWithJacobian from the inner RHS kernel to provide
+        exact dense Jacobian to scipy's BDF solver. Accurate for stiff models.
+
+        Returns state trajectory as list of state arrays (post pre-time).
+        """
+        import math as _math
+        from scipy.integrate import solve_ivp
+
+        n = self.STATE_COUNT
+        x0 = np.array(states[:n], dtype=float)
+        T = total_steps * dt
+
+        # Record inner RHS kernel for VectorFunctionWithJacobian
+        if not hasattr(self, '_bdf_vfj') or self._bdf_vfj is None:
+            rhs_f = aadc.Functions()
+            rhs_f.start_recording()
+            id_si = [aadc.idouble(float(x0[i])) for i in range(n)]
+            a_si = [s.mark_as_input() for s in id_si]
+            id_vi = [aadc.idouble(float(v) if not (isinstance(v, float) and _math.isnan(v)) else 0.0)
+                     for v in variables_all]
+            # Mark AD params as inputs on inner kernel too
+            a_params_inner = []
+            if hasattr(self, '_ad_param_var_indices'):
+                for idx in self._ad_param_var_indices:
+                    id_vi[idx] = aadc.idouble(float(variables_all[idx]))
+                    a_params_inner.append(id_vi[idx].mark_as_input())
+            id_ri = [aadc.idouble(0.0) for _ in range(n)]
+            self.model.compute_rates(0.0, id_si, id_ri, list(id_vi))
+            r_ri = []
+            for i in range(n):
+                r = id_ri[i] if hasattr(id_ri[i], 'mark_as_output') else aadc.idouble(float(id_ri[i]))
+                r_ri.append(r.mark_as_output())
+            rhs_f.stop_recording()
+            self._bdf_vfj = aadc.VectorFunctionWithJacobian(rhs_f, a_si, a_params_inner, r_ri)
+            self._bdf_rhs_funcs = rhs_f
+
+        # Set current parameter values
+        if hasattr(self, '_ad_param_var_indices') and self._ad_param_var_indices:
+            param_vals = np.array([float(variables_all[idx]) for idx in self._ad_param_var_indices])
+            self._bdf_vfj.set_params(param_vals)
+
+        # Solve with scipy BDF
+        vfj = self._bdf_vfj
+        sol = solve_ivp(
+            lambda t, y: vfj.func(y),
+            (0, T), x0,
+            method='BDF',
+            jac=lambda t, y: vfj.jac(y).reshape(n, n),
+            rtol=float(self.solver_info.get('tol', 1e-6)),
+            atol=float(self.solver_info.get('tol', 1e-6)) * 1e-3,
+            max_step=dt,
+            t_eval=np.linspace(0, T, total_steps + 1),
+        )
+
+        if sol.status != 0:
+            import warnings
+            warnings.warn(f"BDF solver: {sol.message}")
+
+        # Convert to trajectory list, drop pre-time
+        traj = [sol.y[:, i].copy() for i in range(sol.y.shape[1])]
+        return traj[self.pre_steps:]
+
     def _integrate_semi_implicit(self, states, variables_all, total_steps, dt):
         """Semi-implicit Euler with numerical diagonal damping.
 
@@ -418,7 +483,11 @@ class SimulationHelper:
 
         # Choose integrator based on method
         method = self.solver_info.get('method', 'adaptive_rk45')
-        if method == 'semi_implicit':
+        if method == 'bdf':
+            self._patch_math_functions()
+            traj = self._integrate_bdf(self.states, variables_all, total_steps, self.dt)
+            self._unpatch_math_functions()
+        elif method == 'semi_implicit':
             traj = self._integrate_semi_implicit(self.states, variables_all, total_steps, self.dt)
         else:
             traj = self._integrate(self.states, variables_all, total_steps, self.dt)
