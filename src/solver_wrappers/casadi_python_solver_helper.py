@@ -339,6 +339,67 @@ class SimulationHelper:
         # Constant integrator params are broadcast across all steps (single column).
         return self.F_map(self.x0_symb, self.variables_symb_integrator)
 
+    def _run_scipy_bdf(self, total_steps):
+        """Numeric BDF forward solve: scipy.integrate.solve_ivp(method='BDF') with an
+        exact dense Jacobian from CasADi (``ca.jacobian`` of the RHS).
+
+        This parallels the AADC ``method='bdf'`` path (scipy BDF + exact backend
+        Jacobian) so the two backends can be compared on an equal footing for stiff
+        models. It is numeric only — no symbolic trajectory is built, so this method
+        does not support CasADi AD (the run() guard rejects do_ad). Sets
+        ``state_traj_dm`` and ``var_traj_dm`` and leaves ``state_traj_symb`` as None.
+        """
+        from scipy.integrate import solve_ivp
+
+        n = self.STATE_COUNT
+        f_func = ca.Function('bdf_rhs',
+                             [self.states_symb, self.variables_symb_integrator], [self.rates_symb])
+        jac_sym = ca.jacobian(self.rates_symb, self.states_symb)
+        jac_func = ca.Function('bdf_jac',
+                               [self.states_symb, self.variables_symb_integrator], [jac_sym])
+
+        x0 = self._x0_numeric()
+        p_int = ca.DM(self._integrator_p_numeric())
+        T = total_steps * self.dt
+        rtol = float(self.solver_info.get('rtol', self.solver_info.get('reltol', 1e-8)))
+        atol = float(self.solver_info.get('atol', self.solver_info.get('abstol', 1e-10)))
+
+        def rhs(t, y):
+            return np.asarray(f_func(ca.DM(y), p_int)).reshape(-1)
+
+        def jac(t, y):
+            return np.asarray(jac_func(ca.DM(y), p_int)).reshape(n, n)
+
+        sol = solve_ivp(rhs, (0.0, T), x0, method='BDF', jac=jac,
+                        rtol=rtol, atol=atol, max_step=self.dt,
+                        t_eval=np.linspace(0.0, T, total_steps + 1))
+        if sol.status != 0:
+            import warnings
+            warnings.warn(f"CasADi BDF (scipy) solver: {sol.message}")
+
+        self.state_traj_dm = np.array(sol.y)  # (n_states, total_steps+1)
+        self.state_traj_symb = None           # numeric-only path; no AD graph
+        self._post_process_numeric()
+
+    def _post_process_numeric(self):
+        """Numeric algebraic-variable trajectory for the BDF path (no symbolic graph).
+
+        Mirrors _post_process but evaluates the model functions on the numeric state
+        columns instead of building a symbolic SX trajectory.
+        """
+        var_names = list(self.var_name_to_idx.keys())
+        var_idx_list = [self.var_name_to_idx[name] for name in var_names]
+        cols = []
+        for k, ti in enumerate(self.tSim):
+            col = self.pre_steps + k
+            state_col = [float(self.state_traj_dm[i, col]) for i in range(self.STATE_COUNT)]
+            rates = [0.0] * self.STATE_COUNT
+            vars_copy = list(self.variables_model)
+            self.model.compute_rates(ti, state_col, rates, vars_copy)
+            self.model.compute_variables(ti, state_col, rates, vars_copy)
+            cols.append([self._as_float(vars_copy[vi]) for vi in var_idx_list])
+        self.var_traj_dm = np.array(cols).T if cols else np.zeros((len(var_names), 0))
+
     def run(self):
         # Integrate full pre_time + sim_time horizon so slicing by pre_steps
         # returns the expected sim-time segment.
@@ -346,6 +407,17 @@ class SimulationHelper:
 
         if self.solve_ivp_method == 'semi_implicit_euler':
             res_xf = self._run_semi_implicit_euler(total_steps)
+        elif self.solve_ivp_method in ('bdf', 'BDF'):
+            # Numeric scipy BDF + exact CasADi Jacobian (no symbolic AD graph).
+            if self._do_ad:
+                raise RuntimeError(
+                    "casadi_integrator method='bdf' is a numeric scipy solver and does not "
+                    "support CasADi automatic differentiation. Use 'semi_implicit_euler' "
+                    "(or another symbolic integrator) when do_ad=True."
+                )
+            self._run_scipy_bdf(total_steps)
+            self._has_run = True
+            return True
         else:
             ode = {
                 "x": self.states_symb,

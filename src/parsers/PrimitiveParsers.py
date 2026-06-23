@@ -60,7 +60,9 @@ SOLVER_SCHEMA = {
         # 'semi_implicit_euler' is a fixed-step damped scheme implemented in the
         # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
         # adjoint-sensitivity gradient fails (e.g. 3compartment).
-        'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler'],
+        # 'bdf' is a numeric scipy.integrate BDF solve with an exact CasADi Jacobian
+        # (parallel to the AADC 'bdf' path); accurate stiff forward solve, no CasADi AD.
+        'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler', 'bdf'],
         'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit', 'bdf'],
     },
     # Default solver for each model_type (used when none is specified).
@@ -496,9 +498,11 @@ class YamlFileParser(object):
                 print(f'Use {valid_aadc_solvers} for AADC Python models')
                 exit()
 
-        # CasADi solvers can only be used with CasADi Python models
+        # CasADi solvers can only be used with CasADi Python models.
+        # 'bdf' is shared with the AADC backend's method list, so exempt aadc_python
+        # here (its methods are governed by methods_by_solver['aadc_semi_implicit']).
         if solver_method in valid_casadi_solver_plugins:
-            if inp_data_dict.get('model_type') not in ['casadi_python', None]:
+            if inp_data_dict.get('model_type') not in ['casadi_python', 'aadc_python', None]:
                 print(f'CasADi solver {solver_method} requires model_type to be "casadi_python"')
                 print('Use CVODE_opencor (or legacy CVODE) or CVODE_myokit for CellML models')
                 print('Use CVODE or RK4 or PETSC for Cpp models')
