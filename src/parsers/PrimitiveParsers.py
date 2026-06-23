@@ -326,6 +326,7 @@ class YamlFileParser(object):
         valid_solve_ivp_methods = _methods['solve_ivp']
         valid_casadi_solvers = _solvers['casadi_python']
         valid_casadi_solver_plugins = _methods['casadi_integrator']
+        valid_aadc_solvers = _solvers.get('aadc_python', [])
 
         solver_name = inp_data_dict.get('solver_info', {}).get('solver')
         if solver_name is None:
@@ -375,6 +376,8 @@ class YamlFileParser(object):
             elif inp_data_dict.get('model_type') == 'python':
                 if 'max_step' not in inp_data_dict['solver_info']:
                     inp_data_dict['solver_info']['max_step'] = defaults.get('max_step', 0.001)
+            elif inp_data_dict.get('model_type') == 'aadc_python':
+                pass  # AADC solver handles its own defaults
             elif 'MaximumNumberOfSteps' not in inp_data_dict['solver_info']:
                 inp_data_dict['solver_info']['MaximumNumberOfSteps'] = defaults['MaximumNumberOfSteps']
         if 'solver' not in inp_data_dict['solver_info'].keys():
@@ -441,15 +444,17 @@ class YamlFileParser(object):
                     solver_method = 'RK45'
                     inp_data_dict['solver_info']['method'] = solver_method
 
-        if (solver_name not in valid_cellml_solvers 
+        if (solver_name not in valid_cellml_solvers
             and solver_name not in valid_python_solvers
             and solver_name not in valid_cpp_solvers
-            and solver_name not in valid_casadi_solvers):
+            and solver_name not in valid_casadi_solvers
+            and solver_name not in valid_aadc_solvers):
             print(f'Invalid solver: {solver_name}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
             print(f'Valid Cpp solvers: {valid_cpp_solvers}')
-            print(f'Valid CasAdi solvers: {valid_casadi_solvers}')
+            print(f'Valid CasADi solvers: {valid_casadi_solvers}')
+            print(f'Valid AADC solvers: {valid_aadc_solvers}')
             exit()
         
         
@@ -483,6 +488,12 @@ class YamlFileParser(object):
         if inp_data_dict.get('model_type') == 'casadi_python' and solver_name not in valid_casadi_solvers:
                 print(f'Solver {solver_method} cannot be used with CasADi Python models (model_type="casadi_python")')
                 print(f'Use {valid_casadi_solvers} for CasADi Python models')
+                exit()
+
+        # AADC solvers can only be used with AADC Python models
+        if inp_data_dict.get('model_type') == 'aadc_python' and solver_name not in valid_aadc_solvers:
+                print(f'Solver {solver_name} cannot be used with AADC Python models')
+                print(f'Use {valid_aadc_solvers} for AADC Python models')
                 exit()
 
         # CasADi solvers can only be used with CasADi Python models
@@ -667,6 +678,9 @@ _SOLVER_INTEGRATOR_KEYS = {
     'solve_ivp': frozenset({'rtol', 'atol', 'max_step', 'vectorized', 'dense_output', 'jac'}),
     'casadi_integrator': frozenset({
         'reltol', 'abstol', 'rtol', 'atol', 'max_num_steps', 'max_step_size', 'options',
+    }),
+    'aadc_semi_implicit': frozenset({
+        'tol', 'threads', 'gradient_method',
     }),
 }
 
