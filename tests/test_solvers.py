@@ -1258,14 +1258,15 @@ def test_aadc_vs_cvode_3compartment(temp_model_dir, generated_cellml_model_facto
     integrated ODE states against CVODE_myokit, which is what "same outputs with
     CVODE and with AADC" requires.
 
-    AADC's stiff path is a first-order semi-implicit Euler scheme, so it will not
-    meet the 0.01% gate used for the higher-order Python-family solvers. We use a
-    small dt and the whole-trajectory relative-L2 metric with a deliberately loose,
-    documented tolerance.
-
-    NOTE: this tolerance is provisional. The test was not executed in the authoring
-    environment (it needs the OpenCOR Python shell + the `aadc` package); the gate
-    may need tuning once it runs under ``./run_pytest.sh``.
+    KNOWN FAILURE (intentional, kept red as a marker — see PR #251 discussion):
+    AADC's only working stiff path here is a first-order semi-implicit Euler scheme
+    with numerical diagonal damping (``y += dt*f/(1+dt*lam)``). That damping suppresses
+    the stiff states, which in this cardiovascular model carry physiologically
+    important fast dynamics — so the result deviates substantially from CVODE
+    (~35% relative-L2 on a peripheral volume at dt=1e-3). The adaptive-RK45 path is
+    not a stiff solver and hangs on this model. Matching CVODE requires a proper
+    implicit forward solve (the AADC CVODES ComputeBlock referenced in the PR but not
+    yet wired into ``run()``). Until that lands, this assertion documents the gap.
     """
     pytest.importorskip("aadc")
     cellml_path = generated_cellml_model_factory("3compartment", "3compartment_parameters.csv")
