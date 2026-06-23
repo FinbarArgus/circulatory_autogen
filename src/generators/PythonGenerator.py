@@ -175,6 +175,8 @@ class PythonGenerator:
         self.human_readable = human_readable
         self.casadi_compat = casadi_compat
         self.aadc_compat = aadc_compat
+        if casadi_compat and aadc_compat:
+            raise ValueError("casadi_compat and aadc_compat are mutually exclusive")
 
     @staticmethod
     def _make_identifier(text: str) -> str:

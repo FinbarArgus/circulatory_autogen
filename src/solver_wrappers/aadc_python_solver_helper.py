@@ -487,6 +487,14 @@ class SimulationHelper:
     def get_all_results(self, flatten=False):
         return self.get_results(self.get_all_variable_names(), flatten=flatten)
 
+    def get_all_results_dict(self):
+        """Return all results as a dict keyed by variable name."""
+        if not self._has_run:
+            raise RuntimeError("Simulation has not been run yet.")
+        names = self.get_all_variable_names()
+        values = self.get_results(names, flatten=True)
+        return {name: np.asarray(val) for name, val in zip(names, values)}
+
     # ---- AADC AD: discrete adjoint (arXiv:2410.01911) ----
     def _create_param_subset(self, param_names, param_vals=None):
         """Mark parameters for AD. Called by paramID before run()."""

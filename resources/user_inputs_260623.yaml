@@ -1,14 +1,14 @@
-file_prefix: 3compartment_nonstiff
-input_param_file: 3compartment_nonstiff_parameters.csv
+file_prefix: 3compartment
+input_param_file: 3compartment_parameters.csv
 resources_dir: resources
 couple_to_1d: false
 param_id_method: genetic_algorithm
 param_id_output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../param_id_output
-generated_models_dir: /tmp/gen_aadc_ns
-generated_models_subdir: /tmp/gen_aadc_ns/3compartment_nonstiff
+generated_models_dir: /tmp/gen_aadc_native
+generated_models_subdir: /tmp/gen_aadc_native/3compartment
 model_type: aadc_python
-model_path: /tmp/gen_aadc_ns/3compartment_nonstiff/3compartment_nonstiff.py
-uncalibrated_model_path: /tmp/gen_aadc_ns/3compartment_nonstiff/3compartment_nonstiff.py
+model_path: /tmp/gen_aadc_native/3compartment/3compartment.py
+uncalibrated_model_path: /tmp/gen_aadc_native/3compartment/3compartment.py
 dt: 0.01
 pre_time: 0.0
 sim_time: null
@@ -26,10 +26,10 @@ sa_options:
   method: sobol
   num_samples: 32
   sample_type: saltelli
-  output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../sensitivity_outputs/3compartment_nonstiff_SA_results
+  output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../sensitivity_outputs/3compartment_SA_results
 do_ia: false
 ia_options:
   method: Laplace
 optimiser_options: {}
-vessels_csv_abs_path: resources/3compartment_nonstiff_vessel_array.csv
-parameters_csv_abs_path: resources/3compartment_nonstiff_parameters.csv
+vessels_csv_abs_path: resources/3compartment_vessel_array.csv
+parameters_csv_abs_path: resources/3compartment_parameters.csv
