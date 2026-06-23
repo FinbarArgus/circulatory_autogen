@@ -398,6 +398,7 @@ class PythonGenerator:
             ])
         if self.aadc_compat:
             utility_parts.extend([
+                "import math",
                 "import aadc",
                 "",
             ])
@@ -575,6 +576,8 @@ class PythonGenerator:
             "and_func",
             "max",
         ]
+        if self.aadc_compat:
+            export_names.append("_aadc_passive")
         export_block = "\n".join(f"    {name!r}," for name in export_names)
 
         main_parts = [
@@ -591,6 +594,7 @@ class PythonGenerator:
             ])
         if self.aadc_compat:
             main_parts.extend([
+                "import math",
                 "import aadc",
                 "",
             ])

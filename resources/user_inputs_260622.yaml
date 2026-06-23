@@ -1,0 +1,32 @@
+file_prefix: simple_physiological
+input_param_file: simple_physiological_parameters.csv
+resources_dir: resources
+couple_to_1d: false
+param_id_method: genetic_algorithm
+param_id_output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../param_id_output
+generated_models_dir: /tmp/gen_phys
+generated_models_subdir: /tmp/gen_phys/simple_physiological
+model_type: python
+model_path: /tmp/gen_phys/simple_physiological/simple_physiological.py
+uncalibrated_model_path: /tmp/gen_phys/simple_physiological/simple_physiological.py
+dt: 0.01
+pre_time: 0.0
+sim_time: null
+solver_info:
+  method: RK45
+  max_step: 0.001
+  solver: solve_ivp
+  dt_solver: 0.001
+DEBUG: false
+external_modules_dir: null
+sa_options:
+  method: sobol
+  num_samples: 32
+  sample_type: saltelli
+  output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../sensitivity_outputs/simple_physiological_SA_results
+do_ia: false
+ia_options:
+  method: Laplace
+optimiser_options: {}
+vessels_csv_abs_path: resources/simple_physiological_vessel_array.csv
+parameters_csv_abs_path: resources/simple_physiological_parameters.csv

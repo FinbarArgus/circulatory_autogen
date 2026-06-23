@@ -1,0 +1,35 @@
+file_prefix: 3compartment_nonstiff
+input_param_file: 3compartment_nonstiff_parameters.csv
+resources_dir: resources
+couple_to_1d: false
+param_id_method: genetic_algorithm
+param_id_output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../param_id_output
+generated_models_dir: /tmp/gen_aadc_ns
+generated_models_subdir: /tmp/gen_aadc_ns/3compartment_nonstiff
+model_type: aadc_python
+model_path: /tmp/gen_aadc_ns/3compartment_nonstiff/3compartment_nonstiff.py
+uncalibrated_model_path: /tmp/gen_aadc_ns/3compartment_nonstiff/3compartment_nonstiff.py
+dt: 0.01
+pre_time: 0.0
+sim_time: null
+solver_info:
+  solver: CVODE_opencor
+  MaximumStep: 0.001
+  MaximumNumberOfSteps: 5000
+  rtol: 1.0e-08
+  atol: 1.0e-08
+  dt_solver: 0.001
+  method: CVODE
+DEBUG: false
+external_modules_dir: null
+sa_options:
+  method: sobol
+  num_samples: 32
+  sample_type: saltelli
+  output_dir: /home/evgeny/projects/circulatory_autogen/src/parsers/../../sensitivity_outputs/3compartment_nonstiff_SA_results
+do_ia: false
+ia_options:
+  method: Laplace
+optimiser_options: {}
+vessels_csv_abs_path: resources/3compartment_nonstiff_vessel_array.csv
+parameters_csv_abs_path: resources/3compartment_nonstiff_parameters.csv
