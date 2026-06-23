@@ -232,7 +232,55 @@ class SimulationHelper:
                 else:
                     raise ValueError(f"parameter name {name} not found")
 
-    # ---- ODE integration (semi-implicit Euler) ----
+    # ---- ODE integration ----
+    def _integrate_semi_implicit(self, states, variables_all, total_steps, dt):
+        """Semi-implicit Euler with numerical diagonal damping.
+
+        Stable for stiff models. Damping lam[i] = |df_i/dy_i| computed via
+        FD at each step. Integration: y[i] += dt * f[i] / (1 + dt * lam[i]).
+
+        Returns state trajectory as list of state arrays.
+        """
+        n = self.STATE_COUNT
+        x = np.array(states[:n], dtype=float)
+        vars_all = list(variables_all)
+        eps_fd = 1e-8
+
+        # Identify zeta indices (valve states to clamp to [0,1])
+        zeta_indices = [i for i, info in enumerate(self.model.STATE_INFO)
+                        if 'zeta' in info.get('name', '').lower()]
+
+        traj = [x.copy()]
+        t_out = np.linspace(0, total_steps * dt, total_steps + 1)
+
+        for step in range(total_steps):
+            t = step * dt
+            rates = [0.0] * n
+            self.model.compute_rates(t, list(x), rates, list(vars_all))
+
+            # Numerical diagonal Jacobian for damping
+            lam = np.zeros(n)
+            for i in range(n):
+                x_bump = list(x)
+                h_i = max(abs(x[i]) * eps_fd, eps_fd)
+                x_bump[i] += h_i
+                r_bump = [0.0] * n
+                self.model.compute_rates(t, x_bump, r_bump, list(vars_all))
+                lam[i] = abs((r_bump[i] - rates[i]) / h_i)
+
+            # Semi-implicit step
+            for i in range(n):
+                x[i] = x[i] + dt * rates[i] / (1.0 + dt * lam[i])
+
+            # Clamp zeta to [0, 1]
+            for z in zeta_indices:
+                x[z] = max(0.0, min(1.0, x[z]))
+
+            traj.append(x.copy())
+
+        self.tSim = t_out
+        return traj
+
     def _integrate(self, states, variables_all, total_steps, dt):
         """
         Adaptive RK45 (Dormand-Prince) integration.
@@ -365,8 +413,12 @@ class SimulationHelper:
         for const_pos, const_idx in enumerate(self.constant_indices):
             variables_all[const_idx] = self.variables[const_pos]
 
-        # Always run forward (numeric). AD uses stored trajectory for adjoint.
-        traj = self._integrate(self.states, variables_all, total_steps, self.dt)
+        # Choose integrator based on method
+        method = self.solver_info.get('method', 'adaptive_rk45')
+        if method == 'semi_implicit':
+            traj = self._integrate_semi_implicit(self.states, variables_all, total_steps, self.dt)
+        else:
+            traj = self._integrate(self.states, variables_all, total_steps, self.dt)
         self.state_traj = np.array(traj).T  # (n_states, n_sim_steps)
 
         # Compute algebraic variables at each time point

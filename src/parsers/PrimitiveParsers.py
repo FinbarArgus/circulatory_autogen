@@ -61,7 +61,7 @@ SOLVER_SCHEMA = {
         # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
         # adjoint-sensitivity gradient fails (e.g. 3compartment).
         'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler'],
-        'aadc_semi_implicit': ['adaptive_rk45'],
+        'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit'],
     },
     # Default solver for each model_type (used when none is specified).
     'default_solver_by_model_type': {
