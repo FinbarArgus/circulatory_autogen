@@ -660,6 +660,35 @@ class SimulationHelper:
 
         return vjp_x, vjp_p
 
+    def _record_rhs_inner_kernel(self, variables_all, n):
+        """Record a small AADC kernel for the RHS only — used to compute
+        Jacobian diagonal (damping) at each integration step via reverse mode."""
+        import math as _math
+        rhs_funcs = aadc.Functions()
+        rhs_funcs.start_recording()
+        id_si = [aadc.idouble(float(self.states[i])) for i in range(n)]
+        a_si = [s.mark_as_input() for s in id_si]
+        id_vi = [aadc.idouble(float(v) if not (isinstance(v, float) and _math.isnan(v)) else 0.0)
+                 for v in variables_all]
+        a_pi = None
+        if self._ad_param_var_indices:
+            idx0 = self._ad_param_var_indices[0]
+            id_vi[idx0] = aadc.idouble(float(variables_all[idx0]))
+            a_pi = id_vi[idx0].mark_as_input()
+        id_ri = [aadc.idouble(0.0)] * n
+        self.model.compute_rates(0.0, id_si, id_ri, list(id_vi))
+        r_rates = []
+        for i in range(n):
+            r = id_ri[i] if hasattr(id_ri[i], 'mark_as_output') else aadc.idouble(float(id_ri[i]))
+            r_rates.append(r.mark_as_output())
+        rhs_funcs.stop_recording()
+
+        self._rhs_funcs = rhs_funcs
+        self._rhs_a_st = a_si
+        self._rhs_a_param = a_pi
+        self._rhs_r_rates = r_rates
+        self._rhs_workers = aadc.ThreadPool(1)
+
     def compute_gradient_tape(self, cost_func_idouble):
         """
         Compute dJ/dp by recording the full ODE + cost on AADC tape.
@@ -696,6 +725,11 @@ class SimulationHelper:
         if not hasattr(self, '_tape_funcs') or self._tape_funcs is None:
             self._patch_math_functions()
 
+            # Pre-record inner RHS kernel for Jacobian damping (before outer recording)
+            tape_method = self.solver_info.get('method', 'adaptive_rk45')
+            if tape_method == 'semi_implicit':
+                self._record_rhs_inner_kernel(variables_all, n)
+
             funcs = aadc.Functions()
             funcs.start_recording()
 
@@ -712,39 +746,31 @@ class SimulationHelper:
             # Initial state
             st = [aadc.idouble(float(self.states[i])) for i in range(n)]
 
-            # Choose tape integrator
-            tape_method = self.solver_info.get('method', 'adaptive_rk45')
-
             if tape_method == 'semi_implicit':
-                # Pre-compute damping trajectory with plain floats
-                eps_fd = 1e-8
-                states_d = [float(self.states[i]) for i in range(n)]
-                vars_d = [float(v) if not isinstance(v, str) else 0.0 for v in variables_all]
-                all_lam = []
                 zeta_idx = [i for i, info in enumerate(self.model.STATE_INFO)
                             if 'zeta' in info.get('name', '').lower()]
-                for step in range(total_steps):
-                    rates_d = [0.0] * n
-                    self.model.compute_rates(step * dt, list(states_d), rates_d, list(vars_d))
-                    lam = [0.0] * n
-                    for i in range(n):
-                        sb = list(states_d)
-                        h_i = max(abs(states_d[i]) * eps_fd, eps_fd)
-                        sb[i] += h_i
-                        rb = [0.0] * n
-                        self.model.compute_rates(step * dt, sb, rb, list(vars_d))
-                        lam[i] = abs((rb[i] - rates_d[i]) / h_i)
-                    all_lam.append(lam)
-                    for i in range(n):
-                        states_d[i] += dt * rates_d[i] / (1.0 + dt * lam[i])
-                    for z in zeta_idx:
-                        states_d[z] = max(0.0, min(1.0, states_d[z]))
 
-                # Record semi-implicit Euler on tape with pre-computed damping
+                def _passive(x):
+                    return x.val() if hasattr(x, 'val') else float(x)
+
+                # Record semi-implicit Euler with per-step AADC Jacobian damping
                 for step in range(total_steps):
+                    # Rates on outer tape
                     rates_id = [aadc.idouble(0.0)] * n
                     self.model.compute_rates(step * dt, st, rates_id, list(vars_rec))
-                    lam = all_lam[step]  # constants on tape
+
+                    # Jacobian diagonal via pre-recorded inner kernel
+                    _inp = {self._rhs_a_st[i]: _passive(st[i]) for i in range(n)}
+                    if self._rhs_a_param is not None:
+                        _inp[self._rhs_a_param] = float(variables_all[self._ad_param_var_indices[0]])
+                    lam = np.zeros(n)
+                    for i in range(n):
+                        _res = aadc.evaluate(self._rhs_funcs, {self._rhs_r_rates[i]: [self._rhs_a_st[i]]},
+                                             _inp, self._rhs_workers)
+                        lam[i] = abs(float(np.asarray(
+                            _res[1][self._rhs_r_rates[i]][self._rhs_a_st[i]]).flat[0]))
+
+                    # Semi-implicit step
                     for i in range(n):
                         st[i] = st[i] + dt * rates_id[i] / (1.0 + dt * lam[i])
                     for z in zeta_idx:
