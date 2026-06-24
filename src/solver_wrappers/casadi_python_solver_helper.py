@@ -40,11 +40,16 @@ class SimulationHelper:
         self.protocol_info = protocol_info
 
     def _build_integrator_opts(self):
-        """Build CasADi integrator options from validated solver_info."""
-        integrator_opts = {
-            'reltol': self.solver_info.get('reltol', self.solver_info.get('rtol', 1e-8)),
-            'abstol': self.solver_info.get('abstol', self.solver_info.get('atol', 1e-10)),
-        }
+        """Build CasADi integrator options from validated solver_info.
+
+        ``reltol``/``abstol`` are SUNDIALS (``cvodes``/``idas``) options; the fixed-step
+        plugins (``rk``, ``collocation``) reject them ("Unknown option: abstol"), so only
+        pass them to the adaptive SUNDIALS integrators.
+        """
+        integrator_opts = {}
+        if self.solve_ivp_method in ('cvodes', 'idas'):
+            integrator_opts['reltol'] = self.solver_info.get('reltol', self.solver_info.get('rtol', 1e-8))
+            integrator_opts['abstol'] = self.solver_info.get('abstol', self.solver_info.get('atol', 1e-10))
         for key in ('max_num_steps', 'max_step_size'):
             if key in self.solver_info:
                 integrator_opts[key] = self.solver_info[key]
@@ -357,6 +362,16 @@ class SimulationHelper:
           * BDF2 remaining steps:  ``x_{n+1} - 4/3 x_n + 1/3 x_{n-1} - 2/3 dt f(x_{n+1}) = 0``
 
         with the BDF2 steps chained over the ``[x_n; x_{n-1}]`` history via ``mapaccum``.
+
+        **Sub-stepping for robustness.** Models like 3compartment have non-smooth valve
+        switches (``if_else`` / ``fmax``); when an implicit step is large enough to jump
+        across a switch the residual has no root on the assumed branch and the Newton
+        solve diverges (``rootfinder process failed``) — erratically with the output dt.
+        So the implicit solve is taken on an internal step capped at ``solver_info['max_step']``
+        (default 1e-3) and the trajectory subsampled back onto the output grid. Internal
+        steps are ordinary differentiable rootfinder solves, so AD is unaffected. A good
+        Newton guess (explicit-Euler / linear-extrapolation predictor) further helps
+        convergence.
         """
         n = self.STATE_COUNT
         p_sym = self.variables_symb_integrator
@@ -365,36 +380,44 @@ class SimulationHelper:
         if total_steps <= 0:
             return ca.SX(n, 0)
 
-        # ---- BDF1 startup step: solve x1 - x0 - dt f(x1) = 0 by Newton ----
+        max_step = float(self.solver_info.get('max_step', 1e-3))
+        n_sub = max(1, int(np.ceil(self.dt / max_step))) if max_step > 0 else 1
+        idt = self.dt / n_sub                 # internal (sub-)step
+        internal_total = total_steps * n_sub  # number of internal steps over the horizon
+
+        # ---- BDF1 startup step (explicit-Euler predictor as the Newton guess) ----
         x_unk = ca.SX.sym('x_unk', n)
         xn = ca.SX.sym('xn', n)
-        g1 = x_unk - xn - self.dt * f_func(x_unk, p_sym)
+        g1 = x_unk - xn - idt * f_func(x_unk, p_sym)
         G1 = ca.Function('bdf1_res', [x_unk, ca.vertcat(xn, p_sym)], [g1])
-        # fast_newton converges cleanly on these stiff RHS where plain 'newton' can
-        # diverge; the rootfinder is differentiable (implicit-function theorem), so AD
-        # through it matches FD exactly.
+        # fast_newton converges where plain 'newton' diverges, and is differentiable
+        # (implicit-function theorem), so AD through it matches FD exactly.
         solve1 = ca.rootfinder('bdf1_solve', 'fast_newton', G1)
         step1 = ca.Function('bdf1_step', [xn, p_sym],
-                            [solve1(xn, ca.vertcat(xn, p_sym))])  # guess = x_n
+                            [solve1(xn + idt * f_func(xn, p_sym), ca.vertcat(xn, p_sym))])
 
         x1 = step1(self.x0_symb, p_sym)
-        if total_steps == 1:
-            return x1
+        if internal_total == 1:
+            full = ca.horzcat(self.x0_symb, x1)
+        else:
+            # ---- BDF2 over the [x_n; x_{n-1}] history (linear-extrapolation predictor) ----
+            H = ca.SX.sym('H', 2 * n)
+            x_curr, x_prev = H[:n], H[n:]
+            x_unk2 = ca.SX.sym('x_unk2', n)
+            g2 = (x_unk2 - (4.0 / 3.0) * x_curr + (1.0 / 3.0) * x_prev
+                  - (2.0 / 3.0) * idt * f_func(x_unk2, p_sym))
+            G2 = ca.Function('bdf2_res', [x_unk2, ca.vertcat(H, p_sym)], [g2])
+            solve2 = ca.rootfinder('bdf2_solve', 'fast_newton', G2)
+            H_next = ca.vertcat(solve2(2.0 * x_curr - x_prev, ca.vertcat(H, p_sym)), x_curr)
+            step2 = ca.Function('bdf2_step', [H, p_sym], [H_next])
 
-        # ---- BDF2 step over the [x_n; x_{n-1}] history ----
-        H = ca.SX.sym('H', 2 * n)
-        x_curr, x_prev = H[:n], H[n:]
-        x_unk2 = ca.SX.sym('x_unk2', n)
-        g2 = (x_unk2 - (4.0 / 3.0) * x_curr + (1.0 / 3.0) * x_prev
-              - (2.0 / 3.0) * self.dt * f_func(x_unk2, p_sym))
-        G2 = ca.Function('bdf2_res', [x_unk2, ca.vertcat(H, p_sym)], [g2])
-        solve2 = ca.rootfinder('bdf2_solve', 'fast_newton', G2)
-        H_next = ca.vertcat(solve2(x_curr, ca.vertcat(H, p_sym)), x_curr)  # guess = x_n
-        step2 = ca.Function('bdf2_step', [H, p_sym], [H_next])
+            H0 = ca.vertcat(x1, self.x0_symb)  # history entering the first BDF2 step (produces x2)
+            H_traj = step2.mapaccum(internal_total - 1)(H0, p_sym)
+            full = ca.horzcat(self.x0_symb, x1, H_traj[:n, :])  # internal grid (internal_total+1 cols)
 
-        H0 = ca.vertcat(x1, self.x0_symb)  # history entering the first BDF2 step (produces x2)
-        H_traj = step2.mapaccum(total_steps - 1)(H0, p_sym)  # columns [x2;x1] ... [xN;xN-1]
-        return ca.horzcat(x1, H_traj[:n, :])  # x1 .. xN  (total_steps columns)
+        # Subsample the internal trajectory back onto the output grid (drop x0).
+        out_idx = [k * n_sub for k in range(1, total_steps + 1)]
+        return full[:, out_idx]  # x at output steps 1..total_steps
 
     def run(self):
         # Integrate full pre_time + sim_time horizon so slicing by pre_steps

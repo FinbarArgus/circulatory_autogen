@@ -144,6 +144,69 @@ def test_3compartment_forward_casadi_bdf_vs_cvode(models_3compartment):
 
 @pytest.mark.integration
 @pytest.mark.slow
+@pytest.mark.parametrize("dt", [0.005, 0.0073, 0.01])
+def test_3compartment_casadi_bdf_substep_robust_vs_cvode(models_3compartment, dt):
+    """BDF must stay robust at output dt's where a *single* implicit step would straddle
+    a valve switch (``if_else``/``fmax``) and the Newton solve diverges
+    (``rootfinder process failed``). These exact dt's failed before internal sub-stepping.
+
+    Regression for the CUFLynx forward protocol-run failure at default settings: the run
+    must complete, stay finite, and match the CVODE reference (sub-stepping caps the
+    internal step so the implicit solve stays in Newton's basin).
+    """
+    paths = models_3compartment["casadi"]
+    ref = get_simulation_helper(
+        model_path=paths["cellml"], solver='CVODE_myokit', model_type='cellml_only',
+        dt=dt, sim_time=1.0, pre_time=0.0,
+        solver_info={'MaximumStep': 1e-4, 'rtol': 1e-8, 'atol': 1e-10},
+    )
+    ref.run()
+    sim = get_simulation_helper(
+        model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+        dt=dt, sim_time=1.0, pre_time=0.0, solver_info={'method': 'bdf'},
+    )
+    assert sim.run() is True
+    assert np.all(np.isfinite(sim.state_traj_dm[:, -1])), f"BDF produced non-finite states at dt={dt}"
+
+    # Primary check is "didn't diverge": the pre-fix failure either raised or (when the
+    # rootfinder was told to ignore failure) returned ~100% garbage. A loose bound well
+    # below that, tolerant of coarse-dt cross-backend sampling of sharp valve transients,
+    # confirms the solve actually converged.
+    max_pct, worst_var, compared = _max_state_rel_l2_vs_cvode(ref, sim)
+    print(f"\nCasADi BDF (dt={dt}) vs CVODE: max rel-L2 {max_pct:.3f}% on {worst_var}")
+    assert compared > 0
+    assert max_pct < 10.0, f"CasADi BDF deviates from CVODE by {max_pct:.3f}% at dt={dt}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_3compartment_casadi_rk_no_abstol_option(models_3compartment):
+    """Non-SUNDIALS plugins (``rk``/``collocation``) must not be handed ``reltol``/``abstol``;
+    CasADi rejects them with "Unknown option: abstol". Only ``cvodes``/``idas`` get them.
+
+    Regression for the CUFLynx ``method='rk'`` crash. (rk is explicit, so on the stiff
+    3compartment model the result may be non-finite — that's inherent to explicit
+    integration, not the option bug; here we only assert the option crash is gone.)
+    """
+    paths = models_3compartment["casadi"]
+    rk = get_simulation_helper(
+        model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+        dt=0.001, sim_time=0.1, pre_time=0.0, solver_info={'method': 'rk'},
+    )
+    opts = rk._build_integrator_opts()
+    assert 'abstol' not in opts and 'reltol' not in opts, "rk must not receive SUNDIALS tolerances"
+    rk.run()  # must not raise "Unknown option: abstol"
+
+    cvodes = get_simulation_helper(
+        model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+        dt=0.001, sim_time=0.1, pre_time=0.0, solver_info={'method': 'cvodes'},
+    )
+    cv_opts = cvodes._build_integrator_opts()
+    assert 'abstol' in cv_opts and 'reltol' in cv_opts, "cvodes should still receive tolerances"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
 def test_3compartment_forward_aadc_bdf_vs_cvode(models_3compartment):
     """AADC BDF (scipy BDF + AADC Jacobian) should match the CVODE reference.
 
@@ -272,6 +335,63 @@ def test_3compartment_gradient_vs_fd_casadi_bdf(models_3compartment):
     if abs(g_fd) > 1e-30:
         ratio = g_ad / g_fd
         assert abs(ratio - 1.0) < 0.01, f"CasADi BDF AD/FD ratio = {ratio:.6f} (expected ~1.0)"
+    else:
+        assert abs(g_ad) < 1e-12, f"FD≈0 but AD={g_ad:.6e}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_3compartment_local_sa_ad_bdf_vs_fd(models_3compartment):
+    """Local-sensitivity-style AD through bdf via the ``get_results`` path vs FD.
+
+    Mirrors how CUFLynx local SA (gradient_method='AD') builds features: put the
+    bdf helper in AD mode (``_create_param_subset``), ``run()``, then pull an
+    observable out with ``get_results`` (which returns symbolic SX while ``_do_ad``)
+    and reduce it over the whole trajectory (here ``mean``, as an obs operation
+    would). The jacobian of that feature w.r.t. the parameter must be finite and
+    match central FD — the regression guard for the bdf local-SA path. Uses a
+    nonzero ``pre_time`` so the pre-steps slicing in ``get_results`` is exercised too.
+    """
+    import casadi as ca
+    paths = models_3compartment["casadi"]
+
+    def _helper():
+        return get_simulation_helper(
+            model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+            dt=0.01, sim_time=0.3, pre_time=0.2, solver_info={'method': 'bdf'},
+        )
+
+    h = _helper()
+    pname, sname = _pick_param_and_state(h)
+    p0 = float(h.get_init_param_vals([[pname]])[0])
+
+    # AD: feature = mean over the (sim-time) trajectory of an observable, obtained
+    # through get_results — exactly the SA feature-extraction surface.
+    h._create_param_subset([[pname]], [p0])
+    assert h._do_ad is True
+    h.run()
+    obs_symb = h.get_results([[sname]])[0][0]   # symbolic SX (1, n_steps) time series (AD mode)
+    feature = ca.sum2(obs_symb) / obs_symb.numel()  # mean over the trajectory
+    jac = ca.jacobian(feature, h.variables_symb_subset)
+    jac_func = ca.Function('jac_feat', [h.states_symb, h.variables_symb], [jac])
+    g_ad = float(np.array(jac_func(h.states, h.variables)).flatten()[0])
+    assert np.isfinite(g_ad)
+
+    # FD on the same feature with a fresh (numeric) helper.
+    def feature_at(pv):
+        hh = _helper()
+        hh.set_param_vals([[pname]], [[pv]])
+        hh.run()
+        arr = np.asarray(hh.get_results([[sname]], flatten=True)[0]).flatten()
+        return float(np.mean(arr))
+
+    step = abs(p0) * 1e-6 if p0 != 0 else 1e-6
+    g_fd = (feature_at(p0 + step) - feature_at(p0 - step)) / (2 * step)
+
+    print(f"\nLocal-SA bdf AD vs FD (mean feature): AD={g_ad:.6e} FD={g_fd:.6e}")
+    if abs(g_fd) > 1e-30:
+        ratio = g_ad / g_fd
+        assert abs(ratio - 1.0) < 0.01, f"bdf local-SA AD/FD ratio = {ratio:.6f} (expected ~1.0)"
     else:
         assert abs(g_ad) < 1e-12, f"FD≈0 but AD={g_ad:.6e}"
 
