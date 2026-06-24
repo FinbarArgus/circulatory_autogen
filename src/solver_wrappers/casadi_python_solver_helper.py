@@ -380,8 +380,12 @@ class SimulationHelper:
         if total_steps <= 0:
             return ca.SX(n, 0)
 
-        max_step = float(self.solver_info.get('max_step', 1e-3))
-        n_sub = max(1, int(np.ceil(self.dt / max_step))) if max_step > 0 else 1
+        # Internal-step cap for the implicit solve. Default 1e-3; a falsy value
+        # (None / 0, e.g. an unset UI field) falls back to the default rather than
+        # disabling sub-stepping.
+        _ms = self.solver_info.get('max_step')
+        max_step = float(_ms) if _ms else 1e-3
+        n_sub = max(1, int(np.ceil(self.dt / max_step)))
         idt = self.dt / n_sub                 # internal (sub-)step
         internal_total = total_steps * n_sub  # number of internal steps over the horizon
 
