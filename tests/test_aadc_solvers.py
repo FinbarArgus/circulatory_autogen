@@ -4,6 +4,7 @@ and verify AD gradient vs finite differences.
 """
 import os
 import sys
+import time
 
 import pytest
 import numpy as np
@@ -174,3 +175,206 @@ def test_aadc_gradient_vs_fd(base_user_inputs, resources_dir, temp_generated_mod
     else:
         # Both near zero is also acceptable
         assert abs(grad[0]) < 1e-10, f"FD≈0 but AD={grad[0]:.6e}"
+
+
+# ---- Test 3: implicit_euler_ift solver ----
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_aadc_implicit_euler_ift_nonstiff(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """implicit_euler_ift should produce trajectories close to RK45 on nonstiff model."""
+    aadc_mod = pytest.importorskip("aadc")
+
+    aadc_dir = os.path.join(temp_generated_models_dir, "aadc_ift")
+    os.makedirs(aadc_dir, exist_ok=True)
+    aadc_path = _generate_aadc_model("Lotka_Volterra", "Lotka_Volterra_parameters.csv",
+                                      base_user_inputs, aadc_dir)
+
+    # Run with implicit_euler_ift (small dt for accuracy)
+    sim_ift = get_simulation_helper(model_path=aadc_path, solver='aadc_semi_implicit',
+        model_type='aadc_python', dt=0.001, sim_time=0.5, pre_time=0.0,
+        solver_info={'method': 'implicit_euler_ift'})
+    sim_ift.run()
+
+    # Run with RK45 reference
+    sim_rk = get_simulation_helper(model_path=aadc_path, solver='aadc_semi_implicit',
+        model_type='aadc_python', dt=0.001, sim_time=0.5, pre_time=0.0,
+        solver_info={'method': 'adaptive_rk45'})
+    sim_rk.run()
+
+    # Compare final states
+    err = np.abs(sim_ift.state_traj[:, -1] - sim_rk.state_traj[:, -1]) / (
+        np.abs(sim_rk.state_traj[:, -1]) + 1e-10)
+    assert np.all(err < 0.01), f"implicit_euler_ift vs RK45 error too large: {err}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_aadc_implicit_euler_ift_gradient(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """AD gradient via implicit_euler_ift + IFT should match FD."""
+    aadc_mod = pytest.importorskip("aadc")
+
+    aadc_dir = os.path.join(temp_generated_models_dir, "aadc_ift_grad")
+    os.makedirs(aadc_dir, exist_ok=True)
+    aadc_path = _generate_aadc_model("Lotka_Volterra", "Lotka_Volterra_parameters.csv",
+                                      base_user_inputs, aadc_dir)
+
+    sim = get_simulation_helper(model_path=aadc_path, solver='aadc_semi_implicit',
+        model_type='aadc_python', dt=0.01, sim_time=0.5, pre_time=0.0,
+        solver_info={'method': 'implicit_euler_ift'})
+    sim.run()
+
+    # Pick a parameter for gradient
+    vi = sim.model.VARIABLE_INFO
+    # Find first constant parameter
+    pidx = next(i for i, info in enumerate(vi)
+                if info['type'].name in ('CONSTANT', 'COMPUTED_CONSTANT'))
+    sim._ad_param_names = [vi[pidx]['name']]
+    sim._ad_param_var_indices = [pidx]
+
+    def cost_fn(st, p):
+        return st[0] * st[0] + st[1] * st[1]
+
+    # AD gradient
+    grad = sim.compute_gradient_tape(cost_fn)
+
+    # FD on same tape
+    pv = float(sim._numeric_variables_all[pidx])
+    h = max(abs(pv) * 1e-5, 1e-8)
+    workers = sim._aad_workers
+    funcs = sim._tape_funcs
+    rc = sim._tape_r_cost
+    ap = sim._tape_a_p
+
+    inputs_p = {ap[0]: pv + h}
+    inputs_m = {ap[0]: pv - h}
+    cp = float(np.asarray(aadc_mod.evaluate(funcs, {rc: []}, inputs_p, workers)[0][rc]).flat[0])
+    cm = float(np.asarray(aadc_mod.evaluate(funcs, {rc: []}, inputs_m, workers)[0][rc]).flat[0])
+    fd = (cp - cm) / (2 * h)
+
+    if abs(fd) > 1e-20:
+        ratio = grad[0] / fd
+        assert abs(ratio - 1.0) < 0.01, f"IFT AD/FD ratio = {ratio:.6f}, expected ~1.0"
+    else:
+        assert abs(grad[0]) < 1e-10, f"FD≈0 but AD={grad[0]:.6e}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_aadc_implicit_euler_ift_parallel(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """Batch parallel evaluation gives same results as single-thread."""
+    aadc_mod = pytest.importorskip("aadc")
+
+    aadc_dir = os.path.join(temp_generated_models_dir, "aadc_ift_par")
+    os.makedirs(aadc_dir, exist_ok=True)
+    aadc_path = _generate_aadc_model("Lotka_Volterra", "Lotka_Volterra_parameters.csv",
+                                      base_user_inputs, aadc_dir)
+
+    sim = get_simulation_helper(model_path=aadc_path, solver='aadc_semi_implicit',
+        model_type='aadc_python', dt=0.01, sim_time=0.5, pre_time=0.0,
+        solver_info={'method': 'implicit_euler_ift'})
+    sim.run()
+
+    # Record tape
+    vi = sim.model.VARIABLE_INFO
+    pidx = next(i for i, info in enumerate(vi)
+                if info['type'].name in ('CONSTANT', 'COMPUTED_CONSTANT'))
+    sim._ad_param_names = [vi[pidx]['name']]
+    sim._ad_param_var_indices = [pidx]
+
+    def cost_fn(st, p):
+        return st[0] * st[0] + st[1] * st[1]
+
+    sim.compute_gradient_tape(cost_fn)
+
+    funcs = sim._tape_funcs
+    rc = sim._tape_r_cost
+    ap = sim._tape_a_p
+
+    pv = float(sim._numeric_variables_all[pidx])
+    param_values = np.linspace(pv * 0.9, pv * 1.1, 20)
+    request = {rc: [ap[0]]}
+
+    # Single-thread reference
+    workers_1 = aadc_mod.ThreadPool(1)
+    res_1 = aadc_mod.evaluate(funcs, request, {ap[0]: param_values}, workers_1)
+    vals_1 = np.array(res_1[0][rc])
+    grads_1 = np.array(res_1[1][rc][ap[0]])
+
+    # Multi-thread
+    for n_threads in [2, 4]:
+        workers_n = aadc_mod.ThreadPool(n_threads)
+        res_n = aadc_mod.evaluate(funcs, request, {ap[0]: param_values}, workers_n)
+        vals_n = np.array(res_n[0][rc])
+        grads_n = np.array(res_n[1][rc][ap[0]])
+
+        assert np.allclose(vals_n, vals_1, rtol=1e-12), \
+            f"{n_threads} threads: values differ from single-thread"
+        assert np.allclose(grads_n, grads_1, rtol=1e-12), \
+            f"{n_threads} threads: gradients differ from single-thread"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_aadc_implicit_euler_ift_benchmark(base_user_inputs, resources_dir, temp_generated_models_dir):
+    """Benchmark: recording, forward eval, gradient eval with threading."""
+    aadc_mod = pytest.importorskip("aadc")
+
+    aadc_dir = os.path.join(temp_generated_models_dir, "aadc_ift_bench")
+    os.makedirs(aadc_dir, exist_ok=True)
+    aadc_path = _generate_aadc_model("Lotka_Volterra", "Lotka_Volterra_parameters.csv",
+                                      base_user_inputs, aadc_dir)
+
+    # Record tape
+    t0 = time.time()
+    sim = get_simulation_helper(model_path=aadc_path, solver='aadc_semi_implicit',
+        model_type='aadc_python', dt=0.01, sim_time=0.5, pre_time=0.0,
+        solver_info={'method': 'implicit_euler_ift'})
+    sim.run()
+
+    vi = sim.model.VARIABLE_INFO
+    pidx = next(i for i, info in enumerate(vi)
+                if info['type'].name in ('CONSTANT', 'COMPUTED_CONSTANT'))
+    sim._ad_param_names = [vi[pidx]['name']]
+    sim._ad_param_var_indices = [pidx]
+
+    def cost_fn(st, p):
+        return st[0] * st[0] + st[1] * st[1]
+
+    sim.compute_gradient_tape(cost_fn)
+    rec_ms = (time.time() - t0) * 1000
+
+    funcs = sim._tape_funcs
+    rc = sim._tape_r_cost
+    ap = sim._tape_a_p
+    pv = float(sim._numeric_variables_all[pidx])
+
+    print(f"\n  Recording: {rec_ms:.0f}ms")
+    print(f"  {'threads':>8} {'fwd_ms':>10} {'grad_ms':>10} {'batch100_ms':>12}")
+
+    for n_threads in [1, 2, 4]:
+        workers = aadc_mod.ThreadPool(n_threads)
+
+        # Single eval forward
+        n_rep = 50
+        t0 = time.time()
+        for _ in range(n_rep):
+            aadc_mod.evaluate(funcs, {rc: []}, {ap[0]: pv}, workers)
+        fwd_ms = (time.time() - t0) * 1000 / n_rep
+
+        # Single eval with gradient
+        t0 = time.time()
+        for _ in range(n_rep):
+            aadc_mod.evaluate(funcs, {rc: [ap[0]]}, {ap[0]: pv}, workers)
+        grad_ms = (time.time() - t0) * 1000 / n_rep
+
+        # Batch 100 evals with gradient
+        params_batch = np.linspace(pv * 0.9, pv * 1.1, 100)
+        t0 = time.time()
+        aadc_mod.evaluate(funcs, {rc: [ap[0]]}, {ap[0]: params_batch}, workers)
+        batch_ms = (time.time() - t0) * 1000
+
+        print(f"  {n_threads:>8} {fwd_ms:>10.3f} {grad_ms:>10.3f} {batch_ms:>12.1f}")
+
+    # Sanity: benchmark should complete without error
+    assert True

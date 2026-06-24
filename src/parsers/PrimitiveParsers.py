@@ -65,7 +65,7 @@ SOLVER_SCHEMA = {
         # cvodes adjoint sensitivity, fully supports CasADi AD (rootfinder is
         # differentiable via the implicit-function theorem).
         'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler', 'bdf'],
-        'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit', 'bdf'],
+        'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit', 'bdf', 'implicit_euler_ift'],
     },
     # Default solver for each model_type (used when none is specified).
     'default_solver_by_model_type': {

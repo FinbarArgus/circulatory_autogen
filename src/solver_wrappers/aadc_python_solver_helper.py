@@ -233,6 +233,77 @@ class SimulationHelper:
                     raise ValueError(f"parameter name {name} not found")
 
     # ---- ODE integration ----
+    def _integrate_implicit_euler_ift(self, states, variables_all, total_steps, dt):
+        """Implicit Euler via aadc.least_squares + Implicit Function Theorem.
+
+        Each step solves: y_{n+1} - y_n - dt * f(y_{n+1}) = 0
+        using Levenberg-Marquardt. IFT gives exact AD gradients automatically.
+        Works both in passive mode (forward sim) and on AADC tape (gradient).
+
+        Returns state trajectory as list of state arrays (post pre-time).
+        """
+        n = self.STATE_COUNT
+        self._patch_math_functions()
+
+        # Identify zeta indices (valve states to clamp to [0,1])
+        zeta_indices = [i for i, info in enumerate(self.model.STATE_INFO)
+                        if 'zeta' in info.get('name', '').lower()]
+
+        y = [aadc.idouble(float(states[i])) for i in range(n)]
+        id_dt = aadc.idouble(float(dt))
+        vars_rec = list(variables_all)
+
+        traj = [[float(yi) for yi in y]]
+
+        for step in range(total_steps):
+            t_step = step * dt
+
+            def residual(y_next, _y_n=list(y), _vars=list(vars_rec), _t=t_step, _dt=id_dt):
+                rates = [aadc.idouble(0.0) for _ in range(n)]
+                self.model.compute_rates(_t, list(y_next), rates, list(_vars))
+                return [y_next[i] - _y_n[i] - _dt * rates[i] for i in range(n)]
+
+            result = aadc.least_squares(residual, list(y), ftol=1e-12, xtol=1e-12)
+            y = list(result.x)
+
+            # Clamp zeta to [0, 1]
+            for z in zeta_indices:
+                y[z] = aadc.iif(y[z] >= 0.0, y[z], aadc.idouble(0.0))
+                y[z] = aadc.iif(y[z] <= 1.0, y[z], aadc.idouble(1.0))
+
+            traj.append([float(yi) if not hasattr(yi, 'val') else yi.val() for yi in y])
+
+        self._unpatch_math_functions()
+        return traj[self.pre_steps:]
+
+    def _integrate_implicit_euler_ift_on_tape(self, st, vars_rec, total_steps, dt, n):
+        """Implicit Euler on AADC tape — same algorithm as forward, but with idouble.
+
+        Parameters are already idouble from tape recording context.
+        Returns final state as list of idouble for cost evaluation.
+        """
+        zeta_indices = [i for i, info in enumerate(self.model.STATE_INFO)
+                        if 'zeta' in info.get('name', '').lower()]
+
+        id_dt = aadc.idouble(float(dt))
+
+        for step in range(total_steps):
+            t_step = step * dt
+
+            def residual(y_next, _y_n=list(st), _vars=list(vars_rec), _t=t_step, _dt=id_dt):
+                rates = [aadc.idouble(0.0) for _ in range(self.STATE_COUNT)]
+                self.model.compute_rates(_t, list(y_next), rates, list(_vars))
+                return [y_next[i] - _y_n[i] - _dt * rates[i] for i in range(self.STATE_COUNT)]
+
+            result = aadc.least_squares(residual, list(st), ftol=1e-12, xtol=1e-12)
+            st = list(result.x)
+
+            for z in zeta_indices:
+                st[z] = aadc.iif(st[z] >= 0.0, st[z], aadc.idouble(0.0))
+                st[z] = aadc.iif(st[z] <= 1.0, st[z], aadc.idouble(1.0))
+
+        return st
+
     def _integrate_bdf(self, states, variables_all, total_steps, dt):
         """BDF (implicit, adaptive) via scipy + AADC Jacobian.
 
@@ -483,7 +554,9 @@ class SimulationHelper:
 
         # Choose integrator based on method
         method = self.solver_info.get('method', 'adaptive_rk45')
-        if method == 'bdf':
+        if method == 'implicit_euler_ift':
+            traj = self._integrate_implicit_euler_ift(self.states, variables_all, total_steps, self.dt)
+        elif method == 'bdf':
             self._patch_math_functions()
             traj = self._integrate_bdf(self.states, variables_all, total_steps, self.dt)
             self._unpatch_math_functions()
@@ -818,7 +891,10 @@ class SimulationHelper:
             # Initial state
             st = [aadc.idouble(float(self.states[i])) for i in range(n)]
 
-            if tape_method == 'semi_implicit':
+            if tape_method == 'implicit_euler_ift':
+                st = self._integrate_implicit_euler_ift_on_tape(
+                    st, vars_rec, total_steps, dt, n)
+            elif tape_method == 'semi_implicit':
                 zeta_idx = [i for i, info in enumerate(self.model.STATE_INFO)
                             if 'zeta' in info.get('name', '').lower()]
 
