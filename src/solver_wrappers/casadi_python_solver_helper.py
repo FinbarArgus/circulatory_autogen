@@ -296,7 +296,13 @@ class SimulationHelper:
         var_names = list(self.var_name_to_idx.keys())
         var_cols = []
 
-        state_cols = ca.horzsplit(self.state_traj_symb, 1)
+        # state_traj_symb spans the full pre_time+sim_time horizon, but tSim is the
+        # sim-time window (t_eval[pre_steps:]). Align them by dropping the pre_time
+        # warmup columns — otherwise the algebraic-variable trajectory is built from
+        # the initial-transient states (t≈0) instead of the settled sim window, so a
+        # nonzero pre_time returns the wrong (pre-warmup) values. States are already
+        # sliced with [pre_steps:] in _extract; this makes the algebraic vars match.
+        state_cols = ca.horzsplit(self.state_traj_symb, 1)[self.pre_steps:]
 
         for ti, state_vec in zip(self.tSim, state_cols):
             states = state_vec

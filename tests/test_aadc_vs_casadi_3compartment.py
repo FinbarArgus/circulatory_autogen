@@ -125,6 +125,47 @@ def _cvode_reference(cellml_path):
 # ---- 1. Forward-solve accuracy ----
 @pytest.mark.integration
 @pytest.mark.slow
+def test_3compartment_casadi_pretime_algebraic_output_is_post_warmup(models_3compartment):
+    """With pre_time>0, casadi *algebraic*-variable outputs must come from the
+    post-warmup sim window, not the initial transient.
+
+    Regression for the _post_process slicing bug: it zipped the sim-time vector
+    (``tSim = t_eval[pre_steps:]``) against the *first* columns of the full-horizon
+    state trajectory, so algebraic vars (e.g. aortic pressure) were evaluated at the
+    t≈0 warmup states instead of the settled sim window — while states were already
+    sliced with ``[pre_steps:]``. A perturbed initial LV volume creates a transient
+    that decays during pre_time; the aortic-pressure peak over the sim window must then
+    match the CVODE reference (which it didn't before the fix), and must differ from
+    the no-warmup (pre_time=0) peak (proving the warmup is actually reflected).
+    """
+    paths = models_3compartment["casadi"]
+    SIM = 2.0
+    INIT = [['heart/q_lv_init']]  # constant that sets the initial LV volume
+
+    def _peak(pre, factor):
+        h = get_simulation_helper(
+            model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+            dt=0.01, sim_time=SIM, pre_time=pre, solver_info={'method': 'bdf'},
+        )
+        p0 = float(h.get_init_param_vals(INIT)[0])
+        h.set_param_vals(INIT, [[p0 * factor]])  # overfill the LV -> decaying transient
+        h.run()
+        return float(np.asarray(h.get_results([['aortic_root/u']], flatten=True)[0]).flatten().max())
+
+    F = 8.0  # large overfill -> a transient that decays slowly over many seconds
+    u_cold = _peak(0.0, F)   # no warmup  -> sim window sits in the early transient
+    u_short = _peak(5.0, F)  # 5 s warmup -> partly decayed
+    u_long = _peak(12.0, F)  # 12 s warmup -> decayed further
+    print(f"\npre_time algebraic-var peaks: cold(pre=0)={u_cold:.0f} short(pre=5)={u_short:.0f} long(pre=12)={u_long:.0f}")
+    # The algebraic output must reflect the warmup: more pre_time -> the transient has
+    # decayed more -> a lower peak in the sim window. Before the fix _post_process always
+    # used the first (t≈0) columns, so all three were identical regardless of pre_time.
+    assert u_cold > u_short * 1.1, "warmup must lower the transient peak (cold > short)"
+    assert u_short > u_long * 1.02, "longer warmup must decay further (short > long)"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
 def test_3compartment_forward_casadi_bdf_vs_cvode(models_3compartment):
     """CasADi BDF (symbolic implicit BDF2 + rootfinder) should match the CVODE reference."""
     paths = models_3compartment["casadi"]
