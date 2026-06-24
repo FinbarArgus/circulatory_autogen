@@ -339,66 +339,62 @@ class SimulationHelper:
         # Constant integrator params are broadcast across all steps (single column).
         return self.F_map(self.x0_symb, self.variables_symb_integrator)
 
-    def _run_scipy_bdf(self, total_steps):
-        """Numeric BDF forward solve: scipy.integrate.solve_ivp(method='BDF') with an
-        exact dense Jacobian from CasADi (``ca.jacobian`` of the RHS).
+    def _run_symbolic_bdf(self, total_steps):
+        """Fixed-step implicit BDF (order 2, with a BDF1 startup step), built as a
+        symbolic CasADi graph so it supports automatic differentiation.
 
-        This parallels the AADC ``method='bdf'`` path (scipy BDF + exact backend
-        Jacobian) so the two backends can be compared on an equal footing for stiff
-        models. It is numeric only — no symbolic trajectory is built, so this method
-        does not support CasADi AD (the run() guard rejects do_ad). Sets
-        ``state_traj_dm`` and ``var_traj_dm`` and leaves ``state_traj_symb`` as None.
+        Each step solves its implicit update equation with a CasADi ``rootfinder``
+        (Newton). CasADi differentiates a rootfinder analytically via the implicit-
+        function theorem, so — unlike the former scipy ``solve_ivp`` BDF — the whole
+        trajectory is one differentiable graph: ``state_traj_symb`` is populated and
+        AD works (this method is the AD-capable BDF, returning ``res_xf`` exactly like
+        ``_run_semi_implicit_euler`` so ``run()`` handles it uniformly).
+
+        The implicit BDF is stable for stiff systems where an explicit step would
+        blow up. BDF2 needs two history points, so:
+
+          * BDF1 (backward Euler) first step:  ``x1 - x0 - dt f(x1) = 0``
+          * BDF2 remaining steps:  ``x_{n+1} - 4/3 x_n + 1/3 x_{n-1} - 2/3 dt f(x_{n+1}) = 0``
+
+        with the BDF2 steps chained over the ``[x_n; x_{n-1}]`` history via ``mapaccum``.
         """
-        from scipy.integrate import solve_ivp
-
         n = self.STATE_COUNT
-        f_func = ca.Function('bdf_rhs',
-                             [self.states_symb, self.variables_symb_integrator], [self.rates_symb])
-        jac_sym = ca.jacobian(self.rates_symb, self.states_symb)
-        jac_func = ca.Function('bdf_jac',
-                               [self.states_symb, self.variables_symb_integrator], [jac_sym])
+        p_sym = self.variables_symb_integrator
+        f_func = ca.Function('bdf_rhs', [self.states_symb, p_sym], [self.rates_symb])
 
-        x0 = self._x0_numeric()
-        p_int = ca.DM(self._integrator_p_numeric())
-        T = total_steps * self.dt
-        rtol = float(self.solver_info.get('rtol', self.solver_info.get('reltol', 1e-8)))
-        atol = float(self.solver_info.get('atol', self.solver_info.get('abstol', 1e-10)))
+        if total_steps <= 0:
+            return ca.SX(n, 0)
 
-        def rhs(t, y):
-            return np.asarray(f_func(ca.DM(y), p_int)).reshape(-1)
+        # ---- BDF1 startup step: solve x1 - x0 - dt f(x1) = 0 by Newton ----
+        x_unk = ca.SX.sym('x_unk', n)
+        xn = ca.SX.sym('xn', n)
+        g1 = x_unk - xn - self.dt * f_func(x_unk, p_sym)
+        G1 = ca.Function('bdf1_res', [x_unk, ca.vertcat(xn, p_sym)], [g1])
+        # fast_newton converges cleanly on these stiff RHS where plain 'newton' can
+        # diverge; the rootfinder is differentiable (implicit-function theorem), so AD
+        # through it matches FD exactly.
+        solve1 = ca.rootfinder('bdf1_solve', 'fast_newton', G1)
+        step1 = ca.Function('bdf1_step', [xn, p_sym],
+                            [solve1(xn, ca.vertcat(xn, p_sym))])  # guess = x_n
 
-        def jac(t, y):
-            return np.asarray(jac_func(ca.DM(y), p_int)).reshape(n, n)
+        x1 = step1(self.x0_symb, p_sym)
+        if total_steps == 1:
+            return x1
 
-        sol = solve_ivp(rhs, (0.0, T), x0, method='BDF', jac=jac,
-                        rtol=rtol, atol=atol, max_step=self.dt,
-                        t_eval=np.linspace(0.0, T, total_steps + 1))
-        if sol.status != 0:
-            import warnings
-            warnings.warn(f"CasADi BDF (scipy) solver: {sol.message}")
+        # ---- BDF2 step over the [x_n; x_{n-1}] history ----
+        H = ca.SX.sym('H', 2 * n)
+        x_curr, x_prev = H[:n], H[n:]
+        x_unk2 = ca.SX.sym('x_unk2', n)
+        g2 = (x_unk2 - (4.0 / 3.0) * x_curr + (1.0 / 3.0) * x_prev
+              - (2.0 / 3.0) * self.dt * f_func(x_unk2, p_sym))
+        G2 = ca.Function('bdf2_res', [x_unk2, ca.vertcat(H, p_sym)], [g2])
+        solve2 = ca.rootfinder('bdf2_solve', 'fast_newton', G2)
+        H_next = ca.vertcat(solve2(x_curr, ca.vertcat(H, p_sym)), x_curr)  # guess = x_n
+        step2 = ca.Function('bdf2_step', [H, p_sym], [H_next])
 
-        self.state_traj_dm = np.array(sol.y)  # (n_states, total_steps+1)
-        self.state_traj_symb = None           # numeric-only path; no AD graph
-        self._post_process_numeric()
-
-    def _post_process_numeric(self):
-        """Numeric algebraic-variable trajectory for the BDF path (no symbolic graph).
-
-        Mirrors _post_process but evaluates the model functions on the numeric state
-        columns instead of building a symbolic SX trajectory.
-        """
-        var_names = list(self.var_name_to_idx.keys())
-        var_idx_list = [self.var_name_to_idx[name] for name in var_names]
-        cols = []
-        for k, ti in enumerate(self.tSim):
-            col = self.pre_steps + k
-            state_col = [float(self.state_traj_dm[i, col]) for i in range(self.STATE_COUNT)]
-            rates = [0.0] * self.STATE_COUNT
-            vars_copy = list(self.variables_model)
-            self.model.compute_rates(ti, state_col, rates, vars_copy)
-            self.model.compute_variables(ti, state_col, rates, vars_copy)
-            cols.append([self._as_float(vars_copy[vi]) for vi in var_idx_list])
-        self.var_traj_dm = np.array(cols).T if cols else np.zeros((len(var_names), 0))
+        H0 = ca.vertcat(x1, self.x0_symb)  # history entering the first BDF2 step (produces x2)
+        H_traj = step2.mapaccum(total_steps - 1)(H0, p_sym)  # columns [x2;x1] ... [xN;xN-1]
+        return ca.horzcat(x1, H_traj[:n, :])  # x1 .. xN  (total_steps columns)
 
     def run(self):
         # Integrate full pre_time + sim_time horizon so slicing by pre_steps
@@ -408,16 +404,8 @@ class SimulationHelper:
         if self.solve_ivp_method == 'semi_implicit_euler':
             res_xf = self._run_semi_implicit_euler(total_steps)
         elif self.solve_ivp_method in ('bdf', 'BDF'):
-            # Numeric scipy BDF + exact CasADi Jacobian (no symbolic AD graph).
-            if self._do_ad:
-                raise RuntimeError(
-                    "casadi_integrator method='bdf' is a numeric scipy solver and does not "
-                    "support CasADi automatic differentiation. Use 'semi_implicit_euler' "
-                    "(or another symbolic integrator) when do_ad=True."
-                )
-            self._run_scipy_bdf(total_steps)
-            self._has_run = True
-            return True
+            # Symbolic implicit BDF (rootfinder per step) — supports CasADi AD.
+            res_xf = self._run_symbolic_bdf(total_steps)
         else:
             ode = {
                 "x": self.states_symb,

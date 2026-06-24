@@ -60,8 +60,10 @@ SOLVER_SCHEMA = {
         # 'semi_implicit_euler' is a fixed-step damped scheme implemented in the
         # CasADi helper (not a SUNDIALS plugin); used for stiff models whose cvodes
         # adjoint-sensitivity gradient fails (e.g. 3compartment).
-        # 'bdf' is a numeric scipy.integrate BDF solve with an exact CasADi Jacobian
-        # (parallel to the AADC 'bdf' path); accurate stiff forward solve, no CasADi AD.
+        # 'bdf' is a fixed-step implicit BDF (order 2, BDF1 startup) built as a symbolic
+        # CasADi graph with a rootfinder per step; stable for stiff models and, unlike
+        # cvodes adjoint sensitivity, fully supports CasADi AD (rootfinder is
+        # differentiable via the implicit-function theorem).
         'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler', 'bdf'],
         'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit', 'bdf'],
     },

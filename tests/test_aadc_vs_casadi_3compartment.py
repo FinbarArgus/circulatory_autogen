@@ -12,9 +12,10 @@ Both backends generate from the same CellML, so their state names are identical
 matched component-wise.
 
 Notes / current status (see PR #251):
-  - CasADi's ``method='bdf'`` (scipy BDF + exact CasADi Jacobian) matches CVODE on this
-    stiff model; its gradient (via the differentiable ``semi_implicit_euler`` path)
-    matches FD. These tests pass.
+  - CasADi's ``method='bdf'`` (symbolic implicit BDF2 with a rootfinder per step) matches
+    CVODE on this stiff model, and its own gradient matches FD — the BDF graph is fully
+    differentiable, so AD works directly on bdf (no fallback to semi_implicit_euler).
+    These tests pass.
   - AADC's ``method='bdf'`` and tape gradient are **license-gated** (Matlogica). Without a
     license they raise ``RuntimeError: AADC License check failed``, so the AADC-side tests
     fail here until a license is provisioned (locally and on CI). They are intentionally
@@ -125,7 +126,7 @@ def _cvode_reference(cellml_path):
 @pytest.mark.integration
 @pytest.mark.slow
 def test_3compartment_forward_casadi_bdf_vs_cvode(models_3compartment):
-    """CasADi BDF (scipy BDF + exact CasADi Jacobian) should match the CVODE reference."""
+    """CasADi BDF (symbolic implicit BDF2 + rootfinder) should match the CVODE reference."""
     paths = models_3compartment["casadi"]
     ref = _cvode_reference(paths["cellml"])
 
@@ -217,6 +218,60 @@ def test_3compartment_gradient_vs_fd_casadi(models_3compartment):
     if abs(g_fd) > 1e-30:
         ratio = g_ad / g_fd
         assert abs(ratio - 1.0) < 0.01, f"CasADi AD/FD ratio = {ratio:.6f} (expected ~1.0)"
+    else:
+        assert abs(g_ad) < 1e-12, f"FD≈0 but AD={g_ad:.6e}"
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_3compartment_gradient_vs_fd_casadi_bdf(models_3compartment):
+    """CasADi symbolic gradient through the implicit **BDF** path vs FD.
+
+    The BDF solver is a symbolic CasADi graph (rootfinder per step), so it supports
+    AD: ``state_traj_symb`` is populated and ``d(cost)/d(param)`` by CasADi AD must
+    match central finite differences. Same cost = (final value of a state)^2 as the
+    semi-implicit gradient test, but on ``method='bdf'`` — proving the former scipy
+    BDF guard (do_ad rejected) is gone and AD now works on bdf.
+    """
+    import casadi as ca
+    paths = models_3compartment["casadi"]
+
+    def _helper():
+        return get_simulation_helper(
+            model_path=paths["py"], solver='casadi_integrator', model_type='casadi_python',
+            dt=0.01, sim_time=0.3, pre_time=0.0, solver_info={'method': 'bdf'},
+        )
+
+    h = _helper()
+    pname, sname = _pick_param_and_state(h)
+    p0 = float(h.get_init_param_vals([[pname]])[0])
+    sidx = h.state_name_to_idx[sname]
+
+    # AD: differentiate cost through the symbolic implicit-BDF trajectory.
+    h._create_param_subset([[pname]], [p0])
+    assert h._do_ad is True
+    h.run()
+    assert h.state_traj_symb is not None  # symbolic graph exists -> AD is possible
+    cost_symb = h.state_traj_symb[sidx, -1] ** 2
+    jac = ca.gradient(cost_symb, h.variables_symb_subset)
+    jac_func = ca.Function('jac_cost', [h.states_symb, h.variables_symb], [jac])
+    g_ad = float(np.array(jac_func(h.states, h.variables)).flatten()[0])
+
+    # FD on the same scheme.
+    def cost_at(pv):
+        hh = _helper()
+        hh.set_param_vals([[pname]], [[pv]])
+        hh.run()
+        v = np.asarray(hh.get_results([[sname]], flatten=True)[0]).flatten()[-1]
+        return float(v) ** 2
+
+    step = abs(p0) * 1e-6 if p0 != 0 else 1e-6
+    g_fd = (cost_at(p0 + step) - cost_at(p0 - step)) / (2 * step)
+
+    print(f"\nCasADi BDF gradient vs FD: AD={g_ad:.6e} FD={g_fd:.6e}")
+    if abs(g_fd) > 1e-30:
+        ratio = g_ad / g_fd
+        assert abs(ratio - 1.0) < 0.01, f"CasADi BDF AD/FD ratio = {ratio:.6f} (expected ~1.0)"
     else:
         assert abs(g_ad) < 1e-12, f"FD≈0 but AD={g_ad:.6e}"
 
