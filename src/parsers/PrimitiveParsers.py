@@ -41,13 +41,16 @@ sys.path.append(os.path.join(root_dir, 'src'))
 # settings UI) so they don't hardcode these lists. Keep this in sync with
 # solver_wrappers.get_simulation_helper.
 SOLVER_SCHEMA = {
-    'model_types': ['cellml_only', 'python', 'cpp', 'casadi_python', 'aadc_python'],
+    'model_types': ['cellml_only', 'python', 'cpp', 'casadi_python', 'aadc_python', 'python_user_defined'],
     'solvers_by_model_type': {
         'cellml_only': ['CVODE_opencor', 'CVODE_myokit'],
         'python': ['solve_ivp'],
         'cpp': ['CVODE', 'RK4', 'PETSC'],
         'casadi_python': ['casadi_integrator'],
         'aadc_python': ['aadc_semi_implicit'],
+        # The user supplies their own ODE wrapper in funcs_user/; it is integrated
+        # by the shared SciPy PythonSimulationHelper (see solver_wrappers).
+        'python_user_defined': ['user_defined'],
     },
     # Methods/plugins valid for each solver.
     'methods_by_solver': {
@@ -66,6 +69,9 @@ SOLVER_SCHEMA = {
         # differentiable via the implicit-function theorem).
         'casadi_integrator': ['cvodes', 'idas', 'collocation', 'rk', 'semi_implicit_euler', 'bdf'],
         'aadc_semi_implicit': ['adaptive_rk45', 'semi_implicit', 'bdf', 'implicit_euler_ift'],
+        # The user wrapper supplies the rhs; the framework integrates it with the
+        # same scipy solve_ivp methods as model_type 'python'.
+        'user_defined': ['RK45', 'RK23', 'DOP853', 'Radau', 'BDF', 'LSODA', 'forward_euler'],
     },
     # Default solver for each model_type (used when none is specified).
     'default_solver_by_model_type': {
@@ -74,6 +80,7 @@ SOLVER_SCHEMA = {
         'cpp': 'CVODE',
         'casadi_python': 'casadi_integrator',
         'aadc_python': 'aadc_semi_implicit',
+        'python_user_defined': 'user_defined',
     },
 }
 
@@ -275,7 +282,17 @@ class YamlFileParser(object):
         if 'model_type' not in inp_data_dict.keys():
             inp_data_dict['model_type'] = 'cellml_only'
             
-        if inp_data_dict.get('model_type') in ['python', 'casadi_python']:
+        if inp_data_dict.get('model_type') == 'python_user_defined':
+            model_ext = None
+            # The "model" is the user's hand-written ODE wrapper in funcs_user/,
+            # not a generated file. Default to funcs_user/{file_prefix}_wrapper.py,
+            # but allow an explicit override via 'model_wrapper_path'.
+            wrapper_path = inp_data_dict.get('model_wrapper_path')
+            if not wrapper_path:
+                wrapper_path = os.path.join(base_dir, 'funcs_user', f'{file_prefix}_wrapper.py')
+            inp_data_dict['model_path'] = wrapper_path
+            inp_data_dict['uncalibrated_model_path'] = wrapper_path
+        elif inp_data_dict.get('model_type') in ['python', 'casadi_python']:
             model_ext = '.py'
         elif inp_data_dict.get('model_type') == 'cellml_only':
             model_ext = '.cellml'
@@ -287,13 +304,14 @@ class YamlFileParser(object):
             print(f'Invalid model type: {inp_data_dict.get("model_type")}')
             exit()
 
-        inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}{model_ext}')
+        if model_ext is not None:
+            inp_data_dict['model_path'] = os.path.join(inp_data_dict['generated_models_subdir'], f'{file_prefix}{model_ext}')
 
-        if do_generation_with_fit_parameters:
-            inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix,
-                                               file_prefix + model_ext)
-        else:
-            inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
+            if do_generation_with_fit_parameters:
+                inp_data_dict['uncalibrated_model_path'] = os.path.join(inp_data_dict["generated_models_dir"], file_prefix,
+                                                   file_prefix + model_ext)
+            else:
+                inp_data_dict['uncalibrated_model_path'] = inp_data_dict['model_path']
 
 
         if 'dt' not in inp_data_dict.keys():
@@ -331,6 +349,7 @@ class YamlFileParser(object):
         valid_casadi_solvers = _solvers['casadi_python']
         valid_casadi_solver_plugins = _methods['casadi_integrator']
         valid_aadc_solvers = _solvers.get('aadc_python', [])
+        valid_user_defined_solvers = _solvers.get('python_user_defined', [])
 
         solver_name = inp_data_dict.get('solver_info', {}).get('solver')
         if solver_name is None:
@@ -351,6 +370,8 @@ class YamlFileParser(object):
                 solver_name = 'cvodes'
             elif inp_data_dict.get('model_type') == 'aadc_python':
                 solver_name = 'aadc_semi_implicit'
+            elif inp_data_dict.get('model_type') == 'python_user_defined':
+                solver_name = 'user_defined'
             else:
                 print(f'Invalid model type: {inp_data_dict.get("model_type")}')
                 exit()
@@ -360,7 +381,8 @@ class YamlFileParser(object):
                 solver_name not in valid_cpp_solvers and
                 solver_name not in valid_python_solvers and
                 solver_name not in valid_casadi_solvers and
-                solver_name not in valid_aadc_solvers):
+                solver_name not in valid_aadc_solvers and
+                solver_name not in valid_user_defined_solvers):
                 print(f'Invalid solver: {solver_name}')
                 exit()
         
@@ -382,6 +404,8 @@ class YamlFileParser(object):
                     inp_data_dict['solver_info']['max_step'] = defaults.get('max_step', 0.001)
             elif inp_data_dict.get('model_type') == 'aadc_python':
                 pass  # AADC solver handles its own defaults
+            elif inp_data_dict.get('model_type') == 'python_user_defined':
+                pass  # user wrapper handles its own integration
             elif 'MaximumNumberOfSteps' not in inp_data_dict['solver_info']:
                 inp_data_dict['solver_info']['MaximumNumberOfSteps'] = defaults['MaximumNumberOfSteps']
         if 'solver' not in inp_data_dict['solver_info'].keys():
@@ -433,6 +457,10 @@ class YamlFileParser(object):
                     inp_data_dict['solver_info']['method'] = solver_method # TODO Bea: add specific solver to be used within PETSC (CN / BDF1 / BDF2 / ...)
                 else:
                     print(f'solver set {solver_name} not compatible with model_type cpp : change this in the user_inputs.yaml file')
+            elif solver_name in valid_user_defined_solvers:
+                # The user wrapper is integrated by solve_ivp; default to RK45.
+                solver_method = 'RK45'
+                inp_data_dict['solver_info']['method'] = solver_method
             else:
                 if solver_name.startswith('CVODE'):
                     solver_method = 'CVODE'
@@ -452,13 +480,15 @@ class YamlFileParser(object):
             and solver_name not in valid_python_solvers
             and solver_name not in valid_cpp_solvers
             and solver_name not in valid_casadi_solvers
-            and solver_name not in valid_aadc_solvers):
+            and solver_name not in valid_aadc_solvers
+            and solver_name not in valid_user_defined_solvers):
             print(f'Invalid solver: {solver_name}')
             print(f'Valid CellML solvers: {valid_cellml_solvers}')
             print(f'Valid Python solvers: {valid_python_solvers}')
             print(f'Valid Cpp solvers: {valid_cpp_solvers}')
             print(f'Valid CasADi solvers: {valid_casadi_solvers}')
             print(f'Valid AADC solvers: {valid_aadc_solvers}')
+            print(f'Valid user-defined solvers: {valid_user_defined_solvers}')
             exit()
         
         
@@ -469,9 +499,9 @@ class YamlFileParser(object):
                 print(f'Use {valid_python_solvers} for Python models')
                 exit()
 
-        # solve_ivp methods can only be used with Python models
+        # solve_ivp methods can only be used with Python models (generated or user-defined)
         if solver_method in valid_solve_ivp_methods:
-            if inp_data_dict.get('model_type') not in ['python', None]:
+            if inp_data_dict.get('model_type') not in ['python', 'python_user_defined', None]:
                 print(f'solve_ivp method {solver_method} requires model_type to be "python"')
                 print('Use CVODE_opencor (or legacy CVODE) or CVODE_myokit for CellML models')
                 print('Use CVODE or RK4 or PETSC for Cpp models')
@@ -688,6 +718,9 @@ _SOLVER_INTEGRATOR_KEYS = {
     'aadc_semi_implicit': frozenset({
         'tol', 'threads', 'gradient_method',
     }),
+    # The user wrapper is integrated by the shared solve_ivp helper, so it accepts
+    # the same integrator keys as solve_ivp.
+    'user_defined': frozenset({'rtol', 'atol', 'max_step', 'vectorized', 'dense_output', 'jac'}),
 }
 
 
@@ -811,6 +844,14 @@ def get_solver_info_default(model_type):
             'tol': 1e-8,
             'threads': 4,
             'gradient_method': 'auto',
+        }
+    if model_type == 'python_user_defined':
+        return {
+            'solver': 'user_defined',
+            'method': 'RK45',
+            'max_step': 0.001,
+            'rtol': 1e-8,
+            'atol': 1e-8,
         }
     raise ValueError(f'Invalid model type: {model_type}')
 
