@@ -15,7 +15,7 @@
 #include "model0d.h"
 
 {% set ch_ns, _, ch_name = chamber_type.rpartition('::') %}
-{% set cp_type = api.chamber_enum.get('compartment_type', chamber_type) if api.chamber_enum else chamber_type %}
+{% set cp_type = (api.get('chamber_enum') or {}).get('compartment_type', chamber_type) %}
 {% set cp_ns, _, cp_name = cp_type.rpartition('::') %}
 #ifdef CVS_WITH_LIFEX
 {% if chamber_header %}

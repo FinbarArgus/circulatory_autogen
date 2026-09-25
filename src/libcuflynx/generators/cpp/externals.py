@@ -359,42 +359,84 @@ def collect_delays(vessels_df, flat_model):
 
 
 # ---------------------------------------------------------------------------------------------
-# Provider APIs (a class the other model calls, e.g. lifex Circulation)
+# Provider APIs (a class the other model calls, e.g. lifex Circulation): an external module in
+# the vessel array, coupled to CellML modules through its ports
 # ---------------------------------------------------------------------------------------------
 
-def collect_provider_apis(vessels_df, module_df, flat_model):
-    '''Provider apis are linked from a module entry through "external_api": {"module_type": ...}.
+def provider_port_refs(vessels_df, prow, flat_model):
+    """Map each variable on the ports of an external (api) module to the CellML variable it is
+    connected to.
 
+    Ports connect by port_type exactly as between CellML modules: an entrance port of the api
+    module takes the same-typed exit (or general) port of a module in its inp_vessels, an exit port
+    feeds the same-typed entrance (or general) port of a module in its out_vessels, and variables
+    pair up by position. Returns {api variable name: ModelRef}.
+    """
+    refs = {}
+
+    def partner_ports(names, kinds):
+        for name in names:
+            match = vessels_df.loc[vessels_df['name'] == name]
+            if len(match) != 1 or match.iloc[0]['module_format'] != 'cellml':
+                continue
+            partner = match.iloc[0]
+            for kind in kinds:
+                for port in partner[kind] if isinstance(partner[kind], list) else []:
+                    yield partner['name'], port
+
+    sides = [('entrance_ports', prow['inp_vessels'], ('exit_ports', 'general_ports')),
+             ('exit_ports', prow['out_vessels'], ('entrance_ports', 'general_ports')),
+             ('general_ports', list(prow['inp_vessels']) + list(prow['out_vessels']),
+              ('general_ports', 'entrance_ports', 'exit_ports'))]
+    for own_kind, neighbours, partner_kinds in sides:
+        for port in prow[own_kind] if isinstance(prow[own_kind], list) else []:
+            found = [(comp, pp) for comp, pp in partner_ports(neighbours, partner_kinds)
+                     if pp['port_type'] == port['port_type']]
+            if not found:
+                raise ExternalsError(f"Port '{port['port_type']}' of external module '{prow['name']}' is not "
+                                     f"connected to a CellML module with a matching port; check the vessel array.")
+            comp, pp = found[0]
+            if len(pp['variables']) != len(port['variables']):
+                raise ExternalsError(f"Port '{port['port_type']}' has {len(port['variables'])} variables on "
+                                     f"'{prow['name']}' but {len(pp['variables'])} on '{comp}'.")
+            for own_var, partner_var in zip(port['variables'], pp['variables']):
+                refs[own_var] = ModelRef(flat_variable(flat_model, comp, partner_var), f'{comp}/{partner_var}')
+    return refs
+
+
+def collect_provider_apis(vessels_df, flat_model):
+    """External modules (vessel-array rows) whose api block has role: provider.
+
+    Their api functions name the module's own port variables (resolved through the ports to the
+    connected CellML modules), or an absolute "component/variable".
     Returns a list of dicts: {api, vessel, set_specs, get_refs, state_refs}.
-    '''
+    """
     providers = []
-    if 'external_api' not in vessels_df.columns:
+    if 'api' not in vessels_df.columns:
         return providers
-    for row in vessels_df.itertuples():
-        link = row.external_api
-        if not isinstance(link, dict):
-            continue
-        api_rows = module_df.loc[module_df['module_type'] == link['module_type']]
-        if len(api_rows) != 1:
-            raise ExternalsError(f"Module '{row.name}' links to external api module_type "
-                                 f"'{link['module_type']}', found {len(api_rows)} matching module config entries.")
-        api = api_rows.iloc[0]['api']
+    for _, prow in vessels_df.iterrows():
+        api = prow['api']
         if not is_api(api) or api.get('role') != 'provider':
-            raise ExternalsError(f"external api '{link['module_type']}' must have an api block with role: provider")
+            continue
+        port_refs = provider_port_refs(vessels_df, prow, flat_model)
 
-        def ref_for(name):
-            comp, _, var = name.rpartition('/')
-            comp = comp or row.name
-            return ModelRef(flat_variable(flat_model, comp, var), f'{comp}/{var}')
+        def ref_for(name, _refs=port_refs, _row=prow['name']):
+            if '/' in name:
+                comp, _, var = name.rpartition('/')
+                return ModelRef(flat_variable(flat_model, comp, var), f'{comp}/{var}')
+            if name not in _refs:
+                raise ExternalsError(f"api variable '{name}' of '{_row}' is not on one of its ports "
+                                     f"(or give it as component/variable).")
+            return _refs[name]
 
         set_specs, get_refs, state_refs = {}, {}, {}
         for fn in api['functions']:
             kind = fn['kind']
             if kind == 'set':
                 if fn['variable'] not in set_specs:
-                    ref = ref_for(fn['variable'])
                     init = fn.get('initial')
-                    set_specs[fn['variable']] = ExternalSpec(ref, 'api', initial=float(init) if init is not None else None,
+                    set_specs[fn['variable']] = ExternalSpec(ref_for(fn['variable']), 'api',
+                                                             initial=float(init) if init is not None else None,
                                                              meta={'function': fn['name']})
             elif kind == 'get':
                 get_refs.setdefault(fn['variable'], ref_for(fn['variable']))
@@ -407,6 +449,6 @@ def collect_provider_apis(vessels_df, module_df, flat_model):
                         set_specs[var] = ExternalSpec(ref_for(var), 'api', initial=None, meta={'chamber': chamber})
                 else:
                     get_refs.setdefault(var, ref_for(var))
-        providers.append({'api': api, 'vessel': row.name, 'set_specs': set_specs,
-                          'get_refs': get_refs, 'state_refs': state_refs, 'ref_for': ref_for})
+        providers.append({'api': api, 'vessel': prow['name'], 'set_specs': set_specs,
+                          'get_refs': get_refs, 'state_refs': state_refs})
     return providers

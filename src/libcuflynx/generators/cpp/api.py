@@ -8,7 +8,9 @@ describes, in data, the calls that couple the generated 0D model to something ou
   over named pipes). ``calls`` lists each exchange and when it happens.
 * ``role: provider``  -- the generated code *is* called by the other model (e.g. a 3D heart
   driving it through a lifex ``Circulation``-style class). ``functions`` lists the methods the
-  generated class exposes and which model variable each one sets or gets.
+  generated class exposes and which variable each one sets or gets. A provider is a row of the
+  vessel array, connected to CellML modules through its ports; its functions name its own port
+  variables (or ``component/variable``).
 
 Anything received from the other model becomes a libCellML external variable.
 '''

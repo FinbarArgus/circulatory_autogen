@@ -149,8 +149,7 @@ class CVS0DCppGenerator(object):
         connections, volume_specs, pipe_externals = ext.collect_named_pipe_connections(
             vessels_df, self.conn_1d_0d_info, flat_model)
         delays = ext.collect_delays(vessels_df, flat_model)
-        module_df = getattr(self.model, 'module_df', None)
-        providers = ext.collect_provider_apis(vessels_df, module_df, flat_model) if module_df is not None else []
+        providers = ext.collect_provider_apis(vessels_df, flat_model)
         if len(providers) > 1:
             raise CppGenerationError('Only one provider api per model is supported.')
 

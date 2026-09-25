@@ -157,9 +157,10 @@ A module config entry can carry an `api` block describing how a generated C++ mo
 - **`role: provider`**: the generated code *is* the interface another program calls.
     - `transport: cpp_class` generates a C++ class whose methods are listed in `functions`.
     - Each function has a `kind`: `set`, `get`, `set_state`, `set_indexed`, `get_indexed`, `time`, `time_discretization`, `step`, `noop` or `extrapolate`.
-    - Functions name the model `variable` they touch and its `api_units`.
-    - A module links to a provider api with `"external_api": {"module_type": "<the api entry's module_type>"}`.
-    - Example: the CVS-ANS 3D-heart coupling, a drop-in `lifex::Circulation`.
+    - The provider is its own row in the vessel array, with `module_format: external_api`. It is connected to CellML modules through ports, exactly like a CellML module: its entrance ports take same-typed exit ports of its `inp_vessels`, its exit ports feed same-typed entrance ports of its `out_vessels`, and variables pair up by position.
+    - Functions name the provider's own port variable (or `component/variable` for anything else) and its `api_units`. A `set` function's variable becomes an external variable of the connected CellML module.
+    - The CellML model does not include the provider. The CellML variables its ports drive stay boundary-condition constants there, so the CellML model is complete on its own.
+    - Example: in the CVS-ANS 3D-heart coupling, `heart_3D_lifex` (a drop-in `lifex::Circulation`) sends chamber pressures to a CellML heart through `chamber_pressure_port` and receives chamber volumes through `chamber_volume_port`.
 
 The blocks are validated when the module configs are loaded (`libcuflynx/generators/cpp/api.py`).
 

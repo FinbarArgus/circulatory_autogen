@@ -488,9 +488,6 @@ class CSV0DModelParser(object):
 
         # get the allowable types from the modules_config.json file
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
-        # Kept so generators can resolve entries that are not rows of the vessel array, e.g. the
-        # external api a module links to with "external_api": {"module_type": ...}.
-        model_0D.module_df = module_df
         
         if self.parameter_id_dir:
             check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck(), LumpedIDParamsCheck()]

@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 {% if extrap %}
         if (!useReplay) {
             // Implicit coupling: Newton on F(p) = p - E (V(p) - V_0) = 0.
-            using Comp = {{ api.chamber_enum.get('compartment_type', chamber_type) }};
+            using Comp = {{ (api.get('chamber_enum') or {}).get('compartment_type', chamber_type) }};
             double E[{{ chambers | length }}];
             for (size_t i = 0; i < nChambers; ++i) {
                 E[i] = Emin[i] + (Emax[i] - Emin[i]) * activation(phase + dt / period, actStart[i], actDuration[i]);
@@ -226,9 +226,9 @@ int main(int argc, char *argv[])
 {% for f in api_functions if f.kind == 'extrapolate' %}
 
     // Volume extrapolation, as used by an implicit 3D-0D coupling.
-    std::map<{{ api.chamber_enum.get('compartment_type', chamber_type) }}, double> pressures;
+    std::map<{{ (api.get('chamber_enum') or {}).get('compartment_type', chamber_type) }}, double> pressures;
     for (size_t i = 0; i < nChambers; ++i) {
-        pressures[static_cast<{{ api.chamber_enum.get('compartment_type', chamber_type) }}>(chambers[i])] = 10.0;
+        pressures[static_cast<{{ (api.get('chamber_enum') or {}).get('compartment_type', chamber_type) }}>(chambers[i])] = 10.0;
     }
     auto ext = circulation.{{ f.name }}(chambers[1], pressures, {}, dt, false, true);
     std::cout << "extrapolated " << names[1] << " volume " << ext.first << ", dV/dp:";

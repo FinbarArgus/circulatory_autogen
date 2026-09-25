@@ -259,3 +259,45 @@ def test_coupled_fv1d_simulation_runs(user_inputs_dir, resources_dir, tmp_path):
     assert 5e3 < np.max(u_in) < 3e4
     sol1d = np.genfromtxt(ini.parent / 'res' / 'sol1D_parent.txt')
     assert np.all(np.isfinite(sol1d))
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_provider_api_module_couples_through_ports(user_inputs_dir, resources_dir, tmp_path):
+    """An external (api) module in the vessel array is coupled to a CellML module through
+    matching ports: its api functions name its own port variables, which resolve to the CellML
+    variables on the other end. The CellML model itself does not include it."""
+    from libcuflynx.scripts.script_generate_with_new_architecture import generate_with_new_architecture
+    ext_dir = tmp_path / 'external_modules'
+    ext_dir.mkdir()
+    probe = [{
+        'vessel_type': 'api_probe', 'BC_type': 'nn', 'module_format': 'external_api', 'module_file': '',
+        'module_type': 'probe_api',
+        'entrance_ports': [{'port_type': 'volume_port', 'variables': ['V_heart']}],
+        'exit_ports': [], 'general_ports': [],
+        'variables_and_units': [['V_heart', 'm3', 'access', 'variable']],
+        'api': {'name': 'probe', 'role': 'provider', 'transport': 'cpp_class', 'namespace': 'probe',
+                'class_name': 'Probe',
+                'functions': [{'name': 'get_heart_volume', 'kind': 'get', 'variable': 'V_heart', 'api_units': 'ml'},
+                              {'name': 'get_aortic_pressure', 'kind': 'get', 'variable': 'aortic_root/u',
+                               'api_units': 'mmHg'},
+                              {'name': 'set_time', 'kind': 'time'},
+                              {'name': 'solve_time_step', 'kind': 'step'}]},
+    }]
+    (ext_dir / 'probe_module_config.json').write_text(json.dumps(probe))
+    inp = _generation_inputs(user_inputs_dir, resources_dir, tmp_path, '3compartment', 'CVODE',
+                             pre_time=0.0, sim_time=1.0, dt=0.01, external_modules_dir=str(ext_dir))
+    array = tmp_path / 'resources' / '3compartment_vessel_array.csv'
+    lines = array.read_text().splitlines()
+    lines = [(l.rstrip() + ' api_probe') if l.split(',')[0].strip() == 'heart' else l for l in lines]
+    lines.append('api_probe, nn, api_probe, heart, ')
+    array.write_text('\n'.join(lines) + '\n')
+
+    assert generate_with_new_architecture(False, inp)
+    model_dir = tmp_path / 'generated_models' / '3compartment'
+    assert 'api_probe' not in (model_dir / '3compartment.cellml').read_text()
+    source = (model_dir / 'circulation_api.cpp').read_text()
+    assert '// heart/q_heart' in source
+    assert '// aortic_root/u' in source
+    assert 'class Probe' in (model_dir / 'circulation_api.h').read_text()
+    _cmake_build(model_dir, model_dir / 'build')

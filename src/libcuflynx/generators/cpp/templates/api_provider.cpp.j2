@@ -5,7 +5,7 @@
 #include <cmath>
 #include <stdexcept>
 
-{% set cp_type = api.chamber_enum.get('compartment_type', chamber_type) if api.chamber_enum else chamber_type %}
+{% set cp_type = (api.get('chamber_enum') or {}).get('compartment_type', chamber_type) %}
 {% set p_fac = chamber_units.get('pressure', 1.0) %}
 {% set v_fac = chamber_units.get('volume', 1.0) %}
 namespace {{ namespace }}
