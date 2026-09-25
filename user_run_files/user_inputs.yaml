@@ -55,6 +55,8 @@ sim_time: 2
 # generated_models_dir: /home/farg967/Documents/temp/CA_temp/generated_models
 # param_id_output_dir: /home/farg967/Documents/git_projects/CA_user/3compartment/param_id_output
 # external_modules_dir: /home/farg967/Documents/temp/test_for_phlynx_cvs/module_config
+# module_library_dirs: [/path/to/circulatory-autogen-modules/modules]  # searched recursively
+# use_builtin_modules: false  # only use external modules / module libraries
 
 # Your own operation / cost / modifier funcs. The built-in ones ship inside the package
 # (libcuflynx.funcs) and must not be edited -- an upgrade replaces them. Write yours in a file of
