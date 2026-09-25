@@ -9,6 +9,7 @@ from libcuflynx.parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from libcuflynx.models.LumpedModels import CVS0DModel
 from libcuflynx.checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 from libcuflynx.utilities.package_resources import builtin_modules_dir
+from libcuflynx.generators.cpp.api import validate_module_config_apis
 import pandas as pd
 import numpy as np
 import json
@@ -454,6 +455,10 @@ class CSV0DModelParser(object):
             print(duplicates)
             exit()
          
+        # api blocks describe how a module talks to another model; catch malformed ones here,
+        # at load time, rather than half way through code generation.
+        validate_module_config_apis(module_df)
+
         # add module info to each row of vessel array
         self.json_parser.append_module_config_info_to_vessel_df(vessels_df, module_df)
 
@@ -483,6 +488,9 @@ class CSV0DModelParser(object):
 
         # get the allowable types from the modules_config.json file
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
+        # Kept so generators can resolve entries that are not rows of the vessel array, e.g. the
+        # external api a module links to with "external_api": {"module_type": ...}.
+        model_0D.module_df = module_df
         
         if self.parameter_id_dir:
             check_list = [LumpedBCVesselCheck(), LumpedPortVariableCheck(), LumpedIDParamsCheck()]

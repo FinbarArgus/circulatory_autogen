@@ -8,17 +8,12 @@ import numpy as np
 import re
 import pandas as pd
 import os
-import shutil
 import tempfile
 from sys import exit
-from libcuflynx.utilities.package_resources import builtin_modules_dir, package_data_dir
-from libcuflynx.utilities.paths import default_module_config_user_dir, default_resources_dir
+from libcuflynx.utilities.package_resources import builtin_modules_dir
+from libcuflynx.utilities.paths import default_module_config_user_dir, default_resources_dir, external_modules_dirs
 
 generators_dir = os.path.dirname(__file__)
-# Build/run scripts copied alongside each generated model so it can be compiled/run
-# standalone. They are package data of libcuflynx.solver1d, so they are located through
-# importlib.resources (#431/#432); a real directory is needed because they are listed and copied.
-solver_make_files_dir = package_data_dir('libcuflynx.solver1d', 'Make_files')
 LIBCELLML_available = True
 try:
     from libcellml import Annotator, Analyser, AnalyserModel, AnalyserExternalVariable, Generator, GeneratorProfile        
@@ -79,10 +74,9 @@ class CVS0DCellMLGenerator(object):
             self.module_scripts += [os.path.join(module_config_user_dir, filename) for filename in
                                    os.listdir(module_config_user_dir)
                                    if filename.endswith('modules.cellml') and not filename.startswith('._')]
-        if inp_data_dict['external_modules_dir'] is not None:
-            self.module_scripts += [os.path.join(self.inp_data_dict['external_modules_dir'], filename) for filename in
-                                os.listdir(os.path.join(self.inp_data_dict['external_modules_dir']))
-                                if filename.endswith('modules.cellml') and not filename.startswith('._')]
+        for ext_dir in external_modules_dirs(inp_data_dict['external_modules_dir']):
+            self.module_scripts += [os.path.join(ext_dir, filename) for filename in sorted(os.listdir(ext_dir))
+                                    if filename.endswith('modules.cellml') and not filename.startswith('._')]
         self.units_scripts = [os.path.join(builtin_modules, 'units.cellml')]
         user_units_script = os.path.join(module_config_user_dir, 'user_units.cellml')
         if os.path.isfile(user_units_script):
@@ -114,7 +108,6 @@ class CVS0DCellMLGenerator(object):
         self.__generate_parameters_csv()
         self.__generate_parameters_file()
         self.__generate_modules_file()
-        self.__copy_solver_make_files()
 
         # TODO check that model generation is successful, possibly by calling to opencor
         print('Model generation complete.')
@@ -481,16 +474,6 @@ class CVS0DCellMLGenerator(object):
             lambda wf: df.to_csv(wf, index=None, header=True),
         )
 
-    def __copy_solver_make_files(self):
-        # Copy the solver build/run scripts (src/solver1d/Make_files) into the generated model
-        # directory so each model is self-contained and can be built/run in place (issue #157).
-        if not os.path.isdir(solver_make_files_dir):
-            return
-        for filename in os.listdir(solver_make_files_dir):
-            src_path = os.path.join(solver_make_files_dir, filename)
-            if os.path.isfile(src_path) and not filename.startswith('._'):
-                shutil.copy2(src_path, os.path.join(self.output_dir, filename))
-
     def __generate_units_file(self):
         # TODO allow a specific units file to be generated
         #  This function simply copies the units file
@@ -849,7 +832,14 @@ class CVS0DCellMLGenerator(object):
                     # TODO this part is kind of hacky, but it works, there is definitely a better way to do the mapping with the
                     #  heart module!
                     if out_module_type.startswith('heart'):
-                        if len(out_module_row["inp_vessels"]) == 2 and self.ivc_connection_done == 0:
+                        # Only the inputs that connect through a vessel_port (the venae cavae and
+                        # the pulmonary vein) take the heart's vessel entrance ports; other inputs,
+                        # e.g. ANS effectors on control ports, must not shift their positions.
+                        heart_vessel_inps = [
+                            name for name in out_module_row["inp_vessels"]
+                            if any(p["port_type"] == "vessel_port" for p in
+                                   module_df.loc[module_df["name"] == name].squeeze()["exit_ports"])]
+                        if len(heart_vessel_inps) == 2 and self.ivc_connection_done == 0:
                             # this is the case if there is only one vc and one pulmonary
                             # We map the ivc to a zero flow mapping
                             self.__write_mapping(wf, 'zero_flow_module', 'heart_module', ['v_zero'], ['v_ivc'])
@@ -857,10 +847,10 @@ class CVS0DCellMLGenerator(object):
                             self.BC_set[out_module]['v_ivc'] = True
                             # TODO the above isnt robust
 
-                        for heart_inp_idx in range(3):
+                        for heart_inp_idx in range(min(3, len(heart_vessel_inps))):
                             # there are three vessel_port entrances to the heart, ivc, svc, and pulmonary
                             # in the vessel_array file, they must be ordered ivc, svc, pulmonary
-                            if main_module == out_module_row["inp_vessels"][heart_inp_idx]:
+                            if main_module == heart_vessel_inps[heart_inp_idx]:
                                 # if the ivc connection was done artificially, then we need to skip it
                                 entrance_port_idx = heart_inp_idx + self.ivc_connection_done
                                 break
