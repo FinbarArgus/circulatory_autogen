@@ -23,6 +23,13 @@ Every `*units.cellml` there (and in `module_library_dirs`) is now merged into th
 units file. A unit defined identically in several files is written once; one defined
 differently in two files raises a `ValueError` naming both files.
 
+### Fixed
+
+- `model_type: python` (and the CasADi / AADC variants) now defines every helper libCellML's
+  Python profile can emit: `eq_func`, `neq_func`, `or_func`, `xor_func`, `not_func`, `min` and
+  the reciprocal trig functions `sec` ... `acoth`. A model using `<eq/>`, `<or/>`, `<min/>` etc.
+  used to fail at run time with `NameError: name 'eq_func' is not defined` (#526).
+
 ## 0.7.3 — 2026-09-05
 
 ### Changed! — `calculate_two_observable_difference` takes `subtract_from` / `subtract_this`
