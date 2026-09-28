@@ -11,8 +11,9 @@ import os
 import shutil
 import tempfile
 from sys import exit
-from libcuflynx.utilities.package_resources import builtin_modules_dir, package_data_dir
-from libcuflynx.utilities.paths import default_module_config_user_dir, default_resources_dir
+from libcuflynx.utilities.package_resources import package_data_dir
+from libcuflynx.utilities.paths import default_resources_dir
+from libcuflynx.utilities.module_library import ModuleSources, collect_units, CELLML_1_1_NS
 
 generators_dir = os.path.dirname(__file__)
 # Build/run scripts copied alongside each generated model so it can be compiled/run
@@ -60,34 +61,12 @@ class CVS0DCellMLGenerator(object):
         else:
             self.resources_dir = inp_data_dict['resources_dir']
 
-        # The shipped module library is package data: located through importlib.resources so
-        # it resolves from a wheel install as well as from a checkout. A real directory path
-        # is needed here because the library is listed and its entries are mixed into one
-        # list of file paths with the user/external module directories below.
-        builtin_modules = builtin_modules_dir()
-        self.base_script = os.path.join(builtin_modules, 'base_script.cellml')
-
-
-        # `not startswith('._')` skips macOS AppleDouble sidecar files that also end in
-        # 'modules.cellml' but are binary and break the parser (issue #83).
-        self.module_scripts = [os.path.join(builtin_modules, filename) for filename in
-                               os.listdir(builtin_modules)
-                               if filename.endswith('modules.cellml') and not filename.startswith('._')]
-        # module_config_user/ is a checkout directory, not package data, and is absent in a
-        # pip install (#431/#432) -- so a missing one means "no user modules", not a crash.
-        module_config_user_dir = default_module_config_user_dir()
-        if os.path.isdir(module_config_user_dir):
-            self.module_scripts += [os.path.join(module_config_user_dir, filename) for filename in
-                                   os.listdir(module_config_user_dir)
-                                   if filename.endswith('modules.cellml') and not filename.startswith('._')]
-        if inp_data_dict['external_modules_dir'] is not None:
-            self.module_scripts += [os.path.join(self.inp_data_dict['external_modules_dir'], filename) for filename in
-                                os.listdir(os.path.join(self.inp_data_dict['external_modules_dir']))
-                                if filename.endswith('modules.cellml') and not filename.startswith('._')]
-        self.units_scripts = [os.path.join(builtin_modules, 'units.cellml')]
-        user_units_script = os.path.join(module_config_user_dir, 'user_units.cellml')
-        if os.path.isfile(user_units_script):
-            self.units_scripts.append(user_units_script)
+        # Built-in, module_config_user, external_modules_dir and module_library_dirs modules
+        # are gathered in one place so the config parser sees exactly the same set.
+        module_sources = ModuleSources(inp_data_dict)
+        self.base_script = module_sources.base_script
+        self.module_scripts = module_sources.cellml_files
+        self.units_scripts = module_sources.units_files
         self.all_parameters_defined = False
         self.BC_set = {}
         self.all_units = []
@@ -507,27 +486,17 @@ class CVS0DCellMLGenerator(object):
 
         output_path = os.path.join(self.output_dir, f'{self.file_prefix}_units.cellml')
 
-        def _write_units_file(wf):
-            for file_idx, units_script in enumerate(self.units_scripts):
-                # Concatenate the units models into one: only the first file contributes the
-                # xml declaration and <model> open, only the last one the </model> close.
-                # Stated as two independent conditions rather than a first/middle/last chain
-                # so a *single* units script (the pip-install case, where the checkout's
-                # module_config_user/user_units.cellml is absent -- #431) still gets closed.
-                is_first = file_idx == 0
-                is_last = file_idx == len(self.units_scripts) - 1
-                with open(units_script, 'r') as rf:
-                    for line_idx, line in enumerate(rf):
-                        if not is_first and line_idx in (0, 1):
-                            # don't repeat the first two lines
-                            continue
-                        if not is_last and line.startswith('</model>'):
-                            # don't close the model until the last file
-                            continue
+        # Units are merged from every units file in use; a unit defined identically in several
+        # files (e.g. one per module in a module library) is written once.
+        units_blocks = collect_units(self.units_scripts)
 
-                        wf.write(line)
-                        if "units name" in line:
-                            self.all_units.append(re.search('units name="(.*?)"', line).group(1))
+        def _write_units_file(wf):
+            wf.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+            wf.write(f'<model name="Units" xmlns="{CELLML_1_1_NS}" xmlns:cellml="{CELLML_1_1_NS}">\n')
+            for name, block in units_blocks:
+                wf.write(f'    {block}\n')
+                self.all_units.append(name)
+            wf.write('</model>\n')
 
         self._write_text_file_atomic(output_path, _write_units_file)
 

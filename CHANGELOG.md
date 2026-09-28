@@ -29,6 +29,24 @@ than `"sum"`/`"True"`). The C++ generator's 0D-1D coupling (`couple_to_1d`) does
 list-form ports and raises `NotImplementedError`. Plain C++ generation works from the generated
 CellML and is not affected. See *Designing a model* in the tutorial.
 
+### Added — `module_library_dirs` and `use_builtin_modules`
+
+Models can now be generated from an external module library laid out one module per
+directory, such as circulatory-autogen-modules (`modules/<name>/<name>_modules.cellml`,
+`<name>_modules_config.json`, `<name>_units.cellml`). `module_library_dirs` takes one path
+or a list, each searched recursively; only `*_modules_config.json` / `*_module_config.json`
+files are read as configs there, so parameter or obs_data JSON can sit next to a module.
+`use_builtin_modules: false` stops the built-in and `module_config_user` modules and units
+from loading, so a library can be the only source of modules and can redefine a built-in
+`(vessel_type, BC_type)` without the duplicate-entry exit. Both default to today's behaviour.
+
+### Fixed — units files in `external_modules_dir` are loaded
+
+The docs said a `user_units.cellml` in `external_modules_dir` was picked up; it was not.
+Every `*units.cellml` there (and in `module_library_dirs`) is now merged into the generated
+units file. A unit defined identically in several files is written once; one defined
+differently in two files raises a `ValueError` naming both files.
+
 ## 0.7.3 — 2026-09-05
 
 ### Changed! — `calculate_two_observable_difference` takes `subtract_from` / `subtract_this`
