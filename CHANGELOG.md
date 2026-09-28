@@ -32,6 +32,10 @@ differently in two files raises a `ValueError` naming both files.
 - A `sum` multi-port (e.g. a `volume_sum` vessel) with no inputs connected is now 0, with a
   warning naming the vessel, and is still mapped to the vessel's port variable. Generation used
   to fail with `IndexError: list index out of range` (#525).
+- The built-in constant boundary conditions (`inlet_pressure`, `outlet_pressure`, `inlet_flow`,
+  `outlet_flow` with BC_type `nn_constant`) list their port's flow / pressure variable in
+  `variables_and_units`, so they can be connected. Generation used to stop with "the port variable
+  v is not a variable for vessel type: inlet_pressure" (#529).
 
 ## 0.7.3 — 2026-09-05
 

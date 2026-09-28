@@ -4,6 +4,7 @@ Regression tests for generation bugs:
 - #526: ``model_type: python`` code calls libCellML helpers (``eq_func``, ``or_func``,
   ``min``, ``sec``, ...) that the generated utilities never defined.
 - #525: a ``sum`` multi-port (e.g. ``volume_sum``) with no inputs raised ``IndexError``.
+- #529: the constant pressure / flow BCs lacked their port variable in ``variables_and_units``.
 """
 import math
 import os
@@ -328,3 +329,63 @@ def test_empty_sum_multi_port_is_zero(tmp_path, capsys):
     np.testing.assert_array_equal(res['sum_blood_volume/q_extra_sum_sum'], 0.0)
     # The populated sum is untouched.
     assert np.all(res['sum_blood_volume/q_volume_sum_sum'] > 0.0)
+
+
+# ---------------------------------------------------------------------------------------
+# #529: the constant pressure / flow BCs can be connected
+# ---------------------------------------------------------------------------------------
+
+VESSEL_PARAMETERS = """\
+    R_va,Js_per_m6,1.0e7,test
+    C_va,m6_per_J,1.0e-8,test
+    I_va,Js2_per_m6,1.0e5,test
+    q_0_va,m3,0,test
+    u_0_va,J_per_m3,0,test
+    u_ext_va,J_per_m3,0,test
+    """
+
+
+@pytest.mark.integration
+def test_constant_flow_into_vessel_draining_to_constant_pressure(tmp_path):
+    """#529: inlet_flow / outlet_pressure nn_constant connect to a vessel. Generation used
+    to stop with "the port variable v is not a variable for vessel type: outlet_pressure"."""
+    generated_dir = _generate(
+        tmp_path, 'const_flow_bc',
+        """\
+        name,BC_type,vessel_type,inp_vessels,out_vessels
+        flow_in,nn_constant,inlet_flow,,va
+        va,vp,arterial_simple,flow_in,p_out
+        p_out,nn_constant,outlet_pressure,va,
+        """,
+        """\
+        variable_name,units,value,data_reference
+        v_flow_in,m3_per_s,1.0e-4,test
+        P_p_out,J_per_m3,666.0,test
+        """ + VESSEL_PARAMETERS)
+    _, res = _run(generated_dir / 'const_flow_bc.cellml', ['va/v', 'va/u'], sim_time=2.0)
+    # Steady state: the vessel passes the imposed inflow, at P_out + R v.
+    assert res['va/v'][-1] == pytest.approx(1.0e-4, rel=1e-3)
+    assert res['va/u'][-1] == pytest.approx(666.0 + 1.0e7 * 1.0e-4, abs=1.0)
+
+
+@pytest.mark.integration
+def test_constant_pressure_into_vessel_drained_by_constant_flow(tmp_path):
+    """#529: inlet_pressure / outlet_flow nn_constant connect to a vessel."""
+    generated_dir = _generate(
+        tmp_path, 'const_pressure_bc',
+        """\
+        name,BC_type,vessel_type,inp_vessels,out_vessels
+        p_in,nn_constant,inlet_pressure,,va
+        va,pv,arterial_simple,p_in,flow_out
+        flow_out,nn_constant,outlet_flow,va,
+        """,
+        """\
+        variable_name,units,value,data_reference
+        P_p_in,J_per_m3,12000.0,test
+        v_flow_out,m3_per_s,1.0e-4,test
+        """ + VESSEL_PARAMETERS)
+    _, res = _run(generated_dir / 'const_pressure_bc.cellml', ['va/v', 'va/u'], sim_time=2.0)
+    # Steady state: the vessel carries the imposed outflow, at P_in - R v.
+    assert res['va/v'][-1] == pytest.approx(1.0e-4, rel=1e-3)
+    assert res['va/u'][-1] == pytest.approx(12000.0 - 1.0e7 * 1.0e-4, abs=1.0)
+
