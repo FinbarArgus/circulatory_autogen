@@ -36,6 +36,7 @@ from libcuflynx.param_id.modifier_funcs import (BUILTIN_MODIFIER_FUNCS, get_modi
 # and that finalise aborts on macOS when a NIC goes away (#396). mpi_utils
 # answers without opening MPI when nothing launched this process.
 from libcuflynx.utilities import mpi_utils as _mpi_utils
+from libcuflynx.utilities.module_library import as_dir_list
 from libcuflynx.utilities.paths import (default_generated_models_dir, default_funcs_user_dir,
                                         default_param_id_output_dir, default_resources_dir,
                                         default_sensitivity_outputs_dir, default_user_inputs_dir,
@@ -2583,7 +2584,22 @@ class YamlFileParser(object):
             if not os.path.exists(inp_data_dict['external_modules_dir']):
                 print(f'external_modules_dir={inp_data_dict["external_modules_dir"]} does not exist')
                 exit()
-        
+
+        # module_library_dirs: one path or a list, each searched recursively for modules;
+        # relative paths are relative to the user_inputs.yaml directory, like external_modules_dir.
+        module_library_dirs = []
+        for library_dir in as_dir_list(inp_data_dict.get('module_library_dirs')):
+            if not os.path.isabs(library_dir):
+                library_dir = os.path.join(user_files_dir, library_dir)
+            if not os.path.isdir(library_dir):
+                print(f'module_library_dirs entry {library_dir} does not exist')
+                exit()
+            module_library_dirs.append(library_dir)
+        inp_data_dict['module_library_dirs'] = module_library_dirs or None
+
+        if inp_data_dict.get('use_builtin_modules') is None:
+            inp_data_dict['use_builtin_modules'] = True
+
         # for sensitivity analysis and parameter identification
         if not 'sa_options' in inp_data_dict.keys():
             inp_data_dict['sa_options'] = None
@@ -3144,6 +3160,14 @@ class JSONFileParser(object):
         # macOS writes AppleDouble '._<name>.json' sidecar files on non-native partitions; they
         # match '.json' but are binary and blow up json.load, so skip them here (issue #83).
         return file.endswith('.json') and not file.startswith('._')
+
+    def json_files_to_dataframe(self, json_files):
+        """All module config entries from ``json_files``, in order, as one dataframe."""
+        dfs = [self.json_to_dataframe(path) for path in json_files]
+        if not dfs:
+            raise ValueError('No module config JSON files were found: check use_builtin_modules, '
+                             'external_modules_dir and module_library_dirs')
+        return pd.concat(dfs, ignore_index=True)
 
     def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir, external_modules_dir):
         dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
