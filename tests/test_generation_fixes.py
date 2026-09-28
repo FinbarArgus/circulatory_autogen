@@ -3,6 +3,7 @@ Regression tests for generation bugs:
 
 - #526: ``model_type: python`` code calls libCellML helpers (``eq_func``, ``or_func``,
   ``min``, ``sec``, ...) that the generated utilities never defined.
+- #525: a ``sum`` multi-port (e.g. ``volume_sum``) with no inputs raised ``IndexError``.
 """
 import math
 import os
@@ -14,6 +15,13 @@ import pytest
 from libcuflynx.generators.PythonGenerator import PythonGenerator
 from libcuflynx.scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from libcuflynx.solver_wrappers import get_simulation_helper
+
+REPO_RESOURCES_DIR = os.path.join(os.path.dirname(__file__), '..', 'resources')
+
+
+def _read_resource(filename):
+    with open(os.path.join(REPO_RESOURCES_DIR, filename)) as f:
+        return f.read()
 
 
 def _generate(tmp_path, prefix, vessel_array, parameters, model_type='cellml',
@@ -291,3 +299,32 @@ def test_casadi_helpers_accept_symbolic_arguments():
     for name in ('sec', 'acoth'):
         f = ca.Function(name, [x], [ours[name](x)])
         assert math.isclose(float(f(2.0)), _helper_namespace()[name](2.0))
+
+
+# ---------------------------------------------------------------------------------------
+# #525: an empty 'sum' multi-port is 0
+# ---------------------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_empty_sum_multi_port_is_zero(tmp_path, capsys):
+    """#525: a volume_sum with nothing connected generates, is mapped to its vessel, and is
+    0, with a warning naming the vessel. It used to raise ``IndexError``."""
+    vessel_array = _read_resource('3compartment_vessel_array.csv').rstrip('\n') + \
+        '\nextra_sum, nn, volume_sum, , \n'
+    generated_dir = _generate(tmp_path, 'empty_sum', vessel_array,
+                              _read_resource('3compartment_parameters.csv'))
+    warnings = [line for line in capsys.readouterr().out.splitlines() if 'WARNING' in line]
+    assert any('extra_sum' in line for line in warnings), warnings
+
+    model_text = (generated_dir / 'empty_sum.cellml').read_text()
+    assert '<cn cellml:units="m3">0</cn>' in model_text
+    # ... and the sum is still mapped to the vessel's port variable.
+    assert 'variable_1="q_extra_sum_sum" variable_2="q"' in model_text
+
+    # Myokit merges connected variables, so read the sums where they are computed.
+    _, res = _run(generated_dir / 'empty_sum.cellml',
+                  ['sum_blood_volume/q_extra_sum_sum', 'sum_blood_volume/q_volume_sum_sum'],
+                  sim_time=0.1)
+    np.testing.assert_array_equal(res['sum_blood_volume/q_extra_sum_sum'], 0.0)
+    # The populated sum is untouched.
+    assert np.all(res['sum_blood_volume/q_volume_sum_sum'] > 0.0)

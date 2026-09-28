@@ -29,6 +29,9 @@ differently in two files raises a `ValueError` naming both files.
   Python profile can emit: `eq_func`, `neq_func`, `or_func`, `xor_func`, `not_func`, `min` and
   the reciprocal trig functions `sec` ... `acoth`. A model using `<eq/>`, `<or/>`, `<min/>` etc.
   used to fail at run time with `NameError: name 'eq_func' is not defined` (#526).
+- A `sum` multi-port (e.g. a `volume_sum` vessel) with no inputs connected is now 0, with a
+  warning naming the vessel, and is still mapped to the vessel's port variable. Generation used
+  to fail with `IndexError: list index out of range` (#525).
 
 ## 0.7.3 — 2026-09-05
 

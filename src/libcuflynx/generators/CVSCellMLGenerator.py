@@ -1920,21 +1920,23 @@ class CVS0DCellMLGenerator(object):
                         vess_to_sum_names.append(inp_vessel_names)
 
                         if len(inp_vessel_names) == 0:
-                            pass
-                        else:
-                            # map volume
-                            for inp_vessel_idx in range(len(inp_vessel_names)):
-                                q_1 = inp_variable_names[inp_vessel_idx]
-                                inp_vessel_name = inp_vessel_names[inp_vessel_idx]
-                                q_2 = f'q_{inp_vessel_name}'
-                                self.__write_mapping(wf, inp_vessel_name+'_module', 'sum_blood_volume', [q_1], [q_2])
+                            # An empty sum is 0 (see the equations below); it is still
+                            # mapped to the vessel so the port variable is defined (#525).
+                            print(f'WARNING: {sum_vess_name} has a "sum" multi_port '
+                                  f'({port_type}) with no inputs connected; its sum is set to 0.')
+                        # map volume
+                        for inp_vessel_idx in range(len(inp_vessel_names)):
+                            q_1 = inp_variable_names[inp_vessel_idx]
+                            inp_vessel_name = inp_vessel_names[inp_vessel_idx]
+                            q_2 = f'q_{inp_vessel_name}'
+                            self.__write_mapping(wf, inp_vessel_name+'_module', 'sum_blood_volume', [q_1], [q_2])
 
-                            # then map volume
-                            # q_1 = f'q_{sum_vess_name}'
-                            # q_2 = sum_vess_variable add _sum to change the name
-                            q_1 = f'q_{sum_vess_name}_sum'
-                            q_2 = sum_vess_variable
-                            self.__write_mapping(wf, 'sum_blood_volume', sum_vess_name+'_module', [q_1], [q_2])
+                        # then map volume
+                        # q_1 = f'q_{sum_vess_name}'
+                        # q_2 = sum_vess_variable add _sum to change the name
+                        q_1 = f'q_{sum_vess_name}_sum'
+                        q_2 = sum_vess_variable
+                        self.__write_mapping(wf, 'sum_blood_volume', sum_vess_name+'_module', [q_1], [q_2])
 
         # create computation environment for connection and write the variable definition 
         # and calculation of total blood volume in the whole system or in specific portions of it
@@ -1960,7 +1962,10 @@ class CVS0DCellMLGenerator(object):
             for inp_vess_name in vess_to_sum_names[idx_sum]:
                 rhs_variables.append(f'q_{inp_vess_name}')
 
-            self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+            if rhs_variables:
+                self.__write_variable_sum(wf, lhs_variable, rhs_variables)
+            else:
+                self.__write_zero_value(wf, lhs_variable, vol_units)
 
         wf.write('</component>\n')
 
@@ -2423,6 +2428,16 @@ class CVS0DCellMLGenerator(object):
 
         wf.write('   </apply>\n')
         wf.write('</math>\n')
+
+    def __write_zero_value(self, wf, lhs_variable, units):
+        """Write ``lhs_variable = 0`` with the zero in ``units``."""
+        wf.writelines('<math xmlns="http://www.w3.org/1998/Math/MathML">\n'
+                      '   <apply>\n'
+                      '       <eq/>\n'
+                      f'       <ci>{lhs_variable}</ci>\n'
+                      f'       <cn cellml:units="{units}">0</cn>\n'
+                      '   </apply>\n'
+                      '</math>\n')
 
     def __write_variable_average(self, wf, lhs_variable, rhs_variables_to_average, rhs_variables_weighting):
         """ writes the cellml code for averaging variables with weighting. Designed for getting an equivalent
