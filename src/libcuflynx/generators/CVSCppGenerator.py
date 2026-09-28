@@ -14,6 +14,7 @@ from sys import exit
 generators_dir_path = os.path.dirname(__file__)
 from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.generators.CVSCellMLGenerator import CVS0DCellMLGenerator
+from libcuflynx.generators.multi_port import module_has_list_multi_port
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser
 from libcuflynx.generators.Python1DModelFilesGenerator import generate1DPythonModelFiles, generate1DPythonSimInitFile
 from libcuflynx.utilities.package_resources import generator_template
@@ -77,6 +78,14 @@ class CVS0DCppGenerator(object):
         self.cellml_model = None 
         self.couple_to_1d = couple_to_1d
         self.couple_volume_sum = False
+        if self.couple_to_1d and getattr(model, 'vessels_df', None) is not None and \
+                any(module_has_list_multi_port(row) for _, row in model.vessels_df.iterrows()):
+            # the 0D-1D coupling reads port variables straight from the module config
+            # (annotate_cellml) and knows nothing of per-variable multi_port semantics
+            raise NotImplementedError(
+                'List-form (per-variable) multi_port is not supported when coupling the C++ '
+                'model to a 1D model (couple_to_1d). Use string-form multi_port there, or '
+                'generate without 1D coupling.')
         if self.couple_to_1d:
             self.output_cpp_file_name = "model0d" # always the same, independent of model name, 
                                                     # to allow for coupling to cpp 1d model.
