@@ -5,6 +5,7 @@ Regression tests for generation bugs:
   ``min``, ``sec``, ...) that the generated utilities never defined.
 - #525: a ``sum`` multi-port (e.g. ``volume_sum``) with no inputs raised ``IndexError``.
 - #529: the constant pressure / flow BCs lacked their port variable in ``variables_and_units``.
+- #524: generic junctions left out neighbours whose BC_type starts with ``nn`` (e.g. constant BCs).
 """
 import math
 import os
@@ -389,3 +390,70 @@ def test_constant_pressure_into_vessel_drained_by_constant_flow(tmp_path):
     assert res['va/v'][-1] == pytest.approx(1.0e-4, rel=1e-3)
     assert res['va/u'][-1] == pytest.approx(12000.0 - 1.0e7 * 1.0e-4, abs=1.0)
 
+
+# ---------------------------------------------------------------------------------------
+# #524: generic junctions include boundary-condition neighbours
+# ---------------------------------------------------------------------------------------
+
+# Min_junction vp geometry and wall law as in circulatory-autogen-modules (modules/BG,
+# Min_junction vp), with the library's test viscosity/density (mu = rho = 1) so the
+# resistive pressure drop across the junction is large enough to check.
+JUNCTION_PARAMETERS = """\
+    variable_name,units,value,data_reference
+    v_inflow_a,m3_per_s,4.0e-5,test
+    v_inflow_b,m3_per_s,7.0e-5,test
+    P_outp,J_per_m3,12665.6,test
+    u_0_junc,J_per_m3,10640.0,test
+    u_ext_junc,J_per_m3,0.0,test
+    theta_junc,dimensionless,90.0,test
+    E_junc,J_per_m3,4.0e5,test
+    l_junc,metre,0.014796,test
+    r_0_junc,metre,0.0133364,test
+    mu,Js_per_m3,1.0,test
+    rho,Js2_per_m5,1.0,test
+    g,m_per_s2,9.81,test
+    beta_g,dimensionless,0.0,test
+    a_vessel,dimensionless,0.2802,test
+    b_vessel,per_m,-505.3,test
+    c_vessel,dimensionless,0.1324,test
+    d_vessel,per_m,-11.14,test
+    """
+
+
+@pytest.mark.integration
+def test_min_junction_fed_by_boundary_conditions(tmp_path):
+    """#524: a Min_junction whose inlet node is two constant-inflow BCs (BC_type
+    nn_constant) generates and runs. It used to stop with "Min_junction junc has NO other
+    vessels connected to its inlet node"."""
+    generated_dir = _generate(
+        tmp_path, 'junction_bc',
+        """\
+        name,BC_type,vessel_type,inp_vessels,out_vessels
+        inflow_a,nn_constant,inlet_flow,,junc
+        inflow_b,nn_constant,inlet_flow,,junc
+        junc,vp,Min_junction,inflow_a inflow_b,outp
+        outp,nn_constant,outlet_pressure,junc,
+        """,
+        JUNCTION_PARAMETERS)
+
+    model_text = (generated_dir / 'junction_bc.cellml').read_text()
+    # Each BC's port flow goes into the junction's flow sum, and the junction's pressure
+    # to each BC's port pressure.
+    for bc in ('inflow_a', 'inflow_b'):
+        assert f'variable_1="v" variable_2="v_{bc}_Min"' in model_text
+        assert (f'<map_components component_1="junc_module" component_2="{bc}_module"/>\n'
+                f'   <map_variables variable_1="u" variable_2="P"/>') in model_text
+
+    # Myokit merges connected variables, so the junction's inflow v_in_sum is read where
+    # it is computed.
+    v_in_sum = 'generic_junction_connection/v_junc_sum_Min'
+    _, res = _run(generated_dir / 'junction_bc.cellml',
+                  ['junc/v', 'junc/u', 'junc/R', v_in_sum], sim_time=1.0)
+    v_sum = 4.0e-5 + 7.0e-5
+    np.testing.assert_allclose(res[v_in_sum], v_sum, rtol=1e-12)
+    # Steady state: the junction passes the summed inflow, at P_out + R v.
+    assert res['junc/v'][-1] == pytest.approx(v_sum, rel=1e-4)
+    R = 8 * 1.0 * 0.014796 / (np.pi * 0.0133364 ** 4)
+    np.testing.assert_allclose(res['junc/R'], R, rtol=1e-10)
+    assert R * v_sum > 100.0  # the drop is well above the tolerance below
+    assert res['junc/u'][-1] == pytest.approx(12665.6 + R * v_sum, abs=0.1)

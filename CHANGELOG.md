@@ -36,6 +36,11 @@ differently in two files raises a `ValueError` naming both files.
   `outlet_flow` with BC_type `nn_constant`) list their port's flow / pressure variable in
   `variables_and_units`, so they can be connected. Generation used to stop with "the port variable
   v is not a variable for vessel type: inlet_pressure" (#529).
+- Generic junctions (`Min_junction`, `Nout_junction`, `MinNout_junction`) now include every
+  neighbour with a `vessel_port` facing the junction node, taking its flow and pressure from that
+  port, instead of skipping any neighbour whose BC_type starts with `nn`. A junction fed directly by
+  boundary conditions such as `inlet_flow nn_constant` used to fail with "Min_junction junc has NO
+  other vessels connected to its inlet node". Existing models generate byte-identical CellML (#524).
 
 ## 0.7.3 — 2026-09-05
 
