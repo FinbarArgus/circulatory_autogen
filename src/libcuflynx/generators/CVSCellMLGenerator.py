@@ -32,7 +32,8 @@ except ImportError as e:
     LIBCELLML_available = False
 
 from libcuflynx.utilities.utility_funcs import UnitConverter
-from libcuflynx.generators.multi_port import (MULTI_PORT_SUM, is_multi_port, list_multi_port)
+from libcuflynx.generators.multi_port import (MULTI_PORT_SUM, MULTI_PORT_MULTIPLY, is_multi_port,
+                                              is_multiply_port, list_multi_port, multiply_factor)
 
 
 class CVS0DCellMLGenerator(object):
@@ -79,9 +80,11 @@ class CVS0DCellMLGenerator(object):
         self.unit_converter_components = []
         self.unit_converter = UnitConverter()
 
-        # List-form multi_port "sum" entries (see generators/multi_port.py), filled while the
-        # module mappings are written:
-        # {(module, variable): {'units': ..., 'terms': [(neighbour, neighbour_variable, units), ...]}}
+        # List-form multi_port "sum" entries and "Multiply" targets (see generators/multi_port.py),
+        # filled while the module mappings are written:
+        # {(module, variable): {'kind': 'sum' | 'Multiply', 'units': ...,
+        #                       'terms': [(neighbour, neighbour_variable, units, factor), ...]}}
+        # factor is None, or the multiply_factor of a Multiply port the term comes through.
         self._multiport_sums = {}
 
     def generate_files(self):
@@ -878,7 +881,8 @@ class CVS0DCellMLGenerator(object):
                     # precedence over the legacy junction/terminal special cases below.
                     uses_list_multi_port = entrance_port_idx != -2 and (
                         list_multi_port(module_exit_general_ports[out_port_idx]) is not None or
-                        list_multi_port(out_module_entrance_general_ports[entrance_port_idx]) is not None)
+                        list_multi_port(out_module_entrance_general_ports[entrance_port_idx]) is not None or
+                        is_multiply_port(module_exit_general_ports[out_port_idx]))
 
                     if uses_list_multi_port:
                         if module_row['module_format'] == 'cellml' and out_module_row['module_format'] == 'cellml':
@@ -1054,10 +1058,12 @@ class CVS0DCellMLGenerator(object):
                             variables_1 = module_exit_general_ports[out_port_idx]['variables']
                             variables_2 = out_module_entrance_general_ports[entrance_port_idx]['variables']
 
-                            # a list-form multi_port on either side decides the mapping per variable
+                            # a list-form multi_port on either side, or a Multiply port on this
+                            # (upstream) side, decides the mapping per variable
                             # (see generators/multi_port.py)
                             if (list_multi_port(module_exit_general_ports[out_port_idx]) is not None or
-                                    list_multi_port(out_module_entrance_general_ports[entrance_port_idx]) is not None):
+                                    list_multi_port(out_module_entrance_general_ports[entrance_port_idx]) is not None or
+                                    is_multiply_port(module_exit_general_ports[out_port_idx])):
                                 if module_row['module_format'] == 'cellml' and out_module_row['module_format'] == 'cellml':
                                     self.__map_list_multi_port_pair(
                                         main_module, out_module,
@@ -1133,21 +1139,28 @@ class CVS0DCellMLGenerator(object):
 
     def __map_list_multi_port_pair(self, main_module, out_module, main_port, out_port,
                                    variables_1, variables_2, pending_mappings):
-        """Map one port pair where either side has a list-form multi_port.
+        """Map one port pair where either side has a list-form multi_port, or ``main_port`` is
+        a Multiply port.
 
         ``main_port`` is the exit/general port of ``main_module`` (variables_1) and
         ``out_port`` the entrance/general port of ``out_module`` (variables_2); variables pair
         by position, as in a plain one-to-one mapping. A "sum" entry registers the neighbour's
         variable as a term of the generated multiport sum component instead of mapping it
-        directly; every other variable is mapped directly (so a "True" variable ends up mapped
-        to every neighbour).
+        directly. A Multiply ``main_port`` (upstream side) sets the neighbour's variable to
+        multiply_factor times ``main_module``'s, or, if the neighbour's variable is a "sum",
+        adds that scaled value as one of its terms. A Multiply ``out_port`` (downstream side)
+        is mapped like "True", as in PhLynx. Every other variable is mapped directly (so a
+        "True" variable ends up mapped to every neighbour).
         """
         if len(variables_1) != len(variables_2):
             raise ValueError(
                 f'Cannot connect port "{main_port.get("port_type")}" of "{main_module}" '
                 f'{list(variables_1)} to "{out_module}" {list(variables_2)}: a port with a '
                 f'list-form multi_port needs the same number of variables on both sides.')
-        entries_1 = list_multi_port(main_port) or [None] * len(variables_1)
+        if is_multiply_port(main_port):
+            entries_1 = [MULTI_PORT_MULTIPLY] * len(variables_1)
+        else:
+            entries_1 = list_multi_port(main_port) or [None] * len(variables_1)
         entries_2 = list_multi_port(out_port) or [None] * len(variables_2)
 
         direct_1, direct_2 = [], []
@@ -1157,7 +1170,14 @@ class CVS0DCellMLGenerator(object):
                     f'"{main_module}" variable "{var_1}" and "{out_module}" variable "{var_2}" '
                     f'are both marked "sum" in their multi_port lists; only one side of a '
                     f'connection can sum over its neighbours.')
-            if entry_1 == MULTI_PORT_SUM:
+            if entry_1 == MULTI_PORT_MULTIPLY:
+                factor = multiply_factor(main_port)
+                if entry_2 == MULTI_PORT_SUM:
+                    self.__add_multiport_sum_term(out_module, var_2, main_module, var_1, factor=factor)
+                else:
+                    self.__add_multiport_sum_term(out_module, var_2, main_module, var_1, factor=factor,
+                                                  kind=MULTI_PORT_MULTIPLY)
+            elif entry_1 == MULTI_PORT_SUM:
                 self.__add_multiport_sum_term(main_module, var_1, out_module, var_2)
             elif entry_2 == MULTI_PORT_SUM:
                 self.__add_multiport_sum_term(out_module, var_2, main_module, var_1)
@@ -1172,8 +1192,8 @@ class CVS0DCellMLGenerator(object):
             pending_mappings[key][0].extend(direct_1)
             pending_mappings[key][1].extend(direct_2)
 
-    def __register_multiport_sum(self, module, variable):
-        """The registry entry of a "sum" variable, created on first use.
+    def __register_multiport_sum(self, module, variable, kind=MULTI_PORT_SUM):
+        """The registry entry of a "sum" variable (or a Multiply target), created on first use.
 
         Units are looked up now, while the module mappings are written: the BC variables that
         get connected are removed from variables_and_units at the end of that step.
@@ -1182,17 +1202,30 @@ class CVS0DCellMLGenerator(object):
         if key not in self._multiport_sums:
             units = self.get_variable_unit_from_component(module, variable)
             if units == 'not found':
-                raise ValueError(f'Cannot find the units of multi_port "sum" variable "{variable}" '
+                raise ValueError(f'Cannot find the units of multi_port "{kind}" variable "{variable}" '
                                  f'of "{module}" in its variables_and_units.')
-            self._multiport_sums[key] = {'units': units, 'terms': []}
+            self._multiport_sums[key] = {'kind': kind, 'units': units, 'terms': []}
+        elif self._multiport_sums[key]['kind'] != kind:
+            raise ValueError(
+                f'"{module}" variable "{variable}" is both a multi_port "sum" and the target of a '
+                f'"Multiply" port through a port that is not a "sum"; it can only be one of them.')
         return self._multiport_sums[key]
 
-    def __add_multiport_sum_term(self, module, variable, neighbour, neighbour_variable):
-        entry = self.__register_multiport_sum(module, variable)
+    def __add_multiport_sum_term(self, module, variable, neighbour, neighbour_variable, factor=None,
+                                 kind=MULTI_PORT_SUM):
+        """Add ``neighbour_variable`` of ``neighbour`` (times ``factor``, if given) as a term of
+        ``module``'s ``variable``: a "sum" term, or, for ``kind=MULTI_PORT_MULTIPLY``, its only term."""
+        entry = self.__register_multiport_sum(module, variable, kind=kind)
         if neighbour_variable in ['', None, 'None', 'none']:
             return
         if any(term[:2] == (neighbour, neighbour_variable) for term in entry['terms']):
             return
+        if kind == MULTI_PORT_MULTIPLY and entry['terms']:
+            other, other_variable = entry['terms'][0][:2]
+            raise ValueError(
+                f'"{module}" variable "{variable}" is set through "Multiply" ports by both '
+                f'"{other}" ("{other_variable}") and "{neighbour}" ("{neighbour_variable}"). '
+                f'Make its port a multi_port "sum" to add them.')
         neighbour_units = self.get_variable_unit_from_component(neighbour, neighbour_variable)
         if neighbour_units == 'not found':
             raise ValueError(
@@ -1207,7 +1240,7 @@ class CVS0DCellMLGenerator(object):
                     f'multi_port "sum" of "{variable}" ({entry["units"]}) of "{module}": the term '
                     f'"{neighbour_variable}" of "{neighbour}" has units {neighbour_units}, which '
                     f'cannot be converted to {entry["units"]}. {e}') from e
-        entry['terms'].append((neighbour, neighbour_variable, neighbour_units))
+        entry['terms'].append((neighbour, neighbour_variable, neighbour_units, factor))
 
     def __register_unconnected_multiport_sums(self, module_df):
         """Register a zero sum (with a warning) for list-form "sum" variables with no neighbour."""
@@ -1231,25 +1264,32 @@ class CVS0DCellMLGenerator(object):
                         self.BC_set[module][variable] = True
 
     def __write_multiport_sum_comps(self, wf):
-        """Write one algebraic component per list-form multi_port "sum" variable.
+        """Write one algebraic component per multi_port "sum" variable and "Multiply" target.
 
         ``multiport_sum_<module>_<variable>`` computes the module's variable as the sum of the
         corresponding variable of every neighbour connected through the port, converting each
         term to the module variable's units (a neighbour in different units is scaled by the
-        factor the UnitConverter gives; incompatible units are an error).
+        factor the UnitConverter gives; incompatible units are an error). A term that comes
+        through a "Multiply" port is also multiplied by that port's multiply_factor.
+
+        ``multiport_multiply_<module>_<variable>`` computes the module's variable as
+        multiply_factor times the variable of the upstream module whose "Multiply" port it is
+        connected to.
         """
         if not self._multiport_sums:
             return
         self.__write_section_break(wf, 'multiport sums')
         for (module, variable), entry in self._multiport_sums.items():
-            comp_name = f'multiport_sum_{module}_{variable}'
+            prefix = 'multiport_multiply' if entry['kind'] == MULTI_PORT_MULTIPLY else 'multiport_sum'
+            comp_name = f'{prefix}_{module}_{variable}'
             units = entry['units']
 
             term_names = []
             term_units = []
             term_scales = []
+            term_factors = []
             used_names = {variable}
-            for neighbour, neighbour_variable, neighbour_units in entry['terms']:
+            for neighbour, neighbour_variable, neighbour_units, factor in entry['terms']:
                 if neighbour_units == units:
                     scale = None
                 else:
@@ -1263,6 +1303,7 @@ class CVS0DCellMLGenerator(object):
                 term_names.append(term_name)
                 term_units.append(neighbour_units)
                 term_scales.append(scale)
+                term_factors.append(factor)
                 self._add_connection(neighbour + '_module', comp_name, [(neighbour_variable, term_name)])
 
             wf.write(f'<component name="{comp_name}">\n')
@@ -1273,12 +1314,14 @@ class CVS0DCellMLGenerator(object):
                           '       <eq/>\n'
                           f'       <ci>{variable}</ci>\n')
             term_strs = []
-            for term_name, scale in zip(term_names, term_scales):
-                if scale is None:
+            for term_name, scale, factor in zip(term_names, term_scales, term_factors):
+                if scale is None and factor is None:
                     term_strs.append(f'<ci>{term_name}</ci>')
                 else:
-                    term_strs.append(f'<apply><times/><cn cellml:units="dimensionless">{scale!r}</cn>'
-                                     f'<ci>{term_name}</ci></apply>')
+                    # multiply_factor and unit scale factor, as dimensionless constants
+                    constants = ''.join(f'<cn cellml:units="dimensionless">{number!r}</cn>'
+                                        for number in (factor, scale) if number is not None)
+                    term_strs.append(f'<apply><times/>{constants}<ci>{term_name}</ci></apply>')
             if len(term_strs) == 0:
                 wf.write(f'       <cn cellml:units="{units}">0</cn>\n')
             elif len(term_strs) == 1:
