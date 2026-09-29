@@ -31,7 +31,6 @@ here exist only for the case where the config supplies nothing.
 import os
 
 __all__ = [
-    'external_modules_dirs',
     'CUFLYNX_USER_DIR_ENV_VAR',
     'package_dir',
     'repo_root',
@@ -145,15 +144,3 @@ def default_funcs_user_dir():
     """
     return os.path.join(user_data_root(), 'funcs_user')
 
-
-def external_modules_dirs(value):
-    """The ``external_modules_dir`` setting as a list of directories.
-
-    The setting is a single directory or a list of them (e.g. a repo's own module folder plus its
-    module_config_user/); None means none.
-    """
-    if value is None:
-        return []
-    if isinstance(value, (list, tuple)):
-        return [v for v in value if v is not None]
-    return [value]

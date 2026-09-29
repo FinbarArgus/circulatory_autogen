@@ -5,6 +5,53 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Changed! — `model_type: cpp` is generated from libCellML's C output and Jinja2 templates
+
+The C++ generator is rewritten (`libcuflynx/generators/cpp/`). The model equations are
+libCellML's C code, written unmodified (`model0d_core.c/.h`); the `Model0d` class, the solvers,
+`main0d` and a `CMakeLists.txt` are rendered from templates. Build with CMake (add
+`-DSUNDIALS_DIR=<prefix>` if SUNDIALS isn't found; versions 5-7 work). Solvers are CVODE and the
+fixed-step RK4/Heun/midpoint/explEul; **PETSC is no longer supported** and is refused with an
+error. Generated models no longer get the `solver1d/Make_files` copied next to them (they built
+the old C++), and the coupler builds with CMake. FV_1d coupled output is identical to before.
+
+### Added — `api` blocks: couplings to other models described in module configs
+
+A module config entry can carry an `api` block. `role: consumer` describes calls the generated
+C++ makes (the FV 1D named-pipe protocol is now described this way in
+`coupling_modules_config.json`); `role: provider` generates a C++ class another program calls,
+e.g. a drop-in `lifex::Circulation`. A provider is its own vessel-array row
+(`module_format: external_api`) coupled to CellML modules through ports; values it sets become
+libCellML external variables. `external_modules_dir` also accepts a list of directories.
+
+### Fixed — cpp generation and 1D coupling
+
+- `model_type: cpp` with CVODE always failed solver-settings validation.
+- Models with more than one delay variable did not compile; delays now use a time-stamped
+  history that works with variable CVODE steps.
+- 1D volume sum: the 1D solver opened its volume pipe in an order that deadlocked with the
+  coupler, and sent the volume in cm³ instead of m³.
+- 1D input generation wrote an unknown artery/vein type for vessels not named `A_*`/`V_*`;
+  an `art_ven_type_<vessel>` parameter now sets it.
+
+### Added — `module_library_dirs` and `use_builtin_modules`
+
+Models can now be generated from an external module library laid out one module per
+directory, such as circulatory-autogen-modules (`modules/<name>/<name>_modules.cellml`,
+`<name>_modules_config.json`, `<name>_units.cellml`). `module_library_dirs` takes one path
+or a list, each searched recursively; only `*_modules_config.json` / `*_module_config.json`
+files are read as configs there, so parameter or obs_data JSON can sit next to a module.
+`use_builtin_modules: false` stops the built-in and `module_config_user` modules and units
+from loading, so a library can be the only source of modules and can redefine a built-in
+`(vessel_type, BC_type)` without the duplicate-entry exit. Both default to today's behaviour.
+
+### Fixed — units files in `external_modules_dir` are loaded
+
+The docs said a `user_units.cellml` in `external_modules_dir` was picked up; it was not.
+Every `*units.cellml` there (and in `module_library_dirs`) is now merged into the generated
+units file. A unit defined identically in several files is written once; one defined
+differently in two files raises a `ValueError` naming both files.
+
 ## 0.7.3 — 2026-09-05
 
 ### Changed! — `calculate_two_observable_difference` takes `subtract_from` / `subtract_this`

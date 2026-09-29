@@ -8,7 +8,6 @@ Created on 29/10/2021
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from libcuflynx.models.LumpedModels import CVS0DModel
 from libcuflynx.checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
-from libcuflynx.utilities.package_resources import builtin_modules_dir
 from libcuflynx.generators.cpp.api import validate_module_config_apis
 import pandas as pd
 import numpy as np
@@ -16,7 +15,7 @@ import json
 import re
 import os
 
-from libcuflynx.utilities.paths import default_module_config_user_dir
+from libcuflynx.utilities.module_library import ModuleSources
 
 # The columns a {prefix}_parameters.csv must provide. They are looked up by header name, so a file
 # may list them in any order and may carry extra columns (FTU_wCVS_parameters.csv has a 'comp_env'
@@ -41,12 +40,9 @@ class CSV0DModelParser(object):
         self.parameter_filename = inp_data_dict['parameters_csv_abs_path']
         self.external_modules_dir = inp_data_dict['external_modules_dir']
         self.parameter_id_dir = parameter_id_dir
-        # The built-in module configs are package data, so they are located through
-        # importlib.resources; json_to_dataframe_with_user_dir() lists the directory, so a
-        # real path is needed rather than a Traversable (#432). The user dir is a checkout
-        # directory resolved outside the package (#431).
-        self.module_config_dir = builtin_modules_dir()
-        self.module_config_user_dir = default_module_config_user_dir()
+        # Built-in, module_config_user, external_modules_dir and module_library_dirs configs;
+        # the CellML generator resolves its module files from the same ModuleSources.
+        self.module_sources = ModuleSources(inp_data_dict)
         self.csv_parser = CSVFileParser()
         self.json_parser = JSONFileParser()
 
@@ -446,7 +442,7 @@ class CSV0DModelParser(object):
             exit()
 
 
-        module_df = self.json_parser.json_to_dataframe_with_user_dir(self.module_config_dir, self.module_config_user_dir, self.external_modules_dir)
+        module_df = self.json_parser.json_files_to_dataframe(self.module_sources.config_files)
         
         # Check for repeated entries of vessel_type and BC_type in module_df
         duplicates = module_df[module_df.duplicated(subset=["vessel_type", "BC_type"], keep=False)]

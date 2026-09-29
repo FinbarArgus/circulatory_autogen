@@ -76,9 +76,12 @@ def test_builtin_modules_dir_is_a_real_directory():
 @pytest.mark.unit
 def test_generator_uses_the_packaged_library():
     """The generator's own lookup must land in the package, not in a sibling checkout."""
-    from libcuflynx.generators import CVSCellMLGenerator
+    from libcuflynx.utilities.module_library import ModuleSources
 
-    assert os.path.isfile(os.path.join(CVSCellMLGenerator.builtin_modules_dir(), 'units.cellml'))
+    sources = ModuleSources({})
+    assert os.path.isfile(sources.base_script)
+    assert os.path.isfile(sources.units_files[0])
+    assert os.path.samefile(os.path.dirname(sources.units_files[0]), builtin_modules_dir())
 
 
 @pytest.mark.unit
