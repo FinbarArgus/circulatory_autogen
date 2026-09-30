@@ -24,6 +24,15 @@ e.g. a drop-in `lifex::Circulation`. A provider is its own vessel-array row
 (`module_format: external_api`) coupled to CellML modules through ports; values it sets become
 libCellML external variables. `external_modules_dir` also accepts a list of directories.
 
+### Added — readable generated C/C++
+
+Generated C code names every state and variable index: `rates[S_heart_module_q_lv] =
+(variables[V_parameters_r_pvn] ...)` instead of `rates[3] = (variables[12] ...)`.
+`model0d_core.h` declares the `StateIndex`/`VariableIndex` enums, with each name's component,
+variable, units and type, and the wrapper, pipe hooks and api classes use the same names. The
+names are the generated Python's attribute names (shared `generators/naming.py`). Results are
+unchanged.
+
 ### Fixed — cpp generation and 1D coupling
 
 - `model_type: cpp` with CVODE always failed solver-settings validation.

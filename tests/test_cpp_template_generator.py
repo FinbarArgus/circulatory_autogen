@@ -9,6 +9,7 @@ automatically.
 import copy
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -135,6 +136,19 @@ def test_fv1d_api_matches_the_coupler_and_1d_solver():
 
 
 @pytest.mark.unit
+def test_readable_names_match_the_python_generator():
+    """C index names and Python attribute names come from the same scheme."""
+    from libcuflynx.generators.naming import build_symbols, make_identifier
+    from libcuflynx.generators.PythonGenerator import PythonGenerator
+    pairs = [('heart_module', 'q_lv'), ('parameters', 'R-T 1'), ('heart_module', 'q_lv'), ('1st', 'x')]
+    assert build_symbols(pairs) == ['heart_module_q_lv', 'parameters_r_t_1', 'heart_module_q_lv_2', 'n_1st_x']
+    assert make_identifier('') == 'unnamed'
+    infos = [{'component': c, 'name': n} for c, n in pairs]
+    _, attrs = PythonGenerator._build_qualified_symbols(PythonGenerator.__new__(PythonGenerator), infos)
+    assert [attrs[i] for i in range(len(pairs))] == build_symbols(pairs)
+
+
+@pytest.mark.unit
 def test_api_unit_factors():
     assert unit_factor({'api_units': 'mmHg'}) == pytest.approx(133.322387415)
     assert unit_factor({'api_units': 'ml'}) == pytest.approx(1e-6)
@@ -171,6 +185,16 @@ def test_delay_model_builds_and_delays_exactly(user_inputs_dir, resources_dir, t
     cpp_dir = tmp_path / 'generated_models' / 'delay_test'
     for name in ('model0d_core.c', 'model0d_core.h', 'model0d.h', 'model0d.cpp', 'main0d.cpp', 'CMakeLists.txt'):
         assert (cpp_dir / name).is_file(), name
+    # readable: named indices in the libCellML code and in the wrapper, no bare numbers
+    header = (cpp_dir / 'model0d_core.h').read_text()
+    assert 'S_delay_module_v = 0,' in header and '} StateIndex;' in header and '} VariableIndex;' in header
+    core = (cpp_dir / 'model0d_core.c').read_text()
+    compute = core[core.index('void initialiseVariables'):]
+    assert 'rates[S_delay_module_v]' in compute
+    assert 'externalVariable(voi, states, rates, variables, V_delay_module_v_delay)' in compute
+    assert not re.search(r'\b(states|rates|variables)\[\d+\]', compute)
+    wrapper = (cpp_dir / 'model0d.cpp').read_text()
+    assert 'setExternal(V_delay_module_v_delay, ' in wrapper
     _cmake_build(cpp_dir, cpp_dir / 'build')
     out = tmp_path / 'out'
     run = subprocess.run([str(cpp_dir / 'build' / 'main0d'), '-outDir', str(out)], capture_output=True, text=True)

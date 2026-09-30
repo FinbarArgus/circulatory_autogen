@@ -31,11 +31,17 @@ class ModelRef:
     label: str
     kind: str = None  # 'state' | 'variable'
     index: int = None
+    symbol: str = None  # named index in the generated C, e.g. S_heart_module_q_lv / V_heart_u_lv_ext
+
+    @property
+    def name(self):
+        '''The index as written in generated code: its named constant, or the number.'''
+        return self.symbol if self.symbol else str(self.index)
 
     def cpp(self, states='s', variables='v'):
         if self.kind == 'state':
-            return f'{states}[{self.index}]'
-        return f'{variables}[{self.index}]'
+            return f'{states}[{self.name}]'
+        return f'{variables}[{self.name}]'
 
 
 @dataclass
@@ -239,12 +245,12 @@ def _recv_targets(tokens, buffer, conn=None, var_refs=None):
             which = token.split('.', 1)[1]
             if which not in ('input', conn.input_quantity):
                 raise APIConfigError(f"A connection can only receive its input ({conn.input_quantity}), not {token!r}")
-            lines.append(f'setExternal({conn.input_ref.index}, {buffer}[{pos}]);')
+            lines.append(f'setExternal({conn.input_ref.name}, {buffer}[{pos}]);')
         else:
             ref = (var_refs or {}).get(token)
             if ref is None:
                 raise APIConfigError(f'Unknown receive target {token!r}')
-            lines.append(f'setExternal({ref.index}, {buffer}[{pos}]);')
+            lines.append(f'setExternal({ref.name}, {buffer}[{pos}]);')
     return lines
 
 

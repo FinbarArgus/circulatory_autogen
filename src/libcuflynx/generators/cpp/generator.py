@@ -10,6 +10,7 @@ blocks in the module configs (see ``api.py``).
 
 import json
 import os
+import re
 
 import jinja2
 
@@ -17,6 +18,7 @@ from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from libcuflynx.generators.cpp import externals as ext
 from libcuflynx.generators.cpp.api import unit_factor
+from libcuflynx.generators.naming import build_symbols
 
 try:
     import libcellml
@@ -65,7 +67,7 @@ class CVS0DCppGenerator(object):
                  reltol=1e-7, abstol=1e-9,
                  couple_to_1d=False, cpp_generated_models_dir=None,
                  model_1d_config_path=None, create_main_0d=False,
-                 conn_1d_0d_info=None, DEBUG=False):
+                 conn_1d_0d_info=None, DEBUG=False, human_readable=True):
         if not LIBCELLML_available:
             raise CppGenerationError('libCellML is not available, cannot generate C++ files.')
 
@@ -94,6 +96,9 @@ class CVS0DCppGenerator(object):
         self.reltol = reltol
         self.abstol = abstol
         self.DEBUG = DEBUG
+        # Name every state/variable index in the generated code (S_<component>_<var>,
+        # V_<component>_<var>), as the Python generator names its attributes.
+        self.human_readable = human_readable
 
         # set from inp_data_dict in generate_cellml()
         self.sim_time = None
@@ -175,6 +180,7 @@ class CVS0DCppGenerator(object):
             raise CppGenerationError(f'The analysed model is not an ODE model (type {am.type()}); '
                                      f'check the analyser issues above.')
         self.analysed_model = am
+        self._build_index_symbols(am)
 
         # Resolve every model reference to its state/variables index in the generated code.
         refs = [s.ref for s in externals]
@@ -265,10 +271,12 @@ class CVS0DCppGenerator(object):
         for astate in am.states():
             if am.areEquivalentVariables(astate.variable(), ref.variable):
                 ref.kind, ref.index = 'state', astate.index()
+                ref.symbol = self.state_symbols[ref.index] if self.human_readable else None
                 return ref
         for av in am.variables():
             if am.areEquivalentVariables(av.variable(), ref.variable):
                 ref.kind, ref.index = 'variable', av.index()
+                ref.symbol = self.variable_symbols[ref.index] if self.human_readable else None
                 return ref
         raise CppGenerationError(f'{ref.label} is not a state or variable of the analysed model.')
 
@@ -286,16 +294,72 @@ class CVS0DCppGenerator(object):
             with open(os.path.join(d, self._json_name()), 'w') as f:
                 json.dump(self.conn_1d_0d_info, f, indent=4)
 
+    def _build_index_symbols(self, am):
+        """S_/V_ names for every state and variable index, from the analysed model."""
+        def pairs(items):
+            ordered = sorted(items, key=lambda a: a.index())
+            return ordered, [(a.variable().parent().name(), a.variable().name()) for a in ordered]
+        self._states_ordered, state_pairs = pairs(am.states())
+        self._variables_ordered, variable_pairs = pairs(am.variables())
+        self.state_symbols = ['S_' + n for n in build_symbols(state_pairs)]
+        self.variable_symbols = ['V_' + n for n in build_symbols(variable_pairs)]
+
     def _write_core(self, am):
         profile = GeneratorProfile(GeneratorProfile.Profile.C)
         profile.setInterfaceFileNameString(CORE_NAME + '.h')
         gen = Generator()
         interface = cellml.generate_interface_code(gen, am, profile)
         implementation = cellml.generate_implementation_code(gen, am, profile)
+        if self.human_readable:
+            interface = self._add_index_enums(interface)
+            implementation = self._name_indices(implementation)
         with open(os.path.join(self.cpp_generated_models_dir, CORE_NAME + '.h'), 'w') as f:
             f.write(interface)
         with open(os.path.join(self.cpp_generated_models_dir, CORE_NAME + '.c'), 'w') as f:
             f.write(implementation)
+
+    def _add_index_enums(self, interface):
+        """Declare the named indices in the libCellML header, before its function declarations."""
+        def entries(ordered, symbols):
+            lines = []
+            for a, sym in zip(ordered, symbols):
+                v = a.variable()
+                units = v.units().name() if v.units() is not None else ''
+                kind = libcellml.AnalyserVariable.typeAsString(a.type()) if hasattr(a, 'type') else 'state'
+                lines.append(f'    {sym} = {a.index()}, /* {v.parent().name()}.{v.name()} [{units}] {kind} */')
+            return '\n'.join(lines)
+        enums = ('/* Named indices into the states/rates and variables arrays (added by libcuflynx):\n'
+                 '   S_<component>_<variable> for states and rates, V_<component>_<variable> for variables. */\n'
+                 'typedef enum {\n' + entries(self._states_ordered, self.state_symbols) + '\n} StateIndex;\n\n'
+                 'typedef enum {\n' + entries(self._variables_ordered, self.variable_symbols) + '\n} VariableIndex;\n\n')
+        anchor = 'double * createStatesArray();'
+        if anchor not in interface:
+            raise CppGenerationError('Unexpected libCellML header layout: cannot place the index enums.')
+        return interface.replace(anchor, enums + anchor, 1)
+
+    def _name_indices(self, implementation):
+        """Replace the numeric indices in libCellML's compute functions with the named ones."""
+        states, variables = self.state_symbols, self.variable_symbols
+        functions = ('initialiseVariables', 'computeComputedConstants', 'computeRates', 'computeVariables')
+
+        def rename(body):
+            body = re.sub(r'\bstates\[(\d+)\]', lambda m: f'states[{states[int(m.group(1))]}]', body)
+            body = re.sub(r'\brates\[(\d+)\]', lambda m: f'rates[{states[int(m.group(1))]}]', body)
+            body = re.sub(r'\bvariables\[(\d+)\]', lambda m: f'variables[{variables[int(m.group(1))]}]', body)
+            body = re.sub(r'(externalVariable\(voi, states, rates, variables, )(\d+)\)',
+                          lambda m: f'{m.group(1)}{variables[int(m.group(2))]})', body)
+            return body
+
+        out = implementation
+        for fn in functions:
+            m = re.search(rf'^void {fn}\(.*?\n\{{\n(.*?)^\}}\n', out, re.M | re.S)
+            if m is None:
+                raise CppGenerationError(f'Unexpected libCellML output: function {fn} not found.')
+            body = rename(m.group(1))
+            if re.search(r'\b(states|rates|variables)\[\d+\]|externalVariable\([^)]*, \d+\)', body):
+                raise CppGenerationError(f'Unexpected libCellML output: numeric indices left in {fn}.')
+            out = out[:m.start(1)] + body + out[m.end(1):]
+        return out
 
     def _default_output_dir(self):
         if self.cpp_output_dir:

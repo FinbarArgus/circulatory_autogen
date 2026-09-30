@@ -63,7 +63,7 @@ void {{ class_name }}::setChamberPressureModel(const {{ chamber_type }} &chamber
 {% for c in chambers %}
 {% if c.pressure_set is defined %}
     case {{ chamber_type }}::{{ c.name }}:
-        model_.setExternal({{ c.pressure_set.index }}, value_model); // {{ c.pressure_set.label }}
+        model_.setExternal({{ c.pressure_set.name }}, value_model); // {{ c.pressure_set.label }}
         inputsChanged_ = true;
         break;
 {% endif %}
@@ -92,14 +92,14 @@ double {{ class_name }}::chamberVolumeModel(const {{ chamber_type }} &chamber) c
 {% if f.kind == 'set' %}
 void {{ class_name }}::{{ f.name }}(const double &{{ f.get('arg', 'value') }})
 {
-    model_.setExternal({{ f.ref.index }}, {{ f.get('arg', 'value') }} * {{ f.factor }}); // {{ f.ref.label }}
+    model_.setExternal({{ f.ref.name }}, {{ f.get('arg', 'value') }} * {{ f.factor }}); // {{ f.ref.label }}
     inputsChanged_ = true;
     refresh();
 }
 {% elif f.kind == 'set_state' %}
 void {{ class_name }}::{{ f.name }}(const double &{{ f.get('arg', 'value') }})
 {
-    model_.states[{{ f.ref.index }}] = {{ f.get('arg', 'value') }} * {{ f.factor }}; // {{ f.ref.label }}
+    model_.states[{{ f.ref.name }}] = {{ f.get('arg', 'value') }} * {{ f.factor }}; // {{ f.ref.label }}
     model_.reinitialiseSolver();
     refresh();
 }

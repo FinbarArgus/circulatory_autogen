@@ -124,7 +124,7 @@ Model0d::Model0d()
     std::fill(variables, variables + VARIABLE_COUNT, 0.0);
     ext_cache.assign(VARIABLE_COUNT, 0.0);
 {% for e in externals if e.initial is not none %}
-    ext_cache[{{ e.ref.index }}] = {{ e.initial }}; // {{ e.ref.label }}
+    ext_cache[{{ e.ref.name }}] = {{ e.initial }}; // {{ e.ref.label }}
 {% endfor %}
     states0.assign(STATE_COUNT, 0.0);
     k1.assign(STATE_COUNT, 0.0);
@@ -231,7 +231,7 @@ void Model0d::initialise(double voiLoc, double *statesLoc, double *ratesLoc, dou
         std::cout << "Loading initial variables from file: " << varsPath << std::endl;
         loadFromFile(varsPath, varLoc, VARIABLE_INFO, VARIABLE_COUNT, useFirstRow);
 {% for e in externals %}
-        ext_cache[{{ e.ref.index }}] = varLoc[{{ e.ref.index }}]; // {{ e.ref.label }}
+        ext_cache[{{ e.ref.name }}] = varLoc[{{ e.ref.name }}]; // {{ e.ref.label }}
 {% endfor %}
     }
 }
@@ -415,7 +415,7 @@ void Model0d::hookRhsStart(double voiLoc, double dtLoc, double *s, double *v)
     (void)s;
     (void)v;
 {% for d in delays %}
-    setExternal({{ d.ref.index }}, delayHistories[{{ loop.index0 }}].at(voiLoc - v[{{ d.meta.amount.index }}])); // {{ d.ref.label }}
+    setExternal({{ d.ref.name }}, delayHistories[{{ loop.index0 }}].at(voiLoc - v[{{ d.meta.amount.name }}])); // {{ d.ref.label }}, delayed by {{ d.meta.amount.label }}
 {% endfor %}
 {% if hooks.rhs_start %}
 {% if pipes %}

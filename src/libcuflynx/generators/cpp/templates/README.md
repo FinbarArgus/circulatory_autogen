@@ -49,6 +49,19 @@ cmake -S <dir> -B <dir>/build [-DSUNDIALS_DIR=<sundials install prefix>]
 cmake --build <dir>/build
 ```
 
+## Readable names
+
+The generated code names every state and variable index instead of using bare numbers (`human_readable=True`, the default, as in the Python generator):
+
+- **Header:** `model0d_core.h` declares `StateIndex` and `VariableIndex` enums. There is one entry per index, `S_<component>_<variable>` for states and rates and `V_<component>_<variable>` for variables, each with a `/* component.variable [units] type */` comment.
+- **libCellML functions:** in `initialiseVariables`, `computeComputedConstants`, `computeRates` and `computeVariables`, every `states[3]`, `rates[3]`, `variables[12]` and the index argument of `externalVariable(...)` is rewritten to the name. Generation fails if a numeric index is left, so a change in libCellML's output format can't leave a mix.
+- **Other libCellML output:** signatures, `STATE_INFO`/`VARIABLE_INFO` and the array helpers are untouched.
+- **Templates and hooks:** they write the same names, via `ModelRef.name` (e.g. `setExternal(V_heart_u_lv_ext, ...)`, `s[S_terminal_1_module_v]`), and keep the `// component/variable` comments.
+
+The enum values are the same integers, so the compiled model and its results are identical. The coupler JSON keeps plain integer indices, because the coupler and the 1D solver read them at run time.
+
+The names come from `generators/naming.py`, shared with the Python generator: `var.pvn_module_u` in generated Python is `variables[V_pvn_module_u]` in C. A repeated name gets `_2`, `_3`, … in index order.
+
 ## Runtime structure
 
 ### The libCellML functions the templates call
@@ -212,7 +225,7 @@ Available to every template:
 | `solver` | `CVODE`, `RK4`, `Heun`, `midpoint` or `explEul` |
 | `n_max_steps`, `dt_solver`, `dt_sample`, `reltol`, `abstol` | from `solver_info` / `dt` |
 | `has_externals` | whether the libCellML functions take the callback (their signatures differ) |
-| `externals` | `ExternalSpec` list: `.ref` (`.kind` = `state`/`variable`, `.index`, `.label` = `component/variable`, `.cpp('s','v')`), `.source` (`pipe`/`delay`/`api`), `.initial` |
+| `externals` | `ExternalSpec` list: `.ref` (`.kind` = `state`/`variable`, `.index`, `.name` = the named index, e.g. `V_heart_u_lv_ext`, `.label` = `component/variable`, `.cpp('s','v')`), `.source` (`pipe`/`delay`/`api`), `.initial` |
 | `delays` | the delay `ExternalSpec`s; `.meta.source` / `.meta.amount` are `ModelRef`s |
 | `pipes` | `None`, or `{api_name, message_length, send_pipes, recv_pipes, hooks}` for a named-pipe api |
 | `hooks` | `{init, step_start, rhs_start, rhs, step_end}` → lists of generated C++ lines |
@@ -226,7 +239,7 @@ Added for the provider templates:
 | Name | Meaning |
 |---|---|
 | `api` | the api block (dict) |
-| `api_functions` | its `functions`, each with `factor` and, for `set`/`get`/`set_state`, `ref` (a `ModelRef`) |
+| `api_functions` | its `functions`, each with `factor` and, for `set`/`get`/`set_state`, `ref` (a `ModelRef`; write indices as `ref.name`) |
 | `chambers` | from `chamber_enum.values`: `{name, <field>: ModelRef, ...}` |
 | `chamber_units` | factors for `chamber_enum.units` (`pressure`, `volume`) |
 | `namespace`, `class_name` | where the class goes and what it's called |

@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     // (up to the intrathoracic offset, which is 0 unless the model sets it).
     circulation.{{ has_set_idx[0].name }}(chambers[0], 80.0);
     std::cout << "set " << names[0] << " pressure 80 -> model value " << std::setprecision(10)
-              << circulation.model().variables[{{ chambers[0].pressure_set.index }}] << " (SI)" << std::endl;
+              << circulation.model().variables[{{ chambers[0].pressure_set.name }}] << " (SI)" << std::endl;
 
     Replay replay;
     const bool useReplay = !replayFile.empty();
