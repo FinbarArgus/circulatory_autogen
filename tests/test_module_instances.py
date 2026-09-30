@@ -544,3 +544,17 @@ def test_0d_1d_split_accepts_records_with_extra_keys(tmp_path):
                read_vessel_array_records(os.path.join(RESOURCES_DIR, 'aortic_bif_1d_vessel_array.csv'))]
     extra = _generate_cpp_1d(str(tmp_path / 'extra'), 'aortic_bif_1d_vessel_array.json', records)
     assert extra == plain
+
+
+def test_an_empty_optional_csv_cell_is_not_set(tmp_path):
+    '''An empty "instance" cell in a CSV vessel array (e.g. the 0D part libcuflynx writes itself
+    for the 1D split, where appended rows have no instance) leaves the key unset rather than
+    giving an invalid empty instance name.'''
+    from libcuflynx.utilities.config_schemas import read_vessel_array_records
+    p = tmp_path / 'm_vessel_array.csv'
+    p.write_text('name,BC_type,vessel_type,inp_vessels,out_vessels,instance\n'
+                 'a,nn,pulse_src,,b,other\n'
+                 'b,nn,volume_sum,a,,\n')
+    recs = read_vessel_array_records(str(p))
+    assert recs[0]['instance'] == 'other'
+    assert 'instance' not in recs[1]

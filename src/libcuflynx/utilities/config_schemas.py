@@ -548,7 +548,9 @@ def vessel_array_csv_to_records(path):
     '''
     The rows of a CSV vessel array (either layout) as raw libcuflynx-keyed records: list
     columns split on whitespace, every other cell reduced to its first token ('' if empty),
-    exactly as the CSV reader has always treated them.
+    exactly as the CSV reader has always treated them. An empty cell in an optional column
+    (anything but name, BC_type, vessel_type and the inp/out lists, e.g. "instance") means the
+    key isn't set for that row, so it is left out of the record.
     '''
     df = pd.read_csv(path, dtype=str, na_filter=False)
     df = df.rename(columns=lambda c: str(c).strip())
@@ -559,7 +561,7 @@ def vessel_array_csv_to_records(path):
         for column, cell in zip(df.columns, row):
             if column in _LIST_COLUMNS:
                 record[column] = cell.split() if isinstance(cell, str) else []
-            else:
+            elif column in _LIBCUFLYNX_COLUMN_ORDER or _first_token(cell) != '':
                 record[column] = _first_token(cell)
         records.append(record)
     return records
