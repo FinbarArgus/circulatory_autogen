@@ -89,6 +89,58 @@ def test_a_feature_is_reduced_over_the_last_sub_experiment_of_its_experiment():
 
 
 @pytest.mark.unit
+def test_a_feature_is_reduced_over_its_subexperiment_idx():
+    items = [dict(PREDICTION_ITEMS[0], experiment_idx=1, subexperiment_idx=0),
+             dict(PREDICTION_ITEMS[2], experiment_idx=1)]
+    info, protocol = _parsed_prediction_info(items, sim_times=((1.0,), (1.0, 2.0, 3.0)))
+    assert prediction_features.feature_segments(info, [0, 1], protocol) == [(1, 0), (1, 2)]
+    assert prediction_features.feature_experiments(info, [0, 1], protocol) == [1]
+
+
+@pytest.mark.unit
+def test_only_scalar_items_are_features():
+    """constant + operation, or no data_type + a reducing operation. A series -- with or
+    without an operation -- and an item without an operation are skipped and named."""
+    info, _ = _parsed_prediction_info([
+        {"data_item_name": "c_op", "operands": ["main/a"], "unit": "-", "operation": "max",
+         "data_type": "constant", "value": 1.0},
+        {"data_item_name": "reduce", "operands": ["main/a"], "unit": "-", "operation": "mean"},
+        {"data_item_name": "sum_trace", "operands": ["main/a", "main/b"], "unit": "-",
+         "operation": "addition"},
+        {"data_item_name": "series_op", "operands": ["main/a"], "unit": "-", "operation": "max",
+         "data_type": "series", "value": [1.0, 2.0], "std": 0.1, "obs_dt": 0.5},
+        {"data_item_name": "trace", "operands": ["main/a"], "unit": "-"}])
+    with pytest.warns(prediction_features.PredictionFeatureWarning, match="not a scalar") as rec:
+        assert prediction_features.prediction_feature_indices(info) == [0, 1]
+    message = str(rec[0].message)
+    for name in ("sum_trace", "series_op", "trace"):
+        assert name in message
+
+
+@pytest.mark.unit
+def test_a_series_prediction_with_an_operation_is_validated_as_a_series():
+    """addition of two traces, and a @series_to_constant op's series_output, compared with
+    held-out series at k*obs_dt from the start of the segment (here t starts at 5)."""
+    info, _ = _parsed_prediction_info([
+        {"data_item_name": "sum", "operands": ["main/a", "main/b"], "unit": "-",
+         "operation": "addition", "data_type": "series", "value": [1.0, 2.0, 3.0],
+         "std": 0.1, "obs_dt": 0.5},
+        {"data_item_name": "a_series", "operands": ["main/a"], "unit": "-",
+         "operation": "max", "data_type": "series", "value": [0.0, 0.5, 1.0], "std": 0.1,
+         "obs_dt": 0.5}])
+    t = np.linspace(5.0, 6.0, 11)
+    a, b = t - 5.0, 1.0 + (t - 5.0)
+    res = validation.validation_results(info, None, [[a, b], [a]],
+                                        time_per_item=[t, t])
+    by = {item["data_item_name"]: item for item in res["items"]}
+    assert by["sum"]["operation"] == "addition"
+    assert by["sum"]["t"] == pytest.approx([0.0, 0.5, 1.0])
+    assert by["sum"]["model"] == pytest.approx([1.0, 2.0, 3.0])
+    assert by["a_series"]["model"] == pytest.approx([0.0, 0.5, 1.0])
+    assert by["a_series"]["rmse"] == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.unit
 def test_a_non_scalar_result_is_a_clear_error():
     """subtraction of two traces is a trace, not a feature."""
     info, protocol = _parsed_prediction_info([
@@ -641,3 +693,203 @@ def test_save_prediction_data_validates_a_feature_end_to_end(
     assert items['x_max']['rmse'] == pytest.approx(abs(items['x_max']['model'][0] - 1.0))
     assert items['x_end']['operation'] is None
     assert items['x_end']['model'][0] == pytest.approx(2.0, abs=0.05)
+
+
+# ============================================================================ validation-only
+# experiments. Benchmark: dx/dt = -x + p, dy/dt = -3y + q, x(0) = x_init. Experiment 0 is fitted
+# (x, y steady states). Experiment 1 has no data_items: a different sim_time, and
+# params_to_change starting x at 2, so there x(t) = p + (2 - p) exp(-t).
+
+def _x_exp1(p, t):
+    return p + (2.0 - p) * np.exp(-np.asarray(t, dtype=float))
+
+
+def _validation_obs(tmp_path, resources_dir, exp1_sim_times=(3.0,), prediction_items=None,
+                    exp1_data=False):
+    with open(os.path.join(resources_dir, BENCHMARK_OBS)) as f:
+        doc = json.load(f)
+    doc['protocol_info'] = {
+        'pre_times': [0.0, 0.0], 'sim_times': [[8.0], list(exp1_sim_times)],
+        'params_to_change': {'benchmark/x_init': [[0.0], [2.0] * len(exp1_sim_times)]}}
+    t_obs = np.arange(7) * 0.5
+    doc['prediction_items'] = prediction_items if prediction_items is not None else [
+        {"data_item_name": "x_val", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "data_type": "series", "value": _x_exp1(1.0, t_obs).tolist(),
+         "std": 0.05, "obs_dt": 0.5},
+        {"data_item_name": "x_mean_val", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "operation": "mean", "data_type": "constant", "value": 1.3,
+         "std": 0.1}]
+    if exp1_data:
+        doc['data_items'].append(dict(doc['data_items'][0], data_item_name='x1',
+                                      experiment_idx=1, value=1.0))
+    path = tmp_path / 'validation_only_obs_data.json'
+    path.write_text(json.dumps(doc))
+    return str(path), doc
+
+
+class _RunSpy:
+    """Records the experiments every protocol run simulates."""
+
+    def __init__(self, monkeypatch):
+        from libcuflynx.protocol_runners.protocol_executor import ProtocolExecutor
+        self.calls = []
+        original = ProtocolExecutor.run_protocol
+        spy = self
+
+        def run_protocol(executor, protocol_info, *args, **kwargs):
+            idxs = kwargs.get('exp_indices')
+            spy.calls.append(sorted(idxs) if idxs is not None
+                             else list(range(len(protocol_info['sim_times']))))
+            return original(executor, protocol_info, *args, **kwargs)
+
+        monkeypatch.setattr(ProtocolExecutor, 'run_protocol', run_protocol)
+
+    def experiments(self):
+        seen = set()
+        for call in self.calls:
+            seen |= set(call)
+        return seen
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_a_validation_only_experiment_is_not_calibrated_but_is_validated(
+        base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm,
+        tmp_path, monkeypatch, capsys):
+    """(a) Calibration, the best-fit check and the plots never simulate experiment 1; the
+    validation does, with its own sim_time and params_to_change, and matches the closed form."""
+    obs_path, _ = _validation_obs(tmp_path, resources_dir)
+    config = _benchmark_config(base_user_inputs, resources_dir, temp_output_dir,
+                               temp_generated_models_dir, obs_path,
+                               debug_optimiser_options={'num_calls_to_function': 30,
+                                                        'max_patience': 30})
+    _generate(config, mpi_comm)
+    pid = CVS0DParamID.init_from_dict(config)
+    assert 'experiment(s) [1] have no data_items' in capsys.readouterr().out
+    spy = _RunSpy(monkeypatch)
+    pid.run()
+    if mpi_comm.Get_rank() != 0:
+        return
+    pid.simulate_with_best_param_vals()
+    pid.plot_outputs()
+    assert spy.calls and spy.experiments() == {0}, spy.calls
+
+    spy.calls.clear()
+    pid.save_prediction_data()
+    assert 1 in spy.experiments()
+    p = float(pid.param_id.best_param_vals[0])
+    with open(os.path.join(pid.output_dir, validation.VALIDATION_RESULTS_FILE)) as f:
+        items = {item['data_item_name']: item for item in json.load(f)['items']}
+    x_val = items['x_val']
+    assert x_val['t'] == pytest.approx(np.arange(7) * 0.5)
+    assert x_val['model'] == pytest.approx(_x_exp1(p, x_val['t']), abs=2e-3)
+    t_run = np.arange(0.0, 3.0 + 1e-9, 0.05)
+    assert items['x_mean_val']['model'][0] == pytest.approx(np.mean(_x_exp1(p, t_run)),
+                                                            abs=2e-3)
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_sa_computes_a_feature_from_a_validation_only_experiment(
+        base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm,
+        tmp_path, monkeypatch):
+    """(b) mean x over experiment 1 depends on p only. Without the option experiment 1 is not
+    simulated at all."""
+    from libcuflynx.sensitivity_analysis.sensitivityAnalysis import SensitivityAnalysis
+
+    obs_path, _ = _validation_obs(tmp_path, resources_dir)
+    out_dir = os.path.join(temp_output_dir, 'sa_validation_only')
+    sa_options = {'method': 'sobol', 'num_samples': 8, 'sample_type': 'saltelli',
+                  'output_dir': out_dir, 'include_prediction_items': True}
+    config = _benchmark_config(base_user_inputs, resources_dir, temp_output_dir,
+                               temp_generated_models_dir, obs_path, sa_options=sa_options)
+    _generate(config, mpi_comm)
+    spy = _RunSpy(monkeypatch)
+    sa = SensitivityAnalysis.init_from_dict(config)
+    with pytest.warns(prediction_features.PredictionFeatureWarning, match='x_val'):
+        sa.run_sensitivity_analysis(sa_options)
+    assert spy.experiments() == {0, 1}
+    if mpi_comm.Get_rank() == 0:
+        df = pd.read_csv(os.path.join(out_dir, 'all_outputs_n8_Sobol_indices.csv')).set_index(
+            'Parameter')
+        assert df.loc['benchmark/p', 'ST_x_mean_val (Exp1, Sub0)'] > 0.9
+        assert df.loc['benchmark/q', 'ST_x_mean_val (Exp1, Sub0)'] < 0.1
+
+    spy.calls.clear()
+    sa_off = dict(sa_options, include_prediction_items=False,
+                  output_dir=os.path.join(temp_output_dir, 'sa_validation_only_off'))
+    sa.run_sensitivity_analysis(sa_off)
+    assert spy.experiments() == {0}
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_subexperiment_idx_picks_the_segment_for_validation_and_features(
+        base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm,
+        tmp_path):
+    """(c) Experiment 1 runs 2 s then 3 s. Sub-experiment 0 starts at x = 2; sub-experiment 1
+    starts at x(2). Series times run from the start of their sub-experiment."""
+    t_obs = np.arange(5) * 0.5
+    items = [
+        {"data_item_name": "x_sub0", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "subexperiment_idx": 0, "data_type": "series",
+         "value": _x_exp1(1.0, t_obs).tolist(), "std": 0.05, "obs_dt": 0.5},
+        {"data_item_name": "x_sub1", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "data_type": "series",
+         "value": _x_exp1(1.0, 2.0 + t_obs).tolist(), "std": 0.05, "obs_dt": 0.5},
+        {"data_item_name": "x_max_sub0", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "subexperiment_idx": 0, "operation": "max",
+         "data_type": "constant", "value": 2.0, "std": 0.1},
+        {"data_item_name": "x_max_sub1", "operands": ["benchmark/x"], "unit": "dimensionless",
+         "experiment_idx": 1, "operation": "max", "data_type": "constant",
+         "value": 1.1, "std": 0.1}]
+    obs_path, _ = _validation_obs(tmp_path, resources_dir, exp1_sim_times=(2.0, 3.0),
+                                  prediction_items=items)
+    config = _benchmark_config(base_user_inputs, resources_dir, temp_output_dir,
+                               temp_generated_models_dir, obs_path)
+    _generate(config, mpi_comm)
+    if mpi_comm.Get_rank() != 0:
+        return
+    p, q = 0.5, 1.0                           # x < 2 decays, so max is the segment's start
+    pid = CVS0DParamID.init_from_dict(config)
+    pid.set_best_param_vals(np.array([p, q]))
+    pid.save_prediction_data()
+    with open(os.path.join(pid.output_dir, validation.VALIDATION_RESULTS_FILE)) as f:
+        got = {item['data_item_name']: item for item in json.load(f)['items']}
+    assert got['x_sub0']['model'] == pytest.approx(_x_exp1(p, t_obs), abs=2e-3)
+    assert got['x_sub1']['model'] == pytest.approx(_x_exp1(p, 2.0 + t_obs), abs=2e-3)
+    assert got['x_max_sub0']['model'][0] == pytest.approx(2.0, abs=2e-3)
+    assert got['x_max_sub1']['model'][0] == pytest.approx(_x_exp1(p, 2.0), abs=2e-3)
+    # the default (last) sub-experiment keeps its file; the other gets its own
+    assert os.path.exists(os.path.join(pid.output_dir, 'prediction_variable_data_exp_0.npy'))
+    assert os.path.exists(os.path.join(pid.output_dir,
+                                       'prediction_variable_data_exp_1_sub_0.npy'))
+
+    engine = pid.param_id
+    info = engine.prediction_info
+    indices = prediction_features.prediction_feature_indices(info, warn=False)
+    assert indices == [2, 3]
+    _, features = prediction_features.simulate_features(engine, [p, q], info, indices)
+    assert features == pytest.approx([2.0, _x_exp1(p, 2.0)], abs=2e-3)
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.mpi
+def test_every_experiment_with_data_is_simulated_as_before(
+        base_user_inputs, resources_dir, temp_output_dir, temp_generated_models_dir, mpi_comm,
+        tmp_path, monkeypatch, capsys):
+    """(d) With a data_item in experiment 1 too, the cost simulates both, and says nothing."""
+    obs_path, _ = _validation_obs(tmp_path, resources_dir, exp1_data=True)
+    config = _benchmark_config(base_user_inputs, resources_dir, temp_output_dir,
+                               temp_generated_models_dir, obs_path)
+    _generate(config, mpi_comm)
+    engine = CVS0DParamID.init_from_dict(config).param_id
+    assert 'have no data_items' not in capsys.readouterr().out
+    spy = _RunSpy(monkeypatch)
+    cost = engine.get_cost_from_params(np.array([1.0, 1.0]))
+    assert np.isfinite(cost)
+    assert spy.calls == [[0, 1]]

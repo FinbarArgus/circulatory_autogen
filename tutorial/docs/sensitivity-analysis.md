@@ -67,15 +67,18 @@ sa_options:
     include_prediction_items: true
 ```
 
-- **Only prediction items with an operation are included**, because only they reduce to a
-  scalar. The others are skipped, with a warning that names them. An operation that returns
-  more than one number is an error.
+- **Only scalar prediction items with an operation are included**: `data_type: constant`, or
+  no data and a reducing operation such as `max`. Items without an operation, and series, are
+  skipped with a warning that names them. An operation that returns more than one number is an
+  error.
 - They come **after** the data_item outputs. They are labelled by their `data_item_name`, as
   `<data_item_name> (Exp<e>, Sub<s>)`, in the Sobol CSVs
   (`all_outputs_n<N>_Sobol_indices.csv` columns `S1_...`/`ST_...`, and
   `all_outputs_n<N>_Sobol_2nd_order_indices.csv`), the per-output plots and the heatmaps. The
-  sub-experiment is the last one of the item's experiment, which is the one the operation is
-  applied to.
+  sub-experiment is the item's `subexperiment_idx` (by default its experiment's last), which is
+  the one the operation is applied to. A feature measured in an experiment that has no
+  data_items (a validation-only experiment) makes the SA simulate that experiment too. Without
+  the option, such an experiment is not simulated.
 - The run also writes `sobol_output_features.json`, which lists every output column with its
   `kind` (`data_item`, `prediction_item` or `cost`), `data_item_name`, `experiment_idx` and
   `subexperiment_idx`.

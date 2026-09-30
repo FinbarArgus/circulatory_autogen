@@ -267,7 +267,8 @@ class sobol_SA():
             return []
         if self._prediction_indices_cache is None:
             self._prediction_indices_cache = prediction_features.prediction_feature_indices(
-                self.prediction_info, context='the sensitivity analysis')
+                self.prediction_info, self.operation_funcs_dict,
+                context='the sensitivity analysis')
         return list(self._prediction_indices_cache)
 
     def _prediction_names(self):
@@ -519,6 +520,15 @@ class sobol_SA():
         if pred_indices and not emulates_features:
             result_variables = list(self.obs_info["operands"]) + \
                 prediction_features.result_variables(self.prediction_info, pred_indices)
+        # Only the experiments the data_items use, plus -- for the prediction features -- any
+        # validation-only experiment one is measured in (None: every experiment, as before).
+        from libcuflynx.parsers.PrimitiveParsers import cost_experiment_idxs
+        run_exps = set(cost_experiment_idxs(self.protocol_info))
+        if pred_indices and not emulates_features:
+            run_exps |= set(prediction_features.feature_experiments(
+                self.prediction_info, pred_indices, self.protocol_info))
+        num_experiments = len(self.protocol_info['sim_times'])
+        exp_indices = None if run_exps == set(range(num_experiments)) else sorted(run_exps)
 
         with tqdm(total=len(local_samples), desc=f"Rank {self.rank}", position=self.rank, leave=True, disable=self.rank != 0) as pbar:
             for param_vals in local_samples:
@@ -537,6 +547,7 @@ class sobol_SA():
                     id_param_names=self.param_id_info["param_names"],
                     id_param_vals=expand_modifier_param_vals(self.param_id_info, param_vals),
                     result_variables=result_variables,
+                    exp_indices=exp_indices,
                     continue_on_failure=True,
                 )
                 if not _success:

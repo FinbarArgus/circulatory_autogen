@@ -132,16 +132,17 @@ def fingerprint(param_id_info, obs_info, protocol_info, model_path=None, predict
 
 def _prediction_digest(prediction_info, indices):
     """What each predicted prediction feature is: name, operands, operation, its kwargs and
-    the experiment it is reduced over."""
+    the (experiment, sub-experiment) it is reduced over."""
     def column(key):
         values = prediction_info.get(key)
         return [None] * (max(indices) + 1) if values is None else list(values)
     names, operands = column('data_item_names'), column('operands')
     operations, kwargs = column('operations'), column('operation_kwargs')
-    exps = column('experiment_idxs')
+    exps, subs = column('experiment_idxs'), column('subexperiment_idxs')
     payload = [{'name': str(names[i]), 'operands': _jsonable(operands[i]),
                 'operation': operations[i], 'operation_kwargs': _jsonable(kwargs[i]),
-                'experiment_idx': _jsonable(exps[i])} for i in indices]
+                'experiment_idx': _jsonable(exps[i]),
+                'subexperiment_idx': _jsonable(subs[i])} for i in indices]
     blob = json.dumps(payload, sort_keys=True, default=str).encode('utf-8')
     return hashlib.sha256(blob).hexdigest()
 

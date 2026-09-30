@@ -222,8 +222,8 @@ that have an `operation` (see
 This is for a sensitivity analysis with `sa_options.include_prediction_items: true` on the
 emulator.
 
-- **Only prediction items with an operation are included**, because only they reduce to a
-  scalar. The others are skipped, with a warning that names them. An operation that returns
+- **Only scalar prediction items with an operation are included**: `data_type: constant`, or
+  no data and a reducing operation such as `max`. Series items are never included. The others are skipped, with a warning that names them. An operation that returns
   more than one number is an error.
 - They are the last emulator outputs, after the data_item features, named by `data_item_name`.
   The bundle lists them in `emulator_metadata.json` as `prediction_feature_labels`, and

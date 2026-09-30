@@ -26,7 +26,27 @@ parallel `operations` and `operation_kwargs` columns (`None` / `{}` when absent)
   Calibration on such an emulator still fits and checks only the data_item features. An SA that
   asks for prediction features on an emulator trained without them stops and says to retrain.
 
-Only prediction items with an operation become features. The others are skipped, with a
+**Sub-experiments and validation-only experiments.** A prediction item may set
+`subexperiment_idx` (default: its experiment's last; `prediction_info` gains
+`subexperiment_idxs`). Validation, the features and `save_prediction_data` use that segment, and
+series times run from its start, as for a data_item series. An item on a non-default segment is
+saved in `prediction_variable_data_exp_<e>_sub_<s>.npy`; the existing files are unchanged. For a
+multi-sub-experiment experiment, held-out series times now start at the start of the
+sub-experiment rather than the experiment. An experiment that no data_item belongs to is not
+simulated during calibration: not in any cost path, the best-fit check, or the
+all-outputs npz. It is simulated for the prediction data and validation, and for SA/emulator
+training only when a prediction feature needs it. A one-line message names such experiments.
+`libcuflynx.parsers.PrimitiveParsers.cost_experiment_idxs(protocol_info)` lists the ones the
+cost uses.
+
+**Scalar or series.** Every data_item and prediction_item is a scalar (`constant`: value and
+std are numbers) or a series (`series`: value is a list, std is a number or a list of the same
+length, obs_dt is required). The parser checks this and names the item; before, a `constant` with
+a list value was accepted, and a `series` with a number crashed. A series prediction item may
+have an operation, and is validated with the operation's series. Only scalar prediction items
+are features.
+
+Only scalar prediction items with an operation become features. The others are skipped, with a
 `PredictionFeatureWarning` that names them, and an operation that does not return a scalar
 raises `NonScalarPredictionFeatureError`. With both options off, SA outputs and emulator
 fingerprints are unchanged. Callers can feature-detect with

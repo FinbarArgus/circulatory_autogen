@@ -118,6 +118,8 @@ PREDICTION_INFO_CONTRACT = {
                   "item is validated as operation(operands) and can be an SA / emulator "
                   "output (include_prediction_items).",
     "operation_kwargs": "the operation's keyword arguments, {} when none.",
+    "subexperiment_idxs": "the sub-experiment of experiment_idx the item is recorded over; "
+                          "its experiment's last one unless the item sets subexperiment_idx.",
 }
 
 
@@ -386,8 +388,6 @@ def test_a_prediction_can_carry_an_operation():
 @pytest.mark.unit
 @pytest.mark.parametrize("item, message", [
     ({"operation_kwargs": {"x": 1}}, "operation_kwargs but no operation"),
-    ({"operation": "max", "value": [1.0, 2.0], "data_type": "series", "obs_dt": 0.1},
-     "must be data_type 'constant'"),
     ({"operation": 3}, "Invalid prediction_items value types"),
     ({"operation": "max", "operation_kwargs": {"ref": "a/c0"}}, "references data_item"),
 ])
@@ -428,3 +428,100 @@ def test_a_prediction_operation_kwargs_key_is_checked_like_a_data_items():
     funcs = scriptFunctionParser().get_operation_funcs_dict("numpy")
     with pytest.raises(ValueError, match="has no keyword argument 'not_a_kwarg'"):
         validate_operation_kwargs(pred, funcs)
+
+
+# ---------------------------------------------------------------------------
+# One item is a scalar or a series, never both
+# ---------------------------------------------------------------------------
+_SHAPE_CASES = [
+    ({"data_type": "constant", "value": [1.0, 2.0], "std": 0.1}, "must be a single number"),
+    ({"data_type": "constant", "value": 1.0, "std": [0.1, 0.1]}, "std must be a single number"),
+    ({"data_type": "series", "value": 1.0, "std": 0.1, "obs_dt": 0.1}, "must be a list"),
+    ({"data_type": "series", "value": [1.0, 2.0], "std": [0.1, 0.1, 0.1], "obs_dt": 0.1},
+     r"2 values but has 3 stds|length \(3\) does not match series length \(2\)"),
+    ({"data_type": "series", "value": [1.0, 2.0], "std": 0.1}, "needs obs_dt"),
+]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("fields, message", _SHAPE_CASES)
+def test_a_data_item_is_a_scalar_or_a_series(fields, message):
+    parser = ObsAndParamDataParser()
+    item = {"data_item_name": "bad", "operands": ["a/x"], "unit": "mV", **fields}
+    doc = {"data_items": [item], "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    with pytest.raises(ValueError, match=message) as info:
+        parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+    assert "'bad'" in str(info.value)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("fields, message", _SHAPE_CASES)
+def test_a_prediction_item_is_a_scalar_or_a_series(fields, message):
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [{"data_item_name": "bad", "operands": ["main/y"], "unit": "mV",
+                                 **fields}],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    with pytest.raises(ValueError, match=message) as info:
+        parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+    assert "'bad'" in str(info.value)
+
+
+@pytest.mark.unit
+def test_a_series_prediction_may_have_an_operation():
+    """As a data_item series may (e.g. addition of two traces)."""
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [{"data_item_name": "sum", "operands": ["main/a", "main/b"],
+                                 "unit": "mV", "operation": "addition", "data_type": "series",
+                                 "value": [1.0, 2.0], "std": 0.1, "obs_dt": 0.5}],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    pred = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)["prediction_info"]
+    assert pred["operations"] == ["addition"] and pred["data_types"] == ["series"]
+
+
+@pytest.mark.unit
+def test_a_prediction_subexperiment_defaults_to_the_last_and_is_checked():
+    parser = ObsAndParamDataParser()
+    protocol = {"pre_times": [0.0, 0.0], "sim_times": [[1.0], [1.0, 2.0, 3.0]]}
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [
+               {"data_item_name": "a", "operands": ["main/y"], "unit": "mV"},
+               {"data_item_name": "b", "operands": ["main/y"], "unit": "mV", "experiment_idx": 1},
+               {"data_item_name": "c", "operands": ["main/y"], "unit": "mV", "experiment_idx": 1,
+                "subexperiment_idx": 0}],
+           "protocol_info": protocol}
+    pred = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)["prediction_info"]
+    assert pred["subexperiment_idxs"] == [0, 2, 0]
+    for bad, message in (({"subexperiment_idx": 3, "experiment_idx": 1}, "subexperiment_idx 3"),
+                         ({"experiment_idx": 2}, "experiment_idx 2")):
+        doc["prediction_items"] = [{"data_item_name": "x", "operands": ["main/y"], "unit": "mV",
+                                    **bad}]
+        with pytest.raises(ValueError, match=message):
+            parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+
+
+@pytest.mark.unit
+def test_an_experiment_without_data_items_is_not_a_cost_experiment(tmp_path, capsys):
+    """process_protocol_and_weights accepts it (zero weights), and names it once."""
+    from libcuflynx.parsers.PrimitiveParsers import cost_experiment_idxs
+
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [dict(_const("c0"), experiment_idx=0)],
+           "prediction_items": [{"data_item_name": "v", "operands": ["main/y"], "unit": "mV",
+                                 "experiment_idx": 1, "data_type": "constant", "value": 1.0}],
+           "protocol_info": {"pre_times": [0.0, 0.0], "sim_times": [[1.0], [2.0]],
+                             "params_to_change": {"a/p": [[1.0], [2.0]]}}}
+    parsed = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+    protocol = parser.process_protocol_and_weights(
+        gt_df=parsed["gt_df"], protocol_info=parsed["protocol_info"], dt=0.01)
+    assert cost_experiment_idxs(protocol) == [0]
+    assert "experiment(s) [1] have no data_items" in capsys.readouterr().out
+    assert not np.any(protocol["scaled_weight_const_from_exp_sub"][1][0])
+
+    doc["data_items"].append(dict(_const("c1"), experiment_idx=1))
+    parsed = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+    protocol = parser.process_protocol_and_weights(
+        gt_df=parsed["gt_df"], protocol_info=parsed["protocol_info"], dt=0.01)
+    assert cost_experiment_idxs(protocol) == [0, 1]
+    assert "no data_items" not in capsys.readouterr().out

@@ -10,15 +10,17 @@ an experiment. Such a feature is:
 * an extra output of a trained emulator with ``emulator_settings.include_prediction_items:
   true``.
 
-Only prediction items with an operation become features. The rest are traces; they are
-skipped with a :class:`PredictionFeatureWarning` naming them. An operation whose result is not
-a single number raises :class:`NonScalarPredictionFeatureError`.
+Every item is a scalar or a series, never both. A prediction item is a scalar feature when it
+has an operation and is scalar: ``data_type: constant``, or no data_type and an operation that
+reduces a series to a number (the ``@series_to_constant`` ones: max, min, mean, ...). Items
+without an operation, and series items (with or without one), are skipped with a
+:class:`PredictionFeatureWarning` naming them. A feature whose operation does not actually
+return a single number raises :class:`NonScalarPredictionFeatureError`.
 
-**Which trace is reduced.** A prediction item names an experiment but no sub-experiment. The
-operation is applied to its operands over the **last sub-experiment** of that experiment:
-that is the segment ``save_prediction_data`` records (and validation compares with), so the
-feature an SA or an emulator reports is the same number the validation reports. In the usual
-one-sub-experiment study it is simply the whole experiment.
+**Which trace is reduced.** The operands are recorded over the item's ``(experiment_idx,
+subexperiment_idx)`` segment; ``subexperiment_idx`` defaults to the experiment's last
+sub-experiment. ``save_prediction_data`` and the validation use the same segment, so the
+feature an SA or an emulator reports is the number the validation reports.
 
 This module is the one place that rule and the scalar check live, so SA, the emulator trainer,
 the emulator at use time and the validation cannot disagree about what a prediction feature is.
@@ -57,23 +59,51 @@ def _num_items(prediction_info):
     return len((prediction_info or {}).get('data_item_names') or [])
 
 
-def prediction_feature_indices(prediction_info, warn=True, context='the analysis'):
-    """Indices of the prediction items that are scalar features (those with an operation).
+def _default_funcs():
+    from libcuflynx.parsers.PrimitiveParsers import scriptFunctionParser
+    return scriptFunctionParser().get_operation_funcs_dict('numpy')
+
+
+def is_scalar_feature(prediction_info, idx, operation_funcs_dict=None):
+    """Whether prediction item ``idx`` is a scalar feature (see the module docstring)."""
+    n = _num_items(prediction_info)
+    operation = _column(prediction_info, 'operations', n)[idx]
+    data_type = _column(prediction_info, 'data_types', n)[idx]
+    if operation is None or data_type == 'series':
+        return False
+    if data_type == 'constant':
+        return True
+    funcs = operation_funcs_dict if operation_funcs_dict is not None else _default_funcs()
+    func = funcs.get(operation)
+    if func is None:
+        name = _column(prediction_info, 'data_item_names', n)[idx]
+        raise ValueError(
+            f'prediction item {name!r}: operation {operation!r} is not a registered operation '
+            f'func. Register it (operation_funcs_external_path, or add_user_operation_func) or '
+            f'use a built-in one.')
+    return bool(getattr(func, 'series_to_constant', False))
+
+
+def prediction_feature_indices(prediction_info, operation_funcs_dict=None, warn=True,
+                               context='the analysis'):
+    """Indices of the prediction items that are scalar features.
 
     The others are skipped; with ``warn`` a :class:`PredictionFeatureWarning` names them, so a
     user who expected a trace to appear as a feature is told why it did not.
     """
     n = _num_items(prediction_info)
-    operations = _column(prediction_info, 'operations', n)
     names = _column(prediction_info, 'data_item_names', n)
-    keep = [i for i in range(n) if operations[i] is not None]
-    skipped = [str(names[i]) for i in range(n) if operations[i] is None]
+    if n and operation_funcs_dict is None:
+        operation_funcs_dict = _default_funcs()
+    keep = [i for i in range(n) if is_scalar_feature(prediction_info, i, operation_funcs_dict)]
+    skipped = [str(names[i]) for i in range(n) if i not in keep]
     if warn and skipped:
         message = (
-            f'include_prediction_items: {len(skipped)} prediction item(s) have no operation and '
+            f'include_prediction_items: {len(skipped)} prediction item(s) are not a scalar and '
             f'are not included in {context}: {skipped}. Only a prediction item with an '
-            f'operation reduces to a scalar feature; add an "operation" (e.g. "max", "mean") '
-            f'to include it.')
+            f'operation that reduces it to one number is a feature: data_type "constant", or '
+            f'an operation such as "max" or "mean" on an item without a data_type. Items '
+            f'without an operation, and series, are left out.')
         warnings.warn(message, PredictionFeatureWarning, stacklevel=2)
     return keep
 
@@ -95,9 +125,20 @@ def feature_subexperiment(protocol_info, exp_idx):
 
 
 def feature_segments(prediction_info, indices, protocol_info):
-    """``(experiment, sub-experiment)`` per feature."""
-    exps = _column(prediction_info, 'experiment_idxs', _num_items(prediction_info))
-    return [(int(exps[i]), feature_subexperiment(protocol_info, exps[i])) for i in indices]
+    """``(experiment, sub-experiment)`` per item: its ``subexperiment_idx``, else the
+    experiment's last sub-experiment."""
+    n = _num_items(prediction_info)
+    exps = _column(prediction_info, 'experiment_idxs', n)
+    subs = _column(prediction_info, 'subexperiment_idxs', n)
+    return [(int(exps[i]),
+             int(subs[i]) if subs[i] is not None else feature_subexperiment(protocol_info,
+                                                                            exps[i]))
+            for i in indices]
+
+
+def feature_experiments(prediction_info, indices, protocol_info):
+    """The experiments the features in ``indices`` need simulated."""
+    return sorted({exp for exp, _ in feature_segments(prediction_info, indices, protocol_info)})
 
 
 def labels_with_segments(prediction_info, indices, protocol_info):
@@ -197,8 +238,13 @@ def simulate_features(pid, param_vals, prediction_info, indices):
         helper.set_theta(param_vals)
         return data, list(helper.get_predicted_prediction_features(names))
 
+    from libcuflynx.parsers.PrimitiveParsers import cost_experiment_idxs
+    # The cost's experiments plus any validation-only one a feature is measured in.
+    exp_idxs = sorted(set(cost_experiment_idxs(pid.protocol_info))
+                      | set(feature_experiments(prediction_info, indices, pid.protocol_info)))
     _, operands_list, pred_list = pid.get_cost_obs_and_pred_from_params(
-        param_vals, reset=True, pred_names=result_variables(prediction_info, indices))
+        param_vals, reset=True, pred_names=result_variables(prediction_info, indices),
+        exp_idxs=exp_idxs)
     if not operands_list:
         return None, None
     data = fd_backend.features_from_operands(pid, operands_list)

@@ -427,7 +427,7 @@ class SensitivityAnalysis():
 
         info = engine.prediction_info
         indices = prediction_features.prediction_feature_indices(
-            info, context='the local sensitivity analysis')
+            info, engine.operation_funcs_dict, context='the local sensitivity analysis')
         if not indices:
             return {}, {}, []
         names = prediction_features.prediction_feature_names(info, indices)

@@ -131,7 +131,8 @@ class EmulatorTrainer:
         self.prediction_indices = []
         if prediction_features.include_prediction_items(self.settings):
             self.prediction_indices = prediction_features.prediction_feature_indices(
-                getattr(param_id, 'prediction_info', None), context='the emulator features')
+                getattr(param_id, 'prediction_info', None),
+                getattr(param_id, 'operation_funcs_dict', None), context='the emulator features')
 
     # ------------------------------------------------------------------ construction
 

@@ -6,20 +6,28 @@ Held-out data lives in the obs_data it validates, as ``prediction_items`` that c
 never scored during calibration; after it, the model's prediction is compared with the item's
 data here.
 
-    results = validation_results(prediction_info, time_per_exp, prediction_per_item)
+    results = validation_results(prediction_info, time_per_exp, prediction_per_item,
+                                 time_per_item=None)
     write_validation_results(results, output_dir)      # -> validation_results.json
 
-``time_per_exp[exp_idx]`` is the experiment's simulation time (from the start of the
-experiment, pre_time removed) and ``prediction_per_item[i]`` the model series of prediction
-item ``i`` on that grid. A series is compared at its observation times ``k * obs_dt`` that the
-simulation reaches, the model linearly interpolated onto them (as paramID does for data_items).
-A constant is compared with the model's value at the end of the experiment.
+Each item is compared over its own segment -- its ``(experiment_idx, subexperiment_idx)``, the
+sub-experiment defaulting to the experiment's last. ``time_per_item[i]`` is the time of item
+``i``'s recorded samples (or ``time_per_exp[exp_idx]``, for callers that record one segment per
+experiment), and ``prediction_per_item[i]`` its operand series on that grid: a list with one
+series per operand, or a bare array for its one operand. Time is taken **from the start of the
+segment**, the convention data_items use for a series in a sub-experiment: sample k of a
+held-out series is at ``k * obs_dt`` from the start of its sub-experiment. A series is compared
+at the observation times the simulation reaches, the model linearly interpolated onto them (as
+paramID does for data_items). A constant is compared with the model's value at the end of the
+segment.
 
-An item with an ``operation`` is a scalar feature (``param_id.prediction_features``): its
-constant value is compared with ``operation(*operands, **operation_kwargs)`` of the model's
-operands over the recorded run, e.g. the max of a pressure over the experiment. For such an
-item ``prediction_per_item[i]`` is the list of its operand series (one per operand); a bare
-array is taken as its one operand. ``t`` is then the end of the run, and ``model`` the feature.
+An item with an ``operation`` is compared with the operation of its operands:
+
+- a scalar item (``data_type: constant``) with ``operation(*operands, **operation_kwargs)``, a
+  feature such as the max of a pressure over the segment (``t`` is then the segment's end);
+- a series item with the operation's series: ``operation(..., series_output=True)`` for a
+  ``@series_to_constant`` operation, else the operation's own (series) result -- the same rule
+  data_items follow.
 
 Per item the result holds the scores and the series for plotting:
 
@@ -27,7 +35,7 @@ Per item the result holds the scores and the series for plotting:
     nrmse         rmse / the data's range (max - min; its magnitude for a constant)
     mean_abs_z    mean |model - data| / std          (None without std)
     within_2std   fraction of points with |model - data| <= 2 std  (None without std)
-    t, data, std, model
+    t, data, std, model, operation
 """
 import json
 import os
@@ -53,6 +61,7 @@ def _item_result(name, operand, unit, data_type, value, std, obs_dt, t_sim, mode
     data = _as_array(value)
     std = _as_array(std)
     t_sim = np.asarray(t_sim, dtype=float)
+    t_sim = t_sim - t_sim[0]                 # from the start of the segment
     model = np.asarray(model, dtype=float).ravel()
     if feature is not None:
         # a scalar feature: operation(operands) over the run, compared with the constant
@@ -95,8 +104,16 @@ def _item_result(name, operand, unit, data_type, value, std, obs_dt, t_sim, mode
     }
 
 
+def _series_output(func, operands, kwargs):
+    """What an operation gives a series item: its series_output for a @series_to_constant
+    operation, else its own result (as for a data_item series)."""
+    if getattr(func, 'series_to_constant', False):
+        return func(*operands, series_output=True, **kwargs)
+    return func(*operands, **kwargs)
+
+
 def validation_results(prediction_info, time_per_exp, prediction_per_item,
-                       operation_funcs_dict=None):
+                       operation_funcs_dict=None, time_per_item=None):
     """The validation of every prediction item that carries data (see the module docstring).
 
     ``prediction_info`` is the parser's (``values``, ``data_types``, ``stds``, ``obs_dts``,
@@ -107,23 +124,47 @@ def validation_results(prediction_info, time_per_exp, prediction_per_item,
     """
     from libcuflynx.param_id import prediction_features
 
+    from libcuflynx.param_id.operation_funcs import resolve_operation_kwargs
+
     values = prediction_info.get('values') or []
     operations = prediction_info.get('operations') or [None] * len(values)
-    features = {}
-    feature_idxs = [i for i, op in enumerate(operations) if op is not None]
-    if feature_idxs:
+    data_types = prediction_info.get('data_types') or [None] * len(values)
+    features, series_outputs = {}, {}
+    op_idxs = [i for i, op in enumerate(operations) if op is not None]
+    if op_idxs:
         if operation_funcs_dict is None:
             from libcuflynx.parsers.PrimitiveParsers import scriptFunctionParser
             operation_funcs_dict = scriptFunctionParser().get_operation_funcs_dict('numpy')
         names = prediction_info['data_item_names']
         temp_results = {}
-        # every feature in item order, so an operation_kwargs reference to an earlier one
-        # resolves whether or not that one carries data
-        for i in feature_idxs:
-            features[i] = prediction_features.evaluate_feature(
-                prediction_info, i, operation_funcs_dict,
-                _operand_series(prediction_per_item[i]), temp_results=temp_results)
-            temp_results[str(names[i])] = features[i]
+        # every item with an operation in item order, so an operation_kwargs reference to an
+        # earlier one resolves whether or not that one carries data
+        for i in op_idxs:
+            operands = _operand_series(prediction_per_item[i])
+            if data_types[i] == 'series':
+                func = operation_funcs_dict.get(operations[i])
+                if func is None:
+                    raise ValueError(f'prediction item {names[i]!r}: operation '
+                                     f'{operations[i]!r} is not a registered operation func.')
+                kwargs = resolve_operation_kwargs(
+                    (prediction_info.get('operation_kwargs') or [{}] * len(values))[i] or {},
+                    func, operation_name=operations[i], data_item_name=str(names[i]),
+                    temp_results=temp_results, num_operands=len(operands))
+                result = np.asarray(_series_output(func, operands, kwargs), dtype=float).ravel()
+                if result.size != operands[0].size:
+                    raise ValueError(
+                        f'prediction item {names[i]!r} is a series, but operation '
+                        f'{operations[i]!r} returned {result.size} value(s) for a trace of '
+                        f'{operands[0].size}. A series item needs an operation that returns a '
+                        f'series (or has series_output).')
+                series_outputs[i] = result
+                temp_results[str(names[i])] = result
+            elif prediction_features.is_scalar_feature(prediction_info, i,
+                                                       operation_funcs_dict):
+                features[i] = prediction_features.evaluate_feature(
+                    prediction_info, i, operation_funcs_dict, operands,
+                    temp_results=temp_results)
+                temp_results[str(names[i])] = features[i]
 
     items = []
     for i, value in enumerate(values):
@@ -131,13 +172,16 @@ def validation_results(prediction_info, time_per_exp, prediction_per_item,
             continue
         exp_idx = int(prediction_info['experiment_idxs'][i])
         operands = prediction_info['operands'][i]
-        first = _operand_series(prediction_per_item[i])[0]
+        model = series_outputs.get(i)
+        if model is None:
+            model = _operand_series(prediction_per_item[i])[0]
+        t_sim = time_per_item[i] if time_per_item is not None else time_per_exp[exp_idx]
         items.append(_item_result(
             prediction_info['data_item_names'][i], str(operands[0]) if len(operands) else '',
             prediction_info['units'][i], prediction_info['data_types'][i], value,
             (prediction_info.get('stds') or [None] * len(values))[i],
             (prediction_info.get('obs_dts') or [None] * len(values))[i],
-            time_per_exp[exp_idx], first, operation=operations[i], feature=features.get(i)))
+            t_sim, model, operation=operations[i], feature=features.get(i)))
     return {'items': items}
 
 
