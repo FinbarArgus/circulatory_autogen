@@ -1,6 +1,6 @@
 # C++ generation templates (`model_type: cpp`)
 
-These Jinja2 templates render the C++ that wraps a generated model. The model equations are
+These Jinja2 templates render the C++ that wraps a generated model. `template_docs.html` in this folder is an illustrated version of this README: open it in a browser to see each template beside the C++ it produced, with diagrams of the generation pipeline and of what runs when. The model equations are
 never in a template. libCellML writes them as C (`model0d_core.c/.h`), and they are left
 unmodified. The templates add everything around the equations:
 
