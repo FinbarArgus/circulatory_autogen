@@ -676,7 +676,7 @@ def _empty_prediction_info():
     """
     return {'operands': [], 'units': [], 'data_item_names': [],
             'trace_names_for_plotting': [], 'item_names_for_plotting': [],
-            'experiment_idxs': []}
+            'experiment_idxs': [], 'data_types': [], 'values': [], 'stds': [], 'obs_dts': []}
 
 
 def migrate_legacy_obs_columns(gt_df):
@@ -3661,7 +3661,16 @@ class ObsAndParamDataParser(object):
                         "types": (str,),
                         "default": lambda entry: str(entry.get("trace_name_for_plotting", ''))},
                     "experiment_idx": {"types": (int, np.integer), "default": 0},
+                    # Optional measured data for the prediction: held-out data it is checked
+                    # against afterwards, never scored in the calibration. A series needs obs_dt.
+                    "data_type": {"types": (str,), "default": None},
+                    "value": {"types": (int, float, np.integer, np.floating, list, tuple, np.ndarray),
+                              "default": None},
+                    "std": {"types": (int, float, np.integer, np.floating, list, tuple, np.ndarray),
+                            "default": None},
+                    "obs_dt": {"types": (int, float, np.integer, np.floating), "default": None},
                 }
+                optional_ground_truth = ("data_type", "value", "std", "obs_dt")
 
                 prediction_info = _empty_prediction_info()
                 for entry_idx, raw_entry in enumerate(prediction_items):
@@ -3689,6 +3698,8 @@ class ObsAndParamDataParser(object):
                                 continue
                             entry[key] = default(entry) if callable(default) else copy.deepcopy(default)
 
+                        if key in optional_ground_truth and entry[key] is None:
+                            continue
                         if not isinstance(entry[key], allowed):
                             pred_type_errors.append(
                                 f"prediction_items[{entry_idx}]['{key}']: expected {allowed}, got {type(entry[key])}"
@@ -3711,6 +3722,18 @@ class ObsAndParamDataParser(object):
                     prediction_info['item_names_for_plotting'].append(
                         entry['item_name_for_plotting'])
                     prediction_info['experiment_idxs'].append(entry['experiment_idx'])
+                    if entry['value'] is not None:
+                        if entry['data_type'] not in ('constant', 'series'):
+                            raise ValueError(
+                                f"prediction_items[{entry_idx}] has a value, so it needs data_type "
+                                f"'constant' or 'series', got {entry['data_type']!r}")
+                        if entry['data_type'] == 'series' and entry['obs_dt'] is None:
+                            raise ValueError(
+                                f"prediction_items[{entry_idx}] is a series with a value, so it needs obs_dt")
+                    prediction_info['data_types'].append(entry['data_type'])
+                    prediction_info['values'].append(entry['value'])
+                    prediction_info['stds'].append(entry['std'])
+                    prediction_info['obs_dts'].append(entry['obs_dt'])
             else:
                 prediction_info = _empty_prediction_info()
             
