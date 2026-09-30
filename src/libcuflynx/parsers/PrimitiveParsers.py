@@ -25,7 +25,7 @@ from datetime import date
 
 from libcuflynx.utilities.protocol_shapes import materialise_shapes, validate_trace_references
 from libcuflynx.utilities.obs_data_helpers import (LEGACY_OBS_ITEM_KEYS, LEGACY_OBS_KEY_ADVICE,
-                                        migrate_legacy_obs_item_keys,
+                                        migrate_legacy_obs_item_keys, check_obs_data_name,
                                         DEFAULT_COST_TYPE, PREVIOUS_DEFAULT_COST_TYPE,
                                         VALID_DATA_TYPES)
 from libcuflynx.param_id.modifier_funcs import (BUILTIN_MODIFIER_FUNCS, get_modifier_funcs,
@@ -3351,6 +3351,10 @@ class ObsAndParamDataParser(object):
             print("No obs data path or obs data dict provided, exiting")
             return None
 
+        # Optional top-level "obs_data_name" (the instance/data set the file belongs to);
+        # warns when a file filed under instances/<name>/ names another instance.
+        obs_data_name = check_obs_data_name(json_obj, param_id_obs_path)
+
         gt_df, protocol_info, prediction_info = None, None, None
         REQUIRED = "REQUIRED"
 
@@ -3893,7 +3897,8 @@ class ObsAndParamDataParser(object):
         return {
             "gt_df": gt_df, 
             "protocol_info": protocol_info, 
-            "prediction_info": prediction_info
+            "prediction_info": prediction_info,
+            "obs_data_name": obs_data_name,
         }
 
     def process_obs_info(self, gt_df, output_dir, dt):
