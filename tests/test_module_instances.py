@@ -497,3 +497,50 @@ def test_resources_models_generate_identically_without_the_instance_lookup(
     ok, without = _generate_resource(tmp_path / 'plain', prefix)
     assert ok
     _assert_same_generated_models(with_lookup, without)
+
+
+# --- rows libcuflynx appends itself must fit vessel arrays with extra columns ("instance", ...) ---
+
+def test_appended_vessel_rows_fill_extra_columns():
+    import pandas as pd
+    from libcuflynx.parsers.ModelParsers import _vessel_row
+    df = pd.DataFrame(columns=['name', 'BC_type', 'vessel_type', 'inp_vessels', 'out_vessels', 'instance'])
+    df.loc[0] = _vessel_row(df, ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']])
+    assert list(df.loc[0]) == ['par', 'vp', 'arterial_simple', ['heart'], ['pvn'], '']
+    # a frame with the columns in another order still gets each value in its column
+    df2 = pd.DataFrame(columns=['instance', 'name', 'BC_type', 'vessel_type', 'inp_vessels', 'out_vessels'])
+    df2.loc[0] = _vessel_row(df2, ['volume_sum_1D', 'nn', 'FV1D_volume_sum', '', 'total'])
+    assert df2.loc[0, 'name'] == 'volume_sum_1D' and df2.loc[0, 'instance'] == ''
+
+
+def _generate_cpp_1d(work_dir, vessel_array_name, records=None):
+    import contextlib
+    import io
+    res = os.path.join(work_dir, 'res')
+    os.makedirs(res, exist_ok=True)
+    shutil.copy(os.path.join(RESOURCES_DIR, 'aortic_bif_1d_parameters.csv'), res)
+    if records is None:
+        shutil.copy(os.path.join(RESOURCES_DIR, 'aortic_bif_1d_vessel_array.csv'), res)
+    else:
+        _write_json(os.path.join(res, vessel_array_name), records)
+    cfg = {'file_prefix': 'aortic_bif_1d', 'input_param_file': 'aortic_bif_1d_parameters.csv',
+           'model_type': 'cpp', 'solver': 'RK4', 'couple_to_1d': True, 'resources_dir': res,
+           'generated_models_dir': os.path.join(work_dir, 'gen'), 'cpp_generated_models_dir': os.path.join(work_dir, 'cpp'),
+           'cpp_1d_model_config_path': None, 'dt': 0.001,
+           'solver_info': {'dt_solver': 1e-4, 'MaximumNumberOfSteps': 5000, 'solver': 'RK4'}, 'DEBUG': False}
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert generate_with_new_architecture(False, cfg)
+    with open(os.path.join(work_dir, 'cpp', 'model0d.cc')) as f:
+        return f.read()
+
+
+def test_0d_1d_split_accepts_records_with_extra_keys(tmp_path):
+    '''split_0d_1d_vessel_array appends volume_sum_1D / 1D-coupling rows; with an extra record key
+    (such as "instance") a positional 5-value row used to raise "cannot set a row with mismatched
+    columns". The generated C++ is the same as from the plain array.'''
+    from libcuflynx.utilities.config_schemas import read_vessel_array_records
+    plain = _generate_cpp_1d(str(tmp_path / 'plain'), None)
+    records = [dict(r, comment='extra column') for r in
+               read_vessel_array_records(os.path.join(RESOURCES_DIR, 'aortic_bif_1d_vessel_array.csv'))]
+    extra = _generate_cpp_1d(str(tmp_path / 'extra'), 'aortic_bif_1d_vessel_array.json', records)
+    assert extra == plain
