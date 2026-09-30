@@ -1552,16 +1552,30 @@ class CVS0DParamID():
             return
 
         time_and_pred_per_exp_list = []
+        # Every operand of every item, by item index: an item with an operation may reduce
+        # more than one (e.g. subtraction), and the saved arrays below hold the first only.
+        operands_per_item = {}
+        operand_lists = obs_operand_lists(self.prediction_info)
         for exp_idx in self.prediction_info['experiment_idxs']:
             self.param_id.simulate_once(reset=False, only_one_exp=exp_idx)
             tSim = self.param_id.sim_helper.tSim - self.param_id.pre_time
-            pred_qnames = [str(ops[0]) for ops in obs_operand_lists(self.prediction_info)]
+            pred_qnames = [str(ops[0]) for ops in operand_lists]
             pred_names = [name for II, name in enumerate(pred_qnames) if
                                   self.prediction_info['experiment_idxs'][II] == exp_idx]
             pred_output = np.array(self.param_id.sim_helper.get_results(pred_names))
                     
             time_and_pred_per_exp_list.append(np.concatenate((tSim.reshape(1, -1), 
                                                          pred_output[:, 0, :])))
+            same_exp = [II for II in range(len(operand_lists))
+                        if self.prediction_info['experiment_idxs'][II] == exp_idx
+                        and II not in operands_per_item]
+            if same_exp:
+                all_operands = self.param_id.sim_helper.get_results(
+                    [[str(op) for op in operand_lists[II]] for II in same_exp])
+                for II, operand_series in zip(same_exp, all_operands):
+                    operands_per_item[II] = [np.asarray(x, dtype=float).ravel()
+                                             for x in operand_series]
+        self._prediction_operands_per_item = operands_per_item
         return time_and_pred_per_exp_list
 
     def save_prediction_data(self):
@@ -1593,14 +1607,23 @@ class CVS0DParamID():
             # held-out data carried by prediction items (a value): validate the best fit
             # against it. Entry k of time_and_pred_per_exp_list is item k's experiment, rows
             # [time, the predictions of that experiment's items in item order].
+            # An item with an operation gets every one of its operands (see
+            # __get_prediction_data), so a two-operand operation can be evaluated.
             exp_idxs = list(self.prediction_info['experiment_idxs'])
+            operations = self.prediction_info.get('operations') or [None] * len(exp_idxs)
+            all_operands = getattr(self, '_prediction_operands_per_item', {})
             time_per_exp, pred_per_item = {}, []
             for k, exp_idx in enumerate(exp_idxs):
                 rows = time_and_pred_per_exp_list[k]
                 time_per_exp[exp_idx] = rows[0]
                 same_exp = [j for j, e in enumerate(exp_idxs) if e == exp_idx]
-                pred_per_item.append(rows[1 + same_exp.index(k)])
-            results = validation.validation_results(self.prediction_info, time_per_exp, pred_per_item)
+                if operations[k] is not None and k in all_operands:
+                    pred_per_item.append(all_operands[k])
+                else:
+                    pred_per_item.append(rows[1 + same_exp.index(k)])
+            results = validation.validation_results(
+                self.prediction_info, time_per_exp, pred_per_item,
+                operation_funcs_dict=self.param_id.operation_funcs_dict)
             path = validation.write_validation_results(results, self.output_dir)
             if path:
                 print(f'validation of {len(results["items"])} held-out prediction item(s) saved in {path}')
@@ -2046,6 +2069,7 @@ class ParamID():
             )
         # Fail fast on a stale obs_data.json rather than part-way through an optimisation (#304).
         validate_operation_kwargs(self.obs_info, self.operation_funcs_dict)
+        validate_operation_kwargs(self.prediction_info, self.operation_funcs_dict)
         validate_cost_kwargs(self.obs_info, self.cost_funcs_dict, self.cost_type)
         self.DEBUG = DEBUG
 
@@ -2243,6 +2267,8 @@ class ParamID():
 
     def set_prediction_info(self, prediction_info):
         self.prediction_info = normalise_prediction_info(prediction_info)
+        # A prediction item with an operation is checked like a data_item's (#304).
+        validate_operation_kwargs(self.prediction_info, self.operation_funcs_dict)
     
     def set_obs_info(self, obs_info):
         # Before cost_type is read and before the kwargs validators run, so all three

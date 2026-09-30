@@ -52,6 +52,46 @@ If `sa_options` is omitted, defaults are applied:
 - `sample_type: saltelli`
 - `output_dir: sensitivity_outputs/<file_prefix>_SA_results`
 
+### Prediction items as extra outputs
+
+Set `include_prediction_items: true` in `sa_options` to also report the sensitivity of the
+`prediction_items` in `obs_data.json` that have an `operation` (see
+[Prediction items as scalar features](parameter-identification.md#prediction-items-as-scalar-features)).
+They are not in the cost, so they are useful for asking which parameters drive a quantity you
+predict rather than fit.
+
+```
+sa_options:
+    method: sobol
+    num_samples: 1024
+    include_prediction_items: true
+```
+
+- **Only prediction items with an operation are included**, because only they reduce to a
+  scalar. The others are skipped, with a warning that names them. An operation that returns
+  more than one number is an error.
+- They come **after** the data_item outputs. They are labelled by their `data_item_name`, as
+  `<data_item_name> (Exp<e>, Sub<s>)`, in the Sobol CSVs
+  (`all_outputs_n<N>_Sobol_indices.csv` columns `S1_...`/`ST_...`, and
+  `all_outputs_n<N>_Sobol_2nd_order_indices.csv`), the per-output plots and the heatmaps. The
+  sub-experiment is the last one of the item's experiment, which is the one the operation is
+  applied to.
+- The run also writes `sobol_output_features.json`, which lists every output column with its
+  `kind` (`data_item`, `prediction_item` or `cost`), `data_item_name`, `experiment_idx` and
+  `subexperiment_idx`.
+- With `method: local` they are extra rows of `local_sensitivity_absolute.csv` and
+  `local_sensitivity_relative.csv`, named by `data_item_name`. `get_local_sensitivities()`
+  lists them under `prediction_feature_names`. They are always computed by central finite
+  differences with `fd_rel_step`, whatever `gradient_method` gives the data_item rows, which
+  costs 2M more simulations.
+- `choose_most_impactful_params_sobol` ranks over every column in the CSV, prediction features
+  included.
+- With `use_emulator: true` the emulator must have been trained with
+  `emulator_settings.include_prediction_items: true`. If it was not, the run stops and says to
+  retrain.
+
+Without the option, nothing changes: the outputs and files are exactly the data_item ones.
+
 ## How to run SA script
 
 First, ensure you have the required sensitivity analysis packages specified in [Getting Started](getting-started.md).

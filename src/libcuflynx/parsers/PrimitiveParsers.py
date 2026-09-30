@@ -676,7 +676,44 @@ def _empty_prediction_info():
     """
     return {'operands': [], 'units': [], 'data_item_names': [],
             'trace_names_for_plotting': [], 'item_names_for_plotting': [],
-            'experiment_idxs': [], 'data_types': [], 'values': [], 'stds': [], 'obs_dts': []}
+            'experiment_idxs': [], 'data_types': [], 'values': [], 'stds': [], 'obs_dts': [],
+            'operations': [], 'operation_kwargs': []}
+
+
+#: How an obs_data file may spell "no operation". The same set process_obs_info treats as None.
+_NO_OPERATION_SPELLINGS = ('', 'None', 'none', 'Null', 'null', 'nan')
+
+
+def check_prediction_operation_references(gt_df, prediction_info):
+    """A prediction item's ``operation_kwargs`` may name an *earlier prediction item* only.
+
+    A string kwarg value equal to an item's ``data_item_name`` is a reference to that item's
+    value (#466). For a prediction feature only the prediction items are evaluated together
+    -- the validation after calibration has no data_item features -- so a reference to a
+    data_item, or to a later prediction item, could not be resolved the same way everywhere.
+    Refused here, at parse time, rather than as a confusing error after a simulation.
+    """
+    if not prediction_info:
+        return
+    data_names = set()
+    if gt_df is not None and len(gt_df) and "data_item_name" in gt_df.columns:
+        data_names = {str(name) for name in gt_df["data_item_name"]}
+    pred_names = [str(name) for name in (prediction_info.get("data_item_names") or [])]
+    for idx, kwargs in enumerate(prediction_info.get("operation_kwargs") or []):
+        for key, value in (kwargs or {}).items():
+            if not isinstance(value, str):
+                continue
+            if value in data_names:
+                raise ValueError(
+                    f"prediction_items[{idx}] ('{pred_names[idx]}'): operation_kwargs {key!r} "
+                    f"references data_item {value!r}. A prediction item's operation_kwargs may "
+                    f"reference earlier prediction_items only.")
+            if value in pred_names[idx:]:
+                raise ValueError(
+                    f"prediction_items[{idx}] ('{pred_names[idx]}'): operation_kwargs {key!r} "
+                    f"references prediction item {value!r}, which is not earlier in "
+                    f"prediction_items. References are resolved in order; move {value!r} "
+                    f"before '{pred_names[idx]}'.")
 
 
 def migrate_legacy_obs_columns(gt_df):
@@ -1717,6 +1754,17 @@ ANALYSIS_OPTIONS = {
             {'name': 'num_samples', 'type': 'int', 'default': 32, 'required': False,
              'description': ('Base sample count; the actual number of runs is num_samples*(2M+2) '
                              'for Sobol, where M is the number of parameters.')},
+            # Read by sobol_SA (both methods go through it for their options) and by
+            # run_local_sensitivity. Off, the outputs are exactly the data_item features, as
+            # they always were.
+            {'name': 'include_prediction_items', 'type': 'bool', 'default': False,
+             'required': False,
+             'description': ('Also report the sensitivity of the obs_data prediction_items that '
+                             'have an operation, as extra outputs labelled by their '
+                             'data_item_name. Only a prediction item with an operation reduces '
+                             'to a scalar feature; the others are skipped with a warning naming '
+                             'them. With use_emulator, the emulator must have been trained with '
+                             'emulator_settings.include_prediction_items.')},
         ],
     },
     # Named 'uq' rather than 'mcmc' because MCMC is one method of uncertainty quantification, not
@@ -1953,6 +2001,17 @@ ANALYSIS_OPTIONS = {
             {'name': 'fd_rel_step', 'type': 'float', 'default': 1e-3, 'required': False,
              'description': ('Relative step for the finite-difference gradient over the '
                              'emulator, which is the only gradient source an emulator has.')},
+            # Read by EmulatorTrainer. The prediction features are appended after the data_item
+            # features and fingerprinted separately, so a calibration using the emulator still
+            # reads (and checks) only the data_item features.
+            {'name': 'include_prediction_items', 'type': 'bool', 'default': False,
+             'required': False,
+             'description': ('Also train the emulator on the obs_data prediction_items that have '
+                             'an operation, so a sensitivity analysis with '
+                             'sa_options.include_prediction_items can use it. Only a prediction '
+                             'item with an operation reduces to a scalar feature; the others are '
+                             'skipped with a warning naming them. Calibration with the emulator '
+                             'still fits the data_item features only.')},
         ],
     },
 }
@@ -2674,6 +2733,7 @@ class YamlFileParser(object):
         emulator_settings.setdefault('min_r2', 0.9)
         emulator_settings.setdefault('out_of_bounds', 'error')
         emulator_settings.setdefault('fd_rel_step', 1e-3)
+        emulator_settings.setdefault('include_prediction_items', False)
 
         # Parse optimiser_options - this is the new unified way to specify options
         # Handle backwards compatibility: if ga_options or debug_ga_options is specified, merge into optimiser_options
@@ -3669,8 +3729,15 @@ class ObsAndParamDataParser(object):
                     "std": {"types": (int, float, np.integer, np.floating, list, tuple, np.ndarray),
                             "default": None},
                     "obs_dt": {"types": (int, float, np.integer, np.floating), "default": None},
+                    # Optional reduction of the operands to one number, with the same vocabulary
+                    # as a data_item's. An item with an operation is a scalar *feature*: held-out
+                    # data is compared with operation(operands), and sensitivity analysis and
+                    # emulator training can include it (include_prediction_items).
+                    "operation": {"types": (str,), "default": None},
+                    "operation_kwargs": {"types": (dict,), "default": None},
                 }
-                optional_ground_truth = ("data_type", "value", "std", "obs_dt")
+                optional_ground_truth = ("data_type", "value", "std", "obs_dt",
+                                         "operation", "operation_kwargs")
 
                 prediction_info = _empty_prediction_info()
                 for entry_idx, raw_entry in enumerate(prediction_items):
@@ -3730,10 +3797,28 @@ class ObsAndParamDataParser(object):
                         if entry['data_type'] == 'series' and entry['obs_dt'] is None:
                             raise ValueError(
                                 f"prediction_items[{entry_idx}] is a series with a value, so it needs obs_dt")
+                    operation = entry['operation']
+                    if operation is not None and str(operation).strip() in _NO_OPERATION_SPELLINGS:
+                        operation = None
+                    operation_kwargs = entry['operation_kwargs'] or {}
+                    if operation_kwargs and operation is None:
+                        raise ValueError(
+                            f"prediction_items[{entry_idx}] ('{entry['data_item_name']}') has "
+                            f"operation_kwargs but no operation. operation_kwargs are the "
+                            f"keyword arguments of the operation func; name the operation, or "
+                            f"drop operation_kwargs.")
+                    if operation is not None and entry['value'] is not None \
+                            and entry['data_type'] != 'constant':
+                        raise ValueError(
+                            f"prediction_items[{entry_idx}] ('{entry['data_item_name']}') has an "
+                            f"operation, so it is a scalar feature and its held-out value must be "
+                            f"data_type 'constant', got {entry['data_type']!r}.")
                     prediction_info['data_types'].append(entry['data_type'])
                     prediction_info['values'].append(entry['value'])
                     prediction_info['stds'].append(entry['std'])
                     prediction_info['obs_dts'].append(entry['obs_dt'])
+                    prediction_info['operations'].append(operation)
+                    prediction_info['operation_kwargs'].append(dict(operation_kwargs))
             else:
                 prediction_info = _empty_prediction_info()
             
@@ -3916,6 +4001,7 @@ class ObsAndParamDataParser(object):
         )
 
         check_data_item_names_unique(gt_df, prediction_info)
+        check_prediction_operation_references(gt_df, prediction_info)
 
         return {
             "gt_df": gt_df, 

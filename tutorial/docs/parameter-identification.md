@@ -440,8 +440,11 @@ You can include a `prediction_items` list in `obs_data.json` to request addition
   first operand.
 - **item_name_for_plotting** (optional): The item's own label. Defaults to
   `"<trace_name_for_plotting> (<operation>)"`.
+- **operation** and **operation_kwargs** (optional): reduce the operands to one number, with the
+  same operations and the same `operation_kwargs` checks as a `data_item`. See
+  [Prediction items as scalar features](#prediction-items-as-scalar-features).
 
-Together the last two replace the old **name_for_plotting**. A file still using `variable` or
+Together the two plotting names replace the old **name_for_plotting**. A file still using `variable` or
 `name_for_plotting` loads with a deprecation warning; `cuflynx-migrate-obs-data` rewrites it.
 
 #### Validation data in prediction items
@@ -468,7 +471,37 @@ After a calibration, saving the prediction data (`plot_param_id`) also writes
 `validation_results.json` in the output directory: for each item with data, the RMSE, the RMSE
 over the data's range, the mean |model - data|/std and the fraction within 2 std, with the
 model and data at the observation times. A series is compared at the times the simulation
-reaches; a constant with the model's value at the end of the experiment.
+reaches; a constant with the model's value at the end of the experiment. Each result item
+also names its `operation` (`null` for an item without one).
+
+#### Prediction items as scalar features
+
+A prediction item with an **operation** is a scalar *feature* of the prediction, e.g. the maximum
+of a pressure over an experiment. It is still not part of the cost. It changes three things:
+
+- **Validation.** Its held-out `value` (`data_type: constant`) is compared with
+  `operation(operands)` over the recorded run rather than with the value at the end of the
+  experiment. Every operand is recorded, so a two-operand operation works.
+- **Sensitivity analysis.** With `sa_options.include_prediction_items: true` it is an extra SA
+  output. See [Sensitivity analysis](sensitivity-analysis.md#prediction-items-as-extra-outputs).
+- **Emulators.** With `emulator_settings.include_prediction_items: true` the emulator is also
+  trained on it. See [Emulators](emulators.md#prediction-features).
+
+```json
+"prediction_items": [
+  {"data_item_name": "p_max_validation", "operands": ["aortic_root/u"], "unit": "J_per_m3",
+   "operation": "max", "data_type": "constant", "value": 16000.0, "std": 800.0}
+]
+```
+
+**Only a prediction item with an operation becomes a feature.** An item without one is a trace:
+SA and emulator training skip it, with a warning that names it. If an operation returns more
+than one number (a subtraction of two traces, say), the run stops with an error naming the item.
+An item's `operation_kwargs` may refer to an *earlier prediction item* by its `data_item_name`,
+but not to a data_item. A prediction item names an experiment but no sub-experiment. The
+operation is applied over the **last sub-experiment** of that experiment, which is the segment
+the prediction data records. With one sub-experiment per experiment, that is the whole
+experiment.
 
 ## Running external cellml models
 

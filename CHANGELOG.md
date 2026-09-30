@@ -5,6 +5,33 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Added — prediction items as scalar features
+
+A `prediction_item` may carry an `operation` and `operation_kwargs`, with the same vocabulary and
+checks as a data_item. Such an item is a scalar feature, e.g. the max of a trace over its
+experiment, reduced over the last sub-experiment of that experiment. `prediction_info` gains
+parallel `operations` and `operation_kwargs` columns (`None` / `{}` when absent).
+
+- **Validation.** Held-out data on such an item (`data_type: constant`) is compared with
+  `operation(operands)`. `save_prediction_data` records every operand of the item, so an
+  operation with two operands works. Each item in `validation_results.json` now names its
+  `operation`.
+- **SA.** New `sa_options.include_prediction_items` (bool, default false). Sobol and local SA
+  report these features as extra outputs, labelled `<data_item_name> (Exp<e>, Sub<s>)`. The
+  run also writes `sobol_output_features.json`, which says what each output column is. Local SA
+  computes these rows by finite differences.
+- **Emulators.** New `emulator_settings.include_prediction_items` (bool, default false). The
+  emulator is also trained on these features. The bundle records them in
+  `prediction_feature_labels`, and they get a separate `prediction_sha256` fingerprint.
+  Calibration on such an emulator still fits and checks only the data_item features. An SA that
+  asks for prediction features on an emulator trained without them stops and says to retrain.
+
+Only prediction items with an operation become features. The others are skipped, with a
+`PredictionFeatureWarning` that names them, and an operation that does not return a scalar
+raises `NonScalarPredictionFeatureError`. With both options off, SA outputs and emulator
+fingerprints are unchanged. Callers can feature-detect with
+`libcuflynx.sensitivity_analysis.SUPPORTS_PREDICTION_FEATURES`.
+
 ### Added — module versions and instances
 
 A module library can lay a module version out as `<module_type>/versions/<version>/` with named

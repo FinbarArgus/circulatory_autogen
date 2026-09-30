@@ -101,7 +101,7 @@ OBS_INFO_CONTRACT = {
     "weight_phase_vec": (FREQ, "C", "pre-scaling weights; see weight_const_vec."),
 }
 
-#: prediction_info is simpler: one definition (_empty_prediction_info), six parallel keys, and
+#: prediction_info is simpler: one definition (_empty_prediction_info), parallel keys, and
 #: the dict itself may legitimately be None. Nothing in CUFLynx reads any of it.
 PREDICTION_INFO_CONTRACT = {
     "operands": "the model qnames to record, as a list per item -- not a flat list (#507).",
@@ -114,6 +114,10 @@ PREDICTION_INFO_CONTRACT = {
     "values": "the prediction's measured data (held out, not scored), else None.",
     "stds": "the measured data's standard deviation, else None.",
     "obs_dts": "a measured series' sample spacing, else None.",
+    "operations": "the operation reducing the operands to a scalar feature, else None. Such an "
+                  "item is validated as operation(operands) and can be an SA / emulator "
+                  "output (include_prediction_items).",
+    "operation_kwargs": "the operation's keyword arguments, {} when none.",
 }
 
 
@@ -357,3 +361,70 @@ def test_held_out_data_on_a_prediction_must_say_what_it_is(item, message):
            "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
     with pytest.raises(ValueError, match=message):
         parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+
+
+@pytest.mark.unit
+def test_a_prediction_can_carry_an_operation():
+    """A prediction item with an operation is a scalar feature; without one it stays a trace
+    (operation None, kwargs {}), so the columns stay parallel either way."""
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [
+               {"data_item_name": "p_max", "operands": ["main/p"], "unit": "mV",
+                "operation": "max", "data_type": "constant", "value": 3.0, "std": 0.5},
+               {"data_item_name": "p_diff", "operands": ["main/p", "main/q"], "unit": "mV",
+                "operation": "subtraction"},
+               {"data_item_name": "z", "operands": ["main/z"], "unit": "mV", "operation": "None"}],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    pred = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)["prediction_info"]
+    assert pred["operations"] == ["max", "subtraction", None]
+    assert pred["operation_kwargs"] == [{}, {}, {}]
+    assert pred["operands"][1] == ["main/p", "main/q"]
+    assert len({len(v) for v in pred.values()}) == 1
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("item, message", [
+    ({"operation_kwargs": {"x": 1}}, "operation_kwargs but no operation"),
+    ({"operation": "max", "value": [1.0, 2.0], "data_type": "series", "obs_dt": 0.1},
+     "must be data_type 'constant'"),
+    ({"operation": 3}, "Invalid prediction_items value types"),
+    ({"operation": "max", "operation_kwargs": {"ref": "a/c0"}}, "references data_item"),
+])
+def test_a_prediction_operation_is_checked_at_parse_time(item, message):
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [{"data_item_name": "y_v", "operands": ["main/y"], "unit": "mV",
+                                 **item}],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    with pytest.raises(ValueError, match=message):
+        parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+
+
+@pytest.mark.unit
+def test_a_prediction_may_reference_only_an_earlier_prediction():
+    parser = ObsAndParamDataParser()
+    later = {"data_item_name": "b", "operands": ["main/y"], "unit": "mV", "operation": "max"}
+    first = {"data_item_name": "a", "operands": ["main/y"], "unit": "mV", "operation": "max",
+             "operation_kwargs": {"ref": "b"}}
+    doc = {"data_items": [_const("c0")], "prediction_items": [first, later],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    with pytest.raises(ValueError, match="not earlier in prediction_items"):
+        parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)
+
+
+@pytest.mark.unit
+def test_a_prediction_operation_kwargs_key_is_checked_like_a_data_items():
+    """validate_operation_kwargs works on a prediction_info as on an obs_info."""
+    from libcuflynx.param_id.operation_funcs import validate_operation_kwargs
+    from libcuflynx.parsers.PrimitiveParsers import scriptFunctionParser
+
+    parser = ObsAndParamDataParser()
+    doc = {"data_items": [_const("c0")],
+           "prediction_items": [{"data_item_name": "p", "operands": ["main/p"], "unit": "mV",
+                                 "operation": "max", "operation_kwargs": {"not_a_kwarg": 1}}],
+           "protocol_info": {"pre_times": [0.0], "sim_times": [[1.0]]}}
+    pred = parser.parse_obs_data_json(obs_data_dict=doc, pre_time=0.0, sim_time=1.0)["prediction_info"]
+    funcs = scriptFunctionParser().get_operation_funcs_dict("numpy")
+    with pytest.raises(ValueError, match="has no keyword argument 'not_a_kwarg'"):
+        validate_operation_kwargs(pred, funcs)
