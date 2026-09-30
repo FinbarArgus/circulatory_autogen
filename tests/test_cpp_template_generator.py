@@ -10,6 +10,7 @@ import copy
 import json
 import os
 import shutil
+import signal
 import subprocess
 
 import numpy as np
@@ -246,11 +247,28 @@ def test_coupled_fv1d_simulation_runs(user_inputs_dir, resources_dir, tmp_path):
     }
     with open(cpp_dir / 'coupler_config.json', 'w') as f:
         json.dump(config, f)
-    run = subprocess.run([str(tmp_path / 'coupler_build' / 'coupler'), str(cpp_dir / 'coupler_config.json')],
-                         capture_output=True, text=True, timeout=900)
-    log = run.stdout + run.stderr
-    assert run.returncode == 0, log[-3000:]
-    assert 'Both processes terminated successfully with status codes : 0 0' in log, log[-3000:]
+    # The 0D model on its own first, so a solver/build problem is reported as such rather than
+    # as a hung coupler (which waits on its pipes for ever if a child process dies).
+    alone = subprocess.run([str(cpp_dir / 'build' / 'main0d'), '-tEnd', '0.1', '-tSave', '0',
+                            '-outDir', str(tmp_path / 'standalone_out')],
+                           capture_output=True, text=True, timeout=120)
+    assert alone.returncode == 0, (alone.stdout + alone.stderr)[-3000:]
+
+    log_path = tmp_path / 'coupler.log'
+    with open(log_path, 'w') as log_file:
+        proc = subprocess.Popen([str(tmp_path / 'coupler_build' / 'coupler'), str(cpp_dir / 'coupler_config.json')],
+                                stdout=log_file, stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            returncode = proc.wait(timeout=900)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)  # the coupler and the 0D/1D processes it launched
+            proc.wait()
+            returncode = None
+    log = log_path.read_text(errors='replace')
+    tail = '\n'.join(log.splitlines()[-80:])
+    assert returncode is not None, f'coupled run timed out; last output:\n{tail}'
+    assert returncode == 0, tail
+    assert 'Both processes terminated successfully with status codes : 0 0' in log, tail
 
     out0d = tmp_path / 'simulation_outputs_cpp' / 'aortic_bif_hybrid_V1'
     cv, v = _load_output(out0d / 'sol0D_variables.txt')

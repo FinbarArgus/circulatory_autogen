@@ -376,9 +376,17 @@ void Model0d::solveOneStep(double dtLoc)
 
 void Model0d::hookInit()
 {
+{% if hooks.init %}
+{% if pipes %}
+    if (pipesOpen) { // no exchange when run on its own (without -coupled 1)
+{% else %}
+    {
+{% endif %}
 {% for line in hooks.init %}
-    {{ line }}
+        {{ line }}
 {% endfor %}
+    }
+{% endif %}
 }
 
 void Model0d::hookStepStart()
@@ -387,9 +395,17 @@ void Model0d::hookStepStart()
     const double dtLoc = dt;
     (void)voiLoc;
     (void)dtLoc;
+{% if hooks.step_start %}
+{% if pipes %}
+    if (pipesOpen) { // no exchange when run on its own (without -coupled 1)
+{% else %}
+    {
+{% endif %}
 {% for line in hooks.step_start %}
-    {{ line }}
+        {{ line }}
 {% endfor %}
+    }
+{% endif %}
 }
 
 void Model0d::hookRhsStart(double voiLoc, double dtLoc, double *s, double *v)
@@ -401,9 +417,17 @@ void Model0d::hookRhsStart(double voiLoc, double dtLoc, double *s, double *v)
 {% for d in delays %}
     setExternal({{ d.ref.index }}, delayHistories[{{ loop.index0 }}].at(voiLoc - v[{{ d.meta.amount.index }}])); // {{ d.ref.label }}
 {% endfor %}
+{% if hooks.rhs_start %}
+{% if pipes %}
+    if (pipesOpen) { // no exchange when run on its own (without -coupled 1)
+{% else %}
+    {
+{% endif %}
 {% for line in hooks.rhs_start %}
-    {{ line }}
+        {{ line }}
 {% endfor %}
+    }
+{% endif %}
 }
 
 void Model0d::hookRhs(double voiLoc, double dtLoc, double *s, double *v)
@@ -412,9 +436,17 @@ void Model0d::hookRhs(double voiLoc, double dtLoc, double *s, double *v)
     (void)dtLoc;
     (void)s;
     (void)v;
+{% if hooks.rhs %}
+{% if pipes %}
+    if (pipesOpen) { // no exchange when run on its own (without -coupled 1)
+{% else %}
+    {
+{% endif %}
 {% for line in hooks.rhs %}
-    {{ line }}
+        {{ line }}
 {% endfor %}
+    }
+{% endif %}
 }
 
 void Model0d::hookStepEnd()
@@ -423,9 +455,17 @@ void Model0d::hookStepEnd()
     const double dtLoc = dt;
     (void)voiLoc;
     (void)dtLoc;
+{% if hooks.step_end %}
+{% if pipes %}
+    if (pipesOpen) { // no exchange when run on its own (without -coupled 1)
+{% else %}
+    {
+{% endif %}
 {% for line in hooks.step_end %}
-    {{ line }}
+        {{ line }}
 {% endfor %}
+    }
+{% endif %}
 }
 
 {% include 'pipes.j2' %}
