@@ -36,6 +36,7 @@ from libcuflynx.param_id.modifier_funcs import (BUILTIN_MODIFIER_FUNCS, get_modi
 # and that finalise aborts on macOS when a NIC goes away (#396). mpi_utils
 # answers without opening MPI when nothing launched this process.
 from libcuflynx.utilities import mpi_utils as _mpi_utils
+from libcuflynx.utilities.module_library import as_dir_list
 from libcuflynx.utilities.paths import (default_generated_models_dir, default_funcs_user_dir,
                                         default_param_id_output_dir, default_resources_dir,
                                         default_sensitivity_outputs_dir, default_user_inputs_dir,
@@ -663,6 +664,17 @@ DEFAULT_PARAM_MODIFIER = 'scale'
 # *parameters* is a modifier. Kept as aliases so #378-era importers keep working.
 PARAM_MODIFIER_OPERATIONS = PARAM_MODIFIERS
 DEFAULT_PARAM_MODIFIER_OPERATION = DEFAULT_PARAM_MODIFIER
+
+
+def _empty_prediction_info():
+    """The shape ``process_obs_info`` fills for prediction_items.
+
+    One definition rather than three literals: the keys are the same as obs_info's, and three
+    copies is how a fourth comes to differ from the other three.
+    """
+    return {'operands': [], 'units': [], 'data_item_names': [],
+            'trace_names_for_plotting': [], 'item_names_for_plotting': [],
+            'experiment_idxs': []}
 
 
 def migrate_legacy_obs_columns(gt_df):
@@ -2593,7 +2605,22 @@ class YamlFileParser(object):
             if not os.path.exists(inp_data_dict['external_modules_dir']):
                 print(f'external_modules_dir={inp_data_dict["external_modules_dir"]} does not exist')
                 exit()
-        
+
+        # module_library_dirs: one path or a list, each searched recursively for modules;
+        # relative paths are relative to the user_inputs.yaml directory, like external_modules_dir.
+        module_library_dirs = []
+        for library_dir in as_dir_list(inp_data_dict.get('module_library_dirs')):
+            if not os.path.isabs(library_dir):
+                library_dir = os.path.join(user_files_dir, library_dir)
+            if not os.path.isdir(library_dir):
+                print(f'module_library_dirs entry {library_dir} does not exist')
+                exit()
+            module_library_dirs.append(library_dir)
+        inp_data_dict['module_library_dirs'] = module_library_dirs or None
+
+        if inp_data_dict.get('use_builtin_modules') is None:
+            inp_data_dict['use_builtin_modules'] = True
+
         # for sensitivity analysis and parameter identification
         if not 'sa_options' in inp_data_dict.keys():
             inp_data_dict['sa_options'] = None
@@ -3157,6 +3184,14 @@ class JSONFileParser(object):
         # match '.json' but are binary and blow up json.load, so skip them here (issue #83).
         return file.endswith('.json') and not file.startswith('._')
 
+    def json_files_to_dataframe(self, json_files):
+        """All module config entries from ``json_files``, in order, as one dataframe."""
+        dfs = [self.json_to_dataframe(path) for path in json_files]
+        if not dfs:
+            raise ValueError('No module config JSON files were found: check use_builtin_modules, '
+                             'external_modules_dir and module_library_dirs')
+        return pd.concat(dfs, ignore_index=True)
+
     def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir, external_modules_dir):
         dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
                 for file in os.listdir(json_dir) if self._is_json_module_file(file)]
@@ -3518,9 +3553,7 @@ class ObsAndParamDataParser(object):
             protocol_info = {"pre_times": [pre_time], 
                              "sim_times": [[sim_time]],
                              "params_to_change": {}}
-            prediction_info = {'names': [], 'units': [], 'data_item_names': [],
-                               'names_for_plotting': [], 'item_names_for_plotting': [],
-                               'experiment_idxs': []}
+            prediction_info = _empty_prediction_info()
             
 
         # --- Case 2: Dictionary structure ---
@@ -3629,9 +3662,7 @@ class ObsAndParamDataParser(object):
                     "experiment_idx": {"types": (int, np.integer), "default": 0},
                 }
 
-                prediction_info = {'names': [], 'units': [], 'data_item_names': [],
-                               'names_for_plotting': [], 'item_names_for_plotting': [],
-                               'experiment_idxs': []}
+                prediction_info = _empty_prediction_info()
                 for entry_idx, raw_entry in enumerate(prediction_items):
                     if not isinstance(raw_entry, dict):
                         raise ValueError(
@@ -3671,18 +3702,16 @@ class ObsAndParamDataParser(object):
                             "Invalid prediction_items value types:\n" + "\n".join(pred_type_errors)
                         )
 
-                    prediction_info['names'].append(str(entry['operands'][0]))
+                    prediction_info['operands'].append(list(entry['operands']))
                     prediction_info['units'].append(entry['unit'])
                     prediction_info['data_item_names'].append(entry['data_item_name'])
-                    prediction_info['names_for_plotting'].append(
+                    prediction_info['trace_names_for_plotting'].append(
                         entry['trace_name_for_plotting'])
                     prediction_info['item_names_for_plotting'].append(
                         entry['item_name_for_plotting'])
                     prediction_info['experiment_idxs'].append(entry['experiment_idx'])
             else:
-                prediction_info = {'names': [], 'units': [], 'data_item_names': [],
-                               'names_for_plotting': [], 'item_names_for_plotting': [],
-                               'experiment_idxs': []}
+                prediction_info = _empty_prediction_info()
             
         else:
             print(f"Error: unknown data type for imported json object of {type(json_obj)}")
@@ -3762,6 +3791,16 @@ class ObsAndParamDataParser(object):
             # before its targets are added. There is nothing to validate, and the
             # column defaults below are derived from other columns -- so on an
             # empty frame they raised KeyError: 'data_item_name' instead.
+            # An empty frame skips validation -- there is nothing to validate, and the
+            # callable defaults derive from other columns -- but it must still carry the
+            # schema's columns. `process_obs_info` reads them by name, so a frame with none
+            # made every read a KeyError and an obs_data carrying only protocol_info
+            # impossible to open at all.
+            if len(gt_df) == 0:
+                for col in schema:
+                    if col not in gt_df.columns:
+                        gt_df[col] = pd.Series(dtype=object)
+
             for col, rules in ({} if len(gt_df) == 0 else schema).items():
                 allowed = rules["types"]
                 default = rules["default"]
@@ -3876,10 +3915,9 @@ class ObsAndParamDataParser(object):
         # --- Simple Array Generation ---
         N = gt_df.shape[0]
         
-        # obs_names is the item identity, and doubles as the key an operation_kwargs
-        # reference to another item resolves against (#466).
-        obs_info["obs_names"] = gt_df["data_item_name"].tolist()
-        obs_info["data_item_names"] = obs_info["obs_names"]
+        # The item identity, which doubles as the key an operation_kwargs reference to
+        # another item resolves against (#466). Spelled as the entry key it comes from.
+        obs_info["data_item_names"] = gt_df["data_item_name"].tolist()
         obs_info["data_types"] = gt_df["data_type"].tolist()
         obs_info["units"] = gt_df["unit"].tolist()
         obs_info["experiment_idxs"] = [gt_df.iloc[II].get("experiment_idx", 0) for II in range(N)]
@@ -3921,16 +3959,12 @@ class ObsAndParamDataParser(object):
         obs_info["cost_kwargs"] = [gt_df.iloc[II].get("cost_kwargs", {}) for II in range(N)]
         obs_info["freqs"] = [gt_df.iloc[II].get("frequencies") for II in range(N)]
         obs_info["trace_names_for_plotting"] = [
-            gt_df.iloc[II].get("trace_name_for_plotting", obs_info["obs_names"][II])
+            gt_df.iloc[II].get("trace_name_for_plotting", obs_info["data_item_names"][II])
             for II in range(N)]
         obs_info["item_names_for_plotting"] = [
             gt_df.iloc[II].get("item_name_for_plotting",
                                obs_info["trace_names_for_plotting"][II])
             for II in range(N)]
-        # Deprecated alias. `name_for_plotting` named two things; the one nearly every reader
-        # wanted was the item's label, so that is what the old key now resolves to. Removed in
-        # 0.6.0 -- read item_names_for_plotting or trace_names_for_plotting instead.
-        obs_info["names_for_plotting"] = obs_info["item_names_for_plotting"]
 
         for II in range(N):
             op = gt_df.iloc[II].get("operation")
@@ -4023,9 +4057,13 @@ class ObsAndParamDataParser(object):
         # Full length over all data_items and indexed by row, like cost_type and the weight
         # vectors, so it stays correct when the per-type vectors are compacted to their own
         # index spaces (the #349 rule).
+        # `.get`, not `[...]`: this function documents itself as a public entry point a
+        # caller may hand a gt_df it built, and such a frame has only the columns the caller
+        # wrote -- the schema adds `prob_dist_params`, so a bare read made that invitation
+        # untrue for every hand-built frame.
         ground_truth_prob_dist_params = [
-            gt_df.iloc[II]["prob_dist_params"] if isinstance(
-                gt_df.iloc[II]["prob_dist_params"], dict) else None
+            gt_df.iloc[II].get("prob_dist_params") if isinstance(
+                gt_df.iloc[II].get("prob_dist_params"), dict) else None
             for II in range(gt_df.shape[0])]
 
 

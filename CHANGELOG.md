@@ -5,6 +5,219 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Added — `module_library_dirs` and `use_builtin_modules`
+
+Models can now be generated from an external module library laid out one module per
+directory, such as circulatory-autogen-modules (`modules/<name>/<name>_modules.cellml`,
+`<name>_modules_config.json`, `<name>_units.cellml`). `module_library_dirs` takes one path
+or a list, each searched recursively; only `*_modules_config.json` / `*_module_config.json`
+files are read as configs there, so parameter or obs_data JSON can sit next to a module.
+`use_builtin_modules: false` stops the built-in and `module_config_user` modules and units
+from loading, so a library can be the only source of modules and can redefine a built-in
+`(vessel_type, BC_type)` without the duplicate-entry exit. Both default to today's behaviour.
+
+### Fixed — units files in `external_modules_dir` are loaded
+
+The docs said a `user_units.cellml` in `external_modules_dir` was picked up; it was not.
+Every `*units.cellml` there (and in `module_library_dirs`) is now merged into the generated
+units file. A unit defined identically in several files is written once; one defined
+differently in two files raises a `ValueError` naming both files.
+
+## 0.7.3 — 2026-09-05
+
+### Changed! — `calculate_two_observable_difference` takes `subtract_from` / `subtract_this`
+
+Two changes to one operation: its inputs are declared, and they are renamed.
+
+**Declared.** It was written `(x=None, series_output=False, **kwargs)` and read its two inputs
+out of `kwargs` in the body, so nothing that introspects an operation could see them:
+`get_operation_kwarg_spec` could only answer *accepts anything*. A form built from it had no
+fields to offer, and a misspelled key was accepted and ignored — leaving the real one unset,
+to surface later as a missing value. They are now ordinary keyword arguments. Both keep a
+default, which is what makes them keyword arguments rather than operands: a parameter with no
+default is filled positionally from the data_item's `operands`, and these come from
+`operation_kwargs`. The vestigial `x` is gone — an operation that takes no operands was never
+handed it.
+
+**Renamed.** `pred1` / `pred2` said nothing about which way round the subtraction went. The
+function returns `pred2 - pred1`, which you could only learn by reading it, and getting it
+backwards is a sign error that looks like a plausible number. The names now say it:
+
+```
+    result = subtract_from - subtract_this
+```
+
+**This changes obs_data.** An item using this operation must be updated, and the mapping is
+*not* positional — `pred2` is the value subtracted **from**:
+
+| before | after |
+|---|---|
+| `"pred2": "max flow aortic root"` | `"subtract_from": "max flow aortic root"` |
+| `"pred1": "mean flow aortic root"` | `"subtract_this": "mean flow aortic root"` |
+
+Swapping the two flips the sign of the result. Nothing silently accepts the old spelling: the
+inputs are declared now, so `pred1` and `pred2` are unknown keys and the ordinary
+`operation_kwargs` check refuses them, naming the operation. A file that is not updated fails
+at parse time rather than calibrating against a wrong number — which is exactly why the
+declaration had to come first. Both shipped files using this operation
+(`resources/3compartment_extra_ops_obs_data.json` and the cross-experiment test fixture) are
+updated here.
+
+**The paired GUI change is CUFLynx #351.** CUFLynx builds its obs_data editor from these
+accessors, and this operation was the one it could not render a form for: with the inputs
+undeclared, `get_operation_kwarg_spec` answered *accepts anything* and there were no fields to
+offer. CUFLynx #351 deletes the workaround it had grown for that (an `ast` parse of the
+function body) and reads the signature like it does for every other operation. That release is
+the one to take this with, and it picks the new names up automatically — it reads them from
+the signature rather than restating them. CUFLynx's floor (`libcuflynx>=0.7.1`) is unchanged,
+but a study whose obs_data still says `pred1`/`pred2` needs editing either way.
+
+No change to the dependency extras, the minimum Python, or the flat-import shims (removed in
+0.6.0, and unaffected here).
+
+## 0.7.2 — 2026-09-04
+
+### Fixed — one reconstruction page per trace, not per feature (#515)
+
+Before #466 a data_item's `variable` was both its identity and the model variable it reduced,
+so `max` and `min` of one pressure shared a `variable` and were drawn on one figure. #466
+split those two jobs and made `data_item_name` unique by construction — and
+`plot_reconstruction_pages` still grouped on it. Every feature therefore got a page of its
+own: the 3compartment example went from four figures to six, and a study with several
+features per trace lost the merged figures entirely.
+
+Pages are now keyed on `trace_name_for_plotting` — the series a feature is measured on, which
+is allowed to repeat and is already what the y-axis is labelled with. On the shipped fixtures
+that is 3compartment back to four pages from six, with `mean`/`max` of `v_{AR}` and
+`mean`/`max_minus_min` of `u_{AR}` reunited, while the four-experiment multi-trace fixture
+stays at eight, one per trace per experiment.
+
+Subexperiment is deliberately *not* part of the key, which is the second half of the issue: a
+trace measured on several subexperiments is one page carrying a segment for each, drawn along
+the experiment's timeline and sharing a single legend entry. `Lotka_Volterra_multisub` goes
+from four pages to two, each spanning both subexperiments. A subexperiment nothing was
+measured on is still left out, so #474's narrowed axis is unchanged — the window is the union
+of the segments actually measured, not the whole experiment.
+
+The y-axis label now comes from the same resolved name the page is grouped by, so a page
+cannot be grouped under one name and labelled with another.
+
+Not affected: the error vectors stay one entry per data_item. Grouping changes how many
+figures are drawn, not what is scored — `percent_error_vec` / `std_error_vec` and the
+`error_vec_names` beside them (#341) are untouched.
+
+### Fixed — a partial `apt-get update` no longer fails a job several steps later
+
+`apt-get update` exits 0 when it could not fetch an index: it says *"Some index files failed
+to download. They have been ignored, or old ones used instead"* and carries on with the stale
+one. The install then asks for the package version that index names, the mirror has moved to
+a newer point release, and the fetch 404s — so a mirror wobble arrives as a hard failure in an
+unrelated job rather than as a slow update. On this release's own PR it took out `test-uq` and
+`test-param-id-serial-full-scale` over `libcurl4-openssl-dev`.
+
+`install-system-deps` now notices the partial update and re-runs it (three attempts, backing
+off), and gives the install one refresh-and-retry of its own. The per-fetch timeouts and
+retries already there bound a single request; neither can see that the update as a whole came
+back incomplete. A genuinely broken apt still fails the job — the retries do not swallow it.
+
+## 0.7.1 — 2026-09-01
+
+### Added — a contract for what `process_obs_info` publishes
+
+`obs_info` is a public API with no schema and no version, indexed by string literal around
+three hundred times here and thirty-one times in CUFLynx. Renaming two of its keys in 0.7.0
+broke the then-current CUFLynx release, and the first thing to notice was an hour-long CI job
+that downloads a built binary.
+
+`tests/test_obs_info_contract.py` now describes all thirty-two keys: which index space each
+belongs to, and whether anything outside this repository may read it. Renaming one fails a
+test whose id is the key's own name, in seconds. Eighteen of them are public with no
+accessor; those are the ones a rename has to plan for.
+
+### Fixed — `process_obs_info` on frames it said it accepted
+
+Two crashes, both on inputs the docstrings invite:
+
+* A caller handing it a `gt_df` it built itself hit `KeyError: 'prob_dist_params'` -- a column
+  the schema adds, read with a bare `[...]`.
+* An obs_data carrying only `protocol_info` parsed to a frame with no rows *and no columns*,
+  so every read raised and such a file could not be opened at all.
+
+### Fixed — the obs_info accessors on numpy columns
+
+`obs_item_names` and its siblings returned `... or []`, which raises "the truth value of an
+array with more than one element is ambiguous" when handed a numpy array. The keys they read
+happen to be lists, so this never fired here; several sibling `obs_info` values *are* arrays,
+and a downstream adapter copying the idiom onto them broke forty-seven tests. They now test
+for `None`.
+
+### Added — `obs_experiment_indices`, `obs_subexperiment_indices`, `obs_scalar_rows`
+
+So the keys CUFLynx reads have the same rename-immunity the label keys already had.
+
+### Changed — the release waits for PyPI to serve what it published
+
+PyPI accepts an upload before its index offers it, and two downstream jobs went red in that
+window on the 0.7.0 release with a message that reads like a dependency mistake.
+
+### Changed — the solver wrapper says what it skipped
+
+Four `except Exception: pass` sites in `myokit_helper` now log at debug. A dropped
+`MaximumStep`, or a variable with no default value, was previously silent.
+
+## 0.7.0 — 2026-09-01
+
+### Changed — one spelling per concept in `obs_info` and `prediction_info`
+
+The obs_data *file* vocabulary was split by #466; the parsed dicts were not, and kept the old
+spellings as live aliases. `obs_info` held `obs_names` with `data_item_names` aliased to the
+same list, and `names_for_plotting` aliased to `item_names_for_plotting`. `prediction_info`
+was worse: its `names_for_plotting` meant the **trace** label where obs_info's meant the
+**item** label, so one key named two different things depending on which dict you held.
+
+Now: `obs_info` has `data_item_names`, `trace_names_for_plotting` and
+`item_names_for_plotting` and nothing else; `prediction_info` mirrors it exactly, with its
+`names` becoming `operands` (a list per item, as on obs_info) and its `names_for_plotting`
+becoming `trace_names_for_plotting`. `obs_item_names` / `obs_item_labels` /
+`obs_trace_labels` / `obs_operand_lists` now work on either dict.
+
+**If you build one of these dicts by hand**, `ParamID` normalises what it is handed and warns
+once per superseded key; a dict setting both an old key and its replacement is an error.
+Reading the old keys off a parsed dict no longer works, because they are no longer written.
+
+Two bugs fell out. `posterior_predictive` captioned a series panel with the item's *identity*
+where it meant the trace label, and `print_observable_errors` named one of its six branches by
+identity where the other five used the label.
+
+
+## 0.6.0 — 2026-08-31
+
+### Removed — the flat-import shims (#428)
+
+`import parsers`, `from param_id.paramID import CVS0DParamID` and the other nine top-level
+names were moved under `libcuflynx` in 0.4.0 and kept working since as deprecation shims that
+warned once. They are gone: the eleven `src/<name>/` packages, the `_AliasFinder` meta-path
+hook and `libcuflynx._deprecated_aliases` are all deleted, and the old spellings now raise
+`ModuleNotFoundError`.
+
+**Migrate by prefixing the import with `libcuflynx.`** — `from libcuflynx.param_id.paramID
+import CVS0DParamID`. Nothing else changed: the modules, classes and functions are the same
+objects at the same paths they have had since 0.4.0, so this is a rename of the import line
+and nothing more. An installed package is importable from any directory, so a
+`sys.path.insert(0, 'src')` that preceded the old spelling can go too.
+
+This was announced for 0.5.0 and deferred once, so that one release did not ask for two
+unrelated migrations alongside the #466 obs_data break.
+
+### Note — `names_for_plotting` is still here
+
+0.4.1 said this `obs_info` alias would go in 0.6.0. It has not: the engine still reads it
+internally (`paramID.py`), so removing it is a change to the parser and its call sites rather
+than a deletion, and it does not belong in the same release as the namespace removal for the
+same reason that removal was deferred out of 0.5.0. Prefer `data_item_names`,
+`trace_names_for_plotting` or `item_names_for_plotting`; the alias will go in a later release.
+*(Done in Unreleased — see "one spelling per concept" above.)*
+
 ## 0.5.1 — 2026-08-25
 
 ### Changed — the MCMC ensemble is evaluated in one emulator call (#490)
@@ -211,7 +424,7 @@ Also fixed: the mean of `heart/u_la` in `resources/3compartment_obs_data.json` w
 `u_{AR}`, so it plotted as an aortic-root pressure. It is now `u_{LA}`.
 
 Reading `obs_info` from python: `names_for_plotting` remains as a deprecated alias of
-`item_names_for_plotting` and is removed in 0.6.0. Prefer `data_item_names`,
+`item_names_for_plotting` and was to be removed in 0.6.0 (deferred -- see 0.6.0's note). Prefer `data_item_names`,
 `trace_names_for_plotting` or `item_names_for_plotting`.
 
 ## 0.4.1 — 2026-08-19

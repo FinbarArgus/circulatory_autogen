@@ -73,6 +73,16 @@ can publish.
 - **`publish`** — downloads that artifact and publishes it with
   `pypa/gh-action-pypi-publish`, in the GitHub environment named **`pypi`**, with
   `permissions: id-token: write`.
+- **`github-release`** — creates the entry on the
+  [releases page](https://github.com/physiomelinks/circulatory_autogen/releases), taking its
+  notes from the `CHANGELOG.md` section for the version. Gated on `publish`, so a release
+  never announces a version PyPI rejected. Notes only: PyPI is the distribution channel, and
+  a wheel attached here would be a second copy that can drift from it.
+
+  This job was added late. **v0.4.1, v0.5.0 and v0.5.1 are on PyPI with no entry on the
+  releases page** because the workflow used to stop at `publish`, and v0.4.0's and v0.6.0's
+  entries were written by hand. If you want the history complete, they can be backfilled with
+  `gh release create vX.Y.Z --notes-file <section of CHANGELOG.md>`.
 
 A `workflow_dispatch` run builds and checks but does **not** publish, so the build can be
 exercised without cutting a release.
@@ -101,7 +111,7 @@ The notes for a release must state:
 
 - [ ] **The deprecation shims and when they go.** The flat import names (`import parsers`,
       `from param_id.paramID import ...`) still work in 0.4.0 and emit a `DeprecationWarning`;
-      they are **removed in 0.6.0**. Migrate by prefixing the import with `libcuflynx.`.
+      they were **removed in 0.6.0**. Migrate by prefixing the import with `libcuflynx.`.
 - [ ] **The `funcs_user` migration** (issue #433). The built-in cost / operation / modifier
       functions now live in the package (`libcuflynx.funcs.*`). Anyone who added their own by
       editing `funcs_user/cost_funcs_user.py`, `operation_funcs_user.py` or

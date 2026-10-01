@@ -194,14 +194,34 @@ def test_the_tag_versus_version_check_reads_this_repository_s_real_version(workf
 
 
 @pytest.mark.unit
+def test_a_tag_also_creates_the_github_release(workflow):
+    """PyPI is not the only place a release has to appear.
+
+    Publishing to PyPI and stopping there is what left v0.4.1, v0.5.0 and v0.5.1 with no
+    entry on the releases page -- the page people read to find out what changed between
+    two versions they have installed.
+    """
+    job = workflow["jobs"]["github-release"]
+    assert job["needs"] == "publish", (
+        "gate it on the upload, not the build: a release announcing a version PyPI "
+        "rejected points at something nobody can install"
+    )
+    assert job["permissions"] == {"contents": "write"}
+    assert "refs/tags/v" in job["if"]
+    run = " ".join(step.get("run", "") for step in job["steps"])
+    assert "CHANGELOG.md" in run, "the notes should come from the changelog, not be invented"
+    assert "--verify-tag" in run, "a typo'd ref must not invent a release"
+
+
+@pytest.mark.unit
 def test_release_procedure_is_documented():
     """Somewhere findable, and naming the parts that cannot be undone."""
     text = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
     assert "Making a release" in text
-    from libcuflynx._deprecated_aliases import REMOVAL_VERSION
-
+    # "0.6.0" as a literal now: it is the release the shims were removed in, which is
+    # history rather than a value the code still carries.
     for needle in ("release.yml", PYPI_ENVIRONMENT, "trusted publishing", "pyproject.toml",
-                   REMOVAL_VERSION, "funcs_user"):
+                   "0.6.0", "funcs_user"):
         assert needle in text, "CONTRIBUTING.md should mention %r in the release section" % needle
     assert re.search(r"never be (replaced|re-uploaded)", text), (
         "the docs must say a published PyPI version cannot be re-uploaded"

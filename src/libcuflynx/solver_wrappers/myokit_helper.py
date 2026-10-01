@@ -1,5 +1,6 @@
 import os
 import copy
+import logging
 import time
 import warnings
 
@@ -49,6 +50,8 @@ from libcuflynx.solver_wrappers.name_resolver import VariableNameResolver
 from libcuflynx.utilities.protocol_shapes import materialise_shapes, validate_trace_references
 import xml.etree.ElementTree as ET
 import tempfile
+
+logger = logging.getLogger(__name__)
 import hashlib
 import re
 import os
@@ -482,8 +485,9 @@ class SimulationHelper:
         if "MaximumStep" in self.solver_info:
             try:
                 self.simulation.set_max_step_size(self.solver_info["MaximumStep"])
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("MaximumStep=%r was not applied: %s",
+                             self.solver_info["MaximumStep"], exc)
         self._effective_tolerances = apply_cvodes_tolerances(
             self.simulation, self.solver_info, self._fsa_enabled)
         self.last_log = None
@@ -535,9 +539,10 @@ class SimulationHelper:
         for var in self.all_vars:
             try:
                 self.default_values[var.qname()] = var.eval()
-            except Exception:
-                # leave unset if evaluation fails
-                pass
+            except Exception as exc:
+                # Left unset. Named, because a variable missing from default_values is a
+                # variable that will not be restored by reset_and_clear().
+                logger.debug("no default value for %s: %s", var.qname(), exc)
 
     def _describe_myokit_log_configuration(self):
         """Context for debugging empty logs or failed final-state extraction."""
@@ -572,8 +577,8 @@ class SimulationHelper:
             time_key = None
             try:
                 time_key = self.model.time().qname()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("model has no resolvable time variable: %s", exc)
             if time_key and time_key in self.last_log:
                 tser = np.asarray(self.last_log[time_key])
                 lines.append(
@@ -853,10 +858,39 @@ class SimulationHelper:
         raise RuntimeError("Simulation has not been run yet.")
 
     def _collect_all_results_dict_from_log(self):
-        results = {qname: np.asarray(self.last_log[qname]) for qname in self.last_log.keys()}
-        # Keep a stable project-level time key regardless of importer-specific qnames.
-        if "environment.time" not in results:
-            results["environment.time"] = self._get_log_time_series()
+        """Every logged variable, once, under a key set that does not vary between runs.
+
+        The time series needs care. Myokit merges connected variables on import and keeps one
+        qname for the pair, so which name the model ends up using is the importer's choice --
+        for the 3compartment model it is ``volume_sum_module.t``, because ``environment.time``
+        is connected to it and does not survive as a separate variable. This project publishes
+        the time under one stable name regardless.
+
+        The log sometimes also carries that importer-specific qname, and sometimes does not:
+        ``all_outputs_with_best_param_vals_exp_0.npz`` gained a ``volume_sum_module.t`` key in
+        one run of five, against an identical model and identical code, holding an array
+        bit-identical to ``environment.time``. So the file's key set was not reproducible, and
+        anything diffing two runs saw a change that was not one. Dropping the log's own time
+        key and publishing the series only as ``environment.time`` makes the set the same every
+        time, whichever name the importer picked.
+        """
+        log_time_key = None
+        if hasattr(self.last_log, "time_key"):
+            try:
+                log_time_key = self.last_log.time_key()
+            except Exception:
+                log_time_key = None
+
+        # Time first, always. The log arrives in both shapes -- sometimes keyed
+        # `environment.time`, sometimes the importer's `volume_sum_module.t` -- and putting the
+        # series wherever that key happened to sit would leave the npz's *order* varying even
+        # once its key set was fixed. First is where the `environment.time` shape already put
+        # it, so this reproduces the common case exactly.
+        results = {"environment.time": self._get_log_time_series()}
+        for qname in self.last_log.keys():
+            if qname == log_time_key or qname == "environment.time":
+                continue
+            results[qname] = np.asarray(self.last_log[qname])
         return results
 
     def _get_log_time_series(self):
@@ -881,8 +915,8 @@ class SimulationHelper:
         if hasattr(self.last_log, "time"):
             try:
                 return np.asarray(self.last_log.time())
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("DataLog.time() unavailable, trying the next fallback: %s", exc)
 
         # Final fallback: model-declared bound time variable qname.
         model_time = self.model.time()
