@@ -4971,7 +4971,11 @@ Vol_ER = Vol*c_ER;-->
                             <ci>R</ci>
                             <ci>T</ci>
                         </apply>
-                        <ci>F</ci>
+                        <apply>
+                            <times/>
+                            <cn cellml:units="dimensionless">2</cn>
+                            <ci>F</ci>
+                        </apply>
                     </apply>
                     <apply>
                         <ln/>

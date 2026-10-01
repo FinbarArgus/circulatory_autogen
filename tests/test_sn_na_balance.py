@@ -1,4 +1,5 @@
-"""The sympathetic-neuron soma conserves Na: every Na flux SN_soma computes enters dNai/dt.
+"""SN cell-module physics: the soma conserves Na (every Na flux SN_soma computes enters dNai/dt),
+and the Ca Nernst potentials have valence 2.
 
 i_Na1_6 (Nav1.6) carried its Na flux j_Na1_6 = -i_Na1_6/F, computed exactly like j_Na, but it was
 left out of the Na balance, so Nav1.6 moved charge without moving Na.
@@ -48,3 +49,22 @@ def test_every_na_flux_of_the_soma_enters_the_na_balance():
     assert 'j_Na1_6' in na_fluxes
     missing = na_fluxes - _rhs_names_of_derivative(comp, 'Nai')
     assert not missing, f'Na fluxes computed but not in dNai/dt: {sorted(missing)}'
+
+
+def _assignment(comp, name):
+    for eq in comp.iter(f'{MATHML}apply'):
+        children = list(eq)
+        if len(children) == 3 and children[0].tag == f'{MATHML}eq' and children[1].tag == f'{MATHML}ci' \
+                and (children[1].text or '').strip() == name:
+            return children[2]
+    raise AssertionError(f'no {name} = ... equation')
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('component', ['SN_varicosity', 'electric_potentials_Paci_2013'])
+def test_the_ca_nernst_potential_has_valence_two(component):
+    """E_Ca = RT/(zF) ln(Cao/Cai) with z = 2: the expression carries a factor 2 (or 0.5) next to F."""
+    rhs = _assignment(_component(component), 'E_Ca')
+    numbers = {float((cn.text or '').strip()) for cn in rhs.iter(f'{MATHML}cn')
+               if (cn.text or '').strip().replace('.', '', 1).isdigit()}
+    assert numbers & {2.0, 0.5}, f'{component}: E_Ca has no valence factor (numbers {sorted(numbers)})'
