@@ -5,6 +5,30 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Added — per-variable `multi_port`, for flow merge and split nodes
+
+A port's `multi_port` can now be a list with one entry per port variable. Use it when a port
+connected to several modules must sum some variables and share others:
+
+```json
+{"port_type": "vessel_port", "variables": ["v_in", "u"], "multi_port": ["sum", "True"]}
+```
+
+A `"sum"` variable (an input) equals the sum, over every module connected through the port, of
+the neighbour's corresponding port variable. A generated algebraic component,
+`multiport_sum_<vessel>_<variable>`, computes it. The component scales a neighbour in different
+but compatible units, and generation stops on incompatible units. With no neighbour, the variable
+is 0 and a warning is printed. A `"True"` variable (normally an output) is mapped to the
+corresponding variable of every neighbour. This works on entrance, exit and general ports.
+
+The module library's algebraic `flow_merge` (many inflows, one outflow) and `flow_split` (one
+inflow, many outflows) nodes need this: they sum the flows and share the node pressure. The string
+forms (`"True"`, `"sum"`) are unchanged, and models without a list-form port generate
+byte-identical CellML. The model checks reject a malformed list (wrong length, or an entry other
+than `"sum"`/`"True"`). The C++ generator's 0D-1D coupling (`couple_to_1d`) does not support
+list-form ports and raises `NotImplementedError`. Plain C++ generation works from the generated
+CellML and is not affected. See *Designing a model* in the tutorial.
+
 ### Added — `module_library_dirs` and `use_builtin_modules`
 
 Models can now be generated from an external module library laid out one module per
