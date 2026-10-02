@@ -125,7 +125,7 @@ def simulate(cellml_path, names=None):
     with contextlib.redirect_stdout(io.StringIO()):
         model = get_simulation_helper(model_path=cellml_path, solver='CVODE_myokit', model_type='cellml',
                                       dt=DT, sim_time=SIM_TIME, solver_info=SOLVER_INFO, pre_time=0.0).model
-    available = [v.qname() for v in model.variables(deep=True) if not v.is_literal() or v.is_state()]
+    available = [v.qname() for v in model.variables(deep=True) if v.is_state() or not v.is_constant()]
     names = available if names is None else names
     sim = myokit.Simulation(model)
     sim.set_tolerance(SOLVER_INFO['atol'], SOLVER_INFO['rtol'])
@@ -282,7 +282,8 @@ def test_configuration(tmp_path, topology):
                             with_legacy=True)
         new, old = simulate(path), simulate(legacy_path)
         shared = [n for n in new if n in old and '_module.' in n and not n.endswith('.t')]
-        assert len(shared) > 5 * len(spec['records']) // 2, f'{topology}: too few shared variables {shared}'
+        vessels = [r for r in spec['records'] if r['module_type'] == 'arterial_simple']
+        assert len(shared) >= 4 * len(vessels), f'{topology}: too few shared variables {shared}'
         for name in shared:
             scale = max(np.max(np.abs(old[name])), 1e-30)
             assert np.max(np.abs(new[name] - old[name])) <= 1e-8 * scale, \

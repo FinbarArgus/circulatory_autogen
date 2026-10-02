@@ -355,7 +355,6 @@ def test_malformed_list_multi_port_fails_generation(tmp_path, external_modules_d
         _generate(tmp_path, external_modules_dir, "mp_bad_list", rows, params)
 
 
-@pytest.mark.unit
 # --------------------------------------------------------------------------------------------
 # flow_merge: "sum" on an entrance port, "True" shares the node pressure upstream
 # --------------------------------------------------------------------------------------------

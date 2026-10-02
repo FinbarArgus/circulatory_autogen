@@ -149,6 +149,12 @@ def node_variable_pairs(node, module_formats):
     for end in node.endpoints:
         if end is owner:
             continue
+        if module_formats.get(end.module) != 'cellml':
+            # coupled one-to-one (the only case left here): the coupling supplies the owner's
+            # variables, so there is nothing to pair; report the owner's sum variables only
+            sum_terms += [(v, end.module, None, node.sign(end))
+                          for v, entry in zip(owner_variables, entries) if entry == MULTI_PORT_SUM]
+            continue
         end_variables = end.port['variables']
         if len(end_variables) != len(owner_variables):
             raise ValueError(
