@@ -2,8 +2,9 @@
 Move a vessel array off the junction module types, onto ordinary vessels whose ports sum.
 
 The junction types (``Min_junction``, ``Nout_junction``, ``MinNout_junction``, their ``_2``
-variants, ``split_junction``, ``merge_junction``, ``2in2out_junction`` and the ``_simple`` and
-``venous_`` versions of these) are ordinary vessels whose flow at a shared node was summed by name
+variants, ``split_junction``, ``merge_junction``, ``2in2out_junction``, the ``_simple`` and
+``venous_`` versions of these, and the microvasculature's ``<vessel>_Min``/``_Nout``/``_Minlet``/
+``_Noutlet``/``_MinNout``) are ordinary vessels whose flow at a shared node was summed by name
 or through a fixed number of ports. An ordinary vessel whose compliant end has a ``["sum", "True"]``
 vessel_port does the same for any number of neighbours, on either side of the node (see
 ``libcuflynx.generators.port_nodes``), so each junction version maps to the ordinary version with
@@ -76,6 +77,21 @@ for _version in ('vp', 'vp_nonlinear', 'vp_nonlinear_constR', 'vp_nonlinear_visc
                  'vv', 'vv_nonlinear', 'vv_nonlinear_constR', 'vv_nonlinear_visco'):
     JUNCTION_TWINS[('merge_junction', _version)] = ('arterial', _version)
 
+# circulatory-autogen-modules' microvasculature: the artery variants (and artery_inlet/_outlet)
+# are artery's own versions; the arteriole, capillary, venule and vein variants are a resistive
+# model (geometric R and C, no inertance) that is now each type's vp_micro_noI / pv_micro_noI
+for _vessel in ('arteriole', 'capillary', 'venule', 'vein'):
+    for _variant in ('Min', 'Noutlet'):
+        JUNCTION_TWINS[(f'{_vessel}_{_variant}', 'vp_micro')] = (_vessel, 'vp_micro_noI')
+    for _variant in ('Nout', 'Minlet'):
+        JUNCTION_TWINS[(f'{_vessel}_{_variant}', 'pv_micro')] = (_vessel, 'pv_micro_noI')
+for _variant, _versions in (('Min', ('vp_micro', 'vv_micro')), ('Noutlet', ('vp_micro',)),
+                            ('Nout', ('pv_micro', 'vv_micro')), ('Minlet', ('pv_micro',)),
+                            ('MinNout', ('vv_micro',)), ('inlet', ('pp_micro', 'pv_micro')),
+                            ('outlet', ('pp_micro', 'vp_micro'))):
+    for _version in _versions:
+        JUNCTION_TWINS[(f'artery_{_variant}', _version)] = ('artery', _version)
+
 # the junctions' port flows, and what each becomes on the ordinary vessel
 RENAMED_VARIABLES = {'v_in_sum': 'v_in', 'v_out_sum': 'v_out',
                      'v_in_1': 'v_in', 'v_in_2': 'v_in', 'v_out_1': 'v_out', 'v_out_2': 'v_out'}
@@ -110,7 +126,9 @@ def migrate_records(records):
             if key in JUNCTION_TWINS:
                 record[type_key], record[version_key] = JUNCTION_TWINS[key]
                 renamed[record['name']] = (key, JUNCTION_TWINS[key])
-            elif re.search(r'junction', str(record[type_key])) and record[type_key] not in ('flow_merge', 'flow_split'):
+            elif (re.search(r'junction', str(record[type_key])) and record[type_key] not in ('flow_merge', 'flow_split')) or \
+                    re.fullmatch(r'(artery|arteriole|capillary|venule|vein)_(Min|Nout|Minlet|Noutlet|MinNout|inlet|outlet)',
+                                 str(record[type_key])):
                 raise KeyError(f'{record["name"]}: no ordinary vessel is known for the junction '
                                f'{record[type_key]}/{record[version_key]}')
         out.append(record)

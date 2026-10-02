@@ -321,3 +321,42 @@ def test_a_1d_vessel_in_a_node_of_three_is_refused():
     node = [n for n in find_nodes(df) if n.owner is not None][0]
     with pytest.raises(NotImplementedError, match='fv has no CellML'):
         node_variable_pairs(node, dict(zip(df['name'], df['module_format'])))
+
+
+def test_microvascular_network(tmp_path):
+    '''circulatory-autogen-modules' microvasculature in the same format: an arteriole whose outlet
+    owns the split into two capillaries, and a venule whose inlet owns their merge (the former
+    arteriole_Nout / venule_Min, now arteriole pv_micro_noI / venule vp_micro_noI).'''
+    records = [pressure_source('src', ['art']),
+               vessel('art', 'pv_micro_noI', ['src'], ['cap1', 'cap2'], module_type='arteriole'),
+               vessel('cap1', 'pp_micro', ['art'], ['ven'], module_type='capillary'),
+               vessel('cap2', 'pp_micro', ['art'], ['ven'], module_type='capillary'),
+               vessel('ven', 'vp_micro_noI', ['cap1', 'cap2'], ['sink'], module_type='venule'),
+               sink('sink', ['ven'])]
+    rows = [('P_src', 'J_per_m3', 9500.0), ('P_sink', 'J_per_m3', 2830.0),
+            ('mu', 'Js_per_m3', 0.004), ('rho', 'Js2_per_m5', 1040.0), ('g', 'm_per_s2', 9.81),
+            ('beta_g', 'dimensionless', 0.0), ('a_vessel', 'dimensionless', 0.2802), ('b_vessel', 'per_m', -505.3),
+            ('c_vessel', 'dimensionless', 0.1324), ('d_vessel', 'per_m', -11.14)]
+    for name, r_0, u_0 in (('art', 1.525e-05, 8000.0), ('ven', 1.83e-05, 3330.0)):
+        rows += [(f'E_{name}', 'J_per_m3', 18000.0), (f'l_{name}', 'metre', 1e-4), (f'r_0_{name}', 'metre', r_0),
+                 (f'u_0_{name}', 'J_per_m3', u_0), (f'u_ext_{name}', 'J_per_m3', 0.0), (f'theta_{name}', 'dimensionless', 0.0)]
+    for name, length in (('cap1', 2.5e-4), ('cap2', 5e-4)):
+        rows += [(f'E_{name}', 'J_per_m3', 4300.0), (f'l_{name}', 'metre', length), (f'r_{name}', 'metre', 4e-6),
+                 (f'u_ext_{name}', 'J_per_m3', 0.0), (f'q_C_init_{name}', 'm3', 0.0)]
+    params = pd.DataFrame([{'variable_name': n, 'units': u, 'value': v, 'data_reference': 'test'} for n, u, v in rows])
+    path = build(tmp_path, 'micro', records, params)
+
+    assert sum_components(path) == ['multiport_sum_art_v_out', 'multiport_sum_ven_v_in']
+    pairs = connections(path)
+    for cap in ('cap1', 'cap2'):
+        assert frozenset(('art_module.u', f'{cap}_module.u_in')) in pairs
+        assert frozenset(('ven_module.u', f'{cap}_module.u_out')) in pairs
+    results = simulate(path, ['multiport_sum_art_v_out.v_out', 'multiport_sum_ven_v_in.v_in',
+                              'cap1_module.v', 'cap2_module.v', 'cap1_module.v_d', 'cap2_module.v_d'])
+    split = results['multiport_sum_art_v_out.v_out']
+    merge = results['multiport_sum_ven_v_in.v_in']
+    np.testing.assert_allclose(split, results['cap1_module.v'] + results['cap2_module.v'], rtol=1e-9, atol=1e-25)
+    np.testing.assert_allclose(merge, results['cap1_module.v_d'] + results['cap2_module.v_d'], rtol=1e-9, atol=1e-25)
+    assert np.max(split) > 0
+    # the longer capillary carries less
+    assert results['cap2_module.v'][-1] < results['cap1_module.v'][-1]
