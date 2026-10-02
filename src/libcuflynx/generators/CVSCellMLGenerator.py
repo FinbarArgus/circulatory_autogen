@@ -1151,7 +1151,11 @@ class CVS0DCellMLGenerator(object):
             sum_terms, shared = node_variable_pairs(node, module_formats)
             owner = node.owner.module
             if any(module_formats.get(e.module) != 'cellml' for e in node.endpoints):
-                # one-to-one with an FV1D vessel or api provider: the pairwise code handles it
+                # one-to-one with an FV1D vessel or api provider: the pairwise code handles it,
+                # and the owner's port variables stay boundary conditions the coupling supplies
+                # (never the zero of an unconnected sum)
+                for owner_variable, _, _, _ in sum_terms:
+                    self._node_direct_sums.add((owner, owner_variable))
                 continue
             self._node_edges |= node.edges()
             for owner_variable, end, end_variable, sign in sum_terms:

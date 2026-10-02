@@ -169,6 +169,20 @@ def node_variable_pairs(node, module_formats):
 
 
 def owned_nodes(module_df):
-    '''The nodes a list-form "sum" vessel_port owns, excluding any with a "Multiply" port.'''
-    return [node for node in find_nodes(module_df)
+    '''The nodes a list-form "sum" vessel_port owns, excluding any with a "Multiply" port.
+
+    Raises ValueError for a node of three or more ends where none has a multi_port at all:
+    nothing there could set the pressure or sum the flows. (A node of legacy "True" ports is left
+    to the pairwise matching, which handles it by module type.)
+    '''
+    nodes = find_nodes(module_df)
+    for node in nodes:
+        if node.owner is None and len(node.endpoints) > 2 and \
+                not any('multi_port' in e.port for e in node.endpoints):
+            raise ValueError(
+                f'{len(node.endpoints)} modules meet at the node joining {node.description}, but none '
+                f'of their vessel_ports sums over it, so nothing there sets the pressure. One of them '
+                f'needs a compliant end at that node (a port with "multi_port": ["sum", "True"], e.g. '
+                f'BC_type "v" on that side).')
+    return [node for node in nodes
             if node.owner is not None and not any(is_multiply_port(e.port) for e in node.endpoints)]

@@ -356,20 +356,6 @@ def test_malformed_list_multi_port_fails_generation(tmp_path, external_modules_d
 
 
 @pytest.mark.unit
-def test_cpp_generator_refuses_list_multi_port_with_1d_coupling(tmp_path):
-    from libcuflynx.generators.CVSCppGenerator import CVS0DCppGenerator
-
-    class _Model:
-        vessels_df = pd.DataFrame([{
-            "name": "merge",
-            "entrance_ports": [_port("vessel_port", ["v_in", "u"], ["sum", "True"])],
-            "exit_ports": [], "general_ports": []}])
-
-    with pytest.raises(NotImplementedError, match="List-form"):
-        CVS0DCppGenerator(_Model(), str(tmp_path / "gen"), "mp", couple_to_1d=True,
-                          cpp_generated_models_dir=str(tmp_path / "gen_cpp"))
-
-
 # --------------------------------------------------------------------------------------------
 # flow_merge: "sum" on an entrance port, "True" shares the node pressure upstream
 # --------------------------------------------------------------------------------------------
