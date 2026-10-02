@@ -6,6 +6,7 @@ Created on 29/10/2021
 
 
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
+from libcuflynx.utilities.config_schemas import read_vessel_array_csv
 from libcuflynx.models.LumpedModels import CVS0DModel
 from libcuflynx.checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 from libcuflynx.generators.cpp.api import validate_module_config_apis
@@ -49,7 +50,8 @@ class CSV0DModelParser(object):
         self.conn_1d_0d_info = None
 
     def split_0d_1d_vessel_array(self):
-        vessels_df = pd.read_csv(self.vessel_filename, header=0, dtype=str, skipinitialspace=True) #, na_filter=False)
+        # libcuflynx or PhLynx (module array) layout, with libcuflynx column names either way
+        vessels_df = read_vessel_array_csv(self.vessel_filename, header=0, dtype=str, skipinitialspace=True) #, na_filter=False)
         vessels_df = vessels_df.fillna('')
         
         vessels_rows_0d = []
@@ -396,7 +398,7 @@ class CSV0DModelParser(object):
         # if N1d0d>0:
         #     print(self.conn_1d_0d_info)
         
-        idx_last = self.vessel_filename.rfind("vessel_array")
+        idx_last = max(self.vessel_filename.rfind("vessel_array"), self.vessel_filename.rfind("module_array"))
         json_filename = self.vessel_filename[:idx_last] + "coupler1d0d_unfinished.json"
         with open(json_filename, "w") as f:
             json.dump(self.conn_1d_0d_info, f, indent=4)
@@ -414,10 +416,12 @@ class CSV0DModelParser(object):
         # TODO if file ending is csv. elif file ending is json
         # TODO create a json_parser
         if self.vessel_filename_0d is None:
-            vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename, True)
+            vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename, True,
+                                                                            vessel_array=True)
         else:
             self.split_0d_1d_vessel_array()
-            vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename_0d, True)
+            vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(self.vessel_filename_0d, True,
+                                                                            vessel_array=True)
         
 
         # TODO remove the below:

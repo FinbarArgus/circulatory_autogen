@@ -53,7 +53,8 @@ class CVS1DPythonGenerator(object):
             self.cpp_generated_models_dir = cpp_generated_models_dir
 
         self.csv_parser = CSVFileParser()
-        self.vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(vessels1d_csv_abs_path, True) 
+        self.vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(vessels1d_csv_abs_path, True,
+                                                                             vessel_array=True)
         self.params_df = self.csv_parser.get_data_as_dataframe_multistrings(parameters_csv_abs_path, True)
 
         self.vessFileName = self.initFiles1dFold+f'/vess_{self.file_prefix[:-3]}.txt'

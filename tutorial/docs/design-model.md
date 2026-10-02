@@ -60,6 +60,8 @@ Some examples of possible inputs
 | inp_vessels    | name of the input vessels, which is one (or more) of the vessel_name entries in the other rows                |
 | out_vessel     | name of the output vessels, which is one (or more) of the vessel_name entries in other rows                   |
 
+The vessel array can also be in the layout of PhLynx's "Circulatory Autogen" export, with the columns `name, module_type, module_subtype, inp_instances, out_instances`. There `module_type` is the vessel_type, `module_subtype` the BC_type, and `inp_instances`/`out_instances` the inp_vessels/out_vessels. The layout is detected from the header. A header that mixes the two layouts is an error. PhLynx names the file `[file_prefix]_module_array.csv`. That name is used when there is no `[file_prefix]_vessel_array.csv`.
+
 Below figure is an example of a vessel_array file.
 
 ![Example of vessel_array file](images/vessel-array.png)
@@ -126,7 +128,18 @@ Vessel_type, BC_type, module_format, module_file location, module_type and other
 
 ![vp_type module](images/vp_type-module.png)
 
-The entries in the module config JSON file are detailed as follows:
+The entries in the module config JSON file are detailed as follows.
+
+A module config entry can also use PhLynx's key names. The generator detects the schema of each entry separately, so one library can use both, even within one file:
+
+| libcuflynx      | PhLynx            | meaning                                          |
+|-----------------|-------------------|--------------------------------------------------|
+| `vessel_type`   | `module_type`     | the name used in the vessel array's type column  |
+| `BC_type`       | `module_subtype`  | the boundary-condition variant                   |
+| `module_file`   | `component_file`  | the CellML file that holds the module            |
+| `module_type`   | `component_type`  | the name of the CellML component                 |
+
+`module_type` means different things in the two schemas. So an entry is read as PhLynx's schema when it has `module_subtype`, `component_file` or `component_type`, never because of `module_type`. An entry that mixes keys from both schemas, or a PhLynx entry that is missing one of its four keys, stops the generation with an error. The remaining keys (`module_format`, the ports and `variables_and_units`) are the same in both schemas.
 
 - **vessel_type**: This will be the "vessel_type" entry in the vessel_array file
 - **BC_type**: This will be the "BC_type" entry in the vessel_array file
@@ -140,6 +153,22 @@ The entries in the module config JSON file are detailed as follows:
     - **variables**: These are the variables within the module that will be connected to the variables in the corresponding port of the connected vessel/module.
     !!! Note 
         If you want a port variable to be able to couple to multiple other modules, set `"multi_port": "True"` in the entrance, exit, or general port. `"multi_port": "sum"` is used for variables that take in multiple port variables and sum them to equal this variable.
+    - **multi_port** (optional): lets one port connect to several modules. Its values are case-insensitive: `"sum"`, `"Sum"` and `"SUM"` are the same. It is either a string that applies to the whole port, or a list with one entry per port variable (below). The string forms are:
+        - `"True"`: this module's port variables are mapped to the corresponding variables of every connected module.
+        - `"sum"` on a port whose `port_type` is `volume_port`: the port's variable is the total of the connected modules' volumes, computed in the `sum_blood_volume` component.
+        - `"sum"` on any other port: the port must have exactly one variable. That variable is the sum, over every module connected through the port, of the neighbour's corresponding variable. This is the same as the list form `["sum"]`, described below. It is what PhLynx's `"Sum"` means. For example, the module library's `microvasculature_network` Nout modules have an exit `flow_port` `[v_out_sum]` with `"Sum"`, so `v_out_sum` is the sum of the downstream modules' inflows. As in the list form, the sum is positive on both entrance and exit ports, and only one side of a connection may sum.
+        - `"Multiply"`: the port must have exactly one variable. On the upstream side of a connection (an exit or general port of the module that lists the neighbour in its `out_vessels`), each connected module's corresponding variable is set to `multiply_factor` times this module's variable. The generated component that does this is `multiport_multiply_[neighbour_name]_[neighbour_variable]`. If the neighbour's port is a `"sum"`, the scaled value is added as one term of its sum instead. On the downstream side of a connection, a `"Multiply"` port is mapped like `"True"`. This matches PhLynx.
+    - **multiply_factor** (optional, number, default 1): the factor of a `"Multiply"` port, e.g. `{"port_type": "gain_port", "variables": ["x"], "multi_port": "Multiply", "multiply_factor": 2.5}`. PhLynx keeps this factor in its user interface, not in the config file, so add it to a PhLynx-exported config by hand. It is an error on a port that is not `"Multiply"`.
+    - **multi_port** as a **list with one entry per port variable**, aligned with `variables`, when some variables must be summed over the connected modules and others shared with them:
+
+        ```json
+        {"port_type": "vessel_port", "variables": ["v_in", "u"], "multi_port": ["sum", "True"]}
+        ```
+
+        - `"sum"`: this module's variable (an input of the module) equals the sum, over every module connected through this port, of that module's corresponding port variable, i.e. the variable at the same position in its matching port, which a plain one-to-one mapping would have paired it with. The sum is computed in a generated algebraic component, `multiport_sum_[vessel_name]_[variable_name]`, declared in the units of this module's variable. A neighbour variable in different but compatible units (e.g. `mm3_per_s` summed into `m3_per_s`) is scaled; incompatible units stop the generation with an error. If no module is connected through the port, the variable is set to 0 and a warning is printed, and no `[variable_name]_[vessel_name]` parameter is needed for it.
+        - `"True"`: this module's variable is mapped to the corresponding variable of **every** connected module. It is normally an output of this module (one source, many sinks).
+
+        A list-form port works as an entrance port (many upstream modules), an exit port (many downstream modules) or a general port. With one connected module it behaves exactly like a plain port. For example, a `flow_merge` node (many inflows, one outflow) has the entrance port above, `[v_in, u]` with `["sum", "True"]`, and a plain exit port `[v_out, u_d]`, with `v_out = v_in` and `u = u_d`: the node's inflow is the sum of the upstream flows, and every upstream module reads the node pressure. A `flow_split` node (one inflow, many outflows) puts the list on its exit port instead, `[v_out, u_d]` with `["sum", "True"]`. Only one side of a connection may mark a variable `"sum"`. List-form ports are not supported when coupling a C++ model to a 1D model (`couple_to_1d`); generation raises `NotImplementedError` there.
 - **variables_and_units**: This specifies all of the constants and the accesible variables of the cellml module. The entries are:
     - [0] **variable name**: corresponding to the name in the cellml file
     - [1] **variable unit**: corresponsing to the unit specification in `units.cellml`

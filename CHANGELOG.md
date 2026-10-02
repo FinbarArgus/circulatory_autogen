@@ -43,6 +43,53 @@ unchanged.
 - 1D input generation wrote an unknown artery/vein type for vessels not named `A_*`/`V_*`;
   an `art_ven_type_<vessel>` parameter now sets it.
 
+### Added — PhLynx module-config and vessel-array schemas; `"Sum"` and `"Multiply"` multi_ports
+
+The module library is moving its configs to PhLynx's key names, and libcuflynx now reads both
+schemas. In PhLynx's schema, `module_type` is the vessel_type, `module_subtype` is the BC_type,
+`component_file` is the module_file and `component_type` is the CellML component name. Each
+entry is detected on its own, by `module_subtype`, `component_file` or `component_type`, and is
+converted to the libcuflynx names when the config is loaded
+(`libcuflynx.utilities.config_schemas.normalise_module_config_entry`). An entry that mixes the
+two schemas is an error. Vessel arrays can use PhLynx's export layout too
+(`name, module_type, module_subtype, inp_instances, out_instances`). The layout is detected from
+the header. `[file_prefix]_module_array.csv` is read when there is no
+`[file_prefix]_vessel_array.csv`.
+
+`multi_port` values are now case-insensitive. Before, only lowercase `"sum"` summed, and PhLynx's
+`"Sum"` behaved like `"True"`. On a `volume_port`, `"Sum"` now gives the same `sum_blood_volume`
+sum as `"sum"`. On any other port, `"sum"`/`"Sum"` needs exactly one variable, and that variable
+is the sum of the connected modules' corresponding variables. This is PhLynx's semantics, and it
+is implemented as the list form `["sum"]`. The module library's microvasculature_network
+`v_out_sum` ports need it. The new `"Multiply"` value, with an optional numeric
+`multiply_factor` (default 1), sets each downstream neighbour's variable to the factor times
+this module's variable, as PhLynx does. All the models in `resources/` that generated before
+still generate byte-identical CellML.
+
+### Added — per-variable `multi_port`, for flow merge and split nodes
+
+A port's `multi_port` can now be a list with one entry per port variable. Use it when a port
+connected to several modules must sum some variables and share others:
+
+```json
+{"port_type": "vessel_port", "variables": ["v_in", "u"], "multi_port": ["sum", "True"]}
+```
+
+A `"sum"` variable (an input) equals the sum, over every module connected through the port, of
+the neighbour's corresponding port variable. A generated algebraic component,
+`multiport_sum_<vessel>_<variable>`, computes it. The component scales a neighbour in different
+but compatible units, and generation stops on incompatible units. With no neighbour, the variable
+is 0 and a warning is printed. A `"True"` variable (normally an output) is mapped to the
+corresponding variable of every neighbour. This works on entrance, exit and general ports.
+
+The module library's algebraic `flow_merge` (many inflows, one outflow) and `flow_split` (one
+inflow, many outflows) nodes need this: they sum the flows and share the node pressure. The string
+forms (`"True"`, `"sum"`) are unchanged, and models without a list-form port generate
+byte-identical CellML. The model checks reject a malformed list (wrong length, or an entry other
+than `"sum"`/`"True"`). The C++ generator's 0D-1D coupling (`couple_to_1d`) does not support
+list-form ports and raises `NotImplementedError`. Plain C++ generation works from the generated
+CellML and is not affected. See *Designing a model* in the tutorial.
+
 ### Added — `module_library_dirs` and `use_builtin_modules`
 
 Models can now be generated from an external module library laid out one module per
@@ -60,6 +107,25 @@ The docs said a `user_units.cellml` in `external_modules_dir` was picked up; it 
 Every `*units.cellml` there (and in `module_library_dirs`) is now merged into the generated
 units file. A unit defined identically in several files is written once; one defined
 differently in two files raises a `ValueError` naming both files.
+
+### Fixed
+
+- `model_type: python` (and the CasADi / AADC variants) now defines every helper libCellML's
+  Python profile can emit: `eq_func`, `neq_func`, `or_func`, `xor_func`, `not_func`, `min` and
+  the reciprocal trig functions `sec` ... `acoth`. A model using `<eq/>`, `<or/>`, `<min/>` etc.
+  used to fail at run time with `NameError: name 'eq_func' is not defined` (#526).
+- A `sum` multi-port (e.g. a `volume_sum` vessel) with no inputs connected is now 0, with a
+  warning naming the vessel, and is still mapped to the vessel's port variable. Generation used
+  to fail with `IndexError: list index out of range` (#525).
+- The built-in constant boundary conditions (`inlet_pressure`, `outlet_pressure`, `inlet_flow`,
+  `outlet_flow` with BC_type `nn_constant`) list their port's flow / pressure variable in
+  `variables_and_units`, so they can be connected. Generation used to stop with "the port variable
+  v is not a variable for vessel type: inlet_pressure" (#529).
+- Generic junctions (`Min_junction`, `Nout_junction`, `MinNout_junction`) now include every
+  neighbour with a `vessel_port` facing the junction node, taking its flow and pressure from that
+  port, instead of skipping any neighbour whose BC_type starts with `nn`. A junction fed directly by
+  boundary conditions such as `inlet_flow nn_constant` used to fail with "Min_junction junc has NO
+  other vessels connected to its inlet node". Existing models generate byte-identical CellML (#524).
 
 ## 0.7.3 — 2026-09-05
 

@@ -6,6 +6,8 @@ Created on 01/11/2021
 
 from abc import ABC, abstractmethod
 
+from libcuflynx.generators.multi_port import validate_list_multi_port
+
 class AbstractLumpedCheck(ABC):
     '''
     Abstract class of a check condition
@@ -104,6 +106,11 @@ class LumpedPortVariableCheck(AbstractLumpedCheck):
                     print(f'the port variable {port_variable} '
                         f'is not a variable for vessel type: {vessel_row["vessel_type"]}, BC_type: {vessel_row["BC_type"]}')
                     exit()
+        # a list-form multi_port must have one "sum"/"True" entry per port variable
+        for port in vessel_row["entrance_ports"] + vessel_row["exit_ports"] + vessel_row["general_ports"]:
+            validate_list_multi_port(
+                port, f'module "{vessel_row["name"]}" (vessel_type: {vessel_row["vessel_type"]}, '
+                      f'BC_type: {vessel_row["BC_type"]})')
 
 #    Example of usage
 #    Contructs a multiple check with only a LumpedBCVesselCheck 
