@@ -162,6 +162,8 @@ def migrate_file(path, parameters_path=None):
     if path.lower().endswith('.json'):
         with open(path, 'w', encoding='utf-8') as f:
             f.write('[\n' + ',\n'.join(' ' + json.dumps(r) for r in migrated) + '\n]\n')
+    elif len(migrated) == len(records):
+        _retype_csv(path, migrated)
     else:
         _write_csv(path, migrated)
     if parameters and parameters_path and os.path.exists(parameters_path):
@@ -174,6 +176,33 @@ def migrate_file(path, parameters_path=None):
         with open(parameters_path, 'w') as f:
             f.write('\n'.join(lines))
     return renamed
+
+
+def _retype_csv(path, records):
+    '''Rewrite only the vessel_type and BC_type cells of a CSV array, keeping its layout.'''
+    with open(path) as f:
+        lines = f.read().split('\n')
+    header = [c.strip() for c in lines[0].split(',')]
+    columns = {'vessel_type': None, 'BC_type': None}
+    for key in columns:
+        for alias in ((key,) if key == 'vessel_type' else (key,)) + (('module_type',) if key == 'vessel_type' else ('module_subtype',)):
+            if alias in header:
+                columns[key] = header.index(alias)
+    by_name = {r['name']: r for r in records}
+    for i, line in enumerate(lines[1:], 1):
+        cells = line.split(',')
+        if len(cells) < len(header) or not cells[0].strip():
+            continue
+        record = by_name.get(cells[0].strip())
+        if record is None:
+            continue
+        for key, column in columns.items():
+            old, new = cells[column].strip(), str(record[key])
+            if old != new:
+                cells[column] = cells[column].replace(old, new, 1)
+        lines[i] = ','.join(cells)
+    with open(path, 'w') as f:
+        f.write('\n'.join(lines))
 
 
 def _write_csv(path, records):
