@@ -1284,7 +1284,15 @@ class CVS0DCellMLGenerator(object):
         entry['terms'].append((neighbour, neighbour_variable, neighbour_units, factor))
 
     def __register_unconnected_multiport_sums(self, module_df):
-        """Register a zero sum (with a warning) for list-form "sum" variables with no neighbour."""
+        """Register a zero sum (with a warning) for list-form "sum" variables with no neighbour.
+
+        An unconnected summing port is a boundary condition like any other unconnected port when
+        the parameters file sets it (``<variable>_<module>``): a vessel generated on its own, or a
+        compliant end left open, takes that value. Only without one is the sum zero.
+        """
+        params = self.model.parameters_array
+        given = {name for name, value in zip(params["variable_name"], params["value"])
+                 if str(value) != 'EMPTY_MUST_BE_FILLED'}
         for module_row_idx in range(len(module_df)):
             module_row = module_df.iloc[module_row_idx]
             if module_row["module_format"] != 'cellml':
@@ -1297,6 +1305,8 @@ class CVS0DCellMLGenerator(object):
                 for variable, entry in zip(port['variables'], entries):
                     if entry != MULTI_PORT_SUM or (module, variable) in self._node_direct_sums:
                         continue
+                    if (module, variable) not in self._multiport_sums and f'{variable}_{module}' in given:
+                        continue  # a boundary condition the parameters file sets
                     if not self.__register_multiport_sum(module, variable)['terms']:
                         print(f'WARNING: "{module}" variable "{variable}" is a multi_port "sum" over '
                               f'port "{port["port_type"]}", but no module is connected through that '
