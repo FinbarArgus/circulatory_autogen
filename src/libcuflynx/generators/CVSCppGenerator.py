@@ -83,9 +83,10 @@ class CVS0DCppGenerator(object):
             # the 0D-1D coupling reads port variables straight from the module config
             # (annotate_cellml) and knows nothing of per-variable multi_port semantics
             raise NotImplementedError(
-                'List-form (per-variable) multi_port is not supported when coupling the C++ '
-                'model to a 1D model (couple_to_1d). Use string-form multi_port there, or '
-                'generate without 1D coupling.')
+                'List-form (per-variable) multi_port, and the whole-port "Sum" (on ports other '
+                'than volume_port) and "Multiply" forms built on it, are not supported when '
+                'coupling the C++ model to a 1D model (couple_to_1d). Use "True"/volume_port '
+                '"sum" multi_port there, or generate without 1D coupling.')
         if self.couple_to_1d:
             self.output_cpp_file_name = "model0d" # always the same, independent of model name, 
                                                     # to allow for coupling to cpp 1d model.
@@ -3766,7 +3767,8 @@ class CVS1DPythonGenerator(object):
             self.cpp_generated_models_dir = cpp_generated_models_dir
 
         self.csv_parser = CSVFileParser()
-        self.vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(vessels1d_csv_abs_path, True) 
+        self.vessels_df = self.csv_parser.get_data_as_dataframe_multistrings(vessels1d_csv_abs_path, True,
+                                                                             vessel_array=True)
         self.params_df = self.csv_parser.get_data_as_dataframe_multistrings(parameters_csv_abs_path, True)
 
         self.vessFileName = self.initFiles1dFold+f'/vess_{self.file_prefix[:-3]}.txt'

@@ -5,6 +5,29 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Added — PhLynx module-config and vessel-array schemas; `"Sum"` and `"Multiply"` multi_ports
+
+The module library is moving its configs to PhLynx's key names, and libcuflynx now reads both
+schemas. In PhLynx's schema, `module_type` is the vessel_type, `module_subtype` is the BC_type,
+`component_file` is the module_file and `component_type` is the CellML component name. Each
+entry is detected on its own, by `module_subtype`, `component_file` or `component_type`, and is
+converted to the libcuflynx names when the config is loaded
+(`libcuflynx.utilities.config_schemas.normalise_module_config_entry`). An entry that mixes the
+two schemas is an error. Vessel arrays can use PhLynx's export layout too
+(`name, module_type, module_subtype, inp_instances, out_instances`). The layout is detected from
+the header. `[file_prefix]_module_array.csv` is read when there is no
+`[file_prefix]_vessel_array.csv`.
+
+`multi_port` values are now case-insensitive. Before, only lowercase `"sum"` summed, and PhLynx's
+`"Sum"` behaved like `"True"`. On a `volume_port`, `"Sum"` now gives the same `sum_blood_volume`
+sum as `"sum"`. On any other port, `"sum"`/`"Sum"` needs exactly one variable, and that variable
+is the sum of the connected modules' corresponding variables. This is PhLynx's semantics, and it
+is implemented as the list form `["sum"]`. The module library's microvasculature_network
+`v_out_sum` ports need it. The new `"Multiply"` value, with an optional numeric
+`multiply_factor` (default 1), sets each downstream neighbour's variable to the factor times
+this module's variable, as PhLynx does. All the models in `resources/` that generated before
+still generate byte-identical CellML.
+
 ### Added — per-variable `multi_port`, for flow merge and split nodes
 
 A port's `multi_port` can now be a list with one entry per port variable. Use it when a port

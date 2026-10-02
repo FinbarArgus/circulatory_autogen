@@ -37,6 +37,8 @@ from libcuflynx.param_id.modifier_funcs import (BUILTIN_MODIFIER_FUNCS, get_modi
 # answers without opening MPI when nothing launched this process.
 from libcuflynx.utilities import mpi_utils as _mpi_utils
 from libcuflynx.utilities.module_library import as_dir_list
+from libcuflynx.utilities.config_schemas import (load_module_config, normalise_vessel_array_columns,
+                                                 vessel_array_path)
 from libcuflynx.utilities.paths import (default_generated_models_dir, default_funcs_user_dir,
                                         default_param_id_output_dir, default_resources_dir,
                                         default_sensitivity_outputs_dir, default_user_inputs_dir,
@@ -2732,7 +2734,7 @@ class YamlFileParser(object):
 
         # for generation only
     
-        inp_data_dict['vessels_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], file_prefix + '_vessel_array.csv')
+        inp_data_dict['vessels_csv_abs_path'] = vessel_array_path(inp_data_dict['resources_dir'], file_prefix)
         inp_data_dict['parameters_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['input_param_file'])
 
         if inp_data_dict.get('model_type') == 'cpp' and inp_data_dict.get('couple_to_1d'):
@@ -3015,12 +3017,15 @@ class CSVFileParser(object):
         Constructor
         '''
         
-    def get_data_as_dataframe_multistrings(self, filename, has_header=True):
+    def get_data_as_dataframe_multistrings(self, filename, has_header=True, vessel_array=False):
         '''
         Returns the data in the CSV file as a Pandas dataframe where entries in the data array that have two
         entries are put in a list in the entry for the dataframe
         :param filename: filename of CSV file
         :param has_header: If CSV file has a header
+        :param vessel_array: the file is a vessel array, in the libcuflynx layout or PhLynx's
+            module-array layout; its columns are normalised to the libcuflynx names
+            (see utilities/config_schemas.py)
         '''
         if( has_header ):
             csv_dataframe = pd.read_csv(filename, dtype=str, na_filter=False)
@@ -3028,6 +3033,8 @@ class CSVFileParser(object):
             csv_dataframe = pd.read_csv(filename, dtype=str, header=None, na_filter=False)
 
         csv_dataframe = csv_dataframe.rename(columns=lambda x: x.strip())
+        if vessel_array:
+            csv_dataframe = normalise_vessel_array_columns(csv_dataframe, source=str(filename))
         # Ensure object dtype so list-like assignments are allowed (pandas >=2.0 uses StringArray)
         csv_dataframe = csv_dataframe.astype(object)
         for II in range(csv_dataframe.shape[0]):
@@ -3161,24 +3168,29 @@ class JSONFileParser(object):
         # match '.json' but are binary and blow up json.load, so skip them here (issue #83).
         return file.endswith('.json') and not file.startswith('._')
 
+    def module_config_to_dataframe(self, json_path):
+        """The entries of one module config JSON file, in either the libcuflynx or the PhLynx
+        schema, as a dataframe with libcuflynx column names (see utilities/config_schemas.py)."""
+        return pd.DataFrame(load_module_config(json_path))
+
     def json_files_to_dataframe(self, json_files):
         """All module config entries from ``json_files``, in order, as one dataframe."""
-        dfs = [self.json_to_dataframe(path) for path in json_files]
+        dfs = [self.module_config_to_dataframe(path) for path in json_files]
         if not dfs:
             raise ValueError('No module config JSON files were found: check use_builtin_modules, '
                              'external_modules_dir and module_library_dirs')
         return pd.concat(dfs, ignore_index=True)
 
     def json_to_dataframe_with_user_dir(self, json_dir, json_user_dir, external_modules_dir):
-        dfs = [self.json_to_dataframe(os.path.join(json_dir, file)) \
+        dfs = [self.module_config_to_dataframe(os.path.join(json_dir, file)) \
                 for file in os.listdir(json_dir) if self._is_json_module_file(file)]
         # module_config_user/ is a checkout directory, absent in a pip install (#431/#432),
         # so a missing one is "no user modules", not an error.
-        user_module_dfs = [self.json_to_dataframe(os.path.join(json_user_dir, file)) \
+        user_module_dfs = [self.module_config_to_dataframe(os.path.join(json_user_dir, file)) \
                 for file in (os.listdir(json_user_dir) if json_user_dir and os.path.isdir(json_user_dir) else []) \
                 if self._is_json_module_file(file)]
         if external_modules_dir is not None:
-            external_module_dfs = [self.json_to_dataframe(os.path.join(external_modules_dir, file)) \
+            external_module_dfs = [self.module_config_to_dataframe(os.path.join(external_modules_dir, file)) \
                     for file in os.listdir(external_modules_dir) if self._is_json_module_file(file)]
         else:
             external_module_dfs = []
