@@ -530,8 +530,12 @@ def _generate_cpp_1d(work_dir, vessel_array_name, records=None):
            'solver_info': {'dt_solver': 1e-4, 'MaximumNumberOfSteps': 5000, 'solver': 'RK4'}, 'DEBUG': False}
     with contextlib.redirect_stdout(io.StringIO()):
         assert generate_with_new_architecture(False, cfg)
-    with open(os.path.join(work_dir, 'cpp', 'model0d.cc')) as f:
-        return f.read()
+    # the template generator writes the equations (model0d_core.c) and the wrapper (model0d.cpp)
+    text = ''
+    for name in ('model0d_core.c', 'model0d.cpp'):
+        with open(os.path.join(work_dir, 'cpp', name)) as f:
+            text += f.read()
+    return text
 
 
 def test_0d_1d_split_accepts_records_with_extra_keys(tmp_path):
