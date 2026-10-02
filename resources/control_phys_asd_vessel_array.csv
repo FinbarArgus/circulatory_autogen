@@ -5,7 +5,7 @@ pulmonary_GE,            nn, pulmonary_GE,       pcap venous_gas_transport,     
 respiratory_gt,          nn, respiratory_gas_transport, pulmonary_GE,                lung 
 lung,                    nn, simple_lung_bg,     respiratory_gt,                     
 pvn,                     vp, venous,             pcap,                               heart
-heart,             vp_wCont, heart_ASD,              venous_ivc venous_svc pvn rv_elastance_effector lv_elastance_effector heart_period_effector,         ascending_aorta_A par  
+heart,             vp_wCont_ASD, heart,              venous_ivc venous_svc pvn rv_elastance_effector lv_elastance_effector heart_period_effector,         ascending_aorta_A par  
 ascending_aorta_A,       vv, arterial,           heart                 ,             ascending_aorta_B    
 ascending_aorta_B,       pv, arterial,           ascending_aorta_A     ,             ascending_aorta_C    
 ascending_aorta_C,       pv, arterial,           ascending_aorta_B     ,             ascending_aorta_D arterial_gas_transport       
