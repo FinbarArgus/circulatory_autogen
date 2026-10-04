@@ -12,6 +12,7 @@ import tempfile
 from sys import exit
 from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.utilities.module_library import ModuleSources, collect_units, CELLML_1_1_NS
+from libcuflynx.utilities.config_schemas import parameter_name
 
 generators_dir = os.path.dirname(__file__)
 LIBCELLML_available = True
@@ -365,6 +366,10 @@ class CVS0DCellMLGenerator(object):
                 self.__write_section_break(wf, 'access_variables')
                 self.__write_access_variables(wf, self.model.vessels_df)
                 
+                # a supermodule instance's outputs, under its own name (aortic_root/u for a lumped
+                # vessel whose pressure is its compliance's): one component per instance
+                self.__write_supermodule_output_comps(wf, self.model.vessels_df)
+
                 # define global parameters so they can be accessed
                 print('writing global params variable access')
                 self.__write_section_break(wf, 'global_parameters_access')
@@ -374,6 +379,7 @@ class CVS0DCellMLGenerator(object):
                 print('writing mappings between computational environment and modules')
                 self.__write_section_break(wf, 'own vessel mappings')
                 self.__write_comp_to_module_mappings(wf, self.model.vessels_df)
+                self.__write_supermodule_output_mappings(wf, self.model.vessels_df)
                 
                 print('writing mappings between computational environment and modules for global parameters')
                 self.__write_section_break(wf, 'own global parameters mapping')
@@ -574,14 +580,19 @@ class CVS0DCellMLGenerator(object):
 
         # TODO change the below to vessel_type, not "name"
         if len(vessel_df.loc[vessel_df["name"] == 'heart']) == 1:
+            # the heart's inputs by the names the model gave them (a supermodule vessel such as a
+            # lumped venous_svc is venous_svc_I after expansion)
+            origin = {}
+            if 'supermodule_instance' in vessel_df.columns:
+                origin = {n: o for n, o in zip(vessel_df["name"], vessel_df["supermodule_instance"])
+                          if isinstance(o, str) and o}
+            heart_inputs = [origin.get(n, n) for n in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]]
             # add a zero mapping to heart ivc or svc flow input if only one input is specified
-            if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] or \
-                    "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
+            if "venous_ivc" not in heart_inputs or "venous_svc" not in heart_inputs:
                 wf.writelines([f'<import xlink:href="{self.file_prefix}_modules.cellml">\n',
                                f'    <component component_ref="zero_flow" name="zero_flow_module"/>\n',
                                '</import>\n'])
-            if "venous_ivc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0] and \
-                    "venous_svc" not in vessel_df.loc[vessel_df["name"] == 'heart'].inp_vessels.values[0]:
+            if "venous_ivc" not in heart_inputs and "venous_svc" not in heart_inputs:
                 print('either venous_ivc, or venous_svc, or both must be inputs to the heart, exiting')
                 exit()
         elif len(vessel_df.loc[vessel_df["name"] == 'heart']) < 1:
@@ -635,7 +646,16 @@ class CVS0DCellMLGenerator(object):
         self.__register_unconnected_multiport_sums(module_df)
 
         # check whether the BC variables have been set with a matched module, if so, remove them from 
-        # parameters array and if not, set them to constant
+        # parameters array and if not, set them to constant. A supermodule's shared parameter
+        # (parameter_names) stays while any module that takes it still leaves it open.
+        still_open = set()
+        for module_row_idx in range(len(module_df)):
+            row = module_df.iloc[module_row_idx]
+            if row["module_format"] != 'cellml':
+                continue
+            for var, _units, _access, kind in row["variables_and_units"]:
+                if kind == 'boundary_condition' and not self.BC_set[row["name"]][var]:
+                    still_open.add(parameter_name(row["name"], var, row.get("parameter_names")))
         for module_row_idx in range(len(module_df)):
             if module_df.iloc[module_row_idx]["module_format"] != 'cellml':
                 # if not cellml then don't do anything for this vessel/module
@@ -643,16 +663,19 @@ class CVS0DCellMLGenerator(object):
             indexes_to_remove = []
             for II in range(len(module_df.iloc[module_row_idx]["variables_and_units"])):
                 if module_df.iloc[module_row_idx]["variables_and_units"][II][3] == 'boundary_condition':
-                    full_variable_name = module_df.iloc[module_row_idx]["variables_and_units"][II][0] + \
-                                         '_' + module_df.iloc[module_row_idx]["name"]
+                    full_variable_name = parameter_name(module_df.iloc[module_row_idx]["name"],
+                                                        module_df.iloc[module_row_idx]["variables_and_units"][II][0],
+                                                        module_df.iloc[module_row_idx].get("parameter_names"))
                     if not self.BC_set[module_df.iloc[module_row_idx]["name"]] \
                             [module_df.iloc[module_row_idx]["variables_and_units"][II][0]]:
                         module_df.iloc[module_row_idx]["variables_and_units"][II][3] = 'constant'
                         # self.model.parameters_array[np.where(self.model.parameters_array["variable_name"] == 
                         #                                      full_variable_name)][0][2] = 'constant'
                     else:
-                        self.model.parameters_array = np.delete(self.model.parameters_array, np.where(self.model.parameters_array["variable_name"] ==
-                                                                                                      full_variable_name))
+                        if full_variable_name not in still_open:
+                            self.model.parameters_array = np.delete(
+                                self.model.parameters_array,
+                                np.where(self.model.parameters_array["variable_name"] == full_variable_name))
                         indexes_to_remove.append(II)
 
             # remove the BC variables from the variables_and_units list
@@ -1305,7 +1328,8 @@ class CVS0DCellMLGenerator(object):
                 for variable, entry in zip(port['variables'], entries):
                     if entry != MULTI_PORT_SUM or (module, variable) in self._node_direct_sums:
                         continue
-                    if (module, variable) not in self._multiport_sums and f'{variable}_{module}' in given:
+                    if (module, variable) not in self._multiport_sums and \
+                            parameter_name(module, variable, module_row.get("parameter_names")) in given:
                         continue  # a boundary condition the parameters file sets
                     if not self.__register_multiport_sum(module, variable)['terms']:
                         print(f'WARNING: "{module}" variable "{variable}" is a multi_port "sum" over '
@@ -1389,9 +1413,34 @@ class CVS0DCellMLGenerator(object):
 
             self._add_connection(comp_name, module + '_module', [(variable, variable)])
 
+    def __lumped_terminals(self, vessel_df):
+        '''{instance: (module component, flow variable, out_vessels of all its submodules)} for the
+        terminals that are supermodule instances (a lumped terminal): the submodule whose variable is
+        the instance's v_T output carries its flow. In vessel_df order.'''
+        out = {}
+        if 'output_aliases' not in vessel_df.columns or 'supermodule_instance' not in vessel_df.columns:
+            return out
+        outs = {}
+        for _, row in vessel_df.iterrows():
+            instance = row['supermodule_instance']
+            if isinstance(instance, str) and instance:
+                outs.setdefault(instance, []).extend(row['out_vessels'])
+        for _, row in vessel_df.iterrows():
+            aliases = row['output_aliases']
+            if not isinstance(aliases, dict):
+                continue
+            for instance, names in aliases.items():
+                if 'v_T' in names and instance not in out:
+                    out[instance] = (row['name'] + '_module', names['v_T'], outs.get(instance, []))
+        return out
+
     def __write_terminal_venous_connection_comp(self, wf, vessel_df, flow_units='m3_per_s'):
         first_venous_names = []  # stores name of venous compartments that take flow from terminals
         tissue_GE_names = []  # stores name of venous compartments that take flow from terminals
+        lumped_terminals = self.__lumped_terminals(vessel_df)
+        for instance, (module, variable, _outs) in lumped_terminals.items():
+            # a lumped terminal's flow, under the terminal's name (its venous side is a summing node)
+            self.__write_mapping(wf, module, 'terminal_venous_connection', [variable], [f'v_{instance}'])
         for vessel_tup in vessel_df.itertuples():
             if vessel_tup.module_format != 'cellml':
                 # if not cellml then don't do anything for this vessel/module
@@ -1466,7 +1515,17 @@ class CVS0DCellMLGenerator(object):
         terminal_names_for_first_venous = [[] for i in range(len(first_venous_names))]
         terminal_names_with_GE = []
         terminal_names = []
+        seen_lumped = set()
         for vessel_tup in vessel_df.itertuples():
+            instance = getattr(vessel_tup, 'supermodule_instance', None)
+            if isinstance(instance, str) and instance in lumped_terminals and instance not in seen_lumped:
+                # a lumped terminal, in the place its first submodule has
+                seen_lumped.add(instance)
+                outs = lumped_terminals[instance][2]
+                if any(ge in outs for ge in tissue_GE_names):
+                    terminal_names_with_GE.append(instance)
+                terminal_names.append(instance)
+                continue
             if vessel_tup.vessel_type.endswith('terminal'):
                 vessel_name = vessel_tup.name
                 for idx, venous_name in enumerate(first_venous_names):
@@ -2090,6 +2149,46 @@ class CVS0DCellMLGenerator(object):
         wf.writelines(lines_to_write)
         wf.write('</component>\n')
     
+    def __supermodule_outputs(self, vessel_df):
+        '''{instance: [(output, submodule module component, variable, units)]} from the expanded
+        records' output_aliases (a supermodule's "outputs": the names its instance exposes).'''
+        out = {}
+        if 'output_aliases' not in vessel_df.columns:
+            return out
+        for _, row in vessel_df.iterrows():
+            aliases = row['output_aliases']
+            if not isinstance(aliases, dict) or row['module_format'] != 'cellml':
+                continue
+            kinds = {v[0]: (v[1], v[3]) for v in row['variables_and_units']}
+            for instance, names in aliases.items():
+                for output, variable in names.items():
+                    units, kind = kinds.get(variable, (None, None))
+                    if kind != 'variable':
+                        raise ValueError(f'supermodule instance "{instance}": output "{output}" names '
+                                         f'"{variable}" of "{row["name"]}", which is not one of its '
+                                         f'variables (outputs).')
+                    out.setdefault(instance, []).append((output, row['name'] + '_module', variable, units))
+        return out
+
+    def __write_supermodule_output_comps(self, wf, vessel_df):
+        '''For each supermodule instance with outputs, a component named after the instance with
+        each output computed from the submodule variable it stands for (an equation, not a plain
+        connection, so the name survives importers that merge connected variables).'''
+        for instance, outputs in self.__supermodule_outputs(vessel_df).items():
+            wf.write(f'<component name="{instance}">\n')
+            for output, _module, _variable, units in outputs:
+                wf.write(f'   <variable name="{output}__src" public_interface="in" units="{units}"/>\n')
+                wf.write(f'   <variable name="{output}" public_interface="out" units="{units}"/>\n')
+            wf.write('   <math xmlns="http://www.w3.org/1998/Math/MathML">\n')
+            for output, *_ in outputs:
+                wf.write(f'      <apply><eq/><ci>{output}</ci><ci>{output}__src</ci></apply>\n')
+            wf.write('   </math>\n</component>\n')
+
+    def __write_supermodule_output_mappings(self, wf, vessel_df):
+        for instance, outputs in self.__supermodule_outputs(vessel_df).items():
+            for output, module, variable, _units in outputs:
+                self.__write_mapping(wf, module, instance, [variable], [f'{output}__src'])
+
     def __write_global_parameters_access_variables(self, wf, parameters_array):
         
         wf.write(f'<component name="global">\n')
@@ -2145,7 +2244,8 @@ class CVS0DCellMLGenerator(object):
                 i in range(len(vessel_row["variables_and_units"])) if
                 vessel_row["variables_and_units"][i][3] == 'constant']
 
-        module_vars = [vars[i] + global_variable_addon for i in range(len(vars))]
+        names = vessel_row.get("parameter_names") if hasattr(vessel_row, "get") else None
+        module_vars = [parameter_name(vessel_name, var, names) for var in vars]
 
         global_vars = [vessel_row["variables_and_units"][i][0] for
                        i in range(len(vessel_row["variables_and_units"])) if

@@ -73,35 +73,38 @@ def test_a_host_with_no_routed_port_is_an_error():
         expand_supermodules(records, REGISTRY, component_registry=components)
 
 
-def test_shared_parameters_reach_every_submodule(tmp_path):
+def test_shared_parameters_are_one_model_parameter(tmp_path):
     instances = tmp_path / 'instances' / 'default'
     instances.mkdir(parents=True)
     (instances / 'default_parameters.csv').write_text(
         'variable_name,units,value,data_reference\nr_0,metre,0.01,test\nR_R,Js_per_m6,5,test\n')
     vessel = dict(VESSEL, default_instance='default', config_path=str(tmp_path / 'lumped_modules_config.json'))
     records = [_record('ves', 'lumped', 'vp_lumped')]
-    _, rows = expand_supermodules(records, {('lumped', 'vp_lumped'): vessel}, component_registry=COMPONENTS)
+    expanded, rows = expand_supermodules(records, {('lumped', 'vp_lumped'): vessel}, component_registry=COMPONENTS)
     by = {r['variable_name']: r for r in rows}
-    assert {by[f'r_0_ves_{s}']['value'] for s in 'CRI'} == {'0.01'}
+    assert by['r_0_ves']['value'] == '0.01'
+    assert not any(n.startswith('r_0_ves_') for n in by)
     assert by['R_ves_R']['value'] == '5'
-    # l is shared but unset: an alias the host file can fill
-    assert by['l_ves_C']['value'] is None and by['l_ves_C']['shared_from'] == 'l_ves'
+    # l is shared but unset: a row the host file can fill
+    assert by['l_ves']['value'] is None
+    # every submodule takes both, by their model names
+    for rec in expanded:
+        assert rec['parameter_names'] == {'r_0': 'r_0_ves', 'l': 'l_ves'}
 
 
 def test_the_host_file_sets_a_shared_parameter_once():
     dtype = [('variable_name', 'U32'), ('units', 'U32'), ('value', 'U32'), ('data_reference', 'U32')]
-    host = np.array([('l_ves', 'metre', '0.2', 'host'), ('r_0_ves_R', 'metre', '0.03', 'host')], dtype=dtype)
-    extra = [{'variable_name': 'l_ves_C', 'value': None, 'units': '', 'data_reference': '', 'shared_from': 'l_ves'},
-             {'variable_name': 'r_0_ves_C', 'value': '0.01', 'units': 'metre', 'data_reference': 'i',
+    host = np.array([('l_ves', 'metre', '0.2', 'host'), ('R_ves_R', 'Js_per_m6', '7', 'host')], dtype=dtype)
+    extra = [{'variable_name': 'l_ves', 'value': None, 'units': '', 'data_reference': '', 'shared_from': 'l_ves'},
+             {'variable_name': 'r_0_ves', 'value': '0.01', 'units': 'metre', 'data_reference': 'i',
               'shared_from': 'r_0_ves'},
-             {'variable_name': 'r_0_ves_R', 'value': '0.01', 'units': 'metre', 'data_reference': 'i',
-              'shared_from': 'r_0_ves'},
-             {'variable_name': 'm_ves_C', 'value': None, 'units': '', 'data_reference': '', 'shared_from': 'm_ves'}]
+             {'variable_name': 'R_ves_R', 'value': '5', 'units': 'Js_per_m6', 'data_reference': 'i'},
+             {'variable_name': 'm_ves', 'value': None, 'units': '', 'data_reference': '', 'shared_from': 'm_ves'}]
     merged = {str(r['variable_name']): str(r['value']) for r in merge_default_parameters(host, extra)}
-    assert merged['l_ves_C'] == '0.2'      # the host's shared row
-    assert merged['r_0_ves_C'] == '0.01'   # the instance's shared value
-    assert merged['r_0_ves_R'] == '0.03'   # the host's fully named row wins
-    assert 'm_ves_C' not in merged         # nobody set it
+    assert merged['l_ves'] == '0.2'        # the host's row
+    assert merged['r_0_ves'] == '0.01'     # the instance's value
+    assert merged['R_ves_R'] == '7'        # the host wins
+    assert 'm_ves' not in merged           # nobody set it
 
 
 def test_a_template_lists_its_slots_and_cannot_be_generated():
@@ -121,3 +124,47 @@ def test_a_slot_without_a_version_needs_a_template():
         normalise_supermodule_entry({
             'module_type': 'lumped', 'module_subtype': 'vp_x', 'module_format': 'supermodule',
             'submodules': [{'name': 'C', 'module_type': 'compliance', 'inp_instances': [], 'out_instances': []}]})
+
+
+def test_a_shared_parameter_can_keep_a_monolithic_name(tmp_path):
+    instances = tmp_path / 'instances' / 'default'
+    instances.mkdir(parents=True)
+    (instances / 'default_parameters.csv').write_text(
+        'variable_name,units,value,data_reference\nC_T,m6_per_J,2e-8,test\n')
+    vessel = dict(VESSEL, default_instance='default', config_path=str(tmp_path / 'lumped_modules_config.json'),
+                  shared_parameters=[{'name': 'C_T', 'variable': 'C', 'submodules': ['C']}])
+    expanded, rows = expand_supermodules([_record('ves', 'lumped', 'vp_lumped')], {('lumped', 'vp_lumped'): vessel},
+                                         component_registry=COMPONENTS)
+    by = {r['variable_name']: r for r in rows}
+    assert by['C_T_ves']['value'] == '2e-8'
+    recs = {r['name']: r for r in expanded}
+    assert recs['ves_C']['parameter_names'] == {'C': 'C_T_ves'}
+    assert 'parameter_names' not in recs['ves_R']
+
+
+def test_an_aliased_shared_parameter_must_name_its_own_submodules():
+    with pytest.raises(ValueError, match='shared_parameters'):
+        normalise_supermodule_entry({
+            'module_type': 'lumped', 'module_subtype': 'vp_x', 'module_format': 'supermodule',
+            'shared_parameters': [{'name': 'C_T', 'variable': 'C', 'submodules': ['nope']}],
+            'submodules': [{'name': 'C', 'module_type': 'compliance', 'module_subtype': 'vv',
+                            'inp_instances': [], 'out_instances': []}]})
+
+
+def test_outputs_are_exposed_under_the_instance_name():
+    vessel = dict(VESSEL, outputs={'u': 'C/u', 'v': 'I/v'})
+    expanded, _ = expand_supermodules([_record('ves', 'lumped', 'vp_lumped')], {('lumped', 'vp_lumped'): vessel},
+                                      component_registry=COMPONENTS)
+    recs = {r['name']: r for r in expanded}
+    assert recs['ves_C']['output_aliases'] == {'ves': {'u': 'u'}}
+    assert recs['ves_I']['output_aliases'] == {'ves': {'v': 'v'}}
+    assert 'output_aliases' not in recs['ves_R']
+
+
+def test_an_output_must_name_a_submodule():
+    with pytest.raises(ValueError, match='"outputs"'):
+        normalise_supermodule_entry({
+            'module_type': 'lumped', 'module_subtype': 'vp_x', 'module_format': 'supermodule',
+            'outputs': {'u': 'nope/u'},
+            'submodules': [{'name': 'C', 'module_type': 'compliance', 'module_subtype': 'vv',
+                            'inp_instances': [], 'out_instances': []}]})

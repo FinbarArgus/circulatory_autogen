@@ -332,14 +332,50 @@
         "shared_parameters": {
           "type": "array",
           "items": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "the supermodule-level name (an instance row <name>, a host row <name>_<instance>)"
+                  },
+                  "variable": {
+                    "type": "string",
+                    "description": "the submodule variable it sets (default: name)"
+                  },
+                  "submodules": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "the submodules it sets (default: all)"
+                  }
+                }
+              }
+            ]
           },
-          "description": "variables (e.g. l, r_0) set once for the whole supermodule: an instance row <var> (or a host parameters-file row <var>_<instance>) gives every submodule that has <var> its value"
+          "description": "parameters set once for the whole supermodule: a variable name (shared under its own name by every submodule), or {name, variable, submodules}, e.g. {\"name\": \"C_T\", \"variable\": \"C\", \"submodules\": [\"C\"]} to keep a monolithic version's parameter name. An instance row <name>, or a host parameters-file row <name>_<instance>, sets <variable> in each listed submodule."
         },
         "available_to_phlynx": {
           "type": "boolean",
           "default": true,
           "description": "false: the module library keeps this version but does not offer it in PhLynx"
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[^/]+/[^/]+$"
+          },
+          "description": "outputs the instance exposes under its own name: {\"u\": \"C_p/u\"} gives a model the output <instance>/u, the submodule C_p's u (e.g. a lumped vessel keeps its monolithic version's output names)"
         }
       },
       "oneOf": [

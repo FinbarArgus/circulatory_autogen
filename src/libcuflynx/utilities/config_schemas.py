@@ -272,9 +272,27 @@ def normalise_supermodule_entry(entry, source=None):
                     if target not in names:
                         raise ValueError(f'{description}: routes["{side}"]["{port_type}"] names '
                                          f'"{target}", which is not one of its submodules {names}.')
+    outputs = entry.get('outputs')
+    if outputs is not None:
+        names = {r['name'] for r in records}
+        if not isinstance(outputs, dict) or not all(
+                isinstance(t, str) and t.count('/') == 1 and t.split('/')[0] in names for t in outputs.values()):
+            raise ValueError(f'{description}: "outputs" must map each output name to "<submodule>/<variable>" '
+                             f'of one of its submodules {sorted(names)}.')
     shared = entry.get('shared_parameters')
-    if shared is not None and not (isinstance(shared, list) and all(isinstance(v, str) for v in shared)):
-        raise ValueError(f'{description}: "shared_parameters" must be a list of variable names.')
+    if shared is not None:
+        names = {r['name'] for r in records}
+        ok = isinstance(shared, list)
+        for item in shared if ok else []:
+            if isinstance(item, str):
+                continue
+            if not (isinstance(item, dict) and isinstance(item.get('name'), str)
+                    and isinstance(item.get('variable', ''), str)
+                    and set(item.get('submodules') or []) <= names):
+                ok = False
+        if not ok:
+            raise ValueError(f'{description}: "shared_parameters" must be a list of variable names, or of '
+                             '{"name", "variable", "submodules"} objects whose submodules are its own.')
 
     normalised = {'vessel_type': entry[type_key], 'BC_type': entry[subtype_key]}
     for key, value in entry.items():
@@ -630,6 +648,9 @@ def _frame_cell(value, is_list):
     return tokens[0].strip() if tokens else []
 
 
+_DICT_COLUMNS = ('parameter_names', 'output_aliases')
+
+
 def vessel_records_to_frame(records):
     '''
     Normalised vessel records as the list-form dataframe the generator uses: the libcuflynx
@@ -643,11 +664,28 @@ def vessel_records_to_frame(records):
         for key, value in record.items():
             if key not in columns and not isinstance(value, (dict, list)):
                 columns.append(key)
+    # a supermodule's submodules name the shared parameters they take (see parameter_name) and
+    # the instance outputs they stand for: dict columns the generator reads
+    for column in _DICT_COLUMNS:
+        if any(record.get(column) for record in records):
+            columns.append(column)
     df = pd.DataFrame(index=range(len(records)), columns=columns, dtype=object)
     for i, record in enumerate(records):
         for j, column in enumerate(columns):
-            df.iat[i, j] = _frame_cell(record.get(column), column in _LIST_COLUMNS)
+            if column in _DICT_COLUMNS:
+                df.iat[i, j] = dict(record.get(column) or {})
+            else:
+                df.iat[i, j] = _frame_cell(record.get(column), column in _LIST_COLUMNS)
     return df
+
+
+def parameter_name(module, variable, parameter_names=None):
+    '''The model parameter of ``module``'s constant ``variable``: ``<variable>_<module>``, or the
+    shared supermodule parameter its record names (``parameter_names``, set when a supermodule
+    is expanded: e.g. ``C_aortic_root`` for both halves of a lumped vessel's compliance).'''
+    if isinstance(parameter_names, dict) and variable in parameter_names:
+        return parameter_names[variable]
+    return f'{variable}_{module}'
 
 
 def vessel_records_to_string_frame(records):
@@ -657,6 +695,8 @@ def vessel_records_to_string_frame(records):
     '''
     frame = vessel_records_to_frame(records)
     for column in frame.columns:
+        if column in _DICT_COLUMNS:
+            continue        # stays a dict: it is not written to a CSV, the generator reads it
         frame[column] = [' '.join(v) if column in _LIST_COLUMNS else (v if isinstance(v, str) else '')
                          for v in frame[column]]
     return frame

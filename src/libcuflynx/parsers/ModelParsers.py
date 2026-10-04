@@ -8,7 +8,7 @@ Created on 29/10/2021
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
 from libcuflynx.utilities.config_schemas import (load_component_registry, load_expanded_vessel_records,
                                                  load_supermodule_registry, load_vessel_array,
-                                                 vessel_records_to_string_frame)
+                                                 parameter_name, vessel_records_to_string_frame)
 from libcuflynx.models.LumpedModels import CVS0DModel
 from libcuflynx.checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 from libcuflynx.generators.cpp.api import validate_module_config_apis
@@ -588,20 +588,21 @@ class CSV0DModelParser(object):
             # elif vessel_tup.vessel_type == 'terminal' or vessel_tup.vessel_type == 'terminal2':
             #     str_addon = re.sub('_T$', '', f'_{vessel_tup.name}')
             #     module = 'systemic'
-            str_addon = f'_{vessel_tup.name}'
+            # <variable>_<vessel>, or a supermodule's shared parameter (parameter_name)
+            names = getattr(vessel_tup, 'parameter_names', None)
             # add str_addon to param name from module_config if constant
             if (vessel_tup.variables_and_units is None 
                 or vessel_tup.variables_and_units=='None' 
                 or len(vessel_tup.variables_and_units) == 0):
                 continue
 
-            required_params += [(vessel_tup.variables_and_units[i][0] + str_addon,
+            required_params += [(parameter_name(vessel_tup.name, vessel_tup.variables_and_units[i][0], names),
                                  vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
                                    i in range(len(vessel_tup.variables_and_units)) if
                                    vessel_tup.variables_and_units[i][3] in ['constant']]
             
             # add parameter if it is set as boundary_condition
-            required_params += [(vessel_tup.variables_and_units[i][0] + str_addon,
+            required_params += [(parameter_name(vessel_tup.name, vessel_tup.variables_and_units[i][0], names),
                                  vessel_tup.variables_and_units[i][1],vessel_tup.variables_and_units[i][3])  for
                                    i in range(len(vessel_tup.variables_and_units)) if
                                    vessel_tup.variables_and_units[i][3] in ['boundary_condition']]

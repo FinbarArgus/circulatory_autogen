@@ -364,7 +364,11 @@ def test_expansion_prefixes_and_links_hosts(registry):
     assert [r['name'] for r in expanded] == ['src_a', 'src_b', 'pair_coll', 'pair_g', 'rd']
     flattened = read_records(_flowpair_flattened())
     assert _links(expanded) == _links(flattened)
-    assert vessel_records_to_frame(expanded).equals(vessel_records_to_frame(flattened))
+    # the submodules also say which instance they came from (the model's name for the vessel)
+    assert {r['name']: r.get('supermodule_instance') for r in expanded} == {
+        'src_a': None, 'src_b': None, 'pair_coll': 'pair', 'pair_g': 'pair', 'rd': None}
+    bare = [{k: v for k, v in r.items() if k != 'supermodule_instance'} for r in expanded]
+    assert vessel_records_to_frame(bare).equals(vessel_records_to_frame(flattened))
 
 
 @pytest.mark.unit

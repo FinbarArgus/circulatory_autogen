@@ -132,26 +132,41 @@ def read_default_parameters(supermodule, instance, where):
     return _rename_rows(rows, instance, [s['name'] for s in supermodule['submodules']])
 
 
-def _shared_rows(supermodule, name, rows):
-    '''``rows`` with each shared variable's row ``{var}`` given to every submodule as
-    ``{var}_{name}_{sub}``, and an alias row per shared variable and submodule that a host
-    parameters file row ``{var}_{name}`` fills (see ``merge_default_parameters``).'''
-    shared = list(supermodule.get('shared_parameters') or [])
-    if not shared:
-        return rows
+def shared_parameter_entries(supermodule):
+    """The supermodule's shared parameters as (name, variable, submodules): an entry is a variable
+    name (shared under its own name by every submodule), or {"name", "variable", "submodules"}: the
+    supermodule-level ``name`` (e.g. a monolithic version's ``C_T``) setting ``variable`` (``C``) in
+    the listed submodules (default: all)."""
     sub_names = [s['name'] for s in supermodule['submodules']]
+    out = []
+    for entry in supermodule.get('shared_parameters') or []:
+        if isinstance(entry, str):
+            out.append((entry, entry, sub_names))
+        else:
+            out.append((entry['name'], entry.get('variable', entry['name']),
+                        list(entry.get('submodules') or sub_names)))
+    return out
+
+
+def _shared_rows(supermodule, name, rows):
+    '''``rows`` with each shared parameter's row ``{shared}`` named ``{shared}_{name}``: one
+    parameter of the model, which every submodule that takes it is mapped to (its expanded
+    record's ``parameter_names``). A host parameters file sets it by the same name.'''
+    entries = shared_parameter_entries(supermodule)
+    if not entries:
+        return rows
     by_name = {row['variable_name']: row for row in rows}
     out = []
-    for var in shared:
-        for sub in sub_names:
-            target = f'{var}_{name}_{sub}'
-            row = by_name.get(var)
-            if row is not None:
-                out.append(dict(row, variable_name=target, shared_from=f'{var}_{name}'))
-            else:
-                out.append({'variable_name': target, 'units': '', 'value': None,
-                            'data_reference': '', 'shared_from': f'{var}_{name}'})
-    return out + [row for row in rows if row['variable_name'] not in shared]
+    for shared in dict.fromkeys(shared for shared, _, _ in entries):
+        target = f'{shared}_{name}'
+        row = by_name.get(shared)
+        if row is not None:
+            out.append(dict(row, variable_name=target, shared_from=target))
+        else:
+            out.append({'variable_name': target, 'units': '', 'value': None, 'data_reference': '',
+                        'shared_from': target})
+    shared_names = {shared for shared, _, _ in entries}
+    return out + [row for row in rows if row['variable_name'] not in shared_names]
 
 
 def read_supermodule_parameters(supermodule, record, where):
@@ -301,6 +316,8 @@ def _expand_one(records, index, registry, source, ancestry, component_registry=N
     for sub in submodules:
         record = copy.deepcopy(sub)
         record['name'] = prefixed(sub['name'])
+        # the model's name for the vessel this submodule belongs to (the outermost supermodule)
+        record['supermodule_instance'] = instance.get('supermodule_instance') or name
         record['inp_vessels'] = (list(per_inputs.get(sub['name'], []))
                                  + [prefixed(n) for n in sub['inp_vessels']])
         record['out_vessels'] = ([prefixed(n) for n in sub['out_vessels']]
@@ -309,6 +326,18 @@ def _expand_one(records, index, registry, source, ancestry, component_registry=N
             if per_key in record:
                 record[per_key] = {s: [prefixed(h) for h in hosts]
                                    for s, hosts in record[per_key].items()}
+        # the supermodule's shared parameters this submodule takes, by their model names
+        names = {var: f'{shared}_{name}' for shared, var, subs in shared_parameter_entries(supermodule)
+                 if sub['name'] in subs}
+        if names:
+            record['parameter_names'] = {**names, **(record.get('parameter_names') or {})}
+        # the instance's outputs this submodule's variables stand for ("outputs": {"u": "C_p/u"})
+        mine = {out: target.split('/', 1)[1] for out, target in (supermodule.get('outputs') or {}).items()
+                if target.split('/', 1)[0] == sub['name']}
+        if mine and sub['name'] not in nested:
+            aliases = dict(record.get('output_aliases') or {})
+            aliases[name] = mine
+            record['output_aliases'] = aliases
         new_records.append(record)
 
     clashes = [r['name'] for r in new_records if r['name'] in by_name]
