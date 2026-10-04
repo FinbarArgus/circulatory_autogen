@@ -43,17 +43,29 @@ def merge_default_parameters(parameters_array, extra_param_rows):
     ``parameters_array`` (the structured array of a parameters CSV) with the rows of
     ``extra_param_rows`` (dicts keyed by column name) whose variable_name it does not already
     have appended -- so the host file's values win; of several extra rows with one name, the
-    first is used. Columns a row lacks are left empty.
+    first is used. Columns a row lacks are left empty. A row with ``shared_from`` (a supermodule's
+    shared parameter, given to one submodule) takes the host file's ``shared_from`` row when there
+    is one, and is dropped when it has no value of its own and the host file does not set it.
     '''
     if not extra_param_rows:
         return parameters_array
     fields = parameters_array.dtype.names or ()
     existing = set(parameters_array['variable_name'].tolist()) if 'variable_name' in fields else set()
+    host = ({str(r['variable_name']): r for r in parameters_array} if 'variable_name' in fields else {})
     new_rows = []
     for row in extra_param_rows:
-        if row['variable_name'] not in existing:
-            existing.add(row['variable_name'])
-            new_rows.append(row)
+        if row['variable_name'] in existing:
+            continue
+        shared_from = row.get('shared_from')
+        if shared_from and shared_from in host:
+            # a supermodule's shared parameter, set once for the instance in the host file
+            source = host[shared_from]
+            row = {field: (row['variable_name'] if field == 'variable_name' else source[field])
+                   for field in fields}
+        elif row.get('value') is None:
+            continue  # an alias of a shared parameter that nothing set
+        existing.add(row['variable_name'])
+        new_rows.append(row)
     if not new_rows:
         return parameters_array
     added = np.array([tuple(str(row.get(field, '')) for field in fields) for row in new_rows],

@@ -218,8 +218,28 @@ def normalise_supermodule_entry(entry, source=None):
     if 'default_instance' in entry:
         check_instance_name(entry['default_instance'], description, 'default_instance')
 
-    records = [normalise_vessel_record(sub, source=f'{description}, submodules', index=i)
-               for i, sub in enumerate(submodules)]
+    template = bool(entry.get('template'))
+    if not template:
+        for i, sub in enumerate(submodules):
+            if isinstance(sub, dict) and not (sub.get('module_subtype') or sub.get('BC_type')):
+                raise ValueError(f'{description}, submodules[{i}]: a submodule without a version '
+                                 f'(module_subtype) is only allowed in a template ("template": true).')
+    records = []
+    for i, sub in enumerate(submodules):
+        open_slot = template and isinstance(sub, dict) and not (sub.get('module_subtype') or sub.get('BC_type'))
+        if open_slot:
+            # a template's slot names its module_type and the versions that fit, not a version
+            choices = sub.get('choices')
+            if choices is not None and not (isinstance(choices, list) and all(isinstance(c, str) for c in choices)):
+                raise ValueError(f'{description}, submodules[{i}]: "choices" must be a list of version names.')
+            sub = dict(sub, **({'module_subtype': '?'} if 'module_type' in sub else {'BC_type': '?'}))
+        record = normalise_vessel_record(sub, source=f'{description}, submodules', index=i)
+        if open_slot:
+            record['BC_type'] = None
+        records.append(record)
+    if not template and any(r['BC_type'] is None for r in records):
+        raise ValueError(f'{description}: a submodule without a version is only allowed in a template '
+                         f'("template": true).')
     names = [r['name'] for r in records]
     duplicated = sorted({n for n in names if names.count(n) > 1})
     if duplicated:
@@ -240,6 +260,21 @@ def normalise_supermodule_entry(entry, source=None):
                     raise ValueError(
                         f'{description}, submodules[{i}] ("{record["name"]}"): "{key}" names '
                         f'{unknown} for "{sub}", which are not submodules of this supermodule.')
+
+    routes = entry.get('routes')
+    if routes is not None:
+        if not isinstance(routes, dict) or set(routes) - {'inputs', 'outputs'}:
+            raise ValueError(f'{description}: "routes" must be {{"inputs": {{port_type: submodule(s)}}, '
+                             f'"outputs": {{...}}}}, not {routes!r}.')
+        for side, table in routes.items():
+            for port_type, targets in (table or {}).items():
+                for target in ([targets] if isinstance(targets, str) else targets):
+                    if target not in names:
+                        raise ValueError(f'{description}: routes["{side}"]["{port_type}"] names '
+                                         f'"{target}", which is not one of its submodules {names}.')
+    shared = entry.get('shared_parameters')
+    if shared is not None and not (isinstance(shared, list) and all(isinstance(v, str) for v in shared)):
+        raise ValueError(f'{description}: "shared_parameters" must be a list of variable names.')
 
     normalised = {'vessel_type': entry[type_key], 'BC_type': entry[subtype_key]}
     for key, value in entry.items():
@@ -638,7 +673,8 @@ def load_expanded_vessel_records(path, supermodule_registry=None, component_regi
     from libcuflynx.utilities.module_instances import component_instance_rows, first_rows_win
     from libcuflynx.utilities.supermodules import expand_supermodules
     records, extra_param_rows = expand_supermodules(read_vessel_array_records(path),
-                                                    supermodule_registry or {}, source=str(path))
+                                                    supermodule_registry or {}, source=str(path),
+                                                    component_registry=component_registry)
     if component_registry is not None:
         extra_param_rows = first_rows_win(
             extra_param_rows + component_instance_rows(records, component_registry, str(path)))

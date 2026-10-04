@@ -36,6 +36,27 @@ global and keeps its name, and is added only once. A submodule record may carry 
 components' (``module_instances.component_instance_rows``), after the supermodule's, so the
 supermodule's values win.
 
+**Routes.** A supermodule whose entry has ``routes`` can be used like any module, with no
+``per_submodule_*``: a host the instance is not linked to by name is linked by port type.
+``routes`` is ``{"inputs": {port_type: submodule(s)}, "outputs": {port_type: submodule(s)}}``;
+an upstream host (one listing the instance in its out list) is linked to the ``inputs``
+submodules of every port type among its exit ports, a downstream host to the ``outputs``
+submodules of every port type among its entrance ports (a host that is itself a supermodule
+instance offers its own routes' port types). E.g. a lumped vessel routes ``vessel_port`` in to
+its inlet compliance, ``vessel_port`` out to its outlet element, and ``volume_port`` out to every
+compliance, so a volume_sum listing the vessel sums all of them.
+
+**Shared parameters.** ``shared_parameters`` lists variables the submodules have in common
+(a vessel's ``r_0``, ``l``, ``E``, ...). The supermodule instance's row ``{var}`` (no submodule
+suffix) is given to every submodule as ``{var}_{instance}_{sub}``, and a host parameters file
+row ``{var}_{instance}`` does the same, winning over the instance; a fully named
+``{var}_{instance}_{sub}`` row in the host file wins over both.
+
+**Templates.** An entry with ``"template": true`` is an empty supermodule: its submodules name a
+``module_type`` and the versions that fit (``choices``) but no ``module_subtype``. It is the
+starting point for building one (PhLynx's "empty supermodule"); an instance of it cannot be
+generated until each submodule has a version, and expanding one is an error naming them.
+
 After expansion no record is a supermodule instance.
 '''
 
@@ -111,19 +132,94 @@ def read_default_parameters(supermodule, instance, where):
     return _rename_rows(rows, instance, [s['name'] for s in supermodule['submodules']])
 
 
+def _shared_rows(supermodule, name, rows):
+    '''``rows`` with each shared variable's row ``{var}`` given to every submodule as
+    ``{var}_{name}_{sub}``, and an alias row per shared variable and submodule that a host
+    parameters file row ``{var}_{name}`` fills (see ``merge_default_parameters``).'''
+    shared = list(supermodule.get('shared_parameters') or [])
+    if not shared:
+        return rows
+    sub_names = [s['name'] for s in supermodule['submodules']]
+    by_name = {row['variable_name']: row for row in rows}
+    out = []
+    for var in shared:
+        for sub in sub_names:
+            target = f'{var}_{name}_{sub}'
+            row = by_name.get(var)
+            if row is not None:
+                out.append(dict(row, variable_name=target, shared_from=f'{var}_{name}'))
+            else:
+                out.append({'variable_name': target, 'units': '', 'value': None,
+                            'data_reference': '', 'shared_from': f'{var}_{name}'})
+    return out + [row for row in rows if row['variable_name'] not in shared]
+
+
 def read_supermodule_parameters(supermodule, record, where):
     '''
     The parameters of the supermodule instance ``record`` (its name is the prefix), renamed:
     those of its module instance (``record["instance"]`` or the entry's default_instance)
-    first, then its default_parameters, each name once.
+    first, then its default_parameters, each name once. Shared parameters (``shared_parameters``)
+    go to every submodule.
     '''
     name = record['name']
     _, instance_rows = instance_parameter_rows(supermodule, record.get('instance'), where)
-    instance_rows = _rename_rows(instance_rows, name, [s['name'] for s in supermodule['submodules']])
+    instance_rows = _shared_rows(supermodule, name, instance_rows)
+    instance_rows = [row if 'shared_from' in row else
+                     dict(row, variable_name=rename_default_parameter(
+                         row['variable_name'], name, [s['name'] for s in supermodule['submodules']]))
+                     for row in instance_rows]
     return first_rows_win(instance_rows + read_default_parameters(supermodule, name, where))
 
 
-def _expand_one(records, index, registry, source, ancestry):
+def _host_port_types(host, side, registry, component_registry):
+    '''The port types ``host`` offers on ``side`` ('exit' or 'entrance'): its component's
+    ports, or, for a supermodule instance, its routes; None if it is not known.'''
+    key = _key(host)
+    if key in registry:
+        routes = registry[key].get('routes') or {}
+        return set((routes.get('outputs' if side == 'exit' else 'inputs') or {}).keys())
+    entry = (component_registry or {}).get(key)
+    if entry is None:
+        return None
+    ports = entry.get('exit_ports' if side == 'exit' else 'entrance_ports') or []
+    return {p.get('port_type') for p in ports} | {p.get('port_type') for p in entry.get('general_ports') or []}
+
+
+def _route_hosts(instance, name, by_name, routes, per_inputs, per_outputs, registry, component_registry,
+                 where):
+    '''``per_submodule_inputs`` / ``_outputs`` with every host the instance is not already
+    linked to by name linked by port type through ``routes``.'''
+    per_inputs = {k: list(v) for k, v in per_inputs.items()}
+    per_outputs = {k: list(v) for k, v in per_outputs.items()}
+    named_in = {h for hosts in per_inputs.values() for h in hosts}
+    named_out = {h for hosts in per_outputs.values() for h in hosts}
+    for host_list, side, route_key, per, named in (('out_vessels', 'exit', 'inputs', per_inputs, named_in),
+                                                   ('inp_vessels', 'entrance', 'outputs', per_outputs, named_out)):
+        table = routes.get(route_key) or {}
+        for host in by_name.values():
+            if name not in host[host_list] or host['name'] in named:
+                continue
+            types = _host_port_types(host, side, registry, component_registry)
+            if types is None:
+                raise ValueError(f'{where}: "{host["name"]}" ({host["vessel_type"]}, {host["BC_type"]}) '
+                                 f'is linked to it, but its module config was not found, so its ports '
+                                 f'cannot be routed to a submodule.')
+            subs = []
+            for port_type, targets in table.items():
+                if port_type in types:
+                    for sub in ([targets] if isinstance(targets, str) else targets):
+                        if sub not in subs:
+                            subs.append(sub)
+            if not subs:
+                raise ValueError(f'{where}: "{host["name"]}" is linked to it, but none of its '
+                                 f'{side} port types {sorted(t for t in types if t)} is in the '
+                                 f'supermodule\'s routes["{route_key}"] ({sorted(table)}).')
+            for sub in subs:
+                per.setdefault(sub, []).append(host['name'])
+    return per_inputs, per_outputs
+
+
+def _expand_one(records, index, registry, source, ancestry, component_registry=None):
     instance = records[index]
     name = instance['name']
     key = _key(instance)
@@ -134,6 +230,13 @@ def _expand_one(records, index, registry, source, ancestry):
     if key in chain or len(chain) >= _MAX_DEPTH:
         path = ' -> '.join(f'{k[0]}/{k[1]}' for k in chain + (key,))
         raise ValueError(f'{where}: supermodules nest in a cycle ({path}).')
+
+    if supermodule.get('template'):
+        slots = '; '.join(f'{s["name"]}: a {s["vessel_type"]} version, one of {s.get("choices") or "any"}'
+                          for s in supermodule['submodules'] if not s.get('BC_type'))
+        raise ValueError(f'{where}: ({key[0]}, {key[1]}) is an empty supermodule (a template): choose '
+                         f'a version for each of its submodules ({slots}) -- use a supermodule '
+                         f'version with them filled in, or define one.')
 
     submodules = supermodule['submodules']
     sub_names = [s['name'] for s in submodules]
@@ -153,6 +256,10 @@ def _expand_one(records, index, registry, source, ancestry):
                              f'submodules through that supermodule\'s own per_submodule_*.')
 
     by_name = {r['name']: r for i, r in enumerate(records) if i != index}
+    routes = supermodule.get('routes')
+    if routes:
+        per_inputs, per_outputs = _route_hosts(instance, name, by_name, routes, per_inputs, per_outputs,
+                                               registry, component_registry, where)
     for per_key, per, host_key, host_list in (
             ('per_submodule_inputs', per_inputs, 'out', 'out_vessels'),
             ('per_submodule_outputs', per_outputs, 'inp', 'inp_vessels')):
@@ -225,7 +332,7 @@ def _expand_one(records, index, registry, source, ancestry):
     return records[:index] + new_records + records[index + 1:], param_rows
 
 
-def expand_supermodules(records, registry, source=None):
+def expand_supermodules(records, registry, source=None, component_registry=None):
     '''
     ``(records, extra_param_rows)``: ``records`` (normalised vessel records, see
     ``config_schemas.normalise_vessel_record``) with every supermodule instance -- a record
@@ -247,6 +354,6 @@ def expand_supermodules(records, registry, source=None):
         index = next((i for i, r in enumerate(records) if _is_instance(r, registry, source)), None)
         if index is None:
             break
-        records, rows = _expand_one(records, index, registry, source, ancestry)
+        records, rows = _expand_one(records, index, registry, source, ancestry, component_registry)
         extra_param_rows += rows
     return records, first_rows_win(extra_param_rows)
