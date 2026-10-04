@@ -107,6 +107,11 @@
             ]
           },
           "description": "the instance (a directory under instances/ next to this config file) used when a record names none; ignored if its <name>_parameters.csv does not exist"
+        },
+        "available_to_phlynx": {
+          "type": "boolean",
+          "default": true,
+          "description": "false: the module library keeps this version but does not offer it in PhLynx"
         }
       },
       "not": {
@@ -204,6 +209,11 @@
             ]
           },
           "description": "the instance (a directory under instances/ next to this config file) used when a record names none; ignored if its <name>_parameters.csv does not exist"
+        },
+        "available_to_phlynx": {
+          "type": "boolean",
+          "default": true,
+          "description": "false: the module library keeps this version but does not offer it in PhLynx"
         }
       },
       "not": {
@@ -248,9 +258,16 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/record"
+            "oneOf": [
+              {
+                "$ref": "#/$defs/record"
+              },
+              {
+                "$ref": "#/$defs/slot"
+              }
+            ]
           },
-          "description": "instance records whose names are local to the supermodule; each may name its own module \"instance\""
+          "description": "instance records whose names are local to the supermodule; each may name its own module \"instance\". In a template, a submodule may instead be an open slot (a record without a version; see $defs/slot)"
         },
         "default_parameters": {
           "type": "string",
@@ -266,6 +283,63 @@
             ]
           },
           "description": "the instance (a directory under instances/ next to this config file) used when a record names none; ignored if its <name>_parameters.csv does not exist"
+        },
+        "template": {
+          "type": "boolean",
+          "description": "an empty supermodule: its slots name the module_type of each submodule but not the version, for a user (e.g. in PhLynx) to choose. A template cannot be generated; libcuflynx says which slots need a version."
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inputs": {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                ]
+              }
+            },
+            "outputs": {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                ]
+              }
+            }
+          },
+          "description": "port_type -> the submodule(s) a host connected to the supermodule is linked to through that port type: \"inputs\" for hosts upstream (the supermodule is in their out list), \"outputs\" for hosts downstream. Lets a model connect to the supermodule as one vessel, e.g. {\"inputs\": {\"vessel_port\": \"C\"}, \"outputs\": {\"vessel_port\": \"I\", \"volume_port\": \"C\"}}."
+        },
+        "shared_parameters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "variables (e.g. l, r_0) set once for the whole supermodule: an instance row <var> (or a host parameters-file row <var>_<instance>) gives every submodule that has <var> its value"
+        },
+        "available_to_phlynx": {
+          "type": "boolean",
+          "default": true,
+          "description": "false: the module library keeps this version but does not offer it in PhLynx"
         }
       },
       "oneOf": [
@@ -529,6 +603,58 @@
           "$ref": "#/$defs/libcuflynxRecord"
         }
       ]
+    },
+    "slot": {
+      "title": "open slot of a template supermodule",
+      "type": "object",
+      "required": [
+        "name",
+        "module_type"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "module_type": {
+          "$ref": "#/$defs/name",
+          "description": "the module type that fits this slot"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "the versions (module_subtype) of module_type that fit; default: any"
+        },
+        "description": {
+          "type": "string"
+        },
+        "inp_instances": {
+          "$ref": "#/$defs/nameList"
+        },
+        "out_instances": {
+          "$ref": "#/$defs/nameList"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "module_subtype"
+            ]
+          },
+          {
+            "required": [
+              "BC_type"
+            ]
+          },
+          {
+            "required": [
+              "vessel_type"
+            ]
+          }
+        ]
+      }
     }
   }
 }
