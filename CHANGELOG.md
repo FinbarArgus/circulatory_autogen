@@ -200,6 +200,16 @@ unchanged.
   coupler, and sent the volume in cm³ instead of m³.
 - 1D input generation wrote an unknown artery/vein type for vessels not named `A_*`/`V_*`;
   an `art_ven_type_<vessel>` parameter now sets it.
+### Fixed — a BC_type's first two letters are a BC pair only for vessels
+
+Non-vessel modules (cells, ion channels, controllers, heart parts, BC modules) can now have any
+`BC_type` / `module_subtype`, with no `nn` prefix. Before, every connection whose two sides did
+not start with `nn` had their first two letters checked as vessel BCs, so a version named
+`lv_...`, `rv_...` or `Up...` stopped generation, and a non-vessel neighbour of an Nout junction
+lost its connection. A module now counts as a vessel when its `BC_type` starts with `vv`, `vp`,
+`pv` or `pp` and it has vessel ports (a `vessel_port`, or a `flow_port` and a `pressure_port` at
+its entrance/exit); see `libcuflynx.utilities.vessel_bc`. Vessel BC pairs are checked as before,
+and all the built-in example models generate byte-identical CellML.
 
 ### Added — PhLynx module-config and vessel-array schemas; `"Sum"` and `"Multiply"` multi_ports
 
