@@ -689,6 +689,29 @@ def test_convert_0d_to_1d_keeps_a_json_arrays_supermodule_links(tmp_path, regist
     assert 'pair_coll' in {r['name'] for r in expanded}
 
 
+@pytest.mark.unit
+def test_the_1d_generator_reads_the_merged_parameters(tmp_path):
+    """The 1D generator read the parameters file again, so a 1D vessel's parameter set by a
+    supermodule's default_parameters never reached it ("Parameter l_FV1D_0 not found"). It
+    now reads the model's merged parameters."""
+    from types import SimpleNamespace
+    from libcuflynx.generators.CVSCppGenerator import CVS1DPythonGenerator
+    from libcuflynx.parsers.ModelParsers import merge_default_parameters
+    from libcuflynx.parsers.PrimitiveParsers import CSVFileParser
+    params = tmp_path / 'm_parameters.csv'
+    params.write_text('variable_name,units,value,data_reference\nr_FV1D_0,metre,0.01,file\n')
+    vessels = tmp_path / 'm_1d_vessel_array.csv'
+    vessels.write_text('name,BC_type,vessel_type,inp_vessels,out_vessels\nFV1D_0,nn,FV1D_vessel,,\n')
+    merged = merge_default_parameters(
+        CSVFileParser().get_data_as_nparray(str(params), True),
+        [{'variable_name': 'l_FV1D_0', 'units': 'metre', 'value': '0.2', 'data_reference': 'default'}])
+    model = SimpleNamespace(all_parameters_array=merged)
+    generator = CVS1DPythonGenerator(model, 'm_1d', str(vessels), str(params),
+                                     str(tmp_path / 'run1d' / 'input.ini'), str(tmp_path / 'gen'))
+    values = dict(zip(generator.params_df['variable_name'], generator.params_df['value']))
+    assert values == {'r_FV1D_0': '0.01', 'l_FV1D_0': '0.2'}
+
+
 def _two_flowpairs_in_a_row():
     """src -> S1 (collector) ... S1 (gain) -> S2 (collector) ... S2 (gain) -> rd."""
     return [

@@ -3770,7 +3770,13 @@ class CVS1DPythonGenerator(object):
         self.csv_parser = CSVFileParser()
         # the 1D part of an already supermodule-expanded array (split_0d_1d_vessel_array)
         self.vessels_df, _ = load_vessel_array(vessels1d_csv_abs_path)
-        self.params_df = self.csv_parser.get_data_as_dataframe_multistrings(parameters_csv_abs_path, True)
+        # the model's merged parameters (the file's, plus supermodule default_parameters the
+        # file does not set); reading the file again left out the supermodules' defaults
+        all_parameters = getattr(model, 'all_parameters_array', None)
+        if all_parameters is not None:
+            self.params_df = pd.DataFrame(all_parameters).astype(object)
+        else:
+            self.params_df = self.csv_parser.get_data_as_dataframe_multistrings(parameters_csv_abs_path, True)
 
         self.vessFileName = self.initFiles1dFold+f'/vess_{self.file_prefix[:-3]}.txt'
         self.nodeFileName = self.initFiles1dFold+f'/nodes_{self.file_prefix[:-3]}.txt'

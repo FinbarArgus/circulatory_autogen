@@ -528,6 +528,9 @@ class CSV0DModelParser(object):
         model_0D = CVS0DModel(vessels_df,parameters_array,
                               param_id_name_and_vals=param_id_name_and_vals,
                               param_id_date=param_id_date)
+        # every parameter, supermodule defaults included, before the reduction to this 0D model:
+        # the 1D generator reads its vessels' parameters from here, not from the file
+        model_0D.all_parameters_array = parameters_array_orig
 
         # get the allowable types from the modules_config.json file
         model_0D.possible_vessel_BC_types = list(set(list(zip(module_df["vessel_type"].to_list(), module_df["BC_type"].to_list()))))
