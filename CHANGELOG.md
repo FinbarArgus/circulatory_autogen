@@ -5,6 +5,36 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Added — held-out data in `prediction_items`, scored after calibration
+
+A `prediction_item` may carry data that calibration never fits: `value` (with `data_type`,
+`std`, and `obs_dt` for a series). `prediction_info` gains parallel `data_types`, `values`,
+`stds` and `obs_dts` columns. After a calibration, `libcuflynx.param_id.validation` compares the
+calibrated model's prediction with the held-out data (a series at `k*obs_dt` within the run, a
+constant at the end of its experiment), and `save_prediction_data` writes
+`validation_results.json` with rmse, nrmse, mean |z|, the fraction within 2 std, and the model
+and data at the observation times. Prediction items without a `value` behave as before. See
+`tutorial/docs/parameter-identification.md`.
+
+### Added — module versions and instances
+
+A module library can lay a module version out as `<module_type>/versions/<version>/` with named
+parameter sets in `instances/<instance>/<instance>_parameters.csv` (names without a vessel
+suffix). A vessel-array record, or a supermodule's submodule, picks one with
+`"instance": "<name>"`; without it, the config entry's `"default_instance"` is used if that file
+exists. The instance directory is found next to the config file the record's type came from.
+Rows become `{var}_{vessel}`, except the module's `global_constant`s, and are merged as default
+parameters: the host parameters file wins, then a supermodule's instance, then its
+`default_parameters`, then submodule/component instances. A supermodule entry can have instances
+too, named like `default_parameters` (`{var}_{submodule}` or global); `default_parameters` still
+works. An unknown instance is an error that lists the version's instances. Models without
+instances generate byte-identical CellML.
+
+obs_data files accept a top-level `"obs_data_name"` (returned as `obs_data_name` by
+`parse_obs_data_json`); a file in `instances/<name>/` whose `obs_data_name` is not `<name>` is
+warned about. The JSON Schemas gain `instance` and `default_instance`, and a new
+`obs_data.schema.json` describes the top level of an obs_data file.
+
 ### Added — JSON vessel arrays and supermodules
 
 A vessel array can be a JSON list of records, `[file_prefix]_vessel_array.json`, with PhLynx's
