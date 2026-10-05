@@ -621,6 +621,55 @@ def test_every_resources_vessel_array_generates_identically_as_json(tmp_path, pr
     _assert_same_generated_models(reference, converted)
 
 
+def _two_flowpairs_in_a_row():
+    """src -> S1 (collector) ... S1 (gain) -> S2 (collector) ... S2 (gain) -> rd."""
+    return [
+        _rec('src', 'flow_src', out=['S1']),
+        _rec('S1', 'flowpair', subtype='supermodule', inp=['src'], out=['S2'],
+             per_submodule_inputs={'coll': ['src']}, per_submodule_outputs={'g': ['S2']}),
+        _rec('S2', 'flowpair', subtype='supermodule', inp=['S1'], out=['rd'],
+             per_submodule_inputs={'coll': ['S1']}, per_submodule_outputs={'g': ['rd']}),
+        _rec('rd', 'reader', inp=['S2']),
+    ]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('order', [[0, 1, 2, 3], [0, 2, 1, 3]])
+def test_two_supermodule_instances_link_to_each_other_in_either_order(registry, order):
+    """S2's per_submodule_inputs names the instance S1, and S1's per_submodule_outputs names
+    S2. Expanding one used to leave the other naming an instance that no longer existed."""
+    records = _two_flowpairs_in_a_row()
+    expanded, _ = _expand([records[i] for i in order], registry)
+    links = _links(expanded)
+    assert links['src'][1] == ['S1_coll']
+    assert links['S1_coll'][0] == ['src']
+    assert links['S1_g'][1] == ['S2_coll']
+    assert links['S2_coll'][0] == ['S1_g']
+    assert links['S2_g'][1] == ['rd']
+    assert links['rd'][0] == ['S2_g']
+
+
+@pytest.mark.unit
+def test_two_sibling_supermodule_instances_inside_a_supermodule_link(registry):
+    """The same, one level down: two flowpairs as submodules of another supermodule."""
+    chain = normalise_module_config_entry({
+        'module_type': 'chain', 'module_subtype': 'supermodule', 'module_format': 'supermodule',
+        'submodules': [
+            _rec('src', 'flow_src', out=['p']),
+            _rec('p', 'flowpair', subtype='supermodule', inp=['src'], out=['q'],
+                 per_submodule_inputs={'coll': ['src']}, per_submodule_outputs={'g': ['q']}),
+            _rec('q', 'flowpair', subtype='supermodule', inp=['p'], out=['rd'],
+                 per_submodule_inputs={'coll': ['p']}, per_submodule_outputs={'g': ['rd']}),
+            _rec('rd', 'reader', inp=['q']),
+        ]})
+    expanded, _ = _expand([_rec('c', 'chain', subtype='supermodule')],
+                          {**registry, ('chain', 'supermodule'): chain})
+    links = _links(expanded)
+    assert links['c_p_g'][1] == ['c_q_coll']
+    assert links['c_q_coll'][0] == ['c_p_g']
+    assert links['c_q_g'][1] == ['c_rd']
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize('record, message', [
     ({"name": "a b", "vessel_type": "heart", "BC_type": "vp"}, '"name" \'a b\' contains whitespace'),

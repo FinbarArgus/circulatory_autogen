@@ -210,6 +210,14 @@ def _expand_one(records, index, registry, source, ancestry):
             other['inp_vessels'] = _splice(
                 other['inp_vessels'], name,
                 [prefixed(s) for s, hosts in per_outputs.items() if other['name'] in hosts])
+        # another instance not expanded yet that names this one as a host: its per_submodule_*
+        # lists now name the submodules that link to it (whichever of the two expands first)
+        for per_key, links in (('per_submodule_inputs', per_outputs),
+                               ('per_submodule_outputs', per_inputs)):
+            if per_key in other:
+                replacement = [prefixed(s) for s, hosts in links.items() if other['name'] in hosts]
+                other[per_key] = {s: _splice(hosts, name, replacement)
+                                  for s, hosts in other[per_key].items()}
 
     for record in new_records:
         ancestry[record['name']] = chain + (key,)
