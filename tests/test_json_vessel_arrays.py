@@ -712,6 +712,23 @@ def test_the_1d_generator_reads_the_merged_parameters(tmp_path):
     assert values == {'r_FV1D_0': '0.01', 'l_FV1D_0': '0.2'}
 
 
+@pytest.mark.unit
+def test_default_parameters_reach_a_nested_supermodules_submodules(tmp_path, registry):
+    """A supermodule's default_parameters row naming a submodule of a nested supermodule
+    (mean_in_g: submodule g of the inner supermodule in) was treated as a global and never
+    reached it."""
+    defaults = tmp_path / 'outer_parameters.csv'
+    defaults.write_text('variable_name,units,value,data_reference\n'
+                        'mean_in_g,m3_per_s,2e-05,outer\nmean_coll,m3_per_s,1e-05,outer\n'
+                        'some_global,dimensionless,3,outer\n')
+    outer = dict(registry[('outer', 'supermodule')], default_parameters=str(defaults))
+    _, rows = _expand([_rec('o', 'outer', subtype='supermodule')],
+                      {**registry, ('outer', 'supermodule'): outer})
+    names = {r['variable_name'] for r in rows}
+    assert {'mean_o_in_g', 'mean_o_coll', 'some_global'} <= names
+    assert 'mean_in_g' not in names
+
+
 def _two_flowpairs_in_a_row():
     """src -> S1 (collector) ... S1 (gain) -> S2 (collector) ... S2 (gain) -> rd."""
     return [

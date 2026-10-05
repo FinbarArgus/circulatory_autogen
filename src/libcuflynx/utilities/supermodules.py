@@ -86,8 +86,23 @@ def rename_default_parameter(variable_name, instance, submodule_names):
     return variable_name
 
 
-def read_default_parameters(supermodule, instance, where):
-    '''The supermodule's default_parameters rows, renamed for ``instance``.'''
+def submodule_paths(supermodule, registry=None, _depth=0):
+    '''Every submodule of ``supermodule`` as the path its expanded name carries after the
+    instance: ``sub``, and for a submodule that is itself a supermodule ``sub_subsub`` ...
+    (its expansion names a nested submodule ``<instance>_<sub>_<subsub>``).'''
+    paths = []
+    for sub in supermodule['submodules']:
+        paths.append(sub['name'])
+        nested = (registry or {}).get(_key(sub))
+        if nested is not None and _depth < _MAX_DEPTH:
+            paths += [f"{sub['name']}_{p}" for p in submodule_paths(nested, registry, _depth + 1)]
+    return paths
+
+
+def read_default_parameters(supermodule, instance, where, registry=None):
+    '''The supermodule's default_parameters rows, renamed for ``instance``: a row
+    ``{var}_{path}`` names a submodule, or one nested in a submodule that is a supermodule
+    (``{var}_{sub}_{subsub}``), and becomes ``{var}_{instance}_{path}``.'''
     file_name = supermodule.get('default_parameters')
     if not file_name:
         return []
@@ -103,7 +118,7 @@ def read_default_parameters(supermodule, instance, where):
     if missing:
         raise ValueError(f'{where}: default_parameters file {path} is missing the columns '
                          f'{missing}; it needs {list(PARAMETER_COLUMNS)}.')
-    submodule_names = [s['name'] for s in supermodule['submodules']]
+    submodule_names = submodule_paths(supermodule, registry)
     rows = []
     for row in df.itertuples(index=False):
         values = {c: str(getattr(row, c)).strip() for c in PARAMETER_COLUMNS}
@@ -221,7 +236,7 @@ def _expand_one(records, index, registry, source, ancestry):
 
     for record in new_records:
         ancestry[record['name']] = chain + (key,)
-    param_rows = read_default_parameters(supermodule, name, where)
+    param_rows = read_default_parameters(supermodule, name, where, registry)
     return records[:index] + new_records + records[index + 1:], param_rows
 
 
