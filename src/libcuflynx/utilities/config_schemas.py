@@ -119,6 +119,7 @@ the libcuflynx names.
 
 import argparse
 import json
+import warnings
 import os
 import sys
 
@@ -218,7 +219,7 @@ def normalise_supermodule_entry(entry, source=None):
     if 'default_instance' in entry:
         check_instance_name(entry['default_instance'], description, 'default_instance')
 
-    records = [normalise_vessel_record(sub, source=f'{description}, submodules', index=i)
+    records = [normalise_vessel_record(sub, source=f'{description}, submodules', index=i, what=None)
                for i, sub in enumerate(submodules)]
     names = [r['name'] for r in records]
     duplicated = sorted({n for n in names if names.count(n) > 1})
@@ -290,6 +291,12 @@ def normalise_module_config_entry(entry, source=None):
         normalised = {'vessel_type': renamed.pop('vessel_type'), 'BC_type': renamed.pop('BC_type')}
         normalised.update(renamed)
     elif libcuflynx_keys:
+        missing = [k for k in ('vessel_type', 'BC_type', 'module_file', 'module_type') if k not in entry]
+        if missing:
+            raise ValueError(
+                f'{_describe(entry, source)} is in the libcuflynx schema (has {libcuflynx_keys}) but '
+                f'is missing {missing}. A libcuflynx-schema entry needs vessel_type, BC_type, '
+                f'module_file and module_type (the CellML component).')
         normalised = dict(entry)
     else:
         raise ValueError(
@@ -420,14 +427,19 @@ def vessel_array_path(resources_dir, file_prefix):
     candidates = [os.path.join(resources_dir, file_prefix + suffix)
                   for suffix in ('_vessel_array.json', '_vessel_array.csv',
                                  '_module_array.json', '_module_array.csv')]
-    for candidate in candidates:
-        if os.path.exists(candidate):
-            return candidate
-    return candidates[1]
+    existing = [c for c in candidates if os.path.exists(c)]
+    if len(existing) > 1:
+        # e.g. after `config_schemas to-json`, which writes the JSON next to the CSV: edits to
+        # the CSV would otherwise be ignored without a word
+        warnings.warn(f'{len(existing)} vessel arrays for "{file_prefix}" in {resources_dir}: '
+                      f'{[os.path.basename(c) for c in existing]}. Using '
+                      f'{os.path.basename(existing[0])}; the others are ignored. Remove or rename '
+                      f'the ones you do not mean.', UserWarning, stacklevel=2)
+    return existing[0] if existing else candidates[1]
 
 
-def _record_where(source, index, record=None):
-    where = f'vessel array {source}' if source else 'vessel array'
+def _record_where(source, index, record=None, what='vessel array'):
+    where = f'{what} {source}' if what and source else (source or what)
     if index is not None:
         where += f', record {index}'
     if isinstance(record, dict) and isinstance(record.get('name'), str):
@@ -478,7 +490,17 @@ def normalise_per_submodule(value, where, key):
     return out
 
 
-def normalise_vessel_record(record, source=None, index=None):
+def is_heart_vessel_type(vessel_type):
+    """Whether ``vessel_type`` is the monolithic heart (heart, heart_ASD, heart_nonstiff, ...),
+    which the generators special-case: its venous (ivc/svc) and pulmonary inputs, and the
+    pulmonary circuit added when it has one output. Not the heart_effector* controllers. The
+    generators used to find the heart by its *name*, "heart", which a heart inside a
+    supermodule (named <instance>_<submodule>) cannot have."""
+    vessel_type = str(vessel_type or '')
+    return vessel_type.startswith('heart') and not vessel_type.startswith('heart_effector')
+
+
+def normalise_vessel_record(record, source=None, index=None, what='vessel array'):
     '''
     One vessel-array record, in either key style, as a libcuflynx record: ``name, BC_type,
     vessel_type, inp_vessels, out_vessels`` (the last two lists of names), then any other
@@ -488,7 +510,7 @@ def normalise_vessel_record(record, source=None, index=None):
     Raises ValueError naming ``source``, ``index`` and the key for a record that is not an
     object, mixes the two key styles, lacks name/type/subtype, or has a malformed list.
     '''
-    where = _record_where(source, index, record)
+    where = _record_where(source, index, record, what=what)
     if not isinstance(record, dict):
         raise ValueError(f'{where} is a {type(record).__name__}, not a JSON object: {record!r}')
     phlynx_keys = [k for k in PHLYNX_VESSEL_ARRAY_COLUMNS if k in record]
@@ -509,6 +531,11 @@ def normalise_vessel_record(record, source=None, index=None):
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f'{where}: "{key}" is required and must be a non-empty string '
                              f'(got {value!r}).')
+        if len(value.split()) > 1:
+            # names become CellML component and variable names, and the generator's frame
+            # keeps a cell's first word only: "a b" was silently truncated to "a"
+            raise ValueError(f'{where}: "{key}" {value!r} contains whitespace. Names, module '
+                             f'types and versions cannot contain spaces; use underscores.')
     out = {'name': record['name'].strip(),
            'BC_type': record[subtype_key].strip(),
            'vessel_type': record[type_key].strip()}
