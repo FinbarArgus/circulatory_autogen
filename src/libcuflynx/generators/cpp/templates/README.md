@@ -177,7 +177,7 @@ The driver.
 What the coupler launches and with what, for a model coupled to 1D. `generator._write_coupler_config` fills it:
 - `T0`: the global parameter `T`; `nCC`: whole periods covering `pre_time + sim_time` (`generator._coupled_run_length`). `main0d`'s coupled defaults use the same two values.
 - `solver1d_path`: from the process's `program`; `python_path`: `sys.executable`; `solver0d_path`: `build/main0d`.
-- `tmp_pipe_path`: user input `coupler_pipe_dir`, default `/tmp/cuflynx_pipes/<model>/`.
+- `tmp_pipe_path`: user input `coupler_pipe_dir`, default `cuflynx_pipes/<model>/` in the system temp folder (`tempfile.gettempdir()`, so `TMPDIR` moves it).
 
 The rendered text is parsed with `json.loads` before it is written, so a template mistake fails generation.
 

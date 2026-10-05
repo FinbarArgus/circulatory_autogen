@@ -34,7 +34,8 @@ instead of each repeating the pipe names. From it, C++ generation of a model cou
 writes `coupler_config.json`, which until now had to be written by hand:
 - `T0` is the global parameter `T`;
 - `nCC` is the number of whole periods covering `pre_time + sim_time`;
-- the pipe folder is the user input `coupler_pipe_dir` (default `/tmp/cuflynx_pipes/<model>/`);
+- the pipe folder is the user input `coupler_pipe_dir` (default `cuflynx_pipes/<model>/` in the
+  system temp folder, which `TMPDIR` moves);
 - `python_path` is the generating Python, and the 1D solver is the installed one.
 
 `convert_0d_to_1d` adds an `FV1D_solver` row to the hybrid vessel array, and reads

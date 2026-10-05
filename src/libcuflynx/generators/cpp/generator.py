@@ -13,6 +13,7 @@ import math
 import os
 import re
 import sys
+import tempfile
 
 import jinja2
 
@@ -360,7 +361,8 @@ class CVS0DCppGenerator(object):
         else:
             script = os.path.abspath(os.path.join(program['path'], program['script']))
         cpp_dir = os.path.abspath(self.cpp_generated_models_dir)
-        pipe_dir = self.coupler_pipe_dir or os.path.join('/tmp', 'cuflynx_pipes', self._model_name())
+        # the system temp folder, so TMPDIR moves it where /tmp is unwritable
+        pipe_dir = self.coupler_pipe_dir or os.path.join(tempfile.gettempdir(), 'cuflynx_pipes', self._model_name())
         config = {
             'inputFold': os.path.join(cpp_dir, ''),
             'networkName': self._model_name(),

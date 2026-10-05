@@ -221,7 +221,7 @@ src/libcuflynx/coupler/run_coupler1d0d.bash <cpp_generated_models_dir>
 |---|---|
 | `T0` | the global parameter `T` (seconds): the heart period, or the inflow period of an open-loop model. The 1D model's `input.ini` takes it from the same parameter. |
 | `nCC` | the number of whole periods covering `pre_time + sim_time`. The coupled run ends at `nCC·T0`; `main0d` and the 1D solver save from `(nCC − 2)·T0`. |
-| `tmp_pipe_path` | user input `coupler_pipe_dir`, default `/tmp/cuflynx_pipes/<model>/`. The coupler creates the folder. |
+| `tmp_pipe_path` | user input `coupler_pipe_dir`, default `cuflynx_pipes/<model>/` in the system temp folder (`/tmp`, or `$TMPDIR` when set). The coupler creates the folder. |
 | `python_path` | the Python that ran the generation (`sys.executable`) |
 | `solver1d_path` | the process's `program` (the installed `libcuflynx/solver1d/main1D.py`) |
 | `solver0d_path` | `<cpp_generated_models_dir>/build/main0d`, as built with CMake |
