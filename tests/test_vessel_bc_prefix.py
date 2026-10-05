@@ -213,7 +213,7 @@ def _write_source_and_sink(library_dir, source_bc, sink_bc):
 
 def _generate(tmp_path, prefix, vessel_array, parameters, library_dir, use_builtin_modules):
     resources_dir = tmp_path / 'resources'
-    resources_dir.mkdir(exist_ok=True)
+    resources_dir.mkdir(parents=True, exist_ok=True)
     (resources_dir / f'{prefix}_vessel_array.csv').write_text(textwrap.dedent(vessel_array))
     (resources_dir / f'{prefix}_parameters.csv').write_text(textwrap.dedent(parameters))
     config = {
@@ -390,3 +390,49 @@ def test_non_vessel_neighbour_of_nout_junction_keeps_its_connections(tmp_path):
             '   <map_variables variable_1="q" variable_2="q_a"/>') in model_text
     assert ('<map_components component_1="va_module" component_2="reader_module"/>\n'
             '   <map_variables variable_1="q" variable_2="q_b"/>') in model_text
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+def test_renaming_junction_non_vessel_neighbours_changes_nothing(tmp_path):
+    """generic_junction_test_open_loop has a K_tube (material_prop_visco_const, BC_type nn)
+    next to every Nout_junction. Giving those K_tubes the version name ``lv_test`` instead
+    of ``nn`` generates the same model: they are still not taken into the junction nodes
+    nor checked as vessel BCs."""
+    import json
+    import os
+    import re
+    from libcuflynx.utilities.package_resources import builtin_modules_dir
+
+    builtin = builtin_modules_dir()
+    entry = next(m for m in json.load(open(os.path.join(builtin, 'vessel_properties_modules_config.json')))
+                 if m['vessel_type'] == 'material_prop_visco_const' and m['BC_type'] == 'nn')
+    cellml = open(os.path.join(builtin, entry['module_file'])).read()
+    component = re.search(r'<component name="material_prop_visco_const_type".*?</component>',
+                          cellml, re.S).group(0)
+    component = component.replace('"material_prop_visco_const_type"', '"K_tube_lv_test_type"', 1)
+    library_dir = tmp_path / 'library'
+    module_dir = library_dir / 'K_tube_lv_test'
+    module_dir.mkdir(parents=True)
+    (module_dir / 'K_tube_lv_test_modules.cellml').write_text(
+        "<?xml version='1.0' encoding='UTF-8'?>\n"
+        '<model name="modules" xmlns="http://www.cellml.org/cellml/1.1#" '
+        'xmlns:cellml="http://www.cellml.org/cellml/1.1#">\n' + component + '\n</model>\n')
+    entry = dict(entry, BC_type='lv_test', module_type='K_tube_lv_test_type',
+                 module_file='K_tube_lv_test_modules.cellml')
+    (module_dir / 'K_tube_lv_test_modules_config.json').write_text(json.dumps([entry]))
+
+    resources = os.path.join(os.path.dirname(__file__), '..', 'resources')
+    vessel_array = open(os.path.join(resources, 'generic_junction_test_open_loop_vessel_array.csv')).read()
+    parameters = open(os.path.join(resources, 'generic_junction_test_open_loop_parameters.csv')).read()
+    renamed = re.sub(r'^(K_tube_\w+),nn,material_prop_visco_const,', r'\1,lv_test,material_prop_visco_const,',
+                     vessel_array, flags=re.M)
+    assert renamed.count(',lv_test,') > 50
+
+    original_dir = _generate(tmp_path / 'original', 'gj', vessel_array, parameters,
+                             library_dir, use_builtin_modules=True)
+    renamed_dir = _generate(tmp_path / 'renamed', 'gj', renamed, parameters,
+                            library_dir, use_builtin_modules=True)
+    original = (original_dir / 'gj.cellml').read_text()
+    renamed_model = (renamed_dir / 'gj.cellml').read_text()
+    assert original == renamed_model.replace('K_tube_lv_test_type', 'material_prop_visco_const_type')
