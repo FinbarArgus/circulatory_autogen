@@ -265,6 +265,12 @@ def normalise_module_config_entry(entry, source=None):
         normalised = {'vessel_type': renamed.pop('vessel_type'), 'BC_type': renamed.pop('BC_type')}
         normalised.update(renamed)
     elif libcuflynx_keys:
+        missing = [k for k in ('vessel_type', 'BC_type', 'module_file', 'module_type') if k not in entry]
+        if missing:
+            raise ValueError(
+                f'{_describe(entry, source)} is in the libcuflynx schema (has {libcuflynx_keys}) but '
+                f'is missing {missing}. A libcuflynx-schema entry needs vessel_type, BC_type, '
+                f'module_file and module_type (the CellML component).')
         normalised = dict(entry)
     else:
         raise ValueError(

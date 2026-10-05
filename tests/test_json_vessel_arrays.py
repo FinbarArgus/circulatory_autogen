@@ -761,6 +761,55 @@ def test_a_bad_submodule_record_is_reported_in_its_module_config():
     assert 'vessel array' not in message
 
 
+def _component_entry(**port):
+    return {'vessel_type': 'v', 'BC_type': 'nn', 'module_file': 'v.cellml', 'module_type': 'v_type',
+            'entrance_ports': [dict({'port_type': 'p', 'variables': ['x']}, **port)],
+            'exit_ports': [], 'variables_and_units': [['x', 'm', 'access', 'variable']]}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('value', ['bogus', 1, 2.5, {'a': 1}])
+def test_an_unknown_multi_port_is_an_error_in_the_code_and_the_schema(value):
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import MODULE_CONFIG_SCHEMA, load_schema
+    entry = _component_entry(multi_port=value)
+    with pytest.raises(ValueError, match='has multi_port'):
+        normalise_module_config_entry(entry)
+    assert not jsonschema.Draft202012Validator(load_schema(MODULE_CONFIG_SCHEMA)).is_valid([entry])
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('value, expected', [(None, None), (False, None), ('false', None),
+                                             (True, 'True'), ('true', 'True'), ('True', 'True')])
+def test_multi_port_true_and_false_in_any_form(value, expected):
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import MODULE_CONFIG_SCHEMA, load_schema
+    entry = _component_entry(multi_port=value)
+    port = normalise_module_config_entry(entry)['entrance_ports'][0]
+    assert port.get('multi_port') == expected
+    assert jsonschema.Draft202012Validator(load_schema(MODULE_CONFIG_SCHEMA)).is_valid([entry])
+
+
+@pytest.mark.unit
+def test_a_libcuflynx_component_entry_needs_its_cellml_file():
+    entry = _component_entry()
+    del entry['module_file']
+    with pytest.raises(ValueError, match=r"is missing \['module_file'\]"):
+        normalise_module_config_entry(entry)
+
+
+@pytest.mark.unit
+def test_a_null_connection_list_is_empty_in_the_code_and_the_schema(tmp_path):
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import VESSEL_ARRAY_SCHEMA, load_schema
+    records = [{'name': 'a', 'vessel_type': 'x', 'BC_type': 'nn', 'inp_vessels': None, 'out_vessels': None}]
+    assert jsonschema.Draft202012Validator(load_schema(VESSEL_ARRAY_SCHEMA)).is_valid(records)
+    path = tmp_path / 'm_vessel_array.json'
+    path.write_text(json.dumps(records))
+    record = read_vessel_array_records(str(path))[0]
+    assert record['inp_vessels'] == [] and record['out_vessels'] == []
+
+
 def _two_flowpairs_in_a_row():
     """src -> S1 (collector) ... S1 (gain) -> S2 (collector) ... S2 (gain) -> rd."""
     return [
