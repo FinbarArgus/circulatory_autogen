@@ -621,6 +621,39 @@ def test_every_resources_vessel_array_generates_identically_as_json(tmp_path, pr
     _assert_same_generated_models(reference, converted)
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize('record, message', [
+    ({"name": "a b", "vessel_type": "heart", "BC_type": "vp"}, '"name" \'a b\' contains whitespace'),
+    ({"name": "a", "vessel_type": "he art", "BC_type": "vp"}, '"vessel_type" \'he art\' contains whitespace'),
+    ({"name": "a", "module_type": "heart", "module_subtype": "v p"},
+     '"module_subtype" \'v p\' contains whitespace'),
+])
+def test_a_name_with_whitespace_is_an_error(record, message):
+    """The generator's frame keeps a cell's first word only, so "a b" used to become "a" there
+    while expansion and the connection lists kept "a b"."""
+    from libcuflynx.utilities.config_schemas import normalise_vessel_record
+    with pytest.raises(ValueError, match=message):
+        normalise_vessel_record(record)
+
+
+@pytest.mark.unit
+def test_a_space_separated_string_is_still_a_list_of_names():
+    from libcuflynx.utilities.config_schemas import normalise_vessel_record
+    record = normalise_vessel_record({"name": "a", "vessel_type": "heart", "BC_type": "vp",
+                                      "inp_vessels": "b  c"})
+    assert record['inp_vessels'] == ['b', 'c']
+
+
+@pytest.mark.unit
+def test_the_schema_rejects_a_name_with_whitespace():
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import VESSEL_ARRAY_SCHEMA, load_schema
+    validator = jsonschema.Draft202012Validator(load_schema(VESSEL_ARRAY_SCHEMA))
+    assert not validator.is_valid([{"name": "a b", "vessel_type": "heart", "BC_type": "vp"}])
+    assert validator.is_valid([{"name": "a", "vessel_type": "heart", "BC_type": "vp",
+                                "inp_vessels": "b c"}])
+
+
 @pytest.mark.integration
 def test_extra_keys_in_a_json_array_do_not_change_the_model(tmp_path):
     """Extra keys become extra columns of the generator's frame. The rows libcuflynx appends

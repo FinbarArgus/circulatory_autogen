@@ -312,7 +312,7 @@
     },
     "name": {
       "type": "string",
-      "pattern": "\\S",
+      "pattern": "^\\S+$",
       "description": "an instance name"
     },
     "nameList": {

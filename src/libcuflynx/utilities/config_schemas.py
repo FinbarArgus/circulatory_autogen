@@ -464,6 +464,11 @@ def normalise_vessel_record(record, source=None, index=None):
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f'{where}: "{key}" is required and must be a non-empty string '
                              f'(got {value!r}).')
+        if len(value.split()) > 1:
+            # names become CellML component and variable names, and the generator's frame
+            # keeps a cell's first word only: "a b" was silently truncated to "a"
+            raise ValueError(f'{where}: "{key}" {value!r} contains whitespace. Names, module '
+                             f'types and versions cannot contain spaces; use underscores.')
     out = {'name': record['name'].strip(),
            'BC_type': record[subtype_key].strip(),
            'vessel_type': record[type_key].strip()}
