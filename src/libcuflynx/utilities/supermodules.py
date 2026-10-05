@@ -159,7 +159,20 @@ def _expand_one(records, index, registry, source, ancestry):
                              f'supermodule instances; connect the host to one of their '
                              f'submodules through that supermodule\'s own per_submodule_*.')
 
+    for per_key, per in (('per_submodule_inputs', per_inputs),
+                         ('per_submodule_outputs', per_outputs)):
+        for sub, hosts in per.items():
+            repeated = sorted({h for h in hosts if hosts.count(h) > 1})
+            if repeated:
+                raise ValueError(f'{where}: {per_key}["{sub}"] names {repeated} more than once; '
+                                 f'each host is linked once per submodule.')
     by_name = {r['name']: r for i, r in enumerate(records) if i != index}
+    for other in by_name.values():
+        for list_key in ('out_vessels', 'inp_vessels'):
+            if other[list_key].count(name) > 1:
+                raise ValueError(f'{where}: "{other["name"]}" lists "{name}" more than once in its '
+                                 f'{list_key.split("_")[0]} list. List it once; the instance\'s '
+                                 f'per_submodule_* entries say which of its submodules it links to.')
     for per_key, per, host_key, host_list in (
             ('per_submodule_inputs', per_inputs, 'out', 'out_vessels'),
             ('per_submodule_outputs', per_outputs, 'inp', 'inp_vessels')):

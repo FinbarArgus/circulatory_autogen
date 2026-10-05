@@ -286,9 +286,15 @@ def test_vessel_array_file_is_looked_for_json_first(tmp_path):
     names = ['m_module_array.csv', 'm_module_array.json', 'm_vessel_array.csv',
              'm_vessel_array.json']
     assert vessel_array_path(str(tmp_path), 'm').endswith('m_vessel_array.csv')
-    for name in names:
+    for i, name in enumerate(names):
         (tmp_path / name).write_text('')
-        assert vessel_array_path(str(tmp_path), 'm').endswith(name)
+        if i == 0:
+            assert vessel_array_path(str(tmp_path), 'm').endswith(name)
+        else:
+            # more than one: the first is used, and the others are named in a warning (a CSV
+            # edited after `to-json` wrote the JSON beside it would otherwise be ignored silently)
+            with pytest.warns(UserWarning, match=f'Using {name}; the others are ignored'):
+                assert vessel_array_path(str(tmp_path), 'm').endswith(name)
 
 
 # --------------------------------------------------------------------------------------------
@@ -727,6 +733,32 @@ def test_default_parameters_reach_a_nested_supermodules_submodules(tmp_path, reg
     names = {r['variable_name'] for r in rows}
     assert {'mean_o_in_g', 'mean_o_coll', 'some_global'} <= names
     assert 'mean_in_g' not in names
+
+
+@pytest.mark.unit
+def test_a_host_linked_twice_is_an_error(registry):
+    """A host listing an instance twice, or a per_submodule_* list naming a host twice, gave
+    out and inp lists that no longer matched (src -> [S_coll, S_g, S_coll, S_g] against
+    S_coll <- [src])."""
+    twice = _flowpair_host()
+    twice[0]['out_instances'] = ['pair', 'pair']
+    with pytest.raises(ValueError, match='"src_a" lists "pair" more than once in its out list'):
+        _expand(twice, registry)
+    with pytest.raises(ValueError, match=r'per_submodule_inputs\["coll"\] names \[\'src_a\'\] more than once'):
+        _expand(_flowpair_host(per_inputs={'coll': ['src_a', 'src_a', 'src_b']}), registry)
+
+
+@pytest.mark.unit
+def test_a_bad_submodule_record_is_reported_in_its_module_config():
+    with pytest.raises(ValueError) as error:
+        normalise_module_config_entry({
+            'module_type': 'x', 'module_subtype': 's', 'module_format': 'supermodule',
+            'submodules': [{'name': 'I_p', 'module_type': 'inertance'}]},
+            source='lib/x_modules_config.json')
+    message = str(error.value)
+    assert message.startswith('supermodule entry (x, s) in lib/x_modules_config.json, submodules, '
+                              'record 0 ("I_p")')
+    assert 'vessel array' not in message
 
 
 def _two_flowpairs_in_a_row():

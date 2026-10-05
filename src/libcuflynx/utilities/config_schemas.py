@@ -98,6 +98,7 @@ the libcuflynx names.
 
 import argparse
 import json
+import warnings
 import os
 import sys
 
@@ -194,7 +195,7 @@ def normalise_supermodule_entry(entry, source=None):
         raise ValueError(f'{description}: "default_parameters" must be a file name (string), '
                          f'not {default_parameters!r}.')
 
-    records = [normalise_vessel_record(sub, source=f'{description}, submodules', index=i)
+    records = [normalise_vessel_record(sub, source=f'{description}, submodules', index=i, what=None)
                for i, sub in enumerate(submodules)]
     names = [r['name'] for r in records]
     duplicated = sorted({n for n in names if names.count(n) > 1})
@@ -375,14 +376,19 @@ def vessel_array_path(resources_dir, file_prefix):
     candidates = [os.path.join(resources_dir, file_prefix + suffix)
                   for suffix in ('_vessel_array.json', '_vessel_array.csv',
                                  '_module_array.json', '_module_array.csv')]
-    for candidate in candidates:
-        if os.path.exists(candidate):
-            return candidate
-    return candidates[1]
+    existing = [c for c in candidates if os.path.exists(c)]
+    if len(existing) > 1:
+        # e.g. after `config_schemas to-json`, which writes the JSON next to the CSV: edits to
+        # the CSV would otherwise be ignored without a word
+        warnings.warn(f'{len(existing)} vessel arrays for "{file_prefix}" in {resources_dir}: '
+                      f'{[os.path.basename(c) for c in existing]}. Using '
+                      f'{os.path.basename(existing[0])}; the others are ignored. Remove or rename '
+                      f'the ones you do not mean.', UserWarning, stacklevel=2)
+    return existing[0] if existing else candidates[1]
 
 
-def _record_where(source, index, record=None):
-    where = f'vessel array {source}' if source else 'vessel array'
+def _record_where(source, index, record=None, what='vessel array'):
+    where = f'{what} {source}' if what and source else (source or what)
     if index is not None:
         where += f', record {index}'
     if isinstance(record, dict) and isinstance(record.get('name'), str):
@@ -443,7 +449,7 @@ def is_heart_vessel_type(vessel_type):
     return vessel_type.startswith('heart') and not vessel_type.startswith('heart_effector')
 
 
-def normalise_vessel_record(record, source=None, index=None):
+def normalise_vessel_record(record, source=None, index=None, what='vessel array'):
     '''
     One vessel-array record, in either key style, as a libcuflynx record: ``name, BC_type,
     vessel_type, inp_vessels, out_vessels`` (the last two lists of names), then any other
@@ -453,7 +459,7 @@ def normalise_vessel_record(record, source=None, index=None):
     Raises ValueError naming ``source``, ``index`` and the key for a record that is not an
     object, mixes the two key styles, lacks name/type/subtype, or has a malformed list.
     '''
-    where = _record_where(source, index, record)
+    where = _record_where(source, index, record, what=what)
     if not isinstance(record, dict):
         raise ValueError(f'{where} is a {type(record).__name__}, not a JSON object: {record!r}')
     phlynx_keys = [k for k in PHLYNX_VESSEL_ARRAY_COLUMNS if k in record]
