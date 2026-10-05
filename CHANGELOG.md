@@ -52,6 +52,17 @@ raises `NonScalarPredictionFeatureError`. With both options off, SA outputs and 
 fingerprints are unchanged. Callers can feature-detect with
 `libcuflynx.sensitivity_analysis.SUPPORTS_PREDICTION_FEATURES`.
 
+### Added — held-out data in `prediction_items`, scored after calibration
+
+A `prediction_item` may carry data that calibration never fits: `value` (with `data_type`,
+`std`, and `obs_dt` for a series). `prediction_info` gains parallel `data_types`, `values`,
+`stds` and `obs_dts` columns. After a calibration, `libcuflynx.param_id.validation` compares the
+calibrated model's prediction with the held-out data (a series at `k*obs_dt` within the run, a
+constant at the end of its experiment), and `save_prediction_data` writes
+`validation_results.json` with rmse, nrmse, mean |z|, the fraction within 2 std, and the model
+and data at the observation times. Prediction items without a `value` behave as before. See
+`tutorial/docs/parameter-identification.md`.
+
 ### Added — module versions and instances
 
 A module library can lay a module version out as `<module_type>/versions/<version>/` with named
