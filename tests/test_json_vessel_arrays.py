@@ -21,6 +21,8 @@ import shutil
 import subprocess
 import sys
 
+import numpy as np
+import pandas as pd
 import pytest
 
 from test_config_schemas import (FULL_PARAMS, FULL_ROWS, _assert_same_generated_models,
@@ -619,6 +621,49 @@ def test_every_resources_vessel_array_generates_identically_as_json(tmp_path, pr
     ok, converted = _generate_resource(tmp_path / 'json', prefix, 'json')
     assert ok, f'{prefix} generates from CSV but not from JSON'
     _assert_same_generated_models(reference, converted)
+
+
+@pytest.mark.integration
+def test_a_heart_inside_a_supermodule_is_still_the_heart(tmp_path):
+    """The generators found the monolithic heart by its name, "heart", which a heart inside a
+    supermodule (here "H_heart") cannot have: its ivc input was mapped to zero flow in a
+    component "heart_module" that did not exist, and generation still reported success. It is
+    now found by its vessel_type, and simulates exactly as the plain model."""
+    library = tmp_path / 'lib'
+    library.mkdir()
+    with open(library / 'cardio_modules_config.json', 'w') as f:
+        json.dump([{'module_type': 'cardio', 'module_subtype': 'supermodule',
+                    'module_format': 'supermodule',
+                    'submodules': [{'name': 'heart', 'module_type': 'heart', 'module_subtype': 'vp_Ca',
+                                    'inp_instances': [], 'out_instances': []}]}], f)
+    from libcuflynx.utilities.config_schemas import vessel_array_csv_to_records
+    plain = vessel_array_csv_to_records(os.path.join(RESOURCES_DIR, '3compartment_vessel_array.csv'))
+    params = [tuple(r) for r in pd.read_csv(os.path.join(RESOURCES_DIR, '3compartment_parameters.csv'),
+                                            dtype=str).fillna('')[['variable_name', 'units', 'value']]
+              .itertuples(index=False)]
+    reference = _generate(tmp_path / 'plain', None, '3compartment', plain, params)
+
+    wrapped = []
+    for record in plain:
+        record = dict(record)
+        if record['name'] == 'heart':
+            record.update(name='H', vessel_type='cardio', BC_type='supermodule',
+                          per_submodule_inputs={'heart': record['inp_vessels']},
+                          per_submodule_outputs={'heart': record['out_vessels']})
+        else:
+            record['inp_vessels'] = ['H' if n == 'heart' else n for n in record['inp_vessels']]
+            record['out_vessels'] = ['H' if n == 'heart' else n for n in record['out_vessels']]
+        wrapped.append(record)
+    renamed = [(n[:-len('_heart')] + '_H_heart' if n.endswith('_heart') else n, u, v) for n, u, v in params]
+    model = _generate(tmp_path / 'wrapped', str(library), '3compartment', wrapped, renamed)
+    with open(model) as f:
+        text = f.read()
+    assert 'component_2="H_heart_module"' in text or 'component_1="H_heart_module"' in text
+    assert '"heart_module"' not in text
+    ref = _simulate(reference, ['aortic_root/u', 'heart/u_lv'], sim_time=1.0)
+    new = _simulate(model, ['aortic_root/u', 'H_heart/u_lv'], sim_time=1.0)
+    assert np.allclose(ref['aortic_root/u'], new['aortic_root/u'], rtol=1e-6)
+    assert np.allclose(ref['heart/u_lv'], new['H_heart/u_lv'], rtol=1e-6)
 
 
 def _two_flowpairs_in_a_row():

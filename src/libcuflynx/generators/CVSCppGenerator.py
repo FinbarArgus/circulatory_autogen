@@ -16,7 +16,7 @@ from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from libcuflynx.generators.multi_port import module_has_list_multi_port
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser
-from libcuflynx.utilities.config_schemas import load_vessel_array
+from libcuflynx.utilities.config_schemas import is_heart_vessel_type, load_vessel_array
 from libcuflynx.generators.Python1DModelFilesGenerator import generate1DPythonModelFiles, generate1DPythonSimInitFile
 from libcuflynx.utilities.package_resources import generator_template
 
@@ -304,7 +304,7 @@ class CVS0DCppGenerator(object):
 
                         self.connection_vessel_indices.append(fv1d_vessel_index)
                         self.connection_vessel_types.append("FV_1d") # TODO only option for now, can be extended to other kinds of coupling.
-                        if vessel_tup.name == 'heart':
+                        if is_heart_vessel_type(vessel_tup.vessel_type):
                             FV_resistance_port = -1
                             for exit_port in vessel_tup.exit_ports:
                                 if exit_port["port_type"] == "vessel_port":
@@ -450,7 +450,7 @@ class CVS0DCppGenerator(object):
                         
                         self.connection_vessel_indices.append(fv1d_vessel_index)
                         self.connection_vessel_types.append("FV_1d") # TODO only option for now, can be extended to other kinds of coupling.
-                        if vessel_tup.name == 'heart':
+                        if is_heart_vessel_type(vessel_tup.vessel_type):
                             FV_resistance_port = -1
                             for entrance_port in vessel_tup.entrance_ports:
                                 if entrance_port["port_type"] == "vessel_port":

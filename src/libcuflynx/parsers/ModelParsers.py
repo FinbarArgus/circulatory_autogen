@@ -6,8 +6,9 @@ Created on 29/10/2021
 
 
 from libcuflynx.parsers.PrimitiveParsers import CSVFileParser, JSONFileParser
-from libcuflynx.utilities.config_schemas import (load_expanded_vessel_records, load_supermodule_registry,
-                                                 load_vessel_array, vessel_records_to_string_frame)
+from libcuflynx.utilities.config_schemas import (is_heart_vessel_type, load_expanded_vessel_records,
+                                                 load_supermodule_registry, load_vessel_array,
+                                                 vessel_records_to_string_frame)
 from libcuflynx.models.LumpedModels import CVS0DModel
 from libcuflynx.checks.LumpedModelChecks import LumpedCompositeCheck, LumpedBCVesselCheck, LumpedIDParamsCheck, LumpedPortVariableCheck
 import pandas as pd
@@ -464,20 +465,21 @@ class CSV0DModelParser(object):
         #  Temporarily we add a pulmonary system if there isnt one defined, this should be defined by
         #   the user but we include this to improve backwards compatitibility.
 
-        # TODO This should check if the vessel_type is heart, not the name
-        #  we should be able to call the heart module whatever we want
-        if len(vessels_df.loc[vessels_df["name"] == 'heart']) == 1:
-            if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
+        # the heart is found by its vessel_type, so it can have any name (a heart inside a
+        # supermodule is <instance>_<submodule>)
+        hearts = [n for n, vt in zip(vessels_df["name"], vessels_df["vessel_type"]) if is_heart_vessel_type(vt)]
+        if len(hearts) == 1:
+            heart = hearts[0]
+            heart_row = vessels_df.loc[vessels_df["name"] == heart]
+            if len(heart_row.out_vessels.values[0]) < 2:
                 # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
                 # add pulmonary vein and artery to df
-                _append_vessel_row(vessels_df, 'par', 'vp', 'arterial_simple', ['heart'], ['pvn'], blank=[])
-                _append_vessel_row(vessels_df, 'pvn', 'vp', 'arterial_simple', ['par'], ['heart'], blank=[])
+                _append_vessel_row(vessels_df, 'par', 'vp', 'arterial_simple', [heart], ['pvn'], blank=[])
+                _append_vessel_row(vessels_df, 'pvn', 'vp', 'arterial_simple', ['par'], [heart], blank=[])
                 # add pulmonary artery (par) to output of heart and pvn to input
-                vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
-                vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
-        elif len(vessels_df.loc[vessels_df["name"] == 'heart']) == 0:
-            pass
-        else:
+                vessels_df.loc[vessels_df["name"] == heart].out_vessels.values[0].append('par')
+                vessels_df.loc[vessels_df["name"] == heart].inp_vessels.values[0].append('pvn')
+        elif len(hearts) > 1:
             print('cannot have 2 hearts or more, we dont model octopii')
             exit()
 

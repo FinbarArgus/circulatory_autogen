@@ -433,6 +433,16 @@ def normalise_per_submodule(value, where, key):
     return out
 
 
+def is_heart_vessel_type(vessel_type):
+    """Whether ``vessel_type`` is the monolithic heart (heart, heart_ASD, heart_nonstiff, ...),
+    which the generators special-case: its venous (ivc/svc) and pulmonary inputs, and the
+    pulmonary circuit added when it has one output. Not the heart_effector* controllers. The
+    generators used to find the heart by its *name*, "heart", which a heart inside a
+    supermodule (named <instance>_<submodule>) cannot have."""
+    vessel_type = str(vessel_type or '')
+    return vessel_type.startswith('heart') and not vessel_type.startswith('heart_effector')
+
+
 def normalise_vessel_record(record, source=None, index=None):
     '''
     One vessel-array record, in either key style, as a libcuflynx record: ``name, BC_type,
