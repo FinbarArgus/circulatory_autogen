@@ -586,13 +586,16 @@ class CVS0DCppGenerator(object):
         models = []
         for entry in python_externals:
             api = entry['api']
+            params = self._row_parameters(entry['row'], rows.loc[entry['row'], 'variables_and_units'])
             models.append({
                 'row': entry['row'],
                 'name': api.get('name', entry['row']),
                 'file': python_model_path(api),
                 'class': api['python']['class'],
-                'parameters': self._row_parameters(entry['row'], rows.loc[entry['row'], 'variables_and_units']),
-                'coupling_dt': float(api.get('coupling_dt', self.dtSample)),
+                'parameters': params,
+                # a coupling_dt constant of the module (set per instance in the parameters file)
+                # overrides the api block's default
+                'coupling_dt': float(params.get('coupling_dt', api.get('coupling_dt', self.dtSample))),
                 'subiterations': int(api.get('subiterations', 0)),
                 'tol': float(api.get('tol', 1e-8)),
                 'relaxation': float(api.get('relaxation', 1.0)),
