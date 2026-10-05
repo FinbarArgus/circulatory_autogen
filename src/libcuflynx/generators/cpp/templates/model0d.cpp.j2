@@ -290,6 +290,14 @@ int Model0d::solveOneStep(double dtLoc)
         voiEnd = std::round((voi + dt) / tolTime) * tolTime;
         CVodeSetStopTime(solver, voiEnd);
         int flag = CVode(solver, voiEnd, y, &voi, CV_NORMAL);
+        // A switch in time inside the model (e.g. a stimulus pulse turning on) can make CVODE fail
+        // its error or convergence test at high order. CVode leaves y at the last good time voi:
+        // restart there (at order 1, small step) and carry on, as a coupled run does every step.
+        for (int retry = 0; retry < 2 && (flag == CV_ERR_FAILURE || flag == CV_CONV_FAILURE); ++retry) {
+            CVodeReInit(solver, voi, y);
+            CVodeSetStopTime(solver, voiEnd);
+            flag = CVode(solver, voiEnd, y, &voi, CV_NORMAL);
+        }
         if (flag < 0) {
             lastError_ = "CVODE failed at t = " + std::to_string(voi) + " s with flag " + std::to_string(flag) +
                          " (" + CVodeGetReturnFlagName(flag) + ")";
