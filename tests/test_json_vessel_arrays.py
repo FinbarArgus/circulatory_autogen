@@ -621,6 +621,33 @@ def test_every_resources_vessel_array_generates_identically_as_json(tmp_path, pr
     _assert_same_generated_models(reference, converted)
 
 
+@pytest.mark.integration
+def test_extra_keys_in_a_json_array_do_not_change_the_model(tmp_path):
+    """Extra keys become extra columns of the generator's frame. The rows libcuflynx appends
+    itself (here the heart's pulmonary circuit, for a heart with one output) were fixed
+    5-element lists, so any extra key failed with "cannot set a row with mismatched columns"."""
+    prefix = 'simple_physiological'
+    ok, reference = _generate_resource(tmp_path / 'csv', prefix, 'csv')
+    assert ok
+    resources = tmp_path / 'json' / 'resources'
+    resources.mkdir(parents=True)
+    shutil.copy(os.path.join(RESOURCES_DIR, f'{prefix}_parameters.csv'), resources)
+    json_path = vessel_array_to_json(os.path.join(RESOURCES_DIR, f'{prefix}_vessel_array.csv'),
+                                     str(resources / f'{prefix}_vessel_array.json'))
+    with open(json_path) as f:
+        records = json.load(f)
+    for i, record in enumerate(records):
+        record['label'] = f'vessel {i}'
+    with open(json_path, 'w') as f:
+        json.dump(records, f)
+    config = {'file_prefix': prefix, 'input_param_file': f'{prefix}_parameters.csv',
+              'model_type': 'cellml', 'solver': 'CVODE_myokit', 'resources_dir': str(resources),
+              'generated_models_dir': str(tmp_path / 'json' / 'generated_models'), 'DEBUG': False}
+    assert generate_with_new_architecture(False, config)
+    _assert_same_generated_models(
+        reference, str(tmp_path / 'json' / 'generated_models' / prefix / f'{prefix}.cellml'))
+
+
 @pytest.mark.unit
 def test_resources_vessel_arrays_and_module_configs_validate_against_the_json_schemas(
         tmp_path, super_library_dir):

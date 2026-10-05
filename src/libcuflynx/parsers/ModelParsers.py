@@ -43,6 +43,17 @@ def merge_default_parameters(parameters_array, extra_param_rows):
     return np.concatenate([parameters_array, added])
 
 
+
+def _append_vessel_row(df, name, BC_type, vessel_type, inp_vessels, out_vessels, blank=''):
+    """Append a vessel row by column name. Any other column (a vessel array's extra keys, e.g.
+    ``instance``) gets ``blank``: ``''`` in a string frame, ``[]`` in the list-form one. Appending
+    a fixed 5-element list failed with "cannot set a row with mismatched columns" as soon as the
+    array had one."""
+    values = {'name': name, 'BC_type': BC_type, 'vessel_type': vessel_type,
+              'inp_vessels': inp_vessels, 'out_vessels': out_vessels}
+    row = [values.get(column, blank) for column in df.columns]
+    df.loc[df.index.max() + 1 if len(df) else 0] = row
+
 class CSV0DModelParser(object):
     '''
     Creates a 0D model representation from a vessel and a parameter CSV files.
@@ -123,7 +134,7 @@ class CSV0DModelParser(object):
             N1d = vessels_df_1d.shape[0]
             if N1d>0:
                 name_BVsumTot =  vessels_df_0d.at[idxBVsumTot,"name"]
-                vessels_df_0d.loc[len(vessels_df_0d)] = ['volume_sum_1D', 'nn', 'FV1D_volume_sum', '', name_BVsumTot]
+                _append_vessel_row(vessels_df_0d, 'volume_sum_1D', 'nn', 'FV1D_volume_sum', '', name_BVsumTot)
 
                 for k in range(len(idxBVsum_list)):
                     idxBVsum = idxBVsum_list[k]
@@ -175,7 +186,7 @@ class CSV0DModelParser(object):
             N1d = vessels_df_1d.shape[0]
             if N1d>0:
                 name_BVsum =  vessels_df_0d.at[idxBVsum,"name"]
-                vessels_df_0d.loc[len(vessels_df_0d)] = ['volume_sum_1D', 'nn', 'FV1D_volume_sum', '', name_BVsum]
+                _append_vessel_row(vessels_df_0d, 'volume_sum_1D', 'nn', 'FV1D_volume_sum', '', name_BVsum)
 
                 inp_vess_BVsum =  vessels_df_0d.at[idxBVsum,"inp_vessels"].split()
                 inp_vess_BVsum_new = []
@@ -294,11 +305,9 @@ class CSV0DModelParser(object):
                                             found_idx1d = j
                                             break
                                     if found_idx1d == -1:
-                                        vessels_df_0d.loc[len(vessels_df_0d)] = [vess1d,
-                                                                                BC_type_1d,
-                                                                                vessels_df_1d.at[i,"vessel_type"],
-                                                                                vessels_df_1d.at[i,"inp_vessels"],
-                                                                                '']
+                                        _append_vessel_row(vessels_df_0d, vess1d, BC_type_1d,
+                                                           vessels_df_1d.at[i,"vessel_type"],
+                                                           vessels_df_1d.at[i,"inp_vessels"], '')
                                     else:
                                         if vessels_df_0d.at[found_idx1d,"inp_vessels"]=='':
                                             vessels_df_0d.at[found_idx1d,"inp_vessels"] = vessels_df_1d.at[i,"inp_vessels"]
@@ -373,11 +382,9 @@ class CSV0DModelParser(object):
                                             found_idx1d = j
                                             break
                                     if found_idx1d == -1:
-                                        vessels_df_0d.loc[len(vessels_df_0d)] = [vessels_df_1d.at[i,"name"],
-                                                                                BC_type_1d,
-                                                                                vessels_df_1d.at[i,"vessel_type"],
-                                                                                '',
-                                                                                vessels_df_1d.at[i,"out_vessels"]]
+                                        _append_vessel_row(vessels_df_0d, vessels_df_1d.at[i,"name"], BC_type_1d,
+                                                           vessels_df_1d.at[i,"vessel_type"], '',
+                                                           vessels_df_1d.at[i,"out_vessels"])
                                     else:
                                         if vessels_df_0d.at[found_idx1d,"out_vessels"]=='':
                                             vessels_df_0d.at[found_idx1d,"out_vessels"] = vessels_df_1d.at[i,"out_vessels"]
@@ -463,8 +470,8 @@ class CSV0DModelParser(object):
             if len(vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0]) < 2:
                 # if the heart only has one output we assume it doesn't have an output to a pulmonary artery
                 # add pulmonary vein and artery to df
-                vessels_df.loc[vessels_df.index.max()+1] = ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']]
-                vessels_df.loc[vessels_df.index.max()+1] = ['pvn', 'vp', 'arterial_simple', ['par'], ['heart']]
+                _append_vessel_row(vessels_df, 'par', 'vp', 'arterial_simple', ['heart'], ['pvn'], blank=[])
+                _append_vessel_row(vessels_df, 'pvn', 'vp', 'arterial_simple', ['par'], ['heart'], blank=[])
                 # add pulmonary artery (par) to output of heart and pvn to input
                 vessels_df.loc[vessels_df["name"] == 'heart'].out_vessels.values[0].append('par')
                 vessels_df.loc[vessels_df["name"] == 'heart'].inp_vessels.values[0].append('pvn')
