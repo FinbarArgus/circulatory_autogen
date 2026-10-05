@@ -666,6 +666,29 @@ def test_a_heart_inside_a_supermodule_is_still_the_heart(tmp_path):
     assert np.allclose(ref['heart/u_lv'], new['H_heart/u_lv'], rtol=1e-6)
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize('style', ['phlynx', 'libcuflynx'])
+def test_convert_0d_to_1d_keeps_a_json_arrays_supermodule_links(tmp_path, registry, style):
+    """A CSV cannot hold per_submodule_* links, so a JSON 0D array is converted to a JSON
+    hybrid array, in the same key style, with every key of every record kept."""
+    from libcuflynx.scripts.convert_0d_to_1d import convert_0d_to_1d
+    from libcuflynx.utilities.config_schemas import dump_vessel_records
+    records = read_records(_flowpair_host() + [_rec('A', 'flow_src', out=[])])
+    (tmp_path / 'm_0d_vessel_array.json').write_text(dump_vessel_records(records, style))
+    (tmp_path / 'm_0d_parameters.csv').write_text('variable_name,units,value,data_reference\n')
+    convert_0d_to_1d('m', str(tmp_path), 'm_0d_parameters.csv', vess_1d_list=['A'])
+    hybrid = tmp_path / 'm_hybrid_vessel_array.json'
+    assert hybrid.exists() and not (tmp_path / 'm_hybrid_vessel_array.csv').exists()
+    raw = json.loads(hybrid.read_text())
+    assert ('module_type' in raw[0]) == (style == 'phlynx')
+    converted = {r['name']: r for r in read_vessel_array_records(str(hybrid))}
+    assert (converted['A']['vessel_type'], converted['A']['BC_type']) == ('FV1D_vessel', 'nn')
+    assert converted['pair']['per_submodule_inputs'] == {'coll': ['src_a', 'src_b']}
+    assert converted['pair']['per_submodule_outputs'] == {'g': ['rd']}
+    expanded, _ = expand_supermodules(list(converted.values()), registry, 'test')
+    assert 'pair_coll' in {r['name'] for r in expanded}
+
+
 def _two_flowpairs_in_a_row():
     """src -> S1 (collector) ... S1 (gain) -> S2 (collector) ... S2 (gain) -> rd."""
     return [
