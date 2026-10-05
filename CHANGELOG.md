@@ -24,6 +24,25 @@ e.g. a drop-in `lifex::Circulation`. A provider is its own vessel-array row
 (`module_format: external_api`) coupled to CellML modules through ports; values it sets become
 libCellML external variables. `external_modules_dir` also accepts a list of directories.
 
+### Added — the FV 1D solver as a `process` module; `coupler_config.json` is generated
+
+A new `api` role, `process`, describes a program run alongside the generated model: what to
+launch (`program`), who launches it (`coordinator: coupler`) and the pipes it talks over
+(`channels`, `message_length`). `FV1D_solver` in `coupling_modules_config.json` is the FV 1D
+solver. The `FV1D_vessel` and `FV1D_volume_sum` entries name it (`"process": "FV1D_solver"`)
+instead of each repeating the pipe names. From it, C++ generation of a model coupled to 1D now
+writes `coupler_config.json`, which until now had to be written by hand:
+- `T0` is the global parameter `T`;
+- `nCC` is the number of whole periods covering `pre_time + sim_time`;
+- the pipe folder is the user input `coupler_pipe_dir` (default `/tmp/cuflynx_pipes/<model>/`);
+- `python_path` is the generating Python, and the 1D solver is the installed one.
+
+`convert_0d_to_1d` adds an `FV1D_solver` row to the hybrid vessel array, and reads
+`<model>_vessel_array.csv` when there is no `<model>_0d_vessel_array.csv`. The coupler creates
+the pipe folder, and its default pipe folder and Python are no longer paths on one machine.
+`main0d`'s coupled defaults (`T0`, `nCC`) match the configuration. New example model
+`aortic_bif_0d` (all 0D); a test runs it against the same model with its vessels in 1D.
+
 ### Added — readable generated C/C++
 
 Generated C code names every state and variable index: `rates[S_heart_module_q_lv] =

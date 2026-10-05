@@ -31,7 +31,14 @@ def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb=None, vess_1d_l
     if not os.path.exists(folder_hyb):
         os.makedirs(folder_hyb)
     
-    df_vess = read_vessel_array_csv(folder_0d / f"{model}_0d_vessel_array.csv")
+    # <model>_0d_vessel_array.csv, or <model>_vessel_array.csv when the 0D files carry no suffix
+    vessel_file = folder_0d / f"{model}_0d_vessel_array.csv"
+    if not vessel_file.is_file():
+        vessel_file = folder_0d / f"{model}_vessel_array.csv"
+    if not vessel_file.is_file():
+        raise FileNotFoundError(f"Neither {model}_0d_vessel_array.csv nor {model}_vessel_array.csv "
+                                f"found in {folder_0d}.")
+    df_vess = read_vessel_array_csv(vessel_file)
     df_params = pd.read_csv(folder_0d / param_file_0d)
 
     n1d = len(vess_1d_list)
@@ -105,6 +112,12 @@ def convert_0d_to_1d(model, folder_0d, param_file_0d, folder_hyb=None, vess_1d_l
                                 df_params.loc[df_params.shape[0]] = ['v_svc_'+vess, 'm3_per_s', 0.0, 'WONT_BE_USED']
                         else:
                             df_params.loc[df_params.shape[0]] = ['v_in_'+vess, 'm3_per_s', 0.0, 'WONT_BE_USED']
+
+    # The FV 1D solver the 1D vessels run in: a row of its own (module FV1D_solver), from whose
+    # module config the C++ generator writes the coupler's configuration.
+    if (df_vess['vessel_type'] == 'FV1D_vessel').any() and not (df_vess['vessel_type'] == 'FV1D_solver').any():
+        df_vess.loc[len(df_vess)] = {'name': 'FV1D_solver', 'BC_type': 'nn', 'vessel_type': 'FV1D_solver',
+                                     'inp_vessels': '', 'out_vessels': ''}
 
     df_vess.to_csv(folder_hyb / f"{model}_hybrid_vessel_array.csv", index=False, header=True)
     df_params.to_csv(folder_hyb / f"{model}_hybrid_parameters.csv", index=False, header=True)

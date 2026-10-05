@@ -22,7 +22,7 @@ The rendering code lives next to this folder:
 
 1. **Generate the CellML.** `generate_cellml()` writes it, and `generate_cpp()` flattens it (`<prefix>_flat.cellml`).
 2. **Collect the external variables** from the module configs:
-   - **Pipe inputs:** from `api` blocks with `role: consumer` and `transport: named_pipe`, for FV 1D coupling, using `conn_1d_0d_info` from the vessel-array split.
+   - **Pipe inputs:** from `api` blocks with `role: consumer` and `transport: named_pipe`, for FV 1D coupling, using `conn_1d_0d_info` from the vessel-array split. Their pipes come from the `role: process` entry they name (`FV1D_solver`).
    - **Delays:** from `delay_info` entries. Each delayed variable depends on the variable to delay and on the delay amount.
    - **API-set values:** from vessel-array rows whose `api` block has `role: provider`. Every `set` function's variable, resolved through the row's ports, becomes external.
 3. **Analyse.** The libCellML analyser runs with those external variables. Every state and variable gets an index (`states[i]`, `variables[i]`); `externals.ModelRef` records it.
@@ -41,6 +41,7 @@ Files written, to `cpp_generated_models_dir` (or the model folder):
 | `circulation_api.h`, `circulation_api.cpp` | `api_provider.h.j2`, `api_provider.cpp.j2` (only when a provider api is connected) |
 | `api_test_driver.cpp` | `api_test_driver.cpp.j2` (only with a provider) |
 | `<name>_coupler1d0d.json` | written directly by `generator.py` (only when coupled to 1D) |
+| `coupler_config.json` | `coupler_config.json.j2`, from the `process` api block the connections name (only when coupled to 1D) |
 
 Build:
 
@@ -172,6 +173,14 @@ The driver.
 - **Coupled:** `./main0d -coupled 1 -ODEsolver S -T0 t -nCC n -networkName s -pipePath p -initStatePath p`. This is the command line the coupler uses, so don't change it.
 - **Stepping and saving:** it steps at `dt_solver` and writes output every `dt`. When coupled it saves from cycle `nCC - 2`.
 
+### `coupler_config.json.j2`
+What the coupler launches and with what, for a model coupled to 1D. `generator._write_coupler_config` fills it:
+- `T0`: the global parameter `T`; `nCC`: whole periods covering `pre_time + sim_time` (`generator._coupled_run_length`). `main0d`'s coupled defaults use the same two values.
+- `solver1d_path`: from the process's `program`; `python_path`: `sys.executable`; `solver0d_path`: `build/main0d`.
+- `tmp_pipe_path`: user input `coupler_pipe_dir`, default `/tmp/cuflynx_pipes/<model>/`.
+
+The rendered text is parsed with `json.loads` before it is written, so a template mistake fails generation.
+
 ### `CMakeLists.txt.j2`
 - **Libraries:** `model0d_core` (C, the libCellML code) and `model0d` (the C++ wrapper).
 - **Executable:** `main0d`.
@@ -250,7 +259,12 @@ Added for the provider templates:
 
 The full description is in `tutorial/docs/design-model.md`; validation is in `../api.py`.
 
+- **Process** (`role: process`, e.g. `FV1D_solver` in `resources/coupling_modules_config.json`): a program run alongside the model.
+  - **`program`:** what to launch (`package` + `script`, or `path` + `script`); **`coordinator`:** `coupler`.
+  - **`channels`, `message_length`:** the pipes, shared by every consumer that names the process. No `calls`.
+  - Gives `coupler_config.json`. It can be a vessel-array row with no connections; it doesn't have to be.
 - **Named-pipe consumer** (e.g. the FV1D entries in `resources/coupling_modules_config.json`):
+  - **`process`:** the process entry whose `channels` and `message_length` it uses (`api.resolve_process_apis` copies them in when the configs load). It may add `channels` of its own.
   - **`channels`:** pipe names; `{i}` is replaced by the connection number.
   - **`calls`:** each has a `when` (`init`, `step_start`, `rhs_start`, `rhs`, `step_end`) and a `kind` (`send`, `recv`, `send_recv`).
   - **What a call sends:** `$voi`, `$dt`/`$dt_stage`, `port.flow`/`port.pressure`/`port.input`/`port.output`, `control.<port_type>|default`, or numbers.
