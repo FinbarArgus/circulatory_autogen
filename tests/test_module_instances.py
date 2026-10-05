@@ -503,15 +503,14 @@ def test_resources_models_generate_identically_without_the_instance_lookup(
 
 def test_appended_vessel_rows_fill_extra_columns():
     import pandas as pd
-    from libcuflynx.parsers.ModelParsers import _vessel_row
+    from libcuflynx.parsers.ModelParsers import _append_vessel_row
     df = pd.DataFrame(columns=['name', 'BC_type', 'vessel_type', 'inp_vessels', 'out_vessels', 'instance'])
-    df.loc[0] = _vessel_row(df, ['par', 'vp', 'arterial_simple', ['heart'], ['pvn']])
+    _append_vessel_row(df, 'par', 'vp', 'arterial_simple', ['heart'], ['pvn'])
     assert list(df.loc[0]) == ['par', 'vp', 'arterial_simple', ['heart'], ['pvn'], '']
     # a frame with the columns in another order still gets each value in its column
     df2 = pd.DataFrame(columns=['instance', 'name', 'BC_type', 'vessel_type', 'inp_vessels', 'out_vessels'])
-    df2.loc[0] = _vessel_row(df2, ['volume_sum_1D', 'nn', 'FV1D_volume_sum', '', 'total'])
+    _append_vessel_row(df2, 'volume_sum_1D', 'nn', 'FV1D_volume_sum', '', 'total')
     assert df2.loc[0, 'name'] == 'volume_sum_1D' and df2.loc[0, 'instance'] == ''
-
 
 def _generate_cpp_1d(work_dir, vessel_array_name, records=None):
     import contextlib
