@@ -38,8 +38,9 @@ def generate_module_instance(target, work_dir, file_prefix, overrides=(), librar
     over every instance and supermodule default. ``library_inputs`` are the generation keys
     that locate the modules (``module_library_dirs`` etc.).
 
-    Returns ``{'model_path', 'parameters_path', 'resources_dir', 'generated_models_dir',
-    'inp_data_dict'}``; raises RuntimeError when generation fails. Not MPI-aware: call it on
+    Returns ``{'model_path', 'flat_model_path', 'parameters_path', 'resources_dir',
+    'generated_models_dir', 'inp_data_dict'}`` (``flat_model_path``: the CellML with its
+    imports resolved, None for other model types); raises RuntimeError when generation fails. Not MPI-aware: call it on
     one rank.
     '''
     # imported here: generation pulls in libCellML, which nothing else in the workflow needs
@@ -68,9 +69,12 @@ def generate_module_instance(target, work_dir, file_prefix, overrides=(), librar
         raise RuntimeError(f'generating {target.label()} failed; the generator\'s messages '
                            f'above say why.')
     model_dir = os.path.join(generated_models_dir, file_prefix)
+    flat = os.path.join(model_dir, f'{file_prefix}_flat.cellml')
     return {
         'model_path': os.path.join(model_dir,
                                    file_prefix + _MODEL_EXTENSIONS.get(model_type, '.cellml')),
+        # the CellML model with its imports resolved into one file (cellml only)
+        'flat_model_path': flat if os.path.isfile(flat) else None,
         'parameters_path': os.path.join(model_dir, f'{file_prefix}_parameters.csv'),
         'resources_dir': resources_dir,
         'generated_models_dir': generated_models_dir,

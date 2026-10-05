@@ -642,7 +642,7 @@ def workflow_model(source, view, *, output_dir, work_dir, module_library_dirs=No
     nothing in ``output_dir`` is written: the model goes under ``work_dir``.
 
     Returns ``{view, kind ('step' or 'target'), target, submodule_path, model_path,
-    parameters_path, obs_data_path, params_for_id_path, fixed, calibrated, waiting_for,
+    flat_model_path (one self-contained CellML file), parameters_path, obs_data_path, params_for_id_path, fixed, calibrated, waiting_for,
     stale, result, param_id_output_dir}``. ``fixed`` lists the values given by earlier
     steps; ``calibrated`` the view's own (for the target, the merged set); ``waiting_for``
     the steps whose results it should have but that have not run; ``stale`` those whose
@@ -727,6 +727,7 @@ def workflow_model(source, view, *, output_dir, work_dir, module_library_dirs=No
         'step_id': own_step.id if has_own else None,
         'submodule_path': submodule_path,
         'model_path': generated['model_path'],
+        'flat_model_path': generated['flat_model_path'],
         'parameters_path': generated['parameters_path'],
         'obs_data_path': existing(instance.obs_data_path) if has_own else None,
         'params_for_id_path': existing(instance.params_for_id_path) if has_own else None,

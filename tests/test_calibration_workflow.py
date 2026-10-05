@@ -515,6 +515,7 @@ def test_a_tab_shows_each_model_with_the_values_available_so_far(library, tmp_pa
     rest = workflow_model(library['chain_rest'], 'rest', output_dir=out, work_dir=work)
     assert rest['kind'] == 'step' and rest['waiting_for'] == ['fit_a'] and rest['fixed'] == []
     assert rest['obs_data_path'].endswith('rest_obs_data.json')
+    assert os.path.isfile(rest['flat_model_path'])
     assert parameters(rest)['p_mod_A'] == 1.0     # the instance default, nothing fixed yet
 
     run_calibration_workflow(library['chain_rest'], output_dir=out, only='fit_a')
