@@ -575,8 +575,11 @@ class CVS0DParamID():
                 best_param_vals = getattr(self.param_id, "best_param_vals", None)
 
                 if output_dir and protocol_info and best_param_vals is not None:
+                    # the first experiment the cost uses: a validation-only experiment is
+                    # not simulated in calibration and has no dump
+                    first = (cost_experiment_idxs(protocol_info) or [0])[0]
                     expected0 = os.path.join(
-                        output_dir, "all_outputs_with_best_param_vals_exp_0.npz"
+                        output_dir, f"all_outputs_with_best_param_vals_exp_{first}.npz"
                     )
                     if not os.path.exists(expected0):
                         print(
@@ -3981,7 +3984,8 @@ A caller that steps through the segments in order does so inside
             print(f'WARNING: best cost {best_cost} is not close to cost check {cost_check}')
             print(f'Something is wrong with the cost calculation')
 
-            if os.path.exists(os.path.join(self.output_dir, f'all_outputs_with_best_param_vals_exp_0.npz')):
+            first = (cost_experiment_idxs(self.protocol_info) or [0])[0]
+            if os.path.exists(os.path.join(self.output_dir, f'all_outputs_with_best_param_vals_exp_{first}.npz')):
                 print('calculating some debug metrics for this issue')
 
                 for exp_idx in cost_experiment_idxs(self.protocol_info):
