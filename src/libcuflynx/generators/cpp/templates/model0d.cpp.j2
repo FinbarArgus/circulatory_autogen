@@ -278,9 +278,10 @@ void Model0d::computeRates(double voiLoc, double dtLoc, double *statesLoc, doubl
     ::computeRates(voiLoc, statesLoc, ratesLoc, varLoc{{ CB }});
 }
 
-void Model0d::solveOneStep(double dtLoc)
+int Model0d::solveOneStep(double dtLoc)
 {
     gCurrentModel = this;
+    lastError_.clear();
     const double dtRequested = dtLoc;
     dt = dtLoc;
     hookStepStart();
@@ -290,8 +291,10 @@ void Model0d::solveOneStep(double dtLoc)
         CVodeSetStopTime(solver, voiEnd);
         int flag = CVode(solver, voiEnd, y, &voi, CV_NORMAL);
         if (flag < 0) {
-            std::cerr << "CVODE :: Error occurred with flag " << flag << ". Exiting." << std::endl;
-            exit(1);
+            lastError_ = "CVODE failed at t = " + std::to_string(voi) + " s with flag " + std::to_string(flag) +
+                         " (" + CVodeGetReturnFlagName(flag) + ")";
+            dt = dtRequested;
+            return flag;
         } else if (flag == 2) {
             std::cout << "CVODE :: Root found with flag " << flag << std::endl;
         } else if (flag == 99) {
@@ -352,9 +355,9 @@ void Model0d::solveOneStep(double dtLoc)
                 states[i] = s0[i] + dt * rates[i];
             }
         } else {
-            std::cerr << "Model0d::solveOneStep :: ODE solver not available in this generated model: "
-                      << solver_0d << std::endl;
-            exit(1);
+            lastError_ = "ODE solver not available in this generated model: " + solver_0d;
+            dt = dtRequested;
+            return -1;
         }
         voi += dt;
         voi = std::round(voi / tolTime) * tolTime;
@@ -368,6 +371,14 @@ void Model0d::solveOneStep(double dtLoc)
     tOld = voi;
 {% endif %}
     dt = dtRequested;
+    for (size_t i = 0; i < STATE_COUNT; ++i) {
+        if (!std::isfinite(states[i])) {
+            lastError_ = "state " + std::string(STATE_INFO[i].component) + "/" + STATE_INFO[i].name +
+                         " is not finite at t = " + std::to_string(voi) + " s";
+            return -2;
+        }
+    }
+    return 0;
 }
 
 // ---------------------------------------------------------------------------------------------

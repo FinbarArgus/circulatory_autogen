@@ -2322,9 +2322,15 @@ class CVS0DCellMLGenerator(object):
                     if inp_unit != out_unit:  
                         try:  
                             scale = self.unit_converter.get_scale_factor(inp_unit, out_unit)  
+                            if abs(float(scale) - 1.0) < 1e-12:
+                                # equivalent units under different names (e.g. mol_per_m3 and
+                                # millimolar): a plain connection, no converter
+                                direct_mappings.append((inp_var, out_var))
+                                continue
                             converter_key = (inp_unit, out_unit, scale)  
                             if converter_key not in converter_mappings:  
-                                converter_name = f"unit_converter_{inp_unit}_to_{out_unit}"  
+                                # one per connection: a model can need the same conversion twice
+                                converter_name = f"unit_converter_{inp_name}_{out_name}_{inp_unit}_to_{out_unit}"  
                                 converter_mappings[converter_key] = {  
                                     'inp_vars': [], 'out_vars': [],   
                                     'converter_name': converter_name,  

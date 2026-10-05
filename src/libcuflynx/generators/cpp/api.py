@@ -11,6 +11,12 @@ describes, in data, the calls that couple the generated 0D model to something ou
   generated class exposes and which variable each one sets or gets. A provider is a row of the
   vessel array, connected to CellML modules through its ports; its functions name its own port
   variables (or ``component/variable``).
+  ``transport: python``: the other model is a Python class (e.g. a FEniCS model). The generated
+  C++ is also built as a shared library, and ``libcuflynx.coupling`` steps it together with the
+  class. The class's inputs and outputs are the module's own port variables: each one connected
+  to a CellML variable the 0D model computes is an input to the class, each one connected to a
+  boundary condition of the 0D model is an output of the class (see externals.infer_directions).
+  A port connected to several modules exchanges one value per module.
 * ``role: process``   -- another program run alongside the generated model (e.g. the FV 1D solver):
   how it is launched (``program``, ``coordinator``) and the pipes it talks over (``channels``,
   ``message_length``). A consumer names it with ``"process": "<vessel_type>"`` and then lists only
@@ -21,10 +27,18 @@ Anything received from the other model becomes a libCellML external variable.
 '''
 
 import copy
+import os
+
+# Version of the C interface (templates/model0d_capi.cpp.j2) that libcuflynx.coupling loads.
+CAPI_VERSION = 1
 
 API_ROLES = ('consumer', 'provider', 'process')
 PROCESS_COORDINATORS = ('coupler',)
-API_TRANSPORTS = ('named_pipe', 'cpp_class')
+API_TRANSPORTS = ('named_pipe', 'cpp_class', 'python')
+# keys a python-transport api block may carry (anything else is most likely a typo)
+PYTHON_API_KEYS = {'name', 'description', 'role', 'transport', 'exchange', 'python', 'coupling_dt',
+                   'subiterations', 'tol', 'relaxation', 'variables', '_config_dir'}
+VARIABLE_DIRECTIONS = ('to_external', 'from_external')
 API_EXCHANGES = ('per_rhs', 'per_time_step')
 CALL_WHEN = ('init', 'step_start', 'rhs_start', 'rhs', 'step_end')
 CALL_KINDS = ('send', 'recv', 'send_recv')
@@ -46,6 +60,14 @@ API_UNIT_FACTORS = {
     'dimensionless': 1.0,
     'mmHg_per_ml': 133.322387415 / 1e-6,
     'J_per_m6': 1.0,
+    'mM': 1.0,
+    'millimolar': 1.0,
+    'mol_per_m3': 1.0,
+    'uM': 1e-3,
+    'mol_per_s': 1.0,
+    'nmol_per_s': 1e-9,
+    'm2_per_s': 1.0,
+    'per_s': 1.0,
 }
 
 
@@ -104,6 +126,8 @@ def validate_api_block(api, where=''):
             raise APIConfigError(f"named_pipe api{ctx} needs a non-empty 'calls' list")
         for call in calls:
             _validate_call(call, channels, ctx)
+    elif api['transport'] == 'python':
+        _validate_python(api, ctx)
     elif api['transport'] == 'cpp_class':
         functions = api.get('functions')
         if not isinstance(functions, list) or not functions:
@@ -121,6 +145,45 @@ def validate_api_block(api, where=''):
                     raise APIConfigError(f"api function '{fn['name']}'{ctx} is indexed but the api has no 'chamber_enum'")
             unit_factor(fn)
     return True
+
+
+def python_model_path(api):
+    '''Absolute path of a python-transport api's model file (relative to its module config).'''
+    path = os.path.expanduser(str(api['python']['file']))
+    if not os.path.isabs(path):
+        path = os.path.join(api.get('_config_dir', os.getcwd()), path)
+    return os.path.abspath(path)
+
+
+def _validate_python(api, ctx):
+    if api['role'] != 'provider':
+        raise APIConfigError(f"python api{ctx} must have role 'provider' (the generated model is a library the "
+                             f"Python model is stepped with), got {api['role']!r}")
+    unknown = set(api) - PYTHON_API_KEYS
+    if unknown:
+        raise APIConfigError(f"python api{ctx} has unknown key(s) {sorted(unknown)}; allowed: "
+                             f"{sorted(k for k in PYTHON_API_KEYS if not k.startswith('_'))}")
+    py = api.get('python')
+    if not isinstance(py, dict) or not isinstance(py.get('file'), str) or not isinstance(py.get('class'), str):
+        raise APIConfigError(f"python api{ctx} needs \"python\": {{\"file\": \"<model>.py\", \"class\": "
+                             f"\"<ClassName>\"}} (the file relative to the module config)")
+    if '_config_dir' in api and not os.path.isfile(python_model_path(api)):
+        raise APIConfigError(f"python api{ctx}: model file {python_model_path(api)} not found "
+                             f"(api.python.file is relative to the module config's folder)")
+    for key in ('coupling_dt', 'tol'):
+        if key in api and not (isinstance(api[key], (int, float)) and api[key] > 0):
+            raise APIConfigError(f"python api{ctx}: '{key}' must be a positive number, got {api[key]!r}")
+    if 'subiterations' in api and not (isinstance(api['subiterations'], int) and api['subiterations'] >= 0):
+        raise APIConfigError(f"python api{ctx}: 'subiterations' must be a non-negative integer")
+    if 'relaxation' in api and not (isinstance(api['relaxation'], (int, float)) and 0 < api['relaxation'] <= 1):
+        raise APIConfigError(f"python api{ctx}: 'relaxation' must be in (0, 1]")
+    for var, spec in (api.get('variables') or {}).items():
+        if not isinstance(spec, dict):
+            raise APIConfigError(f"python api{ctx}: variables['{var}'] must be a dict")
+        if 'direction' in spec and spec['direction'] not in VARIABLE_DIRECTIONS:
+            raise APIConfigError(f"python api{ctx}: variables['{var}'].direction must be one of "
+                                 f"{VARIABLE_DIRECTIONS}")
+        unit_factor(spec)
 
 
 def _validate_channels(api, ctx):

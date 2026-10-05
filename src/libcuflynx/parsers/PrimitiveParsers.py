@@ -3178,8 +3178,16 @@ class JSONFileParser(object):
 
     def module_config_to_dataframe(self, json_path):
         """The entries of one module config JSON file, in either the libcuflynx or the PhLynx
-        schema, as a dataframe with libcuflynx column names (see utilities/config_schemas.py)."""
-        return pd.DataFrame(load_module_config(json_path))
+        schema, as a dataframe with libcuflynx column names (see utilities/config_schemas.py).
+
+        An entry's ``api`` block gets ``_config_dir``, the folder of this file, so files the api
+        names (e.g. an external model's Python file) are found relative to their config."""
+        entries = load_module_config(json_path)
+        config_dir = os.path.dirname(os.path.abspath(json_path))
+        for entry in entries:
+            if isinstance(entry, dict) and isinstance(entry.get('api'), dict):
+                entry['api'].setdefault('_config_dir', config_dir)
+        return pd.DataFrame(entries)
 
     def json_files_to_dataframe(self, json_files):
         """All module config entries from ``json_files``, in order, as one dataframe."""

@@ -21,7 +21,7 @@ from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.generators.CVSCellMLGenerator import CVS0DCellMLGenerator
 from libcuflynx.generators.multi_port import module_has_list_multi_port
 from libcuflynx.generators.cpp import externals as ext
-from libcuflynx.generators.cpp.api import unit_factor
+from libcuflynx.generators.cpp.api import CAPI_VERSION, python_model_path, unit_factor
 from libcuflynx.generators.naming import build_symbols
 
 try:
@@ -66,6 +66,8 @@ class CVS0DCppGenerator(object):
       coupler_config.json       (coupled to 1D) what the coupler launches and how, from the api
                                 block of the process the connections name (e.g. FV1D_solver)
       circulation_api.h/.cpp, api_test_driver.cpp   (a provider api is linked, e.g. lifex)
+      model0d_capi.cpp, external_models.json   (python external models: a C interface built as
+                                the shared library model0d_capi, and what libcuflynx.coupling runs)
     '''
 
     def __init__(self, model, generated_model_subdir, file_prefix, resources_dir=None,
@@ -181,8 +183,17 @@ class CVS0DCppGenerator(object):
         providers = ext.collect_provider_apis(vessels_df, flat_model)
         if len(providers) > 1:
             raise CppGenerationError('Only one provider api per model is supported.')
+        python_externals, exchange = ext.collect_python_exchange(vessels_df, flat_model)
+        if exchange and (connections or providers):
+            raise CppGenerationError('A model coupled to Python external models (api transport "python") cannot '
+                                     'also be coupled to the 1D solver or to a cpp_class provider yet.')
 
         externals = list(pipe_externals) + list(delays)
+        for x in exchange:
+            for spec in x.specs:
+                # start from the parameter value of the boundary condition until the external sets it
+                spec.initial = self._initial_value(spec.ref.variable)
+                externals.append(spec)
         for prov in providers:
             for spec in prov['set_specs'].values():
                 if spec.initial is None:
@@ -214,6 +225,8 @@ class CVS0DCppGenerator(object):
             refs += [c.output_ref] + ([c.control_ref] if c.control_ref is not None else [])
         for prov in providers:
             refs += list(prov['get_refs'].values()) + list(prov['state_refs'].values())
+        for x in exchange:
+            refs += x.refs
         for r in refs:
             self._resolve(r)
         for spec in externals:
@@ -232,7 +245,9 @@ class CVS0DCppGenerator(object):
 
         self._write_core(am)
         self._render_all(pipes, hooks, externals, delays, providers, len(connections),
-                         len(connections) + len(volume_specs))
+                         len(connections) + len(volume_specs), exchange)
+        if exchange:
+            self._write_external_models(python_externals, exchange)
         if process_api is not None:
             self._write_coupler_config(process_api)
         self.externals = externals
@@ -472,7 +487,7 @@ class CVS0DCppGenerator(object):
                                 'simulation_outputs_cpp', self._model_name(), '')
         return os.path.join(os.path.abspath(self.cpp_generated_models_dir), 'simulation_outputs_cpp', '')
 
-    def _render_all(self, pipes, hooks, externals, delays, providers, n_conn, n_conn_tot):
+    def _render_all(self, pipes, hooks, externals, delays, providers, n_conn, n_conn_tot, exchange=()):
         env = template_environment()
         pre = float(self.pre_time) if self.pre_time is not None else None
         sim = float(self.sim_time) if self.sim_time is not None else None
@@ -520,6 +535,20 @@ class CVS0DCppGenerator(object):
                 'add_executable(api_test_driver api_test_driver.cpp)\n'
                 'target_link_libraries(api_test_driver PRIVATE circulation_api)'
             ]
+        if exchange:
+            files['model0d_capi.cpp'] = env.get_template('model0d_capi.cpp.j2').render(
+                **ctx, exchange=exchange, capi_version=CAPI_VERSION)
+            ctx['extra_targets'] = ctx['extra_targets'] + [
+                '# C interface for Python external models (libcuflynx.coupling loads it with ctypes):\n'
+                '# only the cf_* functions are exported, so several models can share one process.\n'
+                'add_library(model0d_capi SHARED model0d_capi.cpp)\n'
+                'target_link_libraries(model0d_capi PRIVATE model0d)\n'
+                'set_target_properties(model0d_capi PROPERTIES CXX_VISIBILITY_PRESET hidden\n'
+                '                      VISIBILITY_INLINES_HIDDEN ON)\n'
+                'if(CMAKE_SYSTEM_NAME STREQUAL "Linux")\n'
+                '    target_link_options(model0d_capi PRIVATE "LINKER:--exclude-libs,ALL")\n'
+                'endif()'
+            ]
         files['CMakeLists.txt'] = env.get_template('CMakeLists.txt.j2').render(**ctx)
         for name, text in files.items():
             with open(os.path.join(self.cpp_generated_models_dir, name), 'w') as f:
@@ -529,6 +558,60 @@ class CVS0DCppGenerator(object):
             p = os.path.join(self.cpp_generated_models_dir, stale)
             if os.path.exists(p) and stale != 'model0d.h':
                 os.remove(p)
+
+    def _row_parameters(self, row_name, variables_and_units):
+        '''{variable: value} of an external row's constants (<var>_<row> in the parameters file)
+        and global constants (<var>), for its Python model.'''
+        params = getattr(self.model, 'parameters_array', None)
+        out = {}
+        if params is None or not isinstance(variables_and_units, list):
+            return out
+        values = {str(n): v for n, v in zip(params['variable_name'], params['value'])}
+        for entry in variables_and_units:
+            var, kind = entry[0], entry[3]
+            key = f'{var}_{row_name}' if kind == 'constant' else var if kind == 'global_constant' else None
+            if key is None:
+                continue
+            if key not in values:
+                raise CppGenerationError(f"Parameter {key} (constant {var} of external module '{row_name}') "
+                                         f"is not in the parameters file.")
+            out[var] = float(values[key])
+        return out
+
+    def _write_external_models(self, python_externals, exchange):
+        '''external_models.json: what libcuflynx.coupling runs -- the C interface's exchange table,
+        and for each Python external model its class, parameters and variables.'''
+        index = {x.name: i for i, x in enumerate(exchange)}
+        rows = self.model.vessels_df.set_index('name')
+        models = []
+        for entry in python_externals:
+            api = entry['api']
+            models.append({
+                'row': entry['row'],
+                'name': api.get('name', entry['row']),
+                'file': python_model_path(api),
+                'class': api['python']['class'],
+                'parameters': self._row_parameters(entry['row'], rows.loc[entry['row'], 'variables_and_units']),
+                'coupling_dt': float(api.get('coupling_dt', self.dtSample)),
+                'subiterations': int(api.get('subiterations', 0)),
+                'tol': float(api.get('tol', 1e-8)),
+                'relaxation': float(api.get('relaxation', 1.0)),
+                'variables': [{'variable': x.variable, 'exchange_index': index[x.name], 'direction': x.direction,
+                               'units': x.units, 'neighbours': x.neighbours} for x in entry['variables']],
+            })
+        info = {
+            'capi_version': CAPI_VERSION,
+            'model_name': self._model_name(),
+            'library': 'model0d_capi',
+            'solver': self.solver,
+            'pre_time': float(self.pre_time or 0.0),
+            'sim_time': float(self.sim_time) if self.sim_time is not None else None,
+            'dt_output': float(self.dtSample),
+            'output_dir': self._default_output_dir(),
+            'external_models': models,
+        }
+        with open(os.path.join(self.cpp_generated_models_dir, 'external_models.json'), 'w') as f:
+            json.dump(info, f, indent=2)
 
     def _provider_context(self, prov):
         '''Context for the provider (e.g. lifex Circulation) templates.'''
