@@ -262,9 +262,51 @@ class CVS0DCppGenerator(object):
         model = cellml.parse_model(self.generated_model_file_path, False)
         importer = cellml.resolve_imports(model, os.path.dirname(self.generated_model_file_path), False)
         flat_model = cellml.flatten_model(model, importer)
+        self._numeric_initial_values(flat_model)
         with open(os.path.join(self.generated_model_subdir, self.file_prefix + '_flat.cellml'), 'w') as f:
             f.write(cellml.print_model(flat_model))
         return flat_model
+
+    def _numeric_initial_values(self, flat_model):
+        '''Replace state initial values given by computed variables with their numbers.
+
+        CellML 2.0 allows a state's initial value to be a variable computed from constants (e.g.
+        a gate starting at its steady state, m_init = m_inf(V_rest)); libCellML 0.6's analyser
+        accepts only constants there. Myokit evaluates them, so the generated C starts from the
+        same values as the CellML model run with Myokit.'''
+        analyser = Analyser()
+        analyser.analyseModel(flat_model)
+        if not any('is initialised using variable' in analyser.issue(i).description()
+                   for i in range(analyser.issueCount())):
+            return
+        import tempfile
+        import myokit
+        import myokit.formats
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, 'flat.cellml')
+            with open(path, 'w') as f:
+                f.write(cellml.print_model(flat_model))
+            mk = myokit.formats.importer('cellml').model(path)
+        values = {s.qname(): float(v) for s, v in zip(mk.states(), mk.initial_values(as_floats=True))}
+        replaced = 0
+        for c in range(flat_model.componentCount()):
+            comp = flat_model.component(c)
+            for v in range(comp.variableCount()):
+                var = comp.variable(v)
+                init = var.initialValue()
+                if not init:
+                    continue
+                try:
+                    float(init)
+                    continue
+                except ValueError:
+                    pass
+                key = f'{comp.name()}.{var.name()}'
+                if key in values:
+                    var.setInitialValue(repr(values[key]))
+                    replaced += 1
+        if self.DEBUG:
+            print(f'C++ generation: {replaced} computed initial values evaluated with Myokit')
 
     @staticmethod
     def _initial_value(variable):
@@ -586,13 +628,16 @@ class CVS0DCppGenerator(object):
         models = []
         for entry in python_externals:
             api = entry['api']
+            params = self._row_parameters(entry['row'], rows.loc[entry['row'], 'variables_and_units'])
             models.append({
                 'row': entry['row'],
                 'name': api.get('name', entry['row']),
                 'file': python_model_path(api),
                 'class': api['python']['class'],
-                'parameters': self._row_parameters(entry['row'], rows.loc[entry['row'], 'variables_and_units']),
-                'coupling_dt': float(api.get('coupling_dt', self.dtSample)),
+                'parameters': params,
+                # a coupling_dt constant of the module (set per instance in the parameters file)
+                # overrides the api block's default
+                'coupling_dt': float(params.get('coupling_dt', api.get('coupling_dt', self.dtSample))),
                 'subiterations': int(api.get('subiterations', 0)),
                 'tol': float(api.get('tol', 1e-8)),
                 'relaxation': float(api.get('relaxation', 1.0)),
