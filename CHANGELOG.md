@@ -107,6 +107,63 @@ JSON Schemas for both files ship in `libcuflynx/schemas/` (`vessel_array.schema.
 The 0D/1D split for `couple_to_1d` now always writes `[file_prefix]_0d_vessel_array.csv` and
 `[file_prefix]_1d_vessel_array.csv`, and the 1D generator reads the file the split wrote. Before,
 an input named `_module_array.csv` gave split files the 1D generator could not find.
+### Changed! — `model_type: cpp` is generated from libCellML's C output and Jinja2 templates
+
+The C++ generator is rewritten (`libcuflynx/generators/cpp/`). The model equations are
+libCellML's C code, written unmodified (`model0d_core.c/.h`); the `Model0d` class, the solvers,
+`main0d` and a `CMakeLists.txt` are rendered from templates. Build with CMake (add
+`-DSUNDIALS_DIR=<prefix>` if SUNDIALS isn't found; versions 5-7 work). Solvers are CVODE and the
+fixed-step RK4/Heun/midpoint/explEul; **PETSC is no longer supported** and is refused with an
+error. Generated models no longer get the `solver1d/Make_files` copied next to them (they built
+the old C++), and the coupler builds with CMake. FV_1d coupled output is identical to before.
+
+### Added — `api` blocks: couplings to other models described in module configs
+
+A module config entry can carry an `api` block. `role: consumer` describes calls the generated
+C++ makes (the FV 1D named-pipe protocol is now described this way in
+`coupling_modules_config.json`); `role: provider` generates a C++ class another program calls,
+e.g. a drop-in `lifex::Circulation`. A provider is its own vessel-array row
+(`module_format: external_api`) coupled to CellML modules through ports; values it sets become
+libCellML external variables. `external_modules_dir` also accepts a list of directories.
+
+### Added — the FV 1D solver as a `process` module; `coupler_config.json` is generated
+
+A new `api` role, `process`, describes a program run alongside the generated model: what to
+launch (`program`), who launches it (`coordinator: coupler`) and the pipes it talks over
+(`channels`, `message_length`). `FV1D_solver` in `coupling_modules_config.json` is the FV 1D
+solver. The `FV1D_vessel` and `FV1D_volume_sum` entries name it (`"process": "FV1D_solver"`)
+instead of each repeating the pipe names. From it, C++ generation of a model coupled to 1D now
+writes `coupler_config.json`, which until now had to be written by hand:
+- `T0` is the global parameter `T`;
+- `nCC` is the number of whole periods covering `pre_time + sim_time`;
+- the pipe folder is the user input `coupler_pipe_dir` (default `cuflynx_pipes/<model>/` in the
+  system temp folder, which `TMPDIR` moves);
+- `python_path` is the generating Python, and the 1D solver is the installed one.
+
+`convert_0d_to_1d` adds an `FV1D_solver` row to the hybrid vessel array, and reads
+`<model>_vessel_array.csv` when there is no `<model>_0d_vessel_array.csv`. The coupler creates
+the pipe folder, and its default pipe folder and Python are no longer paths on one machine.
+`main0d`'s coupled defaults (`T0`, `nCC`) match the configuration. New example model
+`aortic_bif_0d` (all 0D); a test runs it against the same model with its vessels in 1D.
+
+### Added — readable generated C/C++
+
+Generated C code names every state and variable index: `rates[S_heart_module_q_lv] =
+(variables[V_parameters_r_pvn] ...)` instead of `rates[3] = (variables[12] ...)`.
+`model0d_core.h` declares the `StateIndex`/`VariableIndex` enums, with each name's component,
+variable, units and type, and the wrapper, pipe hooks and api classes use the same names. The
+names are the generated Python's attribute names (shared `generators/naming.py`). Results are
+unchanged.
+
+### Fixed — cpp generation and 1D coupling
+
+- `model_type: cpp` with CVODE always failed solver-settings validation.
+- Models with more than one delay variable did not compile; delays now use a time-stamped
+  history that works with variable CVODE steps.
+- 1D volume sum: the 1D solver opened its volume pipe in an order that deadlocked with the
+  coupler, and sent the volume in cm³ instead of m³.
+- 1D input generation wrote an unknown artery/vein type for vessels not named `A_*`/`V_*`;
+  an `art_ven_type_<vessel>` parameter now sets it.
 
 ### Added — PhLynx module-config and vessel-array schemas; `"Sum"` and `"Multiply"` multi_ports
 
@@ -172,6 +229,25 @@ The docs said a `user_units.cellml` in `external_modules_dir` was picked up; it 
 Every `*units.cellml` there (and in `module_library_dirs`) is now merged into the generated
 units file. A unit defined identically in several files is written once; one defined
 differently in two files raises a `ValueError` naming both files.
+
+### Fixed
+
+- `model_type: python` (and the CasADi / AADC variants) now defines every helper libCellML's
+  Python profile can emit: `eq_func`, `neq_func`, `or_func`, `xor_func`, `not_func`, `min` and
+  the reciprocal trig functions `sec` ... `acoth`. A model using `<eq/>`, `<or/>`, `<min/>` etc.
+  used to fail at run time with `NameError: name 'eq_func' is not defined` (#526).
+- A `sum` multi-port (e.g. a `volume_sum` vessel) with no inputs connected is now 0, with a
+  warning naming the vessel, and is still mapped to the vessel's port variable. Generation used
+  to fail with `IndexError: list index out of range` (#525).
+- The built-in constant boundary conditions (`inlet_pressure`, `outlet_pressure`, `inlet_flow`,
+  `outlet_flow` with BC_type `nn_constant`) list their port's flow / pressure variable in
+  `variables_and_units`, so they can be connected. Generation used to stop with "the port variable
+  v is not a variable for vessel type: inlet_pressure" (#529).
+- Generic junctions (`Min_junction`, `Nout_junction`, `MinNout_junction`) now include every
+  neighbour with a `vessel_port` facing the junction node, taking its flow and pressure from that
+  port, instead of skipping any neighbour whose BC_type starts with `nn`. A junction fed directly by
+  boundary conditions such as `inlet_flow nn_constant` used to fail with "Min_junction junc has NO
+  other vessels connected to its inlet node". Existing models generate byte-identical CellML (#524).
 
 ## 0.7.3 — 2026-09-05
 
