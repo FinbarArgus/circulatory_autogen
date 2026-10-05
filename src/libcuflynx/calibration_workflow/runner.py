@@ -594,6 +594,40 @@ def run_calibration_workflow(source, *, output_dir=None, module_library_dirs=Non
     return result
 
 
+def workflow_status(source, output_dir, module_library_dirs=None):
+    """Where each step of a workflow stands in ``output_dir``, cheaply (no generation).
+
+    Returns ``{'workflow_name', 'order', 'complete', 'steps': {id: {'status', 'stale',
+    'best_cost', 'finished', 'point_estimate'}}}`` with ``status`` ``'done'`` or
+    ``'not_run'``; ``stale`` is True when the step's obs_data, params_for_id or parameters
+    changed since it ran, or a step it takes values from is stale or was rerun after it.
+    """
+    workflow = source if hasattr(source, 'steps') else load_workflow(source, module_library_dirs)
+    resolved = resolve_workflow(workflow)
+    run = _Run(resolved, output_dir, _get_comm(None), None)
+    steps = {}
+    for step in workflow.topological_order():
+        result = run.step_result(step.id)
+        done = bool(result) and result.get('status') == 'done'
+        stale = False
+        if done:
+            current = run.inputs(step.id)
+            stale = any(key in current and current[key]['sha256'] != info.get('sha256')
+                        for key, info in result.get('inputs', {}).items())
+            for source_id in step.fixed_from + [p.step for p in step.priors_from]:
+                upstream = steps.get(source_id, {})
+                if upstream.get('stale') or upstream.get('status') != 'done' or \
+                        (upstream.get('finished') or '') > (result.get('started') or ''):
+                    stale = True
+        steps[step.id] = {'status': 'done' if done else 'not_run', 'stale': stale,
+                          'best_cost': (result or {}).get('best_cost') if done else None,
+                          'finished': (result or {}).get('finished') if done else None,
+                          'point_estimate': (result or {}).get('point_estimate') if done else None}
+    return {'workflow_name': workflow.name, 'order': [s.id for s in workflow.topological_order()],
+            'complete': all(v['status'] == 'done' and not v['stale'] for v in steps.values()),
+            'steps': steps}
+
+
 TARGET_VIEW = 'target'
 
 

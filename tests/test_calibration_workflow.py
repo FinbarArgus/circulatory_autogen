@@ -438,6 +438,18 @@ def test_fixed_values_flow_into_the_supermodule_and_editing_obs_data_redoes_it(l
     run = load_workflow_run(out)
     assert run['result']['complete'] and set(run['steps']) == {'fit_a', 'rest'}
 
+    from libcuflynx.calibration_workflow import workflow_status
+    status = workflow_status(library['chain_rest'], out)
+    assert status['complete'] and status['steps']['rest']['status'] == 'done'
+    # fit_a's data changes: fit_a is stale, and so is rest, which took its value
+    obs_path = os.path.join(library['lin_a/fit_a'], 'fit_a_obs_data.json')
+    obs = _read_json(obs_path)
+    obs['data_items'][0]['value'] = 5.0
+    _write_json(obs_path, obs)
+    status = workflow_status(library['chain_rest'], out)
+    assert status['steps']['fit_a']['stale'] and status['steps']['rest']['stale']
+    assert not status['complete']
+
 
 @pytest.mark.integration
 def test_a_failing_step_is_reported_and_stops_the_workflow(library, tmp_path):
