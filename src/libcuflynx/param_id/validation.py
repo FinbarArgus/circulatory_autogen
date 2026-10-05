@@ -149,7 +149,8 @@ def validation_results(prediction_info, time_per_exp, prediction_per_item,
                 kwargs = resolve_operation_kwargs(
                     (prediction_info.get('operation_kwargs') or [{}] * len(values))[i] or {},
                     func, operation_name=operations[i], data_item_name=str(names[i]),
-                    temp_results=temp_results, num_operands=len(operands))
+                    temp_results=temp_results, num_operands=len(operands),
+                    known_item_names=[str(v) for v in names])
                 result = np.asarray(_series_output(func, operands, kwargs), dtype=float).ravel()
                 if result.size != operands[0].size:
                     raise ValueError(

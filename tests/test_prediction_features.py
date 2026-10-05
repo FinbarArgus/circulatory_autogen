@@ -177,6 +177,48 @@ def test_features_read_their_operands_after_the_offset_and_resolve_references():
     assert np.isnan(values[2])
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize('referenced, what', [
+    ({"data_item_name": "a", "operands": ["main/a"], "unit": "-"}, 'has no operation'),
+    ({"data_item_name": "a", "operands": ["main/a"], "unit": "-", "operation": "max",
+      "data_type": "series"}, 'is a series'),
+])
+def test_a_reference_must_name_an_item_with_one_value(referenced, what):
+    """Sensitivity analysis and emulator training evaluate only the scalar prediction items,
+    so a reference to an item without an operation, or to a series, used to reach the
+    operation as the item's name (a TypeError, or a wrong number with no error)."""
+    with pytest.raises(ValueError, match=f"references prediction item 'a', which {what}"):
+        _parsed_prediction_info([
+            referenced,
+            {"data_item_name": "b", "operands": ["main/a"], "unit": "-", "operation": "max",
+             "data_type": "constant", "operation_kwargs": {"scale": "a"}},
+        ])
+
+
+@pytest.mark.unit
+def test_a_reference_to_an_item_that_is_not_a_feature_is_a_clear_error():
+    """An item with an operation that does not reduce to one number (no data_type) passes the
+    parser but is not a feature; a feature referencing it raises, naming it, rather than
+    getting its name as the value."""
+    def passthrough(x):
+        return np.asarray(x)
+
+    def scaled_mean(x, scale=1.0):
+        return scale * float(np.mean(x))
+
+    funcs = dict(_numpy_funcs(), passthrough=passthrough, scaled_mean=scaled_mean)
+    info, protocol = _parsed_prediction_info([
+        {"data_item_name": "a", "operands": ["main/a"], "unit": "-", "operation": "passthrough"},
+        {"data_item_name": "b", "operands": ["main/a"], "unit": "-", "operation": "scaled_mean",
+         "data_type": "constant", "operation_kwargs": {"scale": "a"}},
+    ])
+    indices = prediction_features.prediction_feature_indices(info, funcs, warn=False)
+    assert indices == [1]
+    outputs = {(0, 0): [[np.array([1.0, 2.0])]]}
+    with pytest.raises(ValueError, match="references data_item 'a'"):
+        prediction_features.features_from_segments(info, indices, funcs, protocol, outputs)
+
+
 # ============================================================================ validation
 
 @pytest.mark.unit

@@ -751,13 +751,18 @@ _NO_OPERATION_SPELLINGS = ('', 'None', 'none', 'Null', 'null', 'nan')
 
 
 def check_prediction_operation_references(gt_df, prediction_info):
-    """A prediction item's ``operation_kwargs`` may name an *earlier prediction item* only.
+    """A prediction item's ``operation_kwargs`` may name an *earlier prediction item* only,
+    and only one that has an operation and is not a series.
 
     A string kwarg value equal to an item's ``data_item_name`` is a reference to that item's
     value (#466). For a prediction feature only the prediction items are evaluated together
     -- the validation after calibration has no data_item features -- so a reference to a
     data_item, or to a later prediction item, could not be resolved the same way everywhere.
-    Refused here, at parse time, rather than as a confusing error after a simulation.
+    Sensitivity analysis and emulator training evaluate only the scalar prediction items, so a
+    reference to an item without an operation, or to a series, has no value there either: it
+    used to reach the operation as the item's name, a string (``TypeError``, or a plausible
+    wrong number). Refused here, at parse time, rather than as a confusing error after a
+    simulation.
     """
     if not prediction_info:
         return
@@ -765,6 +770,8 @@ def check_prediction_operation_references(gt_df, prediction_info):
     if gt_df is not None and len(gt_df) and "data_item_name" in gt_df.columns:
         data_names = {str(name) for name in gt_df["data_item_name"]}
     pred_names = [str(name) for name in (prediction_info.get("data_item_names") or [])]
+    operations = list(prediction_info.get("operations") or [None] * len(pred_names))
+    data_types = list(prediction_info.get("data_types") or [None] * len(pred_names))
     for idx, kwargs in enumerate(prediction_info.get("operation_kwargs") or []):
         for key, value in (kwargs or {}).items():
             if not isinstance(value, str):
@@ -780,6 +787,16 @@ def check_prediction_operation_references(gt_df, prediction_info):
                     f"references prediction item {value!r}, which is not earlier in "
                     f"prediction_items. References are resolved in order; move {value!r} "
                     f"before '{pred_names[idx]}'.")
+            if value in pred_names[:idx]:
+                ref = pred_names.index(value)
+                if operations[ref] is None or data_types[ref] == 'series':
+                    what = 'has no operation' if operations[ref] is None else "is a series"
+                    raise ValueError(
+                        f"prediction_items[{idx}] ('{pred_names[idx]}'): operation_kwargs {key!r} "
+                        f"references prediction item {value!r}, which {what}. A reference must "
+                        f"name an earlier prediction item with an operation that gives one "
+                        f"number (data_type 'constant', or no data_type and an operation such "
+                        f"as 'max' or 'mean'): only those have a value in every analysis.")
 
 
 def migrate_legacy_obs_columns(gt_df):
