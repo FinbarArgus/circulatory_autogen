@@ -15,14 +15,16 @@ fitting of *one* model (fit, drop unidentifiable parameters, refit).
 
 Entry points: :func:`run_calibration_workflow` (and the ``cuflynx-calibration-workflow``
 command), :func:`plan_workflow`, :func:`load_workflow`, :func:`load_workflow_run`,
-:class:`StoredDistribution`, :func:`generate_module_instance`.
+:func:`workflow_model` (the model a GUI tab shows), :class:`StoredDistribution`,
+:func:`generate_module_instance`.
 '''
 
 from libcuflynx.calibration_workflow.distributions import StoredDistribution
 from libcuflynx.calibration_workflow.generate import generate_module_instance
 from libcuflynx.calibration_workflow.resolve import resolve_workflow
-from libcuflynx.calibration_workflow.runner import (WorkflowStepError, load_workflow_run,
-                                                    plan_workflow, run_calibration_workflow)
+from libcuflynx.calibration_workflow.runner import (TARGET_VIEW, WorkflowStepError,
+                                                    load_workflow_run, plan_workflow,
+                                                    run_calibration_workflow, workflow_model)
 from libcuflynx.calibration_workflow.spec import (ALLOWED_SETTINGS, PRIOR_KINDS,
                                                   WORKFLOW_FILE_NAME, Workflow, WorkflowError,
                                                   load_workflow)
@@ -30,4 +32,4 @@ from libcuflynx.calibration_workflow.spec import (ALLOWED_SETTINGS, PRIOR_KINDS,
 __all__ = ['ALLOWED_SETTINGS', 'PRIOR_KINDS', 'WORKFLOW_FILE_NAME', 'StoredDistribution',
            'Workflow', 'WorkflowError', 'WorkflowStepError', 'generate_module_instance',
            'load_workflow', 'load_workflow_run', 'plan_workflow', 'resolve_workflow',
-           'run_calibration_workflow']
+           'run_calibration_workflow', 'TARGET_VIEW', 'workflow_model']

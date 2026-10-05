@@ -594,6 +594,115 @@ def run_calibration_workflow(source, *, output_dir=None, module_library_dirs=Non
     return result
 
 
+TARGET_VIEW = 'target'
+
+
+def workflow_model(source, view, *, output_dir, work_dir, module_library_dirs=None,
+                   with_own_results=True):
+    """Generate the model one tab of a workflow shows, from whatever results exist so far.
+
+    ``view`` is a step id, or ``'target'`` for the workflow's target. A step's model gets
+    the values its ``fixed_from`` steps calibrated (those that have run into ``output_dir``)
+    and, with ``with_own_results``, its own calibrated values once it has run. The target
+    gets every calibrated value there is, mapped into its naming. Nothing is calibrated and
+    nothing in ``output_dir`` is written: the model goes under ``work_dir``.
+
+    Returns ``{view, kind ('step' or 'target'), target, submodule_path, model_path,
+    parameters_path, obs_data_path, params_for_id_path, fixed, calibrated, waiting_for,
+    stale, result, param_id_output_dir}``. ``fixed`` lists the values given by earlier
+    steps; ``calibrated`` the view's own (for the target, the merged set); ``waiting_for``
+    the steps whose results it should have but that have not run; ``stale`` those whose
+    inputs changed since they ran. obs_data / params_for_id are None when the instance has
+    none (a target with no step of its own).
+    """
+    workflow = source if hasattr(source, 'steps') else load_workflow(source, module_library_dirs)
+    resolved = resolve_workflow(workflow)
+    run = _Run(resolved, output_dir, _get_comm(None), None)
+    waiting, stale = [], []
+
+    def available(step_id):
+        result = run.step_result(step_id)
+        if result is None or result.get('status') != 'done':
+            waiting.append(step_id)
+            return None
+        current = run.inputs(step_id)
+        if any(key in current and current[key]['sha256'] != info.get('sha256')
+               for key, info in result.get('inputs', {}).items()):
+            stale.append(step_id)
+        return result
+
+    overrides, fixed, calibrated = {}, [], []
+    if view == TARGET_VIEW:
+        kind, target = 'target', workflow.target
+        for step in workflow.topological_order():
+            result = available(step.id)
+            for record in (result or {}).get('calibrated', []):
+                overrides[record['target_model_name']] = (record, step.id)
+        calibrated = [{'model_name': name, 'value': rec['value'], 'units': rec.get('units', ''),
+                       'from_step': sid} for name, (rec, sid) in sorted(overrides.items())]
+        own_step = next((s for s in workflow.steps if s.target == workflow.target), None)
+        instance = resolved.target
+        submodule_path = ''
+        own_result = run.step_result(own_step.id) if own_step else None
+    else:
+        step = workflow.step(view)
+        kind, target = 'step', step.target
+        rs = resolved.steps[step.id]
+        instance, submodule_path = rs.instance, rs.path
+        for source_id in step.fixed_from:
+            result = available(source_id)
+            if result is None:
+                continue
+            path = resolved.path_between(source_id, step.id)
+            for record in result['calibrated'] + result['fixed']:
+                vessel = naming.map_vessel(record['vessel'], path)
+                name = naming.model_name(vessel, record['param'])
+                origin = record.get('from_step', source_id)
+                overrides[name] = ({'value': record['value'], 'units': record.get('units', '')},
+                                   origin)
+                fixed.append({'model_name': name, 'value': record['value'],
+                              'units': record.get('units', ''), 'from_step': origin})
+        own_step = step
+        own_result = run.step_result(step.id)
+        if own_result and own_result.get('status') == 'done':
+            calibrated = [{'model_name': r['model_name'], 'value': r['value'],
+                           'units': r.get('units', ''), 'from_step': step.id}
+                          for r in own_result['calibrated']]
+            if with_own_results:
+                for record in calibrated:
+                    overrides.setdefault(record['model_name'], (record, step.id))
+    rows = [{'variable_name': name, 'units': rec.get('units', ''),
+             'value': repr(float(rec['value'])),
+             'data_reference': f'calibration workflow {workflow.name}, step {sid}'}
+            for name, (rec, sid) in sorted(overrides.items())]
+    view_dir = os.path.join(os.path.abspath(work_dir), view)
+    if os.path.isdir(view_dir):
+        shutil.rmtree(view_dir)
+    settings = workflow.step_settings(own_step) if kind == 'step' else workflow.settings
+    generated = generate_module_instance(
+        target, view_dir, view, rows, library_inputs=resolved.library_inputs,
+        model_type=settings.get('model_type', STEP_DEFAULTS['model_type']),
+        solver=settings.get('solver'))
+
+    def existing(path):
+        return path if path and os.path.isfile(path) else None
+
+    has_own = own_step is not None
+    return {
+        'view': view, 'kind': kind, 'target': target.as_dict(),
+        'step_id': own_step.id if has_own else None,
+        'submodule_path': submodule_path,
+        'model_path': generated['model_path'],
+        'parameters_path': generated['parameters_path'],
+        'obs_data_path': existing(instance.obs_data_path) if has_own else None,
+        'params_for_id_path': existing(instance.params_for_id_path) if has_own else None,
+        'fixed': fixed, 'calibrated': calibrated,
+        'waiting_for': sorted(set(waiting)), 'stale': sorted(set(stale)),
+        'result': own_result,
+        'param_id_output_dir': (own_result or {}).get('param_id_output_dir'),
+    }
+
+
 def load_workflow_run(output_dir):
     '''A workflow run read back from ``output_dir``: ``{'workflow': dict, 'result': dict or
     None, 'steps': {step id: step_result or None}}`` -- a partial run has some steps None.'''

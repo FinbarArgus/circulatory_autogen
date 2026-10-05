@@ -488,3 +488,43 @@ def test_a_stored_posterior_becomes_the_prior_of_a_later_step(library, tmp_path)
     merged = _merged(result)
     assert merged['p_A'] == pytest.approx(2.0, abs=0.03)
     assert merged['q_C'] == pytest.approx(3.0, abs=0.1)
+
+
+@pytest.mark.integration
+def test_a_tab_shows_each_model_with_the_values_available_so_far(library, tmp_path):
+    from libcuflynx.calibration_workflow import workflow_model
+
+    out, work = str(tmp_path / 'run'), str(tmp_path / 'views')
+
+    def parameters(view):
+        with open(view['parameters_path']) as f:
+            return {r['variable_name']: float(r['value']) for r in csv.DictReader(f)}
+
+    rest = workflow_model(library['chain_rest'], 'rest', output_dir=out, work_dir=work)
+    assert rest['kind'] == 'step' and rest['waiting_for'] == ['fit_a'] and rest['fixed'] == []
+    assert rest['obs_data_path'].endswith('rest_obs_data.json')
+    assert parameters(rest)['p_mod_A'] == 1.0     # the instance default, nothing fixed yet
+
+    run_calibration_workflow(library['chain_rest'], output_dir=out, only='fit_a')
+    rest = workflow_model(library['chain_rest'], 'rest', output_dir=out, work_dir=work)
+    assert rest['waiting_for'] == [] and rest['calibrated'] == []
+    assert [(f['model_name'], f['from_step']) for f in rest['fixed']] == [('p_mod_A', 'fit_a')]
+    assert parameters(rest)['p_mod_A'] == pytest.approx(np.sqrt(Y_A / 2), rel=1e-4)
+
+    fit_a = workflow_model(library['chain_rest'], 'fit_a', output_dir=out, work_dir=work)
+    assert fit_a['submodule_path'] == 'A' and fit_a['param_id_output_dir']
+    assert parameters(fit_a)['p_mod'] == pytest.approx(np.sqrt(Y_A / 2), rel=1e-4)
+
+    target = workflow_model(library['chain_rest'], 'target', output_dir=out, work_dir=work)
+    assert target['kind'] == 'target' and target['step_id'] == 'rest'
+    assert target['waiting_for'] == ['rest']
+    assert [c['model_name'] for c in target['calibrated']] == ['p_mod_A']
+    assert parameters(target)['p_mod_A'] == pytest.approx(np.sqrt(Y_A / 2), rel=1e-4)
+
+    # an edited input marks the result it fed as stale
+    obs_path = os.path.join(library['lin_a/fit_a'], 'fit_a_obs_data.json')
+    obs = _read_json(obs_path)
+    obs['data_items'][0]['std'] = 0.1
+    _write_json(obs_path, obs)
+    assert workflow_model(library['chain_rest'], 'rest', output_dir=out,
+                          work_dir=work)['stale'] == ['fit_a']
