@@ -185,48 +185,19 @@ A module config entry can also use PhLynx's key names. The generator detects the
 
 ### Coupling to other models: the `api` block
 
-A module config entry can carry an `api` block describing how a generated C++ model (`model_type: cpp`) exchanges values with another model. Values received from the other model become libCellML external variables of the generated code. Three roles exist:
+A module config entry with `"module_format": "external_api"` and an `api` block is a module
+that is not CellML: another model the generated C++ (`model_type: cpp`) runs with. It is a row
+of the vessel array, connected to CellML modules through its ports like any module, and values
+it sets become libCellML external variables of the generated code. Three kinds exist:
 
-- **`role: consumer`**: the generated code calls out to the other model. The FV 1D solver coupling is described this way, on the `FV1D_vessel` and `FV1D_volume_sum` entries of `src/libcuflynx/generators/resources/coupling_modules_config.json`:
-    - `transport: named_pipe`.
-    - `"process": "FV1D_solver"` names the program at the other end of the pipes. The pipe names (`channels`) and `message_length` come from that process entry, so they are written down once. A consumer can still list `channels` of its own; they are added to (and override) the process's.
-    - Each entry of `calls` says `when` it happens (`init`, `step_start`, `rhs_start`, `rhs`, `step_end`), what it `send`s (`$voi`, `$dt`, `port.flow`, `port.pressure`, `control.<port_type>|default`, numbers) and what it `recv`s (`port.input`, a model variable, `$dt`, `$ignore`).
-- **`role: process`**: another program run alongside the generated model. `FV1D_solver` is the FV 1D solver:
-    - `program` says what to launch: `{"interpreter": "python", "package": "libcuflynx.solver1d", "script": "main1D.py"}` (or a `path` instead of a `package`).
-    - `coordinator: coupler`: the coupler (`libcuflynx/coupler`) launches `main0d` and the program, and relays their messages over the `channels`.
-    - It lists no `calls`; the consumers that name it do.
-    - From it, the C++ generator writes `coupler_config.json` next to the generated model (see below).
-    - The process can have a row of its own in the vessel array, with no connections: `FV1D_solver,nn,FV1D_solver,,`. `convert_0d_to_1d` adds it. Its `variables_and_units` declare the global period `T` it needs, so the parameter check asks for it. Hybrid vessel arrays without the row still work: the consumers' `process` still names it.
-- **`role: provider`**: the generated code *is* the interface another program calls.
-    - `transport: cpp_class` generates a C++ class whose methods are listed in `functions`.
-    - Each function has a `kind`: `set`, `get`, `set_state`, `set_indexed`, `get_indexed`, `time`, `time_discretization`, `step`, `noop` or `extrapolate`.
-    - The provider is its own row in the vessel array, with `module_format: external_api`. It is connected to CellML modules through ports, exactly like a CellML module: its entrance ports take same-typed exit ports of its `inp_vessels`, its exit ports feed same-typed entrance ports of its `out_vessels`, and variables pair up by position.
-    - Functions name the provider's own port variable (or `component/variable` for anything else) and its `api_units`. A `set` function's variable becomes an external variable of the connected CellML module.
-    - The CellML model does not include the provider. The CellML variables its ports drive stay boundary-condition constants there, so the CellML model is complete on its own.
-    - Example: in the CVS-ANS 3D-heart coupling, `heart_3D_lifex` (a drop-in `lifex::Circulation`) sends chamber pressures to a CellML heart through `chamber_pressure_port` and receives chamber volumes through `chamber_volume_port`.
+- a **Python model**, such as a FEniCS PDE (`role: provider`, `transport: python`), run with
+  `cuflynx-couple`;
+- the **FV 1D solver** (`FV1D_vessel` / `FV1D_solver`: `named_pipe` consumers and a `process`),
+  run through the coupler;
+- a **C++ program** driving a generated class (`role: provider`, `transport: cpp_class`).
 
-The blocks are validated when the module configs are loaded (`libcuflynx/generators/cpp/api.py`), and each consumer that names a process gets that process's channels then.
-
-#### The coupler's configuration
-
-When a C++ model is coupled to the FV 1D solver (`couple_to_1d: true`), generation writes `coupler_config.json` next to the generated C++. The coupler reads it:
-
-```
-<coupler build>/coupler <cpp_generated_models_dir>/coupler_config.json
-# or, building both with CMake first:
-src/libcuflynx/coupler/run_coupler1d0d.bash <cpp_generated_models_dir>
-```
-
-| Key | Value |
-|---|---|
-| `T0` | the global parameter `T` (seconds): the heart period, or the inflow period of an open-loop model. The 1D model's `input.ini` takes it from the same parameter. |
-| `nCC` | the number of whole periods covering `pre_time + sim_time`. The coupled run ends at `nCC·T0`; `main0d` and the 1D solver save from `(nCC − 2)·T0`. |
-| `tmp_pipe_path` | user input `coupler_pipe_dir`, default `cuflynx_pipes/<model>/` in the system temp folder (`/tmp`, or `$TMPDIR` when set). The coupler creates the folder. |
-| `python_path` | the Python that ran the generation (`sys.executable`) |
-| `solver1d_path` | the process's `program` (the installed `libcuflynx/solver1d/main1D.py`) |
-| `solver0d_path` | `<cpp_generated_models_dir>/build/main0d`, as built with CMake |
-| `initFile_sim1d_path` | user input `cpp_1d_model_config_path` (the 1D model's `input.ini`) |
-| `inputFold`, `networkName`, `ODEsolver` | the generated model's folder, name and C++ solver |
+[Coupling to external models](external-coupling/index.md) describes all three. The blocks are
+validated when the module configs load (`libcuflynx/generators/cpp/api.py`).
 
 ## Converting an existing CellML model to run in Circulatory Autogen
 
