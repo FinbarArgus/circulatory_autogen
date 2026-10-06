@@ -97,11 +97,29 @@ def step(self, t, dt, inputs):
 
 ## Running it
 
-```bash
-cd circulatory-autogen-modules
-cuflynx-generate ...   # or, as the test does: tests/test_coupled_systems.py::generate_cpp
-cuflynx-couple <generated>/microvasc_O2_FEniCS
+Generate the system model as C++ from the module library, then run it:
+
+```yaml
+# user_inputs.yaml
+file_prefix: microvasc_O2_FEniCS
+input_param_file: microvasc_O2_FEniCS_parameters.csv
+resources_dir: circulatory-autogen-modules/system_models/coupled/microvasc_O2_FEniCS
+module_library_dirs: [circulatory-autogen-modules/modules]
+use_builtin_modules: false
+model_type: cpp
+pre_time: 0.0
+sim_time: 10.0
+dt: 0.1
+solver_info: {solver: CVODE, dt_solver: 0.1, rtol: 1.0e-8, atol: 1.0e-12}
 ```
+
+```bash
+cuflynx-generate --user-inputs user_inputs.yaml
+cuflynx-couple generated_models/microvasc_O2_FEniCS
+```
+
+Run this in an environment that has FEniCSx, with CMake, a C++ compiler and SUNDIALS (in conda:
+`mamba install -c conda-forge fenics-dolfinx=0.9 cmake cxx-compiler sundials`).
 
 ## FEniCS against the CellML grid
 
@@ -112,4 +130,18 @@ cuflynx-couple <generated>/microvasc_O2_FEniCS
 It compares the tissue O2 at the two capillaries over the run and records the times in
 `system_models/coupled/microvasc_O2_FEniCS/results/coupled_comparison.json`.
 
-RESULTS_O2
+Measured on a 3 × 3 × 3 grid of 20 µm cells over 10 s (coupling step 0.01 s):
+
+| Tissue model | Largest difference in tissue O2 at the capillaries | Run time |
+|---|---|---|
+| CellML grid (27 cells, 54 faces), C++ through `main0d` | (reference) | 0.02 s, after 35 s of generation and 4 s of build |
+| FEniCS, DG0 (the same scheme), coupled | 0.15 % | 3.2 s (0D 0.02 s, FEniCS 0.16 s, the rest building the shared library) |
+| FEniCS, Q1 elements refined twice, coupled | 1.1 % | 4.9 s (FEniCS 1.7 s) |
+
+- **DG0** solves the same equations as the CellML grid. What is left is the coupling and time
+  stepping, which checks the coupling itself.
+- **Q1** differs by the spatial discretisation. O2 varies smoothly here, so the two agree closely.
+- **Time:** the CellML grid is faster to run but slow to generate, and generation grows quickly
+  with the grid. A 5 × 5 × 5 grid (125 cells, 300 faces) took over 13 minutes to generate as C++.
+  The FEniCS model takes a finer mesh at no generation cost.
+
