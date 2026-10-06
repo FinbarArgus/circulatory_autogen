@@ -259,6 +259,10 @@ Added for the provider templates:
 
 The full description is in `tutorial/docs/design-model.md`; validation is in `../api.py`.
 
+- **Python external model** (`role: provider`, `transport: python`): a Python class (e.g. FEniCS) stepped with the model.
+  - `externals.collect_python_exchange` maps the row's port variables to every connected CellML module, and decides each direction from an analysis of the flat model: a constant (boundary condition) is set by the class and becomes an external variable; anything computed is read by it.
+  - `model0d_capi.cpp.j2` renders a C interface over `Model0d` (exchange table, get/set/step/snapshot/restore/output, status codes), built as the shared library `model0d_capi` (only `cf_*` exported); `external_models.json` says what to run. `libcuflynx.coupling` loads both.
+  - The tutorial's "Coupling to External Models" describes it from the user's side.
 - **Process** (`role: process`, e.g. `FV1D_solver` in `resources/coupling_modules_config.json`): a program run alongside the model.
   - **`program`:** what to launch (`package` + `script`, or `path` + `script`); **`coordinator`:** `coupler`.
   - **`channels`, `message_length`:** the pipes, shared by every consumer that names the process. No `calls`.
