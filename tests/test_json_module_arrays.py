@@ -283,22 +283,6 @@ def test_bad_json_records_are_reported_with_file_index_and_key(tmp_path, record,
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize('old, new', [
-    ('PHLYNX_VESSEL_ARRAY_COLUMNS', 'PHLYNX_MODULE_ARRAY_COLUMNS'),
-    ('normalise_vessel_array_columns', 'normalise_module_array_columns'),
-    ('read_vessel_array_csv', 'read_module_array_csv'), ('vessel_array_path', 'module_array_path'),
-    ('vessel_array_csv_to_records', 'module_array_csv_to_records'),
-    ('read_vessel_array_records', 'read_module_array_records'), ('load_vessel_array', 'load_module_array'),
-    ('vessel_array_to_json', 'module_array_to_json')])
-def test_the_old_vessel_array_names_still_work(old, new):
-    from libcuflynx.utilities import config_schemas
-    with pytest.warns(FutureWarning, match=f'config_schemas.{old} is now {new}'):
-        assert getattr(config_schemas, old) is getattr(config_schemas, new)
-    with pytest.raises(AttributeError):
-        config_schemas.no_such_name
-
-
-@pytest.mark.unit
 def test_split_0d_1d_vessel_array_is_the_old_name_of_split_0d_1d_module_array(monkeypatch):
     from libcuflynx.parsers.ModelParsers import CSV0DModelParser
     monkeypatch.setattr(CSV0DModelParser, 'split_0d_1d_module_array', lambda self, registry=None: ('split', registry))

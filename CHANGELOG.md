@@ -13,8 +13,9 @@ renamed. A `[file_prefix]_vessel_array.json`/`.csv` is still read, after the new
 `for f in *_vessel_array.*; do git mv "$f" "${f/_vessel_array./_module_array.}"; done`. The
 functions and constants that carried the old name are renamed in the same way
 (`module_array_path`, `read_module_array_records`, `load_module_array`, `module_array_to_json`,
-`PHLYNX_MODULE_ARRAY_COLUMNS`, ...; `CSV0DModelParser.split_0d_1d_module_array`). The old names
-still work, with a `FutureWarning`. The 0D/1D split writes `[file_prefix]_{0d,1d}_module_array.csv`,
+`PHLYNX_MODULE_ARRAY_COLUMNS`, ...), without aliases, as none of them was released;
+`CSV0DModelParser.split_0d_1d_vessel_array`, which was, is now `split_0d_1d_module_array`, and
+the old name still works with a `FutureWarning`. The 0D/1D split writes `[file_prefix]_{0d,1d}_module_array.csv`,
 `convert_0d_to_1d` writes `[model]_hybrid_module_array.*`, and the JSON Schema is
 `libcuflynx/schemas/module_array.schema.json`. The record keys (`vessel_type`, `BC_type`,
 `inp_vessels`, `out_vessels`) and the `vessels_csv_abs_path` config key are unchanged.
