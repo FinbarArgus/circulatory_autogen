@@ -745,27 +745,5 @@ def main(argv=None):
     return 0
 
 
-# Module arrays used to be called vessel arrays. The old names still work, with a warning.
-_RENAMED = {
-    'PHLYNX_VESSEL_ARRAY_COLUMNS': 'PHLYNX_MODULE_ARRAY_COLUMNS',
-    'normalise_vessel_array_columns': 'normalise_module_array_columns',
-    'read_vessel_array_csv': 'read_module_array_csv',
-    'vessel_array_path': 'module_array_path',
-    'vessel_array_csv_to_records': 'module_array_csv_to_records',
-    'read_vessel_array_records': 'read_module_array_records',
-    'load_vessel_array': 'load_module_array',
-    'vessel_array_to_json': 'module_array_to_json',
-}
-
-
-def __getattr__(name):
-    new = _RENAMED.get(name)
-    if new is None:
-        raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
-    warnings.warn(f'config_schemas.{name} is now {new} (vessel arrays are now called module arrays)',
-                  FutureWarning, stacklevel=2)
-    return globals()[new]
-
-
 if __name__ == '__main__':
     sys.exit(main())
