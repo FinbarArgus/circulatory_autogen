@@ -5,33 +5,48 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
-### Added — JSON vessel arrays and supermodules
+### Changed — vessel arrays are now called module arrays
 
-A vessel array can be a JSON list of records, `[file_prefix]_vessel_array.json`, with PhLynx's
+The file is `[file_prefix]_module_array.json` or `.csv`, and every model in `resources/` has been
+renamed. A `[file_prefix]_vessel_array.json`/`.csv` is still read, after the new names, with a
+`FutureWarning` asking for it to be renamed; to rename yours, run
+`for f in *_vessel_array.*; do git mv "$f" "${f/_vessel_array./_module_array.}"; done`. The
+functions and constants that carried the old name are renamed in the same way
+(`module_array_path`, `read_module_array_records`, `load_module_array`, `module_array_to_json`,
+`PHLYNX_MODULE_ARRAY_COLUMNS`, ...), without aliases, as none of them was released;
+`CSV0DModelParser.split_0d_1d_vessel_array`, which was, is now `split_0d_1d_module_array`, and
+the old name still works with a `FutureWarning`. The 0D/1D split writes `[file_prefix]_{0d,1d}_module_array.csv`,
+`convert_0d_to_1d` writes `[model]_hybrid_module_array.*`, and the JSON Schema is
+`libcuflynx/schemas/module_array.schema.json`. The record keys (`vessel_type`, `BC_type`,
+`inp_vessels`, `out_vessels`) and the `vessels_csv_abs_path` config key are unchanged.
+
+### Added — JSON module arrays and supermodules
+
+A module array can be a JSON list of records, `[file_prefix]_module_array.json`, with PhLynx's
 keys (`name, module_type, module_subtype, inp_instances, out_instances`) or libcuflynx's (`name,
 vessel_type, BC_type, inp_vessels, out_vessels`). A CSV array is now read by converting each row
 to the same record, so both are processed identically; the `.json` file is preferred when both
-exist, then `.csv`, then PhLynx's `_module_array.json`/`.csv`. Convert CSV arrays with
+exist, then `.csv`. Convert CSV arrays with
 `python -m libcuflynx.utilities.config_schemas to-json <csv>... [--style phlynx|libcuflynx]`.
 Every model in `resources/` that generated before generates byte-identical CellML from its CSV
 and from its JSON conversion.
 
 A module config entry with `"module_format": "supermodule"` and a list of `submodules` defines a
-supermodule. An instance of it in a vessel array expands into `[instance]_[submodule]` modules
+supermodule. An instance of it in a module array expands into `[instance]_[submodule]` modules
 before anything else reads the array; `per_submodule_inputs`/`per_submodule_outputs` on the
 instance link its hosts to individual submodules. Supermodules may nest. An optional
 `default_parameters` CSV supplies parameters (renamed to the expanded names) wherever the
 model's parameters file does not set them. See `tutorial/docs/design-model.md`.
 
-JSON Schemas for both files ship in `libcuflynx/schemas/` (`vessel_array.schema.json`,
+JSON Schemas for both files ship in `libcuflynx/schemas/` (`module_array.schema.json`,
 `module_config.schema.json`). The loaders check the same rules without a schema library;
 `jsonschema` is a `[dev]` dependency only, for the tests.
 
-The 0D/1D split for `couple_to_1d` now always writes `[file_prefix]_0d_vessel_array.csv` and
-`[file_prefix]_1d_vessel_array.csv`, and the 1D generator reads the file the split wrote. Before,
+The 0D/1D split for `couple_to_1d` now always writes `[file_prefix]_0d_module_array.csv` and
+`[file_prefix]_1d_module_array.csv`, and the 1D generator reads the file the split wrote. Before,
 an input named `_module_array.csv` gave split files the 1D generator could not find.
 
-### Added — PhLynx module-config and vessel-array schemas; `"Sum"` and `"Multiply"` multi_ports
+### Added — PhLynx module-config and module-array schemas; `"Sum"` and `"Multiply"` multi_ports
 
 The module library is moving its configs to PhLynx's key names, and libcuflynx now reads both
 schemas. In PhLynx's schema, `module_type` is the vessel_type, `module_subtype` is the BC_type,
@@ -39,10 +54,9 @@ schemas. In PhLynx's schema, `module_type` is the vessel_type, `module_subtype` 
 entry is detected on its own, by `module_subtype`, `component_file` or `component_type`, and is
 converted to the libcuflynx names when the config is loaded
 (`libcuflynx.utilities.config_schemas.normalise_module_config_entry`). An entry that mixes the
-two schemas is an error. Vessel arrays can use PhLynx's export layout too
+two schemas is an error. Module arrays can use PhLynx's export layout too
 (`name, module_type, module_subtype, inp_instances, out_instances`). The layout is detected from
-the header. `[file_prefix]_module_array.csv` is read when there is no
-`[file_prefix]_vessel_array.csv`.
+the header.
 
 `multi_port` values are now case-insensitive. Before, only lowercase `"sum"` summed, and PhLynx's
 `"Sum"` behaved like `"True"`. On a `volume_port`, `"Sum"` now gives the same `sum_blood_volume`
