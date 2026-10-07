@@ -10,12 +10,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Runs 30-58 minutes depending on the apt weather; test_module_instances.py and
-    # test_json_module_arrays.py take about half of that. This is a backstop, not a budget:
+    # Runs 13-31 minutes depending on the apt weather. This is a backstop, not a budget:
     # without one, `test (3.11)` sat in the apt step for 45 minutes and had to be cancelled
     # by hand, because the job would otherwise have run to GitHub's 360-minute default.
-    # At 60, `test (3.12)` was cancelled at 0:58:07 with every test passed.
-    timeout-minutes: 90
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
