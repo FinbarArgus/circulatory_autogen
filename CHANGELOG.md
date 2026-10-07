@@ -31,6 +31,10 @@ constant at the end of its experiment), and `save_prediction_data` writes
 and data at the observation times. Prediction items without a `value` behave as before. See
 `tutorial/docs/parameter-identification.md`.
 
+The `std` is optional; without it there are no z-scores. When given, it is checked like a data
+item's: one finite positive number for a constant, and for a series one such number or one per
+point. A zero, negative or wrong-length `std` is a parse error naming the item.
+
 ### Added — module versions and instances
 
 A module library can lay a module version out as `<module_type>/versions/<version>/` with named
