@@ -45,6 +45,13 @@ too, named like `default_parameters` (`{var}_{submodule}` or global); `default_p
 works. An unknown instance is an error that lists the version's instances. Models without
 instances generate byte-identical CellML.
 
+A global constant is one value for the whole model, so when instances set one to different values
+the first is used and a `ConflictingGlobalWarning` names each value, its units and the record that
+set it. The warning is skipped when the host parameters file sets the global, and when a
+supermodule's instance overrides the instances inside it. It also says when the units differ: two
+modules then most likely mean different quantities by one name (in the module library, `T` is a
+temperature in the ion channels and a period in the cardiac clock).
+
 obs_data files accept a top-level `"obs_data_name"` (returned as `obs_data_name` by
 `parse_obs_data_json`); a file in `instances/<name>/` whose `obs_data_name` is not `<name>` is
 warned about. The JSON Schemas gain `instance` and `default_instance`, and a new
