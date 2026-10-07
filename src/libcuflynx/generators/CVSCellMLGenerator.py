@@ -15,6 +15,7 @@ from libcuflynx.utilities.package_resources import package_data_dir
 from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.utilities.module_library import ModuleSources, collect_units, CELLML_1_1_NS
 from libcuflynx.utilities.config_schemas import is_heart_vessel_type
+from libcuflynx.utilities.vessel_bc import is_vessel_module
 
 generators_dir = os.path.dirname(__file__)
 # Build/run scripts copied alongside each generated model so it can be compiled/run
@@ -915,7 +916,7 @@ class CVS0DCellMLGenerator(object):
                             any(module_df.loc[module_df["name"] == temp_inp_vess, "vessel_type"].iloc[0].startswith(("Nout_", "MinNout_"))
                                 for temp_inp_vess in module_df.loc[module_df["name"] == temp_out_vess, "inp_vessels"].values[0])
                                     for temp_out_vess in module_row["out_vessels"]
-                                        if not module_df.loc[module_df["name"] == temp_out_vess, "BC_type"].iloc[0].startswith("nn"))):
+                                        if is_vessel_module(module_df.loc[module_df["name"] == temp_out_vess].squeeze()))):
                         # the generic junction connections are done through the generic_junction_connection
                         pass
 
@@ -1381,7 +1382,8 @@ class CVS0DCellMLGenerator(object):
             # (a vessel whose entrance port has a list-form multi_port already sums its inflows,
             # terminals included, through its multiport sum component)
             if vessel_df.loc[vessel_df['name'].isin(vessel_tup.inp_vessels)
-            ]['vessel_type'].str.contains('terminal').any() and vessel_tup.BC_type.startswith('v') and \
+            ]['vessel_type'].str.contains('terminal').any() and is_vessel_module(vessel_tup) and \
+                    vessel_tup.BC_type.startswith('v') and \
                     not any(list_multi_port(port) is not None for port in vessel_tup.entrance_ports):
                 vessel_name = vessel_tup.name
                 first_venous_names.append(vessel_name)
@@ -2162,11 +2164,13 @@ class CVS0DCellMLGenerator(object):
             print(f'"{main_vessel}" and "{out_vessel}" are incorrectly connected, '
                   f'check that they have eachother as output/input')
             exit()
-        if out_vessel_BC_type.startswith('nn'):
+        # The BC letters are only checked between two vessels. A module that is not a
+        # vessel (a cell, controller, heart part, an ``nn`` BC module, ...) may have any
+        # BC_type, e.g. ``lv_test`` or ``SN_soma``, without it being read as a BC pair.
+        main_row = vessel_df.loc[vessel_df["name"] == main_vessel].squeeze()
+        out_row = vessel_df.loc[vessel_df["name"] == out_vessel].squeeze()
+        if not (is_vessel_module(main_row) and is_vessel_module(out_row)):
             return
-        if main_vessel_BC_type.startswith('nn'):
-            return
-
 
         if len(main_vessel_BC_type) > 2:
             temp_main_vessel_BC_type = main_vessel_BC_type[:2]
