@@ -152,7 +152,8 @@ def _sobol_with(info):
     # A real instance without __init__, so every method _configure_emulator calls exists.
     sa = SobolSA.__new__(SobolSA)
     sa.__dict__.update({'obs_info': info, 'param_id_info': None, 'protocol_info': None,
-                        'model_path': None, 'emulator_settings': {}})
+                        'model_path': None, 'emulator_settings': {},
+                        'include_prediction_items': False})
     return SobolSA, sa, helper, calls
 
 
