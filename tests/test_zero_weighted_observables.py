@@ -170,3 +170,18 @@ def test_sobol_on_an_emulator_still_refuses_a_weighted_series(monkeypatch):
     SobolSA, sa, helper, _ = _sobol_with(_obs_info(['constant', 'series'], [1.0], [1]))
     with pytest.raises(ValueError, match=r'\[1\]'):
         SobolSA._configure_emulator(sa, helper)
+def test_sobol_reports_weighted_items_by_their_own_index():
+    """weight_const_vec is indexed among constants only. With a series first, reading it
+    by data_item index reported the zero-weighted constant and dropped the weighted one."""
+    from libcuflynx.sensitivity_analysis.sobolSA import sobol_SA
+
+    info = {
+        'operations': ['mean', 'max', 'min'],          # series, constant, constant
+        'data_types': ['series', 'constant', 'constant'],
+        'weight_series_vec': np.array([0.0]),
+        'series_idx_to_obs_idx': [0],
+        'weight_const_vec': np.array([0.0, 1.0]),
+        'const_idx_to_obs_idx': [1, 2],
+    }
+    sa = type('S', (), {'obs_info': info})()
+    assert sobol_SA._observable_indices(sa) == [2]
