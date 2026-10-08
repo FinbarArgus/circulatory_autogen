@@ -137,3 +137,20 @@ def test_the_use_time_check_agrees_with_the_trainer():
             trainer_refused = True
 
         assert trainer_refused == bool(shared), (types, weights)
+
+
+def test_sobol_reports_weighted_items_by_their_own_index():
+    """weight_const_vec is indexed among constants only. With a series first, reading it
+    by data_item index reported the zero-weighted constant and dropped the weighted one."""
+    from libcuflynx.sensitivity_analysis.sobolSA import sobol_SA
+
+    info = {
+        'operations': ['mean', 'max', 'min'],          # series, constant, constant
+        'data_types': ['series', 'constant', 'constant'],
+        'weight_series_vec': np.array([0.0]),
+        'series_idx_to_obs_idx': [0],
+        'weight_const_vec': np.array([0.0, 1.0]),
+        'const_idx_to_obs_idx': [1, 2],
+    }
+    sa = type('S', (), {'obs_info': info})()
+    assert sobol_SA._observable_indices(sa) == [2]

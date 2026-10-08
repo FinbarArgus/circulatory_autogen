@@ -775,14 +775,25 @@ class sobol_SA():
         reducing a real observable, and every sample pays it.
         """
         operations = self.obs_info.get('operations') or []
-        weights = self.obs_info.get('weight_const_vec')
+        # Each weight vector is indexed by position among items of its own data_type, not
+        # by data_item: map every weight back through its *_idx_to_obs_idx. Indexing
+        # weight_const_vec by data_item index reads another item's weight whenever a
+        # non-constant precedes a constant -- in a joint obs_data that reported other
+        # datasets' zero-weighted items and dropped weighted ones.
+        weighted = {}
+        for kind in ('const', 'series', 'amp', 'phase'):
+            weights = self.obs_info.get('weight_%s_vec' % kind)
+            idx_map = self.obs_info.get('%s_idx_to_obs_idx' % kind)
+            if weights is None or idx_map is None:
+                continue
+            for weight, obs_idx in zip(weights, idx_map):
+                weighted[int(obs_idx)] = bool(np.any(np.asarray(weight, dtype=float)))
         keep = []
         for index, operation in enumerate(operations):
             if operation is None:
                 continue
-            if weights is not None and index < len(weights):
-                if not np.any(np.asarray(weights[index], dtype=float)):
-                    continue
+            if not weighted.get(index, True):
+                continue
             keep.append(index)
         return keep
 
