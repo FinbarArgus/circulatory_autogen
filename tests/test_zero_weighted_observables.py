@@ -149,8 +149,10 @@ def _sobol_with(info):
     helper = type('H', (), {'bundle': bundle,
                             'set_obs_map': lambda self, *a, **k: calls.append('map')})()
     info = dict(info, const_idx_to_obs_idx=[0], operations=[None] * len(info['data_types']))
-    sa = type('S', (), {'obs_info': info, 'param_id_info': None, 'protocol_info': None,
-                        'model_path': None, 'emulator_settings': {}})()
+    # A real instance without __init__, so every method _configure_emulator calls exists.
+    sa = SobolSA.__new__(SobolSA)
+    sa.__dict__.update({'obs_info': info, 'param_id_info': None, 'protocol_info': None,
+                        'model_path': None, 'emulator_settings': {}})
     return SobolSA, sa, helper, calls
 
 
