@@ -560,7 +560,7 @@ class sobol_SA():
                     # The emulator predicts each data_item's feature directly, so the operation
                     # must not run again: it would reduce an already-reduced scalar, and
                     # max_minus_min of one value is zero.
-                    row = list(self.sim_helper.get_predicted_features())
+                    row = self._emulated_row()
                     if pred_indices:
                         row += list(self.sim_helper.get_predicted_prediction_features(pred_names))
                     local_outputs.append(row)
@@ -862,6 +862,18 @@ class sobol_SA():
 
         create_heatmap(S1_heatmap_data, 'First-Order ($S_1$)')
         create_heatmap(ST_heatmap_data, 'Total-Order ($S_T$)')
+
+    def _emulated_row(self):
+        """One sample's outputs from the emulator, in the order the solver path produces them.
+
+        ``get_predicted_features`` answers for every data_item (nan where the emulator has no
+        feature). The solver path reduces only ``_observable_indices()``, and the labels are
+        built from those, so the emulator row has to be the same subset: passing the full
+        vector put item k's sensitivity under the label of the k-th *reported* item, and
+        dropped every output past the number of labels.
+        """
+        predicted = np.asarray(self.sim_helper.get_predicted_features(), dtype=float)
+        return [float(predicted[j]) for j in self._observable_indices()]
 
     def _observable_indices(self):
         """The data_items this analysis reports on, by index into ``obs_info``.
