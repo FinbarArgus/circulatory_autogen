@@ -2,9 +2,12 @@
 
 A module library lays a module version out as ``<module_type>/versions/<version>/`` with its
 CellML, a one-entry ``*_modules_config.json`` (module_subtype == version) and named parameter
-sets in ``instances/<instance>/<instance>_parameters.csv``. A vessel-array record (or a
-supermodule's submodule) picks one with ``"instance"``; without it, the entry's
-``default_instance`` is used when its file exists. Rows ``{var}`` become ``{var}_{vessel}``,
+sets, *parameterisations*, in ``parameterisations/<name>/<name>_parameters.csv`` (older name
+``instances/``). A vessel-array record (or a supermodule's submodule) picks one with
+``"parameterisation"`` (older name ``"instance"``); without it, the entry's
+``default_parameterisation`` (``default_instance``) is used when its file exists. Most tests
+here use the older names; the *parameterisations* section checks that the new ones load the
+same. Rows ``{var}`` become ``{var}_{vessel}``,
 except the module's global constants, and are default parameters: the host parameters file
 wins, then a supermodule's instance, its default_parameters, then submodule instances.
 
@@ -215,7 +218,7 @@ def test_an_unknown_instance_names_the_version_directory_and_its_instances(tmp_p
     with pytest.raises(ValueError) as error:
         _load(tmp_path, library, _two_sources('nope'))
     message = str(error.value)
-    assert 'unknown instance "nope"' in message and '"s1"' in message
+    assert 'unknown parameterisation "nope"' in message and '"s1"' in message
     assert os.path.join('pulse_src', 'versions', 'v1') in message
     assert "['default', 'other']" in message
 
@@ -224,7 +227,8 @@ def test_an_unknown_instance_names_the_version_directory_and_its_instances(tmp_p
 def test_an_instance_of_a_config_without_instances_is_an_error(tmp_path, library):
     records = [_rec('s', 'pulse_src', 'v2', out=['coll'], instance='default'),
                _rec('coll', 'collector', inp=['s'])]
-    with pytest.raises(ValueError, match=r'has no instances/ directory'):
+    with pytest.raises(ValueError,
+                       match=r'has no parameterisations/ \(or older instances/\) directory'):
         _load(tmp_path, library, records)
 
 
@@ -298,7 +302,7 @@ def test_an_unknown_supermodule_instance_lists_its_instances(tmp_path, library):
     with pytest.raises(ValueError) as error:
         _load(tmp_path, library, _pair_host(instance='nope'))
     message = str(error.value)
-    assert 'unknown instance "nope"' in message and "['alt', 'base']" in message
+    assert 'unknown parameterisation "nope"' in message and "['alt', 'base']" in message
     assert os.path.join('pair', 'versions', 'v1') in message
 
 
@@ -313,7 +317,7 @@ def test_an_unknown_submodule_instance_is_an_error(tmp_path, library):
                             per_submodule_outputs={'a': ['coll']}),
                        _rec('coll', 'collector', inp=['pr'])])
     files = _config_files(library) + [str(directory / 'badpair_modules_config.json')]
-    with pytest.raises(ValueError, match=r'"pr_a".*unknown instance "nope"'):
+    with pytest.raises(ValueError, match=r'"pr_a".*unknown parameterisation "nope"'):
         load_expanded_vessel_records(path, load_supermodule_registry(files),
                                      load_component_registry(files))
 
@@ -393,6 +397,161 @@ def test_the_json_schemas_accept_instances_and_obs_data_names(library):
 
 
 # --------------------------------------------------------------------------------------------
+# parameterisations: the new names of instances; the old names still work
+# --------------------------------------------------------------------------------------------
+
+def _renamed(obj):
+    """``obj`` (config entries / records) with ``instance``/``default_instance`` keys renamed
+    to ``parameterisation``/``default_parameterisation``."""
+    if isinstance(obj, list):
+        return [_renamed(v) for v in obj]
+    if isinstance(obj, dict):
+        names = {'instance': 'parameterisation', 'default_instance': 'default_parameterisation'}
+        return {names.get(k, k): _renamed(v) for k, v in obj.items()}
+    return obj
+
+
+@pytest.fixture(scope='module')
+def new_layout_library(library, tmp_path_factory):
+    """The synthetic library rewritten in the new layout: ``parameterisations/`` directories
+    and the ``default_parameterisation``/``parameterisation`` keys."""
+    modules, readers = library
+    root = tmp_path_factory.mktemp('parameterisation_library')
+    new_modules = os.path.join(str(root), 'modules')
+    shutil.copytree(modules, new_modules)
+    for directory, subdirs, files in os.walk(new_modules):
+        if 'instances' in subdirs:
+            os.rename(os.path.join(directory, 'instances'),
+                      os.path.join(directory, 'parameterisations'))
+        for name in files:
+            if name.endswith('_modules_config.json'):
+                path = os.path.join(directory, name)
+                with open(path) as f:
+                    entries = json.load(f)
+                _write_json(path, _renamed(entries))
+    return new_modules, readers
+
+
+def _records_both_spellings():
+    """Two pulse sources (s1 names "other", s2 uses the default) and a pair supermodule
+    naming "alt", all feeding one collector: ``{'old': records with "instance", 'new': the
+    same with "parameterisation"}``."""
+    records = _two_sources('other', None)[:2] + _pair_host(instance='alt')[:1] + [
+        _rec('coll', 'collector', inp=['s1', 's2', 'pr'])]
+    return {'old': records, 'new': _renamed(records)}
+
+
+@pytest.mark.unit
+def test_the_new_layout_loads_the_same_parameters_as_the_old_one(tmp_path, library,
+                                                                  new_layout_library):
+    found = {}
+    for layout, lib in (('old', library), ('new', new_layout_library)):
+        directory = 'parameterisations' if layout == 'new' else 'instances'
+        assert os.path.isdir(os.path.join(lib[0], 'sources', 'pulse_src', 'versions', 'v1',
+                                          directory))
+        for spelling, records in _records_both_spellings().items():
+            work = tmp_path / f'{layout}_{spelling}'
+            work.mkdir()
+            expanded, rows = _load(work, lib, records)
+            found[layout, spelling] = ([r.get('instance') for r in expanded], _values(rows))
+    reference = found['old', 'old']
+    # a named parameterisation (s1: other), the default (s2), and a supermodule's named one
+    assert reference[1]['mean_s1'] == ('2e-05', 'other_ref')
+    assert reference[1]['mean_s2'] == ('1e-05', 'default_ref')
+    assert reference[1]['amp_pr_b'] == ('0.1', 'alt_ref')
+    assert reference[0][:2] == ['other', None] and reference[0][2:4] == ['other', None]
+    for key, value in found.items():
+        assert value == reference, key
+
+
+@pytest.mark.unit
+def test_parameterisations_dir_is_preferred_and_instances_is_the_fallback(tmp_path):
+    from libcuflynx.utilities.module_instances import (available_instances, instances_dir,
+                                                       instance_parameters_path,
+                                                       read_parameter_rows)
+    config = tmp_path / 'm_v1_modules_config.json'
+    config.write_text('[]')
+    assert instances_dir(str(config)) == str(tmp_path / 'parameterisations')
+    for directory, rows in (('instances', [('a', 'm', '1')]),
+                            ('parameterisations', [('a', 'm', '2')])):
+        _write_parameters(str(tmp_path / directory / 'p' / 'p_parameters.csv'), rows, directory)
+        assert instances_dir(str(config)) == str(tmp_path / directory)
+        assert available_instances(str(config)) == ['p']
+        assert read_parameter_rows(instance_parameters_path(str(config), 'p'),
+                                   'test')[0]['data_reference'] == directory
+
+
+@pytest.mark.integration
+def test_the_new_layout_generates_the_same_model_as_the_old_one(tmp_path, library,
+                                                                 new_layout_library):
+    prefix = 'param_layout'
+    for layout, lib, spelling in (('old', library, 'old'), ('new', new_layout_library, 'new')):
+        records = _records_both_spellings()[spelling][:2] + [
+            _rec('coll', 'collector', inp=['s1', 's2'])]
+        params = _generate(tmp_path / layout, lib, prefix, records,
+                           [('amp_s2', 'dimensionless', '0.25')])
+        assert params['mean_s1'][0] == '2e-05' and params['amp_s2'][0] == '0.25'
+    _assert_same_generated_models(
+        *[str(tmp_path / layout / 'generated_models' / prefix / f'{prefix}.cellml')
+          for layout in ('old', 'new')])
+
+
+@pytest.mark.unit
+def test_record_parameterisation_and_instance_are_the_same_key():
+    for record in (_rec('s', 'pulse_src', 'v1', parameterisation=' other '),
+                   _rec('s', 'pulse_src', 'v1', instance='other'),
+                   _rec('s', 'pulse_src', 'v1', instance='other', parameterisation='other')):
+        normalised = normalise_vessel_record(record, 'test', 0)
+        assert normalised['instance'] == 'other' and 'parameterisation' not in normalised
+    entry = normalise_module_config_entry(_pulse_entry('v1', default_parameterisation='default'))
+    assert entry['default_instance'] == 'default' and 'default_parameterisation' not in entry
+    pair = normalise_module_config_entry(_renamed(PAIR))
+    assert pair['default_instance'] == 'base' and 'default_parameterisation' not in pair
+    assert pair['submodules'][0]['instance'] == 'other'
+
+
+@pytest.mark.unit
+def test_conflicting_old_and_new_keys_are_an_error(tmp_path, library):
+    with pytest.raises(ValueError, match=r'"parameterisation".*"instance"'):
+        normalise_vessel_record(_rec('s', 'pulse_src', 'v1', instance='default',
+                                     parameterisation='other'), 'test', 0)
+    with pytest.raises(ValueError, match=r'"default_parameterisation".*"default_instance"'):
+        normalise_module_config_entry(_pulse_entry('v1', default_instance='default',
+                                                   default_parameterisation='other'))
+    with pytest.raises(ValueError, match=r'"default_parameterisation".*"default_instance"'):
+        normalise_module_config_entry(dict(PAIR, default_parameterisation='alt'))
+    with pytest.raises(ValueError, match=r'"parameterisation".*"instance"'):
+        normalise_module_config_entry(
+            dict(PAIR, submodules=[dict(_sub('a', instance='other'), parameterisation='x'),
+                                   _sub('b')]))
+    records = _two_sources('other', None)
+    records[0]['parameterisation'] = 'default'
+    with pytest.raises(ValueError, match=r'"s1".*"parameterisation".*"instance"'):
+        _load(tmp_path, library, records)
+    # a bad name is reported under the key it was given as
+    with pytest.raises(ValueError, match=r'"parameterisation" is "a/b"'):
+        normalise_vessel_record(_rec('s', 'pulse_src', 'v1', parameterisation='a/b'), 'test', 0)
+    with pytest.raises(ValueError, match='default_parameterisation'):
+        normalise_module_config_entry(_pulse_entry('v1', default_parameterisation=''))
+
+
+@pytest.mark.unit
+def test_the_json_schemas_accept_parameterisations():
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import MODULE_CONFIG_SCHEMA, VESSEL_ARRAY_SCHEMA, load_schema
+    arrays = jsonschema.Draft202012Validator(load_schema(VESSEL_ARRAY_SCHEMA))
+    configs = jsonschema.Draft202012Validator(load_schema(MODULE_CONFIG_SCHEMA))
+    arrays.validate([_rec('s1', 'pulse_src', 'v1', parameterisation='other'),
+                     _rec('s2', 'pulse_src', 'v1', instance='other')])
+    configs.validate([_pulse_entry('v1', default_parameterisation='default'), _renamed(PAIR)])
+    for bad in ('', ' ', 'a/b', '..', 3):
+        assert not arrays.is_valid([_rec('s', 'pulse_src', 'v1', parameterisation=bad)]), bad
+    assert not configs.is_valid([_pulse_entry('v1', default_parameterisation='a/b')])
+    assert not configs.is_valid([dict(_renamed(PAIR),
+                                      submodules=[_renamed(_sub('a', instance=''))])])
+
+
+# --------------------------------------------------------------------------------------------
 # obs_data_name
 # --------------------------------------------------------------------------------------------
 
@@ -430,11 +589,13 @@ def test_a_bad_obs_data_name_is_rejected(bad):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize('directory', ['parameterisations', 'instances'])
 @pytest.mark.parametrize('top, warns', [({'obs_data_name': 'other'}, False),
                                         ({'obs_data_name': 'default'}, True),
                                         ({}, True)])
-def test_obs_data_in_an_instance_directory_is_checked_against_its_name(tmp_path, top, warns):
-    path = str(tmp_path / 'v1' / 'instances' / 'other' / 'other_obs_data.json')
+def test_obs_data_in_an_instance_directory_is_checked_against_its_name(tmp_path, top, warns,
+                                                                       directory):
+    path = str(tmp_path / 'v1' / directory / 'other' / 'other_obs_data.json')
     _write_json(path, _obs_doc(**top))
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter('always')
@@ -442,7 +603,7 @@ def test_obs_data_in_an_instance_directory_is_checked_against_its_name(tmp_path,
     assert len(parsed['gt_df']) == 1
     found = _name_warnings(caught)
     if warns:
-        assert len(found) == 1 and "instance 'other'" in str(found[0].message)
+        assert len(found) == 1 and "parameterisation 'other'" in str(found[0].message)
     else:
         assert found == []
 
