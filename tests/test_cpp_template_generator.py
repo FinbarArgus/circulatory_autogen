@@ -318,8 +318,11 @@ def test_coupled_fv1d_generation_fills_connection_info(user_inputs_dir, resource
     with open(cpp_dir / 'aortic_bif_hybrid_V1_coupler1d0d.json') as f:
         info = json.load(f)
     assert list(info) == ['1', '2']
-    for key, cellml_idx, port_idx in (('1', 5, 1), ('2', 12, 4)):
-        assert info[key]['cellml_idx'] == cellml_idx
+    # each terminal's inlet pressure is an external variable: its index in the one variables array
+    core = (cpp_dir / 'model0d_core.c').read_text()
+    names = re.findall(r'\{"(\w+)", "\w*", "\w+", \w+\}', core[core.index('VARIABLE_INFO[]'):])
+    for key, external, port_idx in (('1', 'u_in_terminal_1', 1), ('2', 'u_in_terminal_2', 4)):
+        assert info[key]['cellml_idx'] == names.index(external)
         assert info[key]['port_idx'] == port_idx
         assert info[key]['port_state0_or_var1'] == 0
         assert info[key]['cellml_bc_flow0_or_press1'] == 1
