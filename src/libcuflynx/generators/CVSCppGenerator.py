@@ -2831,7 +2831,7 @@ void Model0d::initialiseVariablesAndComputeConstants() {
     // initialiseVariables(voi, states, rates, variables);
     initialise(voi, states, rates, variables, initStatesPath, initVarsPath, false);
     
-    computeComputedConstants(variables);
+    computeComputedConstants(voi, states, rates, variables);
     getExternalVariablesVolume(variables);
     computeNonExternalVariables(voi, states, rates, variables);
     // computeRates(voi, dt, states, rates, variables); // is this needed here?
