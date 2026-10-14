@@ -6,7 +6,8 @@ The fixture (tests/data/external_coupling) is two capillaries exchanging O2 with
 ``cap_k`` (haemodynamics) feeds ``capillary_GE_k`` (O2 exchange), whose
 ``capillary_to_flux_port`` connects to
 
-* ``microvasc_O2_0d``: one CellML ``tissue_diffusion`` volume per capillary (no-flux faces), or
+* ``microvasc_O2_0d``: one CellML ``well_mixed_volume`` per capillary (a module kept with the
+  tests, so they mean the same with the built-in modules or a module library), or
 * ``microvasc_O2_ext``: one external row, ``well_mixed_tissue`` (a numpy class), connected to
   both capillaries, with the same equations.
 
@@ -150,7 +151,7 @@ def test_malformed_python_api_blocks_are_rejected(mutate, message):
 def test_generation_writes_the_exchange_table(coupled_model):
     """Directions are inferred from the connected CellML variables: GE_capillary's ub_O2_t is a
     boundary condition (set by the external model), flux_O2_c is computed (read by it). The port
-    connects to two capillaries, so each variable has two values, in vessel-array order."""
+    connects to two capillaries, so each variable has two values, in module-array order."""
     info = json.loads((coupled_model / 'external_models.json').read_text())
     (ext,) = info['external_models']
     assert ext['class'] == 'WellMixedTissue' and os.path.isfile(ext['file'])

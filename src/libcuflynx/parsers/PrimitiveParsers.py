@@ -37,8 +37,8 @@ from libcuflynx.param_id.modifier_funcs import (BUILTIN_MODIFIER_FUNCS, get_modi
 # answers without opening MPI when nothing launched this process.
 from libcuflynx.utilities import mpi_utils as _mpi_utils
 from libcuflynx.utilities.module_library import as_dir_list
-from libcuflynx.utilities.config_schemas import (load_module_config, load_vessel_array,
-                                                 vessel_array_path)
+from libcuflynx.utilities.config_schemas import (load_module_config, load_module_array,
+                                                 module_array_path)
 from libcuflynx.utilities.paths import (default_generated_models_dir, default_funcs_user_dir,
                                         default_param_id_output_dir, default_resources_dir,
                                         default_sensitivity_outputs_dir, default_user_inputs_dir,
@@ -2750,9 +2750,8 @@ class YamlFileParser(object):
                 exit()
             module_library_dirs.append(library_dir)
         inp_data_dict['module_library_dirs'] = module_library_dirs or None
-
-        if inp_data_dict.get('use_builtin_modules') is None:
-            inp_data_dict['use_builtin_modules'] = True
+        # use_builtin_modules stays None when unset: ModuleSources then defaults it to True, or
+        # to the CUFLYNX_MODULE_LIBRARY library when that is set (utilities/module_library.py)
 
         # for sensitivity analysis and parameter identification
         if not 'sa_options' in inp_data_dict.keys():
@@ -2887,7 +2886,7 @@ class YamlFileParser(object):
 
         # for generation only
     
-        inp_data_dict['vessels_csv_abs_path'] = vessel_array_path(inp_data_dict['resources_dir'], file_prefix)
+        inp_data_dict['vessels_csv_abs_path'] = module_array_path(inp_data_dict['resources_dir'], file_prefix)
         inp_data_dict['parameters_csv_abs_path'] = os.path.join(inp_data_dict['resources_dir'], inp_data_dict['input_param_file'])
 
         if inp_data_dict.get('model_type') == 'cpp' and inp_data_dict.get('couple_to_1d'):
@@ -2895,12 +2894,12 @@ class YamlFileParser(object):
             file_prefix_1d = file_prefix + '_1d'
 
             # The 0D and 1D parts are intermediate files written by
-            # CSV0DModelParser.split_0d_1d_vessel_array from the (supermodule-expanded) vessel
-            # array, whatever its format. They are always <prefix>_{0d,1d}_vessel_array.csv, so
+            # CSV0DModelParser.split_0d_1d_module_array from the (supermodule-expanded) vessel
+            # array, whatever its format. They are always <prefix>_{0d,1d}_module_array.csv, so
             # the 1D generator finds them under the same names.
             resources_dir = inp_data_dict['resources_dir']
-            vessel_filename_0d = os.path.join(resources_dir, file_prefix_0d + '_vessel_array.csv')
-            vessel_filename_1d = os.path.join(resources_dir, file_prefix_1d + '_vessel_array.csv')
+            vessel_filename_0d = os.path.join(resources_dir, file_prefix_0d + '_module_array.csv')
+            vessel_filename_1d = os.path.join(resources_dir, file_prefix_1d + '_module_array.csv')
 
             inp_data_dict['file_prefix_0d'] = file_prefix_0d
             inp_data_dict['file_prefix_1d'] = file_prefix_1d
@@ -3179,13 +3178,13 @@ class CSVFileParser(object):
         entries are put in a list in the entry for the dataframe
         :param filename: filename of CSV file
         :param has_header: If CSV file has a header
-        :param vessel_array: the file is a vessel array (CSV in the libcuflynx or PhLynx
-            layout, or JSON records); it is read by utilities/config_schemas.load_vessel_array,
+        :param vessel_array: the file is a module array (CSV in the libcuflynx or PhLynx
+            layout, or JSON records); it is read by utilities/config_schemas.load_module_array,
             with libcuflynx column names. Supermodule instances are not expanded here: use
-            load_vessel_array with a supermodule registry for that.
+            load_module_array with a supermodule registry for that.
         '''
         if vessel_array:
-            return load_vessel_array(filename)[0]
+            return load_module_array(filename)[0]
         if( has_header ):
             csv_dataframe = pd.read_csv(filename, dtype=str, na_filter=False)
         else:
@@ -3325,25 +3324,28 @@ class JSONFileParser(object):
         # match '.json' but are binary and blow up json.load, so skip them here (issue #83).
         return file.endswith('.json') and not file.startswith('._')
 
-    def module_config_to_dataframe(self, json_path):
+    def module_config_to_dataframe(self, json_path, exclude=()):
         """The component entries of one module config JSON file, in either the libcuflynx or
         the PhLynx schema, as a dataframe with libcuflynx column names (see
-        utilities/config_schemas.py). Supermodule entries are left out.
+        utilities/config_schemas.py). Supermodule entries are left out, and so are the
+        ``(file, (vessel_type, BC_type))`` pairs in ``exclude``.
 
         An entry's ``api`` block gets ``_config_dir``, the folder of this file, so files the api
         names (e.g. an external model's Python file) are found relative to their config."""
-        entries = load_module_config(json_path)
+        entries = [e for e in load_module_config(json_path)
+                   if (str(json_path), (e['vessel_type'], e['BC_type'])) not in exclude]
         config_dir = os.path.dirname(os.path.abspath(json_path))
         for entry in entries:
             if isinstance(entry, dict) and isinstance(entry.get('api'), dict):
                 entry['api'].setdefault('_config_dir', config_dir)
         return pd.DataFrame(entries)
 
-    def json_files_to_dataframe(self, json_files):
-        """All module config entries from ``json_files``, in order, as one dataframe."""
+    def json_files_to_dataframe(self, json_files, exclude=()):
+        """All module config entries from ``json_files``, in order, as one dataframe, without
+        those in ``exclude`` (``ModuleSources.excluded_entries``: shadowed definitions)."""
         # a file of supermodule entries only gives an empty frame: those entries are read by
         # config_schemas.load_supermodule_registry, never joined as components
-        dfs = [self.module_config_to_dataframe(path) for path in json_files]
+        dfs = [self.module_config_to_dataframe(path, exclude) for path in json_files]
         dfs = [df for df in dfs if not df.empty]
         if not dfs:
             raise ValueError('No module config JSON files were found: check use_builtin_modules, '
@@ -3396,7 +3398,7 @@ class JSONFileParser(object):
             vessel_type = vessel_tup.vessel_type
             BC_type = vessel_tup.BC_type
             if len(BC_type) <1 or len(vessel_type) <1:
-                print('You have an empty entry in your vessel array, exiting')
+                print('You have an empty entry in your module array, exiting')
                 exit()
             this_vessel_module_df = module_df.loc[((module_df["vessel_type"] == vessel_type)
                                                    & (module_df["BC_type"] == BC_type))].squeeze()
@@ -3477,6 +3479,30 @@ def validate_params_to_change(protocol_info):
         raise ValueError(
             "params_to_change shape mismatch:\n" + "\n".join(errors)
         )
+
+
+def _held_out_std(entry, entry_idx):
+    """A prediction item's held-out std, checked like a data item's: one finite
+    positive number for a constant; for a series, one such number (applied to every
+    point) or a list as long as the series, every entry finite and positive."""
+    where = f"prediction_items[{entry_idx}] ({entry.get('data_item_name')!r})"
+    std = entry['std']
+    if entry['data_type'] == 'constant':
+        if isinstance(std, (list, tuple, np.ndarray)):
+            raise ValueError(f"{where}: a constant's 'std' is one number, got a list.")
+        stds = np.array([float(std)])
+    else:
+        n = np.atleast_1d(np.asarray(entry['value'], dtype=float)).size
+        stds = np.atleast_1d(np.asarray(std, dtype=float)).ravel()
+        if stds.size == 1:
+            stds = np.full(n, stds[0])
+        elif stds.size != n:
+            raise ValueError(f"{where}: 'std' has {stds.size} entries but the series "
+                             f"has {n} points; give one number or one per point.")
+    if not np.all(np.isfinite(stds)) or np.any(stds <= 0.0):
+        raise ValueError(f"{where}: every 'std' entry must be finite and > 0, got "
+                         f"{std!r}.")
+    return float(stds[0]) if entry['data_type'] == 'constant' else stds.tolist()
 
 
 class ObsAndParamDataParser(object):
@@ -3923,6 +3949,8 @@ class ObsAndParamDataParser(object):
                             f"{entry['data_type']!r}.")
                     check_value_shape(where, entry['data_type'], entry['value'], entry['std'],
                                       entry['obs_dt'])
+                    if entry['value'] is not None and entry['std'] is not None:
+                        entry['std'] = _held_out_std(entry, entry_idx)
                     operation = entry['operation']
                     if operation is not None and str(operation).strip() in _NO_OPERATION_SPELLINGS:
                         operation = None
@@ -4506,7 +4534,8 @@ class ObsAndParamDataParser(object):
         # --- Experiments the cost uses ---
         # One no data_item belongs to only serves prediction items (validation), so the
         # calibration does not simulate it (cost_experiment_idxs). With no data_items at all
-        # there is nothing to calibrate, and every experiment is kept, as before.
+        # every experiment is kept, as before, for the analyses that need no data_item; a
+        # calibration refuses such a file (CVS0DParamID._require_data_items).
         referenced = sorted({int(e) for e in df["experiment_idx"]}) if len(df) else []
         if referenced:
             protocol["cost_experiment_idxs"] = [e for e in range(N_exp) if e in referenced]

@@ -1,6 +1,6 @@
 """
 Converts a CellML model to Circulatory Autogen format and generate files to run Circulatory Autogen.
-Inputs: CellML model and the output directory where resources ('parameters.csv' and 'vessel_array.csv') and 'user_inputs.yaml' files are created.
+Inputs: CellML model and the output directory where resources ('parameters.csv' and 'module_array.csv') and 'user_inputs.yaml' files are created.
 'module_config.json' and 'modules.cellml' files are generated at 'module_config_user' directory.
 """
 import argparse
@@ -124,15 +124,11 @@ def _extract_variables_constants_states_from_model(analysed_model):
     states = []
 
     # Get variables and constants
-    for i in range(analysed_model.variableCount()):
-        analysed_model_variable = analysed_model.variable(i)
+    for analysed_model_variable in analysed_model.algebraicVariables():
+        variables.append(analysed_model_variable.variable().name())
+    for analysed_model_variable in analysed_model.constants():
         variable = analysed_model_variable.variable()
-        type_as_string = analysed_model_variable.typeAsString(analysed_model_variable.type())
-
-        if type_as_string == "algebraic":
-            variables.append(variable.name())
-        elif type_as_string == "constant":
-            constants[variable.name()] = variable.initialValue()
+        constants[variable.name()] = variable.initialValue()
 
     # Get state variables and set initial values
     for i in range(analysed_model.stateCount()):
@@ -201,19 +197,19 @@ def _generate_module_config(variables, constants, states, file_prefix, component
 
     print(f"Generated module_config.json file: {file_path}")
 
-# Generate vessel_array.csv file
-def _generate_vessel_array_csv(output_dir, vessel_name, file_prefix):
+# Generate module_array.csv file
+def _generate_module_array_csv(output_dir, vessel_name, file_prefix):
 
     resources_dir = os.path.join(output_dir, "resources")
     os.makedirs(resources_dir, exist_ok=True)
 
-    file_path = os.path.join(resources_dir, f"{file_prefix}_vessel_array.csv")
+    file_path = os.path.join(resources_dir, f"{file_prefix}_module_array.csv")
 
     with open(file_path, "w") as fh:
         fh.writelines(["name,BC_type,vessel_type,inp_vessels,out_vessels\n"])
         fh.writelines([f"{vessel_name},nn,{file_prefix},,\n"])
 
-    print(f"Generated vessel_array.csv file: {file_prefix}_vessel_array.csv")
+    print(f"Generated module_array.csv file: {file_prefix}_module_array.csv")
 
 # Generate parameters.csv file
 def _generate_parameters_csv(output_dir, constants, vessel_name, file_prefix, data_reference):
@@ -467,7 +463,7 @@ def main():
 
     _generate_module_config(variables, constants, states, file_prefix, component_name)
 
-    _generate_vessel_array_csv(args["output_dir"], vessel_name, file_prefix)
+    _generate_module_array_csv(args["output_dir"], vessel_name, file_prefix)
 
     _generate_parameters_csv(args["output_dir"], constants, vessel_name, file_prefix, data_reference)
 

@@ -60,7 +60,7 @@ def test_vessel_module_needs_vessel_ports():
     # nn modules with a vessel_port (the constant BCs) stay non-vessels
     assert not is_vessel_module({'BC_type': 'nn_constant', **VESSEL_PORTS})
     assert not is_vessel_module({'BC_type': 'lv_test', **VESSEL_PORTS})
-    # without port info (the raw vessel array) the prefix decides
+    # without port info (the raw module array) the prefix decides
     assert has_vessel_ports({'BC_type': 'vp'}) is None
     assert is_vessel_module({'BC_type': 'vp'})
     assert not is_vessel_module({'BC_type': 'lv'})
@@ -211,10 +211,11 @@ def _write_source_and_sink(library_dir, source_bc, sink_bc):
          ['y', 'dimensionless', 'access', 'variable']]))
 
 
-def _generate(tmp_path, prefix, vessel_array, parameters, library_dir, use_builtin_modules):
+def _generate(tmp_path, prefix, module_array, parameters, library_dir, use_builtin_modules,
+              extra_library_dirs=()):
     resources_dir = tmp_path / 'resources'
     resources_dir.mkdir(parents=True, exist_ok=True)
-    (resources_dir / f'{prefix}_vessel_array.csv').write_text(textwrap.dedent(vessel_array))
+    (resources_dir / f'{prefix}_module_array.csv').write_text(textwrap.dedent(module_array))
     (resources_dir / f'{prefix}_parameters.csv').write_text(textwrap.dedent(parameters))
     config = {
         'file_prefix': prefix,
@@ -223,7 +224,7 @@ def _generate(tmp_path, prefix, vessel_array, parameters, library_dir, use_built
         'solver': 'CVODE_myokit',
         'resources_dir': str(resources_dir),
         'generated_models_dir': str(tmp_path / 'generated_models'),
-        'module_library_dirs': [str(library_dir)],
+        'module_library_dirs': [str(library_dir)] + list(extra_library_dirs),
         'use_builtin_modules': use_builtin_modules,
         'DEBUG': False,
     }
@@ -394,6 +395,7 @@ def test_non_vessel_neighbour_of_nout_junction_keeps_its_connections(tmp_path):
 
 @pytest.mark.integration
 @pytest.mark.slow
+@pytest.mark.usefixtures('skip_generated_model_checks')
 def test_renaming_junction_non_vessel_neighbours_changes_nothing(tmp_path):
     """generic_junction_test_open_loop has a K_tube (material_prop_visco_const, BC_type nn)
     next to every Nout_junction. Giving those K_tubes the version name ``lv_test`` instead
@@ -423,16 +425,20 @@ def test_renaming_junction_non_vessel_neighbours_changes_nothing(tmp_path):
     (module_dir / 'K_tube_lv_test_modules_config.json').write_text(json.dumps([entry]))
 
     resources = os.path.join(os.path.dirname(__file__), '..', 'resources')
-    vessel_array = open(os.path.join(resources, 'generic_junction_test_open_loop_vessel_array.csv')).read()
+    module_array = open(os.path.join(resources, 'generic_junction_test_open_loop_module_array.csv')).read()
     parameters = open(os.path.join(resources, 'generic_junction_test_open_loop_parameters.csv')).read()
     renamed = re.sub(r'^(K_tube_\w+),nn,material_prop_visco_const,', r'\1,lv_test,material_prop_visco_const,',
-                     vessel_array, flags=re.M)
+                     module_array, flags=re.M)
     assert renamed.count(',lv_test,') > 50
 
-    original_dir = _generate(tmp_path / 'original', 'gj', vessel_array, parameters,
-                             library_dir, use_builtin_modules=True)
+    # resources/ arrays name the module library's vessels (tests/conftest.py)
+    library_dirs = os.environ['CUFLYNX_MODULE_LIBRARY'].split(os.pathsep)
+    original_dir = _generate(tmp_path / 'original', 'gj', module_array, parameters,
+                             library_dir, use_builtin_modules=True,
+                             extra_library_dirs=library_dirs)
     renamed_dir = _generate(tmp_path / 'renamed', 'gj', renamed, parameters,
-                            library_dir, use_builtin_modules=True)
+                            library_dir, use_builtin_modules=True,
+                            extra_library_dirs=library_dirs)
     original = (original_dir / 'gj.cellml').read_text()
     renamed_model = (renamed_dir / 'gj.cellml').read_text()
     assert original == renamed_model.replace('K_tube_lv_test_type', 'material_prop_visco_const_type')

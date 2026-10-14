@@ -11,7 +11,7 @@ import pytest
 
 from libcuflynx.scripts.script_generate_with_new_architecture import generate_with_new_architecture
 from libcuflynx.solver_wrappers import get_simulation_helper
-from libcuflynx.utilities.module_library import ModuleSources, collect_units
+from libcuflynx.utilities.module_library import ModuleShadowWarning, ModuleSources, collect_units
 from libcuflynx.utilities.package_resources import builtin_modules_dir
 
 DECAY_CELLML = """\
@@ -80,7 +80,7 @@ def _write_module(library_dir, name, vessel_type, module_type, units_exponent='-
 
 def _write_resources(resources_dir, prefix, vessel_type, k=0.5, x_init=2.0):
     os.makedirs(resources_dir, exist_ok=True)
-    with open(os.path.join(resources_dir, f'{prefix}_vessel_array.csv'), 'w') as f:
+    with open(os.path.join(resources_dir, f'{prefix}_module_array.csv'), 'w') as f:
         f.write(textwrap.dedent(f"""\
             name,BC_type,vessel_type,inp_vessels,out_vessels
             decay,nn,{vessel_type},,
@@ -151,19 +151,27 @@ def test_module_library_redefines_builtin_when_builtins_off(tmp_path):
 
 
 @pytest.mark.integration
-def test_module_library_duplicate_of_builtin_rejected_when_builtins_on(tmp_path):
-    """Default behaviour is kept: redefining a built-in pair is still a duplicate."""
+def test_module_library_redefines_builtin_with_a_warning_when_builtins_on(tmp_path):
+    """With built-ins on, a library's redefinition of a built-in pair wins over it (the more
+    specific source), with a ModuleShadowWarning: it used to stop generation as a duplicate.
+    See also tests/test_module_source_precedence.py."""
     library_dir = str(tmp_path / 'library')
     _write_module(library_dir, 'Lotka_Volterra', 'Lotka_Volterra', 'Lotka_Volterra_lib')
     _write_resources(str(tmp_path / 'resources'), 'lib_lv_dup', 'Lotka_Volterra')
 
     config = _config(tmp_path, 'lib_lv_dup', library_dir, use_builtin_modules=None)
-    with pytest.raises(SystemExit):
-        generate_with_new_architecture(False, config)
+    with pytest.warns(ModuleShadowWarning, match='Lotka_Volterra/nn'):
+        assert generate_with_new_architecture(False, config)
+    modules_text = (tmp_path / 'generated_models' / 'lib_lv_dup'
+                    / 'lib_lv_dup_modules.cellml').read_text()
+    assert '<component name="Lotka_Volterra_lib"' in modules_text
+    assert '<component name="Lotka_Volterra">' not in modules_text
 
 
-def test_module_sources_default_is_builtin_library():
-    """Without the new keys, sources are exactly the built-in (and user) modules."""
+def test_module_sources_default_is_builtin_library(monkeypatch):
+    """Without the new keys (or CUFLYNX_MODULE_LIBRARY), sources are exactly the built-in (and
+    user) modules."""
+    monkeypatch.delenv('CUFLYNX_MODULE_LIBRARY', raising=False)
     sources = ModuleSources({'external_modules_dir': None})
     builtin = builtin_modules_dir()
     assert os.path.join(builtin, 'units.cellml') in sources.units_files
@@ -202,3 +210,26 @@ def test_conflicting_units_raise(tmp_path):
 def test_missing_library_dir_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         ModuleSources({'external_modules_dir': None, 'module_library_dirs': [str(tmp_path / 'nope')]})
+
+
+def test_module_library_env_is_the_default_library(monkeypatch, tmp_path):
+    """CUFLYNX_MODULE_LIBRARY replaces the built-in modules for a config that chooses neither,
+    and is ignored by one that sets module_library_dirs or use_builtin_modules."""
+    library = tmp_path / 'library'
+    library.mkdir()
+    other = tmp_path / 'other'
+    other.mkdir()
+    builtin = builtin_modules_dir()
+    monkeypatch.setenv('CUFLYNX_MODULE_LIBRARY', os.pathsep.join([str(library), str(other)]))
+
+    sources = ModuleSources({})
+    assert not any(p.startswith(builtin) for p in sources.config_files + sources.cellml_files)
+    assert sources.base_script == os.path.join(builtin, 'base_script.cellml')
+
+    sources = ModuleSources({'use_builtin_modules': True})
+    assert any(p.startswith(builtin) and p.endswith('.json') for p in sources.config_files)
+
+    from libcuflynx.utilities.module_library import module_settings
+    assert module_settings({}) == (False, [str(library), str(other)])
+    assert module_settings({'module_library_dirs': [str(other)]}) == (True, [str(other)])
+    assert module_settings({'use_builtin_modules': False}) == (False, [])

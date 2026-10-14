@@ -137,13 +137,13 @@ def create_unit_conversion_test_files(temp_model_dir):
                     }  
                     ], f, indent=2)  
         
-    # Create resources directory for vessel array and parameters  
+    # Create resources directory for module array and parameters  
     resources_dir = os.path.join(temp_model_dir, 'resources')  
     os.makedirs(resources_dir, exist_ok=True)  
       
-    # Create vessel_array.csv  
-    vessel_array_file = os.path.join(resources_dir, 'unit_test_vessel_array.csv')  
-    with open(vessel_array_file, 'w') as f:  
+    # Create module_array.csv  
+    module_array_file = os.path.join(resources_dir, 'unit_test_module_array.csv')  
+    with open(module_array_file, 'w') as f:  
         f.write("""name,BC_type,vessel_type,inp_vessels,out_vessels  
 vessel1,test,test_type1,,vessel2  
 vessel2,test,test_type2,vessel1,  
@@ -155,7 +155,22 @@ vessel2,test,test_type2,vessel1,
         f.write("""variable_name,units,value,data_reference  
                 flux_local_vessel2,L_per_mol,0.5,test  
     """)
-      
+
+    # the units the two components use, which no module library is guaranteed to define
+    with open(os.path.join(module_config_dir, 'unit_test_units.cellml'), 'w') as f:
+        f.write("""<?xml version='1.0' encoding='UTF-8'?>
+<model name="unit_test_units" xmlns="http://www.cellml.org/cellml/1.1#">
+    <units name="m3_per_mol">
+        <unit exponent="3" units="metre"/>
+        <unit exponent="-1" units="mole"/>
+    </units>
+    <units name="L_per_mol">
+        <unit units="litre"/>
+        <unit exponent="-1" units="mole"/>
+    </units>
+</model>
+""")
+
     return resources_dir, module_config_dir
   
 @pytest.mark.integration  

@@ -13,17 +13,17 @@ A module library (e.g. circulatory-autogen-modules) lays a module out as::
             <name>_params_for_id.csv  optional
 
 Parameterisations used to be called *instances* (the word now means one use of a version in
-a vessel array), and the old names are still read: an ``instances/`` directory is used when
+a module array), and the old names are still read: an ``instances/`` directory is used when
 there is no ``parameterisations/`` one, ``"instance"`` is read as ``"parameterisation"`` and
 ``"default_instance"`` as ``"default_parameterisation"``. The code below keeps the old names
 internally: the config loaders (``config_schemas.py``) normalise both spellings to
 ``instance`` / ``default_instance``.
 
 A parameterisation only changes parameters, never the math. Its parameter names carry no
-suffix: a row ``C`` becomes ``C_<vessel>`` for the vessel-array record that uses it, except a
+suffix: a row ``C`` becomes ``C_<vessel>`` for the module-array record that uses it, except a
 row naming one of the module's ``global_constant`` variables, which keeps its plain name.
 
-A vessel-array record (or a supermodule's submodule) picks a parameterisation with
+A module-array record (or a supermodule's submodule) picks a parameterisation with
 ``"parameterisation": "<name>"``; without one, the config entry's
 ``"default_parameterisation"`` is used if that parameterisation's parameters file exists, and
 otherwise nothing is loaded. The directory is looked for next to the config file the
@@ -36,8 +36,12 @@ over them (``ModelParsers.merge_default_parameters``). The order of precedence i
     host parameters file > supermodule parameterisation > supermodule default_parameters
                          > submodule / component parameterisation
 
-and within one tier the first record in the (expanded) vessel array wins, so a global set by
-several parameterisations is added once.
+and within one tier the first record in the (expanded) module array wins, so a global set by
+several parameterisations is added once. A global is one value for the whole model, so a
+parameterisation that set it to another value than the one used is warned about
+(``ConflictingGlobalWarning``): its module runs at a value it did not choose. The exceptions
+are a supermodule overriding the parameterisations inside it, which is what a supermodule
+parameterisation is for, and a global the host parameters file sets.
 
 A supermodule entry may also live in a version directory with parameterisations. Its
 parameterisation's rows are named ``{var}_{submodule}`` (local) or are globals, like
@@ -46,6 +50,7 @@ parameterisation's rows are named ``{var}_{submodule}`` (local) or are globals, 
 '''
 
 import os
+import warnings
 
 import pandas as pd
 
@@ -204,6 +209,70 @@ def instance_parameter_rows(entry, instance, where):
     return instance, read_parameter_rows(path, where, f'parameterisation "{instance}" file')
 
 
+class ConflictingGlobalWarning(UserWarning):
+    '''Module parameterisations set the global constant ``name`` to different values;
+    ``values`` is ``[(value, units, who)]`` in precedence order, the first used.
+    ``ModelParsers.load_model`` drops it when the host parameters file sets ``name``.'''
+
+    def __init__(self, message, name=None, values=()):
+        super().__init__(message)
+        self.name = name
+        self.values = list(values)
+
+
+def _same_value(a, b):
+    try:
+        return float(a) == float(b)
+    except (TypeError, ValueError):
+        return str(a).strip() == str(b).strip()
+
+
+def inside(record, supermodule):
+    '''Whether the expanded record ``record`` comes from the supermodule instance
+    ``supermodule`` (expansion names it ``<supermodule>_<submodule>``, nesting included).'''
+    return record.startswith(supermodule + '_')
+
+
+def warn_conflicting_globals(settings, source):
+    '''One ConflictingGlobalWarning per global in ``settings`` -- ``[(name, value, units, who,
+    record)]`` in precedence order, the first one used -- that a record's parameterisation set
+    to a different value than the one used, unless that record is inside the supermodule whose
+    value is used. Different units are called out: two modules then most likely mean
+    different quantities by one name (``T``, a temperature in one and a period in another).'''
+    by_name = {}
+    for name, value, units, who, record in settings:
+        by_name.setdefault(name, []).append((value, units, who, record))
+    for name, entries in by_name.items():
+        first_value, first_units, first_who, first_record = entries[0]
+        others = [(v, u, w) for v, u, w, record in entries[1:]
+                  if not _same_value(v, first_value) and not inside(record, first_record)]
+        if not others:
+            continue
+        values = [(first_value, first_units, first_who)] + others
+        listed = '; '.join(f'{v} {u} by {w}' for v, u, w in values)
+        clash = ('' if len({u for _, u, _ in values}) == 1 else
+                 f' The units differ too, so these modules may mean different quantities by '
+                 f'"{name}"; one of them needs renaming.')
+        warnings.warn(ConflictingGlobalWarning(
+            f'{source}: the global constant "{name}" is set to different values by module '
+            f'parameterisations ({listed}). The model uses {first_value} {first_units} (the '
+            f'first), so the other modules run at a value their parameterisation did not '
+            f'choose. Set "{name}" in '
+            f'the host parameters file to choose the value for the whole model.{clash}',
+            name, values), stacklevel=3)
+
+
+def reissue_warnings(held, settled=()):
+    '''Re-issues the warnings in ``held`` (a ``catch_warnings(record=True)`` list), except a
+    ``ConflictingGlobalWarning`` for a global in ``settled``: one a higher level of precedence
+    (a supermodule parameterisation, or the host parameters file) sets, which ends the
+    conflict.'''
+    for w in held:
+        if isinstance(w.message, ConflictingGlobalWarning) and w.message.name in settled:
+            continue
+        warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
+
+
 def global_constants(entry):
     '''The names of ``entry``'s ``global_constant`` variables (variables_and_units kind).'''
     names = set()
@@ -213,19 +282,25 @@ def global_constants(entry):
     return names
 
 
-def component_instance_rows(records, component_registry, source=None):
+def component_instance_rows(records, component_registry, source=None, settings=None):
     '''
-    The parameterisation rows of every record in ``records`` (normalised, expanded vessel
-    records, whose parameterisation is in ``record["instance"]``) whose (vessel_type, BC_type)
-    is in ``component_registry`` (see ``config_schemas.load_component_registry``), in record
-    order: each row ``{var}`` renamed to ``{var}_{record name}``, or kept if ``var`` is a
-    global constant of the module.
+    The parameterisation rows of every record in ``records`` (the normalised records of an
+    expanded module array, whose parameterisation is in ``record["instance"]``) whose
+    (vessel_type, BC_type) is in ``component_registry`` (see
+    ``config_schemas.load_component_registry``), in record order: each row ``{var}`` renamed
+    to ``{var}_{record name}``, or kept if ``var`` is a global constant of the module.
 
     A record naming a parameterisation of a type with no config entry is an error; one naming
     none of such a type is left to the module-config join to report.
+
+    The globals the parameterisations set are added to ``settings`` (see
+    ``warn_conflicting_globals``) when it is given, for the caller to check with the
+    supermodules'; otherwise they are checked here.
     '''
-    source = source or 'vessel array'
+    source = source or 'module array'
     rows = []
+    check_here = settings is None
+    settings = [] if check_here else settings
     for record in records:
         key = (record['vessel_type'], record['BC_type'])
         where = f'{source}: "{record["name"]}" {key}'
@@ -237,22 +312,34 @@ def component_instance_rows(records, component_registry, source=None):
                                  f'config entry of that type was found, so there is no module '
                                  f'library directory to look for its parameterisations in.')
             continue
-        _, raw = instance_parameter_rows(entry, instance, where)
+        used, raw = instance_parameter_rows(entry, instance, where)
         globals_ = global_constants(entry)
         for row in raw:
             row = dict(row)
             if row['variable_name'] not in globals_:
                 row['variable_name'] = f'{row["variable_name"]}_{record["name"]}'
+            else:
+                who = f'"{record["name"]}" (parameterisation "{used}")'
+                settings.append((row['variable_name'], row['value'], row['units'], who,
+                                 record['name']))
             rows.append(row)
+    if check_here:
+        warn_conflicting_globals(settings, source)
     return rows
 
 
 def first_rows_win(rows):
-    '''``rows`` with each variable_name kept once, the first occurrence winning.'''
-    seen = set()
+    '''``rows`` with each variable_name kept once, the first occurrence winning. A row without a
+    value (a supermodule's shared-parameter alias that its instance does not set) is filled by the
+    first later row of that name that has one, keeping its ``shared_from``.'''
+    index = {}
     out = []
     for row in rows:
-        if row['variable_name'] not in seen:
-            seen.add(row['variable_name'])
+        name = row['variable_name']
+        if name not in index:
+            index[name] = len(out)
             out.append(row)
+        elif out[index[name]].get('value') is None and row.get('value') is not None:
+            kept = out[index[name]]
+            out[index[name]] = dict(row, **({'shared_from': kept['shared_from']} if 'shared_from' in kept else {}))
     return out

@@ -1,0 +1,5 @@
+# The commit of physiomelinks/circulatory-autogen-modules the tests run against (see
+# tests/_module_library.py and tests/conftest.py). It is on fix/consistent-junctions (modules
+# PR #4, vessels connected through node multiports) until that branch reaches main.
+# CI checks this commit out; move it deliberately.
+7006ff81b36fbdea23a3982b30e89483b2feeaa9

@@ -19,7 +19,6 @@ import jinja2
 
 from libcuflynx.utilities.paths import default_resources_dir
 from libcuflynx.generators.CVSCellMLGenerator import CVS0DCellMLGenerator
-from libcuflynx.generators.multi_port import module_has_list_multi_port
 from libcuflynx.generators.cpp import externals as ext
 from libcuflynx.generators.cpp.api import CAPI_VERSION, python_model_path, unit_factor
 from libcuflynx.generators.naming import build_symbols
@@ -87,15 +86,6 @@ class CVS0DCppGenerator(object):
         self.generated_model_file_path = os.path.join(self.generated_model_subdir, self.file_prefix + '.cellml')
 
         self.couple_to_1d = couple_to_1d
-        if self.couple_to_1d and getattr(model, 'vessels_df', None) is not None and \
-                any(module_has_list_multi_port(row) for _, row in model.vessels_df.iterrows()):
-            # the 0D-1D coupling reads port variables straight from the module config
-            # and knows nothing of per-variable multi_port semantics
-            raise NotImplementedError(
-                'List-form (per-variable) multi_port, and the whole-port "Sum" (on ports other '
-                'than volume_port) and "Multiply" forms built on it, are not supported when '
-                'coupling the C++ model to a 1D model (couple_to_1d). Use "True"/volume_port '
-                '"sum" multi_port there, or generate without 1D coupling.')
         self.conn_1d_0d_info = conn_1d_0d_info if couple_to_1d else None
         self.model_1d_config_path = model_1d_config_path
         # main0d.cpp is always written now: it runs standalone as well as under the coupler.
@@ -359,9 +349,9 @@ class CVS0DCppGenerator(object):
                 ref.kind, ref.index = 'state', astate.index()
                 ref.symbol = self.state_symbols[ref.index] if self.human_readable else None
                 return ref
-        for av in am.variables():
+        for av, index in cellml.analyser_variables(am):
             if am.areEquivalentVariables(av.variable(), ref.variable):
-                ref.kind, ref.index = 'variable', av.index()
+                ref.kind, ref.index = 'variable', index
                 ref.symbol = self.variable_symbols[ref.index] if self.human_readable else None
                 return ref
         raise CppGenerationError(f'{ref.label} is not a state or variable of the analysed model.')
@@ -455,11 +445,10 @@ class CVS0DCppGenerator(object):
 
     def _build_index_symbols(self, am):
         """S_/V_ names for every state and variable index, from the analysed model."""
-        def pairs(items):
-            ordered = sorted(items, key=lambda a: a.index())
+        def pairs(ordered):
             return ordered, [(a.variable().parent().name(), a.variable().name()) for a in ordered]
-        self._states_ordered, state_pairs = pairs(am.states())
-        self._variables_ordered, variable_pairs = pairs(am.variables())
+        self._states_ordered, state_pairs = pairs(sorted(am.states(), key=lambda a: a.index()))
+        self._variables_ordered, variable_pairs = pairs([av for av, _ in cellml.analyser_variables(am)])
         self.state_symbols = ['S_' + n for n in build_symbols(state_pairs)]
         self.variable_symbols = ['V_' + n for n in build_symbols(variable_pairs)]
 
@@ -467,8 +456,10 @@ class CVS0DCppGenerator(object):
         profile = GeneratorProfile(GeneratorProfile.Profile.C)
         profile.setInterfaceFileNameString(CORE_NAME + '.h')
         gen = Generator()
-        interface = cellml.generate_interface_code(gen, am, profile)
-        implementation = cellml.generate_implementation_code(gen, am, profile)
+        interface = cellml.c_code_with_one_variables_array(
+            cellml.generate_interface_code(gen, am, profile), header=True)
+        implementation = cellml.c_code_with_one_variables_array(
+            cellml.generate_implementation_code(gen, am, profile), header=False)
         if self.human_readable:
             interface = self._add_index_enums(interface)
             implementation = self._name_indices(implementation)
@@ -481,11 +472,11 @@ class CVS0DCppGenerator(object):
         """Declare the named indices in the libCellML header, before its function declarations."""
         def entries(ordered, symbols):
             lines = []
-            for a, sym in zip(ordered, symbols):
+            for index, (a, sym) in enumerate(zip(ordered, symbols)):
                 v = a.variable()
                 units = v.units().name() if v.units() is not None else ''
                 kind = libcellml.AnalyserVariable.typeAsString(a.type()) if hasattr(a, 'type') else 'state'
-                lines.append(f'    {sym} = {a.index()}, /* {v.parent().name()}.{v.name()} [{units}] {kind} */')
+                lines.append(f'    {sym} = {index}, /* {v.parent().name()}.{v.name()} [{units}] {kind} */')
             return '\n'.join(lines)
         enums = ('/* Named indices into the states/rates and variables arrays (added by libcuflynx):\n'
                  '   S_<component>_<variable> for states and rates, V_<component>_<variable> for variables. */\n'
