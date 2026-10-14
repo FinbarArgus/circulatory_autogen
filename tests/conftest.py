@@ -15,13 +15,19 @@ def _use_module_library():
     The module library replaces the modules libcuflynx ships, so the suite tests the modules
     users will generate from. CUFLYNX_MODULE_LIBRARY (read by libcuflynx's ModuleSources for
     any config that does not choose its own modules) points at the library's ``modules/``
-    directory: set it to a checkout, or keep one next to this repository. It is set here, before
+    directory: set it to a checkout, or keep one next to this repository (or next to the main
+    checkout, from a git worktree; see ``tests/_module_library.py``). It is set here, before
     anything runs, so MPI ranks and subprocesses inherit it.
     """
     library = os.environ.get('CUFLYNX_MODULE_LIBRARY')
     if not library:
+        # a checkout beside this repository, or beside the main checkout of a git worktree
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import _module_library
+        found = _module_library.find_modules_dir()
         repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        library = os.path.join(os.path.dirname(repo), 'circulatory-autogen-modules', 'modules')
+        library = str(found) if found is not None else os.path.join(
+            os.path.dirname(repo), 'circulatory-autogen-modules', 'modules')
     # modules only the tests use (generator fixtures, a benchmark), alongside the library
     test_modules = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_inputs', 'test_modules')
     if test_modules not in library.split(os.pathsep):
@@ -243,6 +249,10 @@ def pytest_addoption(parser):
         help='also run the tests marked "manual" -- ones too slow for CI or for a normal local '
              'run, kept because they check something a faster test only approximates (e.g. the '
              'full-model UQ posterior recovery, ~80 min, whose emulated equivalents run in ~5).')
+    parser.addoption(
+        '--ci-shard', default=None, metavar='SUITE:GROUP[,GROUP...]',
+        help='keep only the tests of these groups of tests/ci_shards.json; SUITE:rest is every '
+             'collected test no group of SUITE names. Used by CI to split long jobs.')
 
 
 def pytest_configure(config):
@@ -606,6 +616,24 @@ def aadc_licensed():
         )
 
 
+@pytest.fixture
+def skip_generated_model_checks(monkeypatch):
+    """Generate CellML without the checks that run after the files are written.
+
+    ``CVSCellMLGenerator.generate_files`` writes the model, then flattens and analyses it
+    with libCellML (writing ``<prefix>_flat.cellml``) and compiles and runs it with Myokit.
+    None of that changes the written files, and it is about three quarters of a
+    generation: generic_junction_test_closed_loop takes 22 s locally and 88 s on CI, of
+    which the analysis is 10 s and the Myokit build and run 6 s. For a test that
+    compares the files two generations write, use this; generation then succeeds
+    whenever the files are written.
+    """
+    import libcuflynx.generators.CVSCellMLGenerator as generator
+    monkeypatch.setattr(generator, 'LIBCELLML_available', False)
+    monkeypatch.setattr(generator.CVS0DCellMLGenerator, '_validate_with_myokit',
+                        lambda self, cellml_path: (True, None))
+
+
 @pytest.fixture(scope="function")
 def base_user_inputs(user_inputs_dir):
     """
@@ -752,6 +780,65 @@ def drop_manual_tests(config, items):
         config.hook.pytest_deselected(items=manual)
 
 
+CI_SHARDS_FILE = os.path.join(os.path.dirname(__file__), 'ci_shards.json')
+
+
+def load_ci_shards(path=CI_SHARDS_FILE):
+    """The suites of ``tests/ci_shards.json``: {suite: {group: [entry, ...]}}."""
+    import json
+    with open(path) as f:
+        return {suite: groups for suite, groups in json.load(f).items()
+                if not suite.startswith('_')}
+
+
+def ci_shard_entry_matches(entry, nodeid):
+    """``tests/x.py`` matches every test in the file; ``tests/x.py::name`` matches the test
+    function ``name`` and each of its parametrizations, and nothing that only starts with it."""
+    if '::' not in entry:
+        return nodeid.split('::', 1)[0] == entry
+    return nodeid == entry or nodeid.startswith(entry + '[')
+
+
+def select_ci_shard(config, items, shards=None):
+    """Deselect every test outside ``--ci-shard SUITE:GROUP[,GROUP...]``.
+
+    Runs before anything counts the collected one-rank tests, so the expected-result totals
+    the session waits for at the end are those of the shard. Deselected rather than skipped,
+    like ``drop_manual_tests``, and a module-level function for the same reason: it can be
+    tested directly, without a nested pytest session.
+    """
+    spec = config.getoption('--ci-shard')
+    if not spec:
+        return
+    suite, _, wanted = spec.partition(':')
+    if shards is None:
+        shards = load_ci_shards()
+    if suite not in shards or not wanted:
+        raise pytest.UsageError(
+            f"--ci-shard {spec!r}: expected SUITE:GROUP[,GROUP...] with SUITE one of "
+            f"{sorted(shards)}")
+    groups = shards[suite]
+    wanted = wanted.split(',')
+    unknown = [g for g in wanted if g != 'rest' and g not in groups]
+    if unknown:
+        raise pytest.UsageError(
+            f"--ci-shard {spec!r}: no group {unknown} in suite {suite!r}; "
+            f"groups are {sorted(groups)} and 'rest'")
+
+    def group_of(nodeid):
+        for name, entries in groups.items():
+            if any(ci_shard_entry_matches(e, nodeid) for e in entries):
+                return name
+        return 'rest'
+
+    kept, deselected = [], []
+    for item in items:
+        (kept if group_of(item.nodeid) in wanted else deselected).append(item)
+    if deselected:
+        items[:] = kept
+        config.hook.pytest_deselected(items=deselected)
+
+
 def pytest_collection_modifyitems(config, items):
     """
     Ensure autogeneration tests run before param_id tests, which in turn run before others.
@@ -761,6 +848,7 @@ def pytest_collection_modifyitems(config, items):
     import os
 
     drop_manual_tests(config, items)
+    select_ci_shard(config, items)
 
     autogen_items = [item for item in items if _is_autogen_like_nodeid(item.nodeid)]
     misc_items = [item for item in items if _is_misc_nodeid(item.nodeid)]

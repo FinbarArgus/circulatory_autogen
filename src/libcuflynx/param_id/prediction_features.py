@@ -189,9 +189,12 @@ def evaluate_feature(prediction_info, idx, operation_funcs_dict, operand_values,
             f'func. Register it (operation_funcs_external_path, or add_user_operation_func) or '
             f'use a built-in one.')
     raw_kwargs = _column(prediction_info, 'operation_kwargs', n)[idx] or {}
+    # every prediction item's name is known: a reference to one that was not evaluated here
+    # (not a scalar feature) raises instead of reaching the operation as a string
     kwargs = resolve_operation_kwargs(
         raw_kwargs, func, operation_name=operation, data_item_name=name,
-        temp_results=temp_results, num_operands=len(operand_values))
+        temp_results=temp_results, num_operands=len(operand_values),
+        known_item_names=[str(v) for v in _column(prediction_info, 'data_item_names', n)])
     return as_scalar(func(*operand_values, **kwargs), name, operation)
 
 

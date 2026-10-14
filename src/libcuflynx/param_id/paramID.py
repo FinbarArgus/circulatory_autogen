@@ -560,8 +560,10 @@ class CVS0DParamID():
         [`output_dir`][param_id.paramID.CVS0DParamID].
 
         Raises:
-            ValueError: If observation data or parameters for id are not set.
+            ValueError: If observation data or parameters for id are not set, or the obs_data
+                has no data_items.
         """
+        self._require_data_items('calibration')
         self._check_info_available()
         self.param_id.run()
 
@@ -575,8 +577,11 @@ class CVS0DParamID():
                 best_param_vals = getattr(self.param_id, "best_param_vals", None)
 
                 if output_dir and protocol_info and best_param_vals is not None:
+                    # the first experiment the cost uses: a validation-only experiment is
+                    # not simulated in calibration and has no dump
+                    first = (cost_experiment_idxs(protocol_info) or [0])[0]
                     expected0 = os.path.join(
-                        output_dir, "all_outputs_with_best_param_vals_exp_0.npz"
+                        output_dir, f"all_outputs_with_best_param_vals_exp_{first}.npz"
                     )
                     if not os.path.exists(expected0):
                         print(
@@ -606,6 +611,7 @@ class CVS0DParamID():
         ``UQ_options`` overrides the options the object was built with; omit it to keep them.
         ``mcmc_options`` is a deprecated alias.
         """
+        self._require_data_items('uncertainty quantification')
         UQ_options = _resolve_UQ_options(UQ_options, mcmc_options)
         global mcmc_object
         if not self.mcmc_instead:
@@ -624,6 +630,21 @@ class CVS0DParamID():
         """Deprecated alias of :meth:`run_UQ`, kept so existing scripts keep working."""
         return self.run_UQ()
     
+    def _require_data_items(self, what):
+        """Refuse to calibrate (or sample a posterior) against an obs_data with no data_items.
+
+        Prediction items are never fitted, so without a data_item the cost is empty and the
+        optimiser would report whatever parameters it started from as a fit. Checked before
+        anything is simulated. Sensitivity analysis, saving predictions and emulator training
+        are not calibrations and do not call this.
+        """
+        gt_df = getattr(self, 'gt_df', None)
+        if gt_df is not None and len(gt_df) == 0:
+            raise ValueError(
+                f'The obs_data has no data_items, so there is nothing for {what} to fit: '
+                f'prediction_items are held out and never fitted. Add at least one data_item '
+                f'to the obs_data file.')
+
     def _check_info_available(self):
         #new check, need ensure 'operands' or 'operation_kwargs' exist
         def is_nan(x):
@@ -3981,7 +4002,8 @@ A caller that steps through the segments in order does so inside
             print(f'WARNING: best cost {best_cost} is not close to cost check {cost_check}')
             print(f'Something is wrong with the cost calculation')
 
-            if os.path.exists(os.path.join(self.output_dir, f'all_outputs_with_best_param_vals_exp_0.npz')):
+            first = (cost_experiment_idxs(self.protocol_info) or [0])[0]
+            if os.path.exists(os.path.join(self.output_dir, f'all_outputs_with_best_param_vals_exp_{first}.npz')):
                 print('calculating some debug metrics for this issue')
 
                 for exp_idx in cost_experiment_idxs(self.protocol_info):

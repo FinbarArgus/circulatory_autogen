@@ -5,6 +5,33 @@ next release; add to that section as you land a change.
 
 ## Unreleased
 
+### Changed — libCellML 0.7.1 or later
+
+libCellML 0.7 generates Python and C with constants, computed constants, algebraic and external variables in separate
+arrays. `PythonGenerator` and `CVSCppGenerator` join them into the one `variables` array the solvers and the C++ model
+use, so generated models behave as before: on the test models, the values (Python and C) and the generated C++
+statements are the same as with 0.6.3. 0.6.3 flattened some models with wrong units (a conversion factor's units
+replaced by their inverse), which 0.7.1 fixes (#271).
+
+### Changed — a module type several sources define comes from the most specific one
+
+A `(vessel_type, BC_type)` defined in more than one module source used to keep the first entry
+in the type registry, then stop generation with a print and `exit()`. That is why a module
+library that copies built-in modules needed `use_builtin_modules: false`.
+
+- **Precedence.** The type is now taken from the most specific source: `external_modules_dir`,
+  then `module_library_dirs` in order, then `module_config_user`, then the built-in modules.
+- **One rule for everything.** The type registries (so instances resolve next to the winning
+  config), the module-config join and the CellML modules file all apply it, through
+  `ModuleSources` (`excluded_entries`, `excluded_components`, `component_registry()`,
+  `supermodule_registry()`).
+- **What is left out.** The shadowed definitions' config entries and CellML components. A
+  component that a type still in use needs is kept.
+- **Competition is reported.** A `ModuleShadowWarning` lists every type defined more than once
+  and the source that won.
+- **Within one source, a duplicate is a `ValueError`** naming the files. So is a repeated type
+  at the module-config join, which used to `exit()`.
+
 ### Changed — vessel arrays are now called module arrays
 
 The file is `[file_prefix]_module_array.json` or `.csv`, and every model in `resources/` has been
@@ -110,8 +137,7 @@ circulatory-autogen-modules.
   are evaluated with Myokit; libCellML 0.6 accepts only constants there, so these models
   could not be generated as C++ before.
 - CellML generation connects variables of equivalent units under different names (e.g.
-  `mol_per_m3` and `millimolar`) directly. It used to create an unconnected "converter", and the
-  converter name was not unique per connection.
+  `mol_per_m3` and `millimolar`) directly. It used to create an unconnected "converter".
 - `GE_capillary` listed `d_1` ... `s_2` twice in its config, and `capillary_GE` and
   `pulmonary_GE_5_lobe_type` used `saturation_cap` without declaring it.
 
@@ -133,6 +159,16 @@ unchanged.
   coupler, and sent the volume in cm³ instead of m³.
 - 1D input generation wrote an unknown artery/vein type for vessels not named `A_*`/`V_*`;
   an `art_ven_type_<vessel>` parameter now sets it.
+
+### Changed — module instances are now called parameterisations
+
+A module version's named parameter sets live in `parameterisations/<name>/<name>_parameters.csv`
+(with `<name>_obs_data.json` and `<name>_params_for_id.csv`); a record or submodule picks one with
+`"parameterisation"`, and a config entry names its default with `"default_parameterisation"`.
+"Instance" now means one use of a version in a module array, as a PhLynx node does. The older
+names are still read: `instances/` is used when a version has no `parameterisations/`, and
+`"instance"`/`"default_instance"` are read as the new keys. Giving both spellings with different
+values is a ValueError. The JSON Schemas describe both.
 
 ### Added — prediction items as scalar features
 
@@ -166,7 +202,8 @@ simulated during calibration: not in any cost path, the best-fit check, or the
 all-outputs npz. It is simulated for the prediction data and validation, and for SA/emulator
 training only when a prediction feature needs it. A one-line message names such experiments.
 `libcuflynx.parsers.PrimitiveParsers.cost_experiment_idxs(protocol_info)` lists the ones the
-cost uses.
+cost uses. An obs_data with no data_items at all has nothing to fit: calibration and UQ refuse it
+with a ValueError before simulating anything (it used to crash with an IndexError).
 
 **Scalar or series.** Every data_item and prediction_item is a scalar (`constant`: value and
 std are numbers) or a series (`series`: value is a list, std is a number or a list of the same
@@ -181,6 +218,21 @@ raises `NonScalarPredictionFeatureError`. With both options off, SA outputs and 
 fingerprints are unchanged. Callers can feature-detect with
 `libcuflynx.sensitivity_analysis.SUPPORTS_PREDICTION_FEATURES`.
 
+### Added — held-out data in `prediction_items`, scored after calibration
+
+A `prediction_item` may carry data that calibration never fits: `value` (with `data_type`,
+`std`, and `obs_dt` for a series). `prediction_info` gains parallel `data_types`, `values`,
+`stds` and `obs_dts` columns. After a calibration, `libcuflynx.param_id.validation` compares the
+calibrated model's prediction with the held-out data (a series at `k*obs_dt` within the run, a
+constant at the end of its experiment), and `save_prediction_data` writes
+`validation_results.json` with rmse, nrmse, mean |z|, the fraction within 2 std, and the model
+and data at the observation times. Prediction items without a `value` behave as before. See
+`tutorial/docs/parameter-identification.md`.
+
+The `std` is optional; without it there are no z-scores. When given, it is checked like a data
+item's: one finite positive number for a constant, and for a series one such number or one per
+point. A zero, negative or wrong-length `std` is a parse error naming the item.
+
 ### Added — module versions and instances
 
 A module library can lay a module version out as `<module_type>/versions/<version>/` with named
@@ -194,6 +246,13 @@ parameters: the host parameters file wins, then a supermodule's instance, then i
 too, named like `default_parameters` (`{var}_{submodule}` or global); `default_parameters` still
 works. An unknown instance is an error that lists the version's instances. Models without
 instances generate byte-identical CellML.
+
+A global constant is one value for the whole model, so when instances set one to different values
+the first is used and a `ConflictingGlobalWarning` names each value, its units and the record that
+set it. The warning is skipped when the host parameters file sets the global, and when a
+supermodule's instance overrides the instances inside it. It also says when the units differ: two
+modules then most likely mean different quantities by one name (in the module library, `T` is a
+temperature in the ion channels and a period in the cardiac clock).
 
 obs_data files accept a top-level `"obs_data_name"` (returned as `obs_data_name` by
 `parse_obs_data_json`); a file in `instances/<name>/` whose `obs_data_name` is not `<name>` is
@@ -225,6 +284,17 @@ JSON Schemas for both files ship in `libcuflynx/schemas/` (`module_array.schema.
 The 0D/1D split for `couple_to_1d` now always writes `[file_prefix]_0d_module_array.csv` and
 `[file_prefix]_1d_module_array.csv`, and the 1D generator reads the file the split wrote. Before,
 an input named `_module_array.csv` gave split files the 1D generator could not find.
+
+### Fixed — a BC_type's first two letters are a BC pair only for vessels
+
+Non-vessel modules (cells, ion channels, controllers, heart parts, BC modules) can now have any
+`BC_type` / `module_subtype`, with no `nn` prefix. Before, every connection whose two sides did
+not start with `nn` had their first two letters checked as vessel BCs, so a version named
+`lv_...`, `rv_...` or `Up...` stopped generation, and a non-vessel neighbour of an Nout junction
+lost its connection. A module now counts as a vessel when its `BC_type` starts with `vv`, `vp`,
+`pv` or `pp` and it has vessel ports (a `vessel_port`, or a `flow_port` and a `pressure_port` at
+its entrance/exit); see `libcuflynx.utilities.vessel_bc`. Vessel BC pairs are checked as before,
+and all the built-in example models generate byte-identical CellML.
 
 ### Added — PhLynx module-config and module-array schemas; `"Sum"` and `"Multiply"` multi_ports
 
@@ -308,6 +378,17 @@ differently in two files raises a `ValueError` naming both files.
   port, instead of skipping any neighbour whose BC_type starts with `nn`. A junction fed directly by
   boundary conditions such as `inlet_flow nn_constant` used to fail with "Min_junction junc has NO
   other vessels connected to its inlet node". Existing models generate byte-identical CellML (#524).
+- Unit converter components are named after the connection they sit on,
+  `unit_converter_[from module]_[from variable]_to_[to module]_[to variable]`, with one per
+  variable pair. They were named `unit_converter_[from units]_to_[to units]`, so a module output
+  shared (multi_port `"True"`) with two modules that both needed the same conversion gave two
+  components with the same name, and libCellML / Myokit rejected the model ("Component name must
+  be unique within model").
+- A venous module fed by a terminal takes the terminal flow into `v_in` through the
+  `terminal_venous_connection` when one of its *other* entrance ports has a list-form
+  multi_port, e.g. a separate `blood_uptake_port` with `multi_port: "sum"`. Only a list-form
+  multi_port on the module's `vessel_port` entrance (which sums the terminal flow itself) skips
+  that mapping now; before, any list-form entrance port did, and `v_in` was left unconnected.
 
 ## 0.7.3 — 2026-09-05
 

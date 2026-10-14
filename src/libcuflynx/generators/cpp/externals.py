@@ -548,7 +548,7 @@ def variable_kinds(flat_model):
         for astate in am.states():
             if am.areEquivalentVariables(astate.variable(), variable):
                 return 'state'
-        for av in am.variables():
+        for av, _ in cellml.analyser_variables(am):
             if am.areEquivalentVariables(av.variable(), variable):
                 return 'constant' if av.type() == constant_type else 'computed'
         return None

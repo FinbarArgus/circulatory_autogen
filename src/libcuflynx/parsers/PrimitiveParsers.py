@@ -751,13 +751,18 @@ _NO_OPERATION_SPELLINGS = ('', 'None', 'none', 'Null', 'null', 'nan')
 
 
 def check_prediction_operation_references(gt_df, prediction_info):
-    """A prediction item's ``operation_kwargs`` may name an *earlier prediction item* only.
+    """A prediction item's ``operation_kwargs`` may name an *earlier prediction item* only,
+    and only one that has an operation and is not a series.
 
     A string kwarg value equal to an item's ``data_item_name`` is a reference to that item's
     value (#466). For a prediction feature only the prediction items are evaluated together
     -- the validation after calibration has no data_item features -- so a reference to a
     data_item, or to a later prediction item, could not be resolved the same way everywhere.
-    Refused here, at parse time, rather than as a confusing error after a simulation.
+    Sensitivity analysis and emulator training evaluate only the scalar prediction items, so a
+    reference to an item without an operation, or to a series, has no value there either: it
+    used to reach the operation as the item's name, a string (``TypeError``, or a plausible
+    wrong number). Refused here, at parse time, rather than as a confusing error after a
+    simulation.
     """
     if not prediction_info:
         return
@@ -765,6 +770,8 @@ def check_prediction_operation_references(gt_df, prediction_info):
     if gt_df is not None and len(gt_df) and "data_item_name" in gt_df.columns:
         data_names = {str(name) for name in gt_df["data_item_name"]}
     pred_names = [str(name) for name in (prediction_info.get("data_item_names") or [])]
+    operations = list(prediction_info.get("operations") or [None] * len(pred_names))
+    data_types = list(prediction_info.get("data_types") or [None] * len(pred_names))
     for idx, kwargs in enumerate(prediction_info.get("operation_kwargs") or []):
         for key, value in (kwargs or {}).items():
             if not isinstance(value, str):
@@ -780,6 +787,16 @@ def check_prediction_operation_references(gt_df, prediction_info):
                     f"references prediction item {value!r}, which is not earlier in "
                     f"prediction_items. References are resolved in order; move {value!r} "
                     f"before '{pred_names[idx]}'.")
+            if value in pred_names[:idx]:
+                ref = pred_names.index(value)
+                if operations[ref] is None or data_types[ref] == 'series':
+                    what = 'has no operation' if operations[ref] is None else "is a series"
+                    raise ValueError(
+                        f"prediction_items[{idx}] ('{pred_names[idx]}'): operation_kwargs {key!r} "
+                        f"references prediction item {value!r}, which {what}. A reference must "
+                        f"name an earlier prediction item with an operation that gives one "
+                        f"number (data_type 'constant', or no data_type and an operation such "
+                        f"as 'max' or 'mean'): only those have a value in every analysis.")
 
 
 def migrate_legacy_obs_columns(gt_df):
@@ -3307,25 +3324,28 @@ class JSONFileParser(object):
         # match '.json' but are binary and blow up json.load, so skip them here (issue #83).
         return file.endswith('.json') and not file.startswith('._')
 
-    def module_config_to_dataframe(self, json_path):
+    def module_config_to_dataframe(self, json_path, exclude=()):
         """The component entries of one module config JSON file, in either the libcuflynx or
         the PhLynx schema, as a dataframe with libcuflynx column names (see
-        utilities/config_schemas.py). Supermodule entries are left out.
+        utilities/config_schemas.py). Supermodule entries are left out, and so are the
+        ``(file, (vessel_type, BC_type))`` pairs in ``exclude``.
 
         An entry's ``api`` block gets ``_config_dir``, the folder of this file, so files the api
         names (e.g. an external model's Python file) are found relative to their config."""
-        entries = load_module_config(json_path)
+        entries = [e for e in load_module_config(json_path)
+                   if (str(json_path), (e['vessel_type'], e['BC_type'])) not in exclude]
         config_dir = os.path.dirname(os.path.abspath(json_path))
         for entry in entries:
             if isinstance(entry, dict) and isinstance(entry.get('api'), dict):
                 entry['api'].setdefault('_config_dir', config_dir)
         return pd.DataFrame(entries)
 
-    def json_files_to_dataframe(self, json_files):
-        """All module config entries from ``json_files``, in order, as one dataframe."""
+    def json_files_to_dataframe(self, json_files, exclude=()):
+        """All module config entries from ``json_files``, in order, as one dataframe, without
+        those in ``exclude`` (``ModuleSources.excluded_entries``: shadowed definitions)."""
         # a file of supermodule entries only gives an empty frame: those entries are read by
         # config_schemas.load_supermodule_registry, never joined as components
-        dfs = [self.module_config_to_dataframe(path) for path in json_files]
+        dfs = [self.module_config_to_dataframe(path, exclude) for path in json_files]
         dfs = [df for df in dfs if not df.empty]
         if not dfs:
             raise ValueError('No module config JSON files were found: check use_builtin_modules, '
@@ -3461,6 +3481,30 @@ def validate_params_to_change(protocol_info):
         )
 
 
+def _held_out_std(entry, entry_idx):
+    """A prediction item's held-out std, checked like a data item's: one finite
+    positive number for a constant; for a series, one such number (applied to every
+    point) or a list as long as the series, every entry finite and positive."""
+    where = f"prediction_items[{entry_idx}] ({entry.get('data_item_name')!r})"
+    std = entry['std']
+    if entry['data_type'] == 'constant':
+        if isinstance(std, (list, tuple, np.ndarray)):
+            raise ValueError(f"{where}: a constant's 'std' is one number, got a list.")
+        stds = np.array([float(std)])
+    else:
+        n = np.atleast_1d(np.asarray(entry['value'], dtype=float)).size
+        stds = np.atleast_1d(np.asarray(std, dtype=float)).ravel()
+        if stds.size == 1:
+            stds = np.full(n, stds[0])
+        elif stds.size != n:
+            raise ValueError(f"{where}: 'std' has {stds.size} entries but the series "
+                             f"has {n} points; give one number or one per point.")
+    if not np.all(np.isfinite(stds)) or np.any(stds <= 0.0):
+        raise ValueError(f"{where}: every 'std' entry must be finite and > 0, got "
+                         f"{std!r}.")
+    return float(stds[0]) if entry['data_type'] == 'constant' else stds.tolist()
+
+
 class ObsAndParamDataParser(object):
     def __init__(self, modifier_funcs_external_path=None):
         # Optional external file of user modifier functions (issue #383), threaded from the
@@ -3492,8 +3536,9 @@ class ObsAndParamDataParser(object):
             print("No obs data path or obs data dict provided, exiting")
             return None
 
-        # Optional top-level "obs_data_name" (the instance/data set the file belongs to);
-        # warns when a file filed under instances/<name>/ names another instance.
+        # Optional top-level "obs_data_name" (the parameterisation/data set the file belongs
+        # to); warns when a file filed under parameterisations/<name>/ (or the older
+        # instances/<name>/) names another parameterisation.
         obs_data_name = check_obs_data_name(json_obj, param_id_obs_path)
 
         gt_df, protocol_info, prediction_info = None, None, None
@@ -3904,6 +3949,8 @@ class ObsAndParamDataParser(object):
                             f"{entry['data_type']!r}.")
                     check_value_shape(where, entry['data_type'], entry['value'], entry['std'],
                                       entry['obs_dt'])
+                    if entry['value'] is not None and entry['std'] is not None:
+                        entry['std'] = _held_out_std(entry, entry_idx)
                     operation = entry['operation']
                     if operation is not None and str(operation).strip() in _NO_OPERATION_SPELLINGS:
                         operation = None
@@ -4487,7 +4534,8 @@ class ObsAndParamDataParser(object):
         # --- Experiments the cost uses ---
         # One no data_item belongs to only serves prediction items (validation), so the
         # calibration does not simulate it (cost_experiment_idxs). With no data_items at all
-        # there is nothing to calibrate, and every experiment is kept, as before.
+        # every experiment is kept, as before, for the analyses that need no data_item; a
+        # calibration refuses such a file (CVS0DParamID._require_data_items).
         referenced = sorted({int(e) for e in df["experiment_idx"]}) if len(df) else []
         if referenced:
             protocol["cost_experiment_idxs"] = [e for e in range(N_exp) if e in referenced]
