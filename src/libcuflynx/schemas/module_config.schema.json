@@ -329,7 +329,8 @@
         },
         "template": {
           "type": "boolean",
-          "description": "an empty supermodule: its slots name the module_type of each submodule but not the version, for a user (e.g. in PhLynx) to choose. A template cannot be generated; libcuflynx says which slots need a version."
+          "description": "an empty supermodule: its slots name the module_type of each submodule but not the version, for a user (e.g. in PhLynx) to choose. A template cannot be generated; libcuflynx says which slots need a version. Default: false.",
+          "default": false
         },
         "routes": {
           "type": "object",
@@ -350,7 +351,8 @@
                     "minItems": 1
                   }
                 ]
-              }
+              },
+              "description": "{port_type: submodule or [submodules]}: where a host upstream of the supermodule (it is in their out list) connects, through that port type."
             },
             "outputs": {
               "type": "object",
@@ -367,7 +369,8 @@
                     "minItems": 1
                   }
                 ]
-              }
+              },
+              "description": "{port_type: submodule or [submodules]}: where a host downstream of the supermodule (it is in their inp list) connects, through that port type."
             }
           },
           "description": "port_type -> the submodule(s) a host connected to the supermodule is linked to through that port type: \"inputs\" for hosts upstream (the supermodule is in their out list), \"outputs\" for hosts downstream. Lets a model connect to the supermodule as one vessel, e.g. {\"inputs\": {\"vessel_port\": \"C\"}, \"outputs\": {\"vessel_port\": \"I\", \"volume_port\": \"C\"}}."
@@ -481,7 +484,33 @@
             ]
           }
         ]
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "template": {
+                  "const": true
+                }
+              },
+              "required": [
+                "template"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "submodules": {
+                "items": {
+                  "$ref": "#/$defs/record"
+                }
+              }
+            }
+          },
+          "description": "Only a template (\"template\": true) may have open slots (submodules without a version)."
+        }
+      ]
     },
     "entry": {
       "oneOf": [
@@ -731,7 +760,8 @@
           "description": "the versions (module_subtype) of module_type that fit; default: any"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Free text: what the slot is for. Not read."
         },
         "inp_instances": {
           "$ref": "#/$defs/nameList"
