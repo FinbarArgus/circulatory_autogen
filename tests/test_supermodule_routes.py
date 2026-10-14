@@ -168,3 +168,15 @@ def test_an_output_must_name_a_submodule():
             'outputs': {'u': 'nope/u'},
             'submodules': [{'name': 'C', 'module_type': 'compliance', 'module_subtype': 'vv',
                             'inp_instances': [], 'out_instances': []}]})
+
+
+def test_the_schema_allows_open_slots_in_a_template_only():
+    jsonschema = pytest.importorskip('jsonschema')
+    from libcuflynx.schemas import MODULE_CONFIG_SCHEMA, load_schema
+    validator = jsonschema.Draft202012Validator(load_schema(MODULE_CONFIG_SCHEMA))
+    entry = {'module_type': 'lumped', 'module_subtype': 'vp_x', 'module_format': 'supermodule',
+             'submodules': [{'name': 'C', 'module_type': 'compliance', 'inp_instances': [],
+                             'out_instances': []}]}
+    assert not validator.is_valid([entry])
+    assert validator.is_valid([dict(entry, template=True)])
+    normalise_supermodule_entry(dict(entry, template=True))
